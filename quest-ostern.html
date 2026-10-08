@@ -1,0 +1,970 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<title>Acis Eiersuche</title>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,wght@0,400;0,500;1,400&family=Karla:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  /* =====================================================================
+     ACIS EIERSUCHE — Wimmelbild mit Rätseln
+     Alles Inhaltliche (Räume, Eier, bewegliche Teile, Rätsel) steht unten
+     im Script unter „DATEN". Bilder später über `bild:` pro Raum einsetzen.
+     Ausrichtemodus: Seite mit ?editor=1 aufrufen -> Klick zeigt Koordinaten.
+     ===================================================================== */
+  :root {
+    --nacht: #0f1a12;
+    --nacht-tief: #0a120c;
+    --panel-rand: #3a5a44;
+    --gold: #c89248;
+    --gold-hell: #f4d484;
+    --cream: #f4ead0;
+    --tinte: #1e2a1a;
+    --tinte-hell: #6a8a5a;
+    --himmel-text: #a8c8b0;
+    --gruen: #9ee493;
+    --rot: #e08a8a;
+    --serif: "Fraunces", Georgia, serif;
+    --sans: "Karla", -apple-system, system-ui, sans-serif;
+  }
+  /* --- Touch-Härtung iOS --- */
+  html, body {
+    touch-action: manipulation;
+    -webkit-user-select: none; -moz-user-select: none; user-select: none;
+    -webkit-touch-callout: none;
+    -webkit-tap-highlight-color: transparent;
+    overscroll-behavior: none;
+  }
+  input { -webkit-user-select: text; user-select: text; }
+
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; background: var(--nacht); font-family: var(--sans); color: var(--cream); height: 100%; overflow: hidden; }
+  .app { position: relative; width: 100%; height: 100vh; height: 100dvh; display: flex; flex-direction: column; overflow: hidden; }
+
+  /* ---------- Kopfzeile ---------- */
+  .kopf { display: flex; align-items: center; gap: 10px; padding: 8px 12px; background: rgba(10,18,12,0.92); border-bottom: 1px solid var(--panel-rand); z-index: 20; flex-wrap: wrap; }
+  .zaehler { font-family: var(--serif); font-size: 20px; color: var(--gold-hell); min-width: 64px; }
+  .zaehler small { font-size: 12px; color: var(--himmel-text); font-family: var(--sans); }
+  .uhr { font-size: 13px; color: var(--himmel-text); font-variant-numeric: tabular-nums; }
+  .raeume { display: flex; gap: 6px; margin-left: auto; flex-wrap: wrap; }
+  .raum-knopf { font: inherit; font-size: 12px; font-weight: 600; padding: 6px 10px; border-radius: 6px; border: 1px solid var(--panel-rand); background: rgba(58,90,68,0.25); color: var(--cream); cursor: pointer; white-space: nowrap; }
+  .raum-knopf.aktiv { background: var(--gold); color: var(--tinte); border-color: var(--gold-hell); }
+  .raum-knopf.gesperrt { opacity: 0.5; }
+  .raum-knopf .fertig-punkt { color: var(--gruen); margin-left: 4px; }
+  .hinweis-knopf { font: inherit; font-size: 12px; padding: 6px 10px; border-radius: 6px; border: 1px solid var(--gold); background: transparent; color: var(--gold-hell); cursor: pointer; }
+  .hinweis-knopf:disabled { opacity: 0.4; cursor: default; }
+
+  /* ---------- Bühne mit Zoom ---------- */
+  .buehne { position: relative; flex: 1; overflow: hidden; background: var(--nacht-tief); touch-action: none; cursor: grab; }
+  .buehne.zieht { cursor: grabbing; }
+  .welt { position: absolute; left: 0; top: 0; width: 1600px; height: 900px; transform-origin: 0 0; will-change: transform; }
+  .welt svg { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+  .welt .bild { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: fill; }
+  .teil { cursor: pointer; }
+  .ei-treffer { fill: transparent; cursor: pointer; }
+  .ei.gefunden .ei-form { opacity: 0.25; }
+  .ei.gefunden .ei-treffer { cursor: default; }
+  .ei.versteckt { display: none; }
+  .zoom-hinweis { position: absolute; right: 10px; bottom: 10px; font-size: 11px; color: var(--himmel-text); background: rgba(10,18,12,0.7); padding: 4px 8px; border-radius: 6px; pointer-events: none; z-index: 5; }
+  .zoom-knoepfe { position: absolute; left: 10px; bottom: 10px; display: flex; gap: 6px; z-index: 5; }
+  .zoom-knoepfe button { width: 36px; height: 36px; border-radius: 8px; border: 1px solid var(--panel-rand); background: rgba(10,18,12,0.85); color: var(--cream); font-size: 18px; cursor: pointer; }
+
+  /* ---------- Aci-Dialog ---------- */
+  .dialog { position: absolute; left: 50%; bottom: 56px; transform: translateX(-50%) translateY(10px); max-width: min(92%, 520px); background: var(--cream); color: var(--tinte); padding: 12px 16px; border-radius: 12px; font-size: 14px; line-height: 1.5; box-shadow: 0 10px 30px rgba(0,0,0,0.5); opacity: 0; pointer-events: none; transition: opacity 0.25s, transform 0.25s; z-index: 15; }
+  .dialog.zeig { opacity: 1; transform: translateX(-50%) translateY(0); }
+  .dialog .wer { font-family: var(--serif); font-style: italic; color: var(--tinte-hell); margin-right: 6px; }
+
+  /* ---------- Fund-Effekt ---------- */
+  .fund { position: absolute; pointer-events: none; z-index: 14; font-family: var(--serif); font-size: 22px; color: var(--gold-hell); text-shadow: 0 2px 8px rgba(0,0,0,0.6); animation: fund-auf 1s ease-out forwards; }
+  @keyframes fund-auf { 0% { opacity: 0; transform: translate(-50%, 0) scale(0.6); } 20% { opacity: 1; transform: translate(-50%, -10px) scale(1.1); } 100% { opacity: 0; transform: translate(-50%, -50px) scale(1); } }
+
+  /* ---------- Modale ---------- */
+  .modal { position: absolute; inset: 0; background: rgba(5,10,7,0.78); display: none; align-items: center; justify-content: center; z-index: 30; padding: 20px; }
+  .modal.show { display: flex; }
+  .modal-box { background: var(--cream); color: var(--tinte); border-radius: 14px; padding: 22px; max-width: 440px; width: 100%; box-shadow: 0 20px 60px rgba(0,0,0,0.6); }
+  .modal-box h3 { font-family: var(--serif); margin: 0 0 8px; font-weight: 500; font-size: 20px; }
+  .modal-box p { margin: 0 0 12px; line-height: 1.55; font-size: 14.5px; }
+  .modal-box .frage { font-family: var(--serif); font-style: italic; font-size: 16px; color: #2e3e28; background: #e8e0c8; padding: 12px 14px; border-radius: 8px; margin-bottom: 14px; }
+  .modal-box input { width: 100%; font: inherit; font-size: 16px; padding: 10px 12px; border: 1px solid #b8ad90; border-radius: 8px; background: #fff; color: var(--tinte); margin-bottom: 8px; }
+  .modal-box .fehler { color: #a03030; font-size: 13px; min-height: 18px; margin: 0 0 8px; }
+  .knopf-reihe { display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; }
+  .knopf { background: var(--gold); color: var(--tinte); border: 1px solid var(--gold-hell); padding: 11px 24px; border-radius: 8px; font-size: 15px; font-weight: 600; font-family: var(--sans); cursor: pointer; }
+  .knopf.sekundaer { background: transparent; color: var(--himmel-text); border-color: var(--panel-rand); }
+  .modal-box .knopf.sekundaer { color: var(--tinte-hell); border-color: #b8ad90; }
+
+  /* ---------- Screens ---------- */
+  .screen { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 24px; z-index: 40; text-align: center; background: rgba(10,18,12,0.88); transition: opacity 0.4s, visibility 0.4s; }
+  .screen.hidden { opacity: 0; visibility: hidden; pointer-events: none; }
+  .screen h1 { font-family: var(--serif); font-size: clamp(26px, 5vw, 38px); font-weight: 500; margin: 0 0 6px; }
+  .screen h1 em { font-style: italic; color: var(--gold-hell); }
+  .untertitel { color: var(--himmel-text); font-size: 14px; margin: 0 0 20px; }
+  .intro-text { max-width: 460px; font-size: 14.5px; line-height: 1.65; margin: 0 0 22px; }
+  .intro-text em { font-family: var(--serif); font-style: italic; color: var(--gold-hell); }
+  .regeln { max-width: 460px; font-size: 13px; color: var(--himmel-text); line-height: 1.6; text-align: left; margin: 0 0 22px; }
+  .regeln b { color: var(--cream); }
+  .ergebnis-zahl { font-family: var(--serif); font-size: 44px; color: var(--gold-hell); margin: 0; }
+  .ergebnis-label { color: var(--himmel-text); font-size: 13px; margin: 0 0 18px; }
+  .eintrag { display: flex; gap: 8px; flex-wrap: wrap; justify-content: center; margin: 0 0 14px; }
+  .eintrag input { font: inherit; font-size: 15px; padding: 10px 12px; border-radius: 8px; border: 1px solid var(--panel-rand); background: #1a2a1e; color: var(--cream); width: 180px; text-transform: uppercase; }
+  .eintrag-fehler { color: var(--rot); font-size: 13px; min-height: 18px; margin: 0 0 8px; }
+  .rangliste { max-width: 360px; width: 100%; margin: 0 0 18px; }
+  .rang-zeile { display: flex; gap: 10px; padding: 5px 10px; font-size: 14px; border-bottom: 1px solid rgba(58,90,68,0.4); }
+  .rang-zeile .platz { color: var(--himmel-text); width: 26px; }
+  .rang-zeile .name { flex: 1; text-align: left; }
+  .rang-zeile .pkt { font-variant-numeric: tabular-nums; }
+  .rang-zeile.top1 { color: var(--gold-hell); }
+  .rang-zeile.eigener { background: rgba(200,146,72,0.18); }
+  .rang-laedt { color: var(--himmel-text); font-size: 13px; }
+
+  /* ---------- Ausrichtemodus ---------- */
+  .editor { position: absolute; left: 10px; top: 10px; z-index: 50; background: rgba(0,0,0,0.85); color: #9ee493; font: 12px/1.5 ui-monospace, Menlo, Consolas, monospace; padding: 8px 10px; border-radius: 8px; max-width: 320px; display: none; white-space: pre-wrap; }
+  .editor.an { display: block; }
+  .editor-kreuz { position: absolute; width: 14px; height: 14px; border: 2px solid #ff3cff; border-radius: 50%; transform: translate(-50%, -50%); pointer-events: none; z-index: 49; display: none; }
+</style>
+</head>
+<body>
+<div class="app">
+  <div class="kopf">
+    <span class="zaehler"><span id="z-gefunden">0</span><small>/<span id="z-gesamt">20</span></small></span>
+    <span class="uhr" id="uhr">00:00</span>
+    <button class="hinweis-knopf" id="hinweis-knopf">Hinweis (3)</button>
+    <button class="hinweis-knopf" id="nah-zurueck" style="display:none">← Zurück in den Raum</button>
+    <div class="raeume" id="raeume"></div>
+  </div>
+
+  <div class="buehne" id="buehne">
+    <div class="welt" id="welt"></div>
+    <div class="editor-kreuz" id="editor-kreuz"></div>
+    <div class="zoom-knoepfe">
+      <button id="zoom-minus" aria-label="Verkleinern">−</button>
+      <button id="zoom-plus" aria-label="Vergrössern">+</button>
+      <button id="zoom-reset" aria-label="Zurücksetzen">⤢</button>
+    </div>
+    <div class="zoom-hinweis">Pinch oder Mausrad zum Zoomen · Ziehen zum Verschieben</div>
+    <div class="dialog" id="dialog"><span class="wer" id="dialog-wer">Aci</span><span id="dialog-text"></span></div>
+    <div class="editor" id="editor"></div>
+  </div>
+
+  <!-- Rätsel-Modal -->
+  <div class="modal" id="raetsel-modal">
+    <div class="modal-box">
+      <h3 id="raetsel-titel">Rätsel</h3>
+      <div class="frage" id="raetsel-frage"></div>
+      <input type="text" id="raetsel-input" autocomplete="off" placeholder="Antwort">
+      <p class="fehler" id="raetsel-fehler"></p>
+      <div class="knopf-reihe">
+        <button class="knopf" id="raetsel-ok">Prüfen</button>
+        <button class="knopf sekundaer" id="raetsel-abbruch">Später</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Zettel-/Info-Modal -->
+  <div class="modal" id="info-modal">
+    <div class="modal-box">
+      <h3 id="info-titel"></h3>
+      <p id="info-text"></p>
+      <div class="knopf-reihe"><button class="knopf sekundaer" id="info-zu">Weglegen</button></div>
+    </div>
+  </div>
+
+  <!-- Intro -->
+  <div class="screen" id="screen-intro">
+    <h1>Acis <em>Eiersuche</em></h1>
+    <p class="untertitel">Zwanzig Eier. Fünf Räume. Keine Gnade.</p>
+    <p class="intro-text">Aci lehnt im Türrahmen und grinst. <em>„Anfisa hat sie versteckt. Alle zwanzig. Und ich sag dir gleich: Sie hat es ernst gemeint. Manche siehst du nur, wenn du ganz nah rangehst. Manche nur, wenn du was öffnest. Und für ein paar musst du nachdenken."</em></p>
+    <div class="regeln">
+      <b>Zoomen</b> mit zwei Fingern oder Mausrad — die kleinen sind wirklich klein.<br>
+      <b>Antippen</b>, was sich öffnen lässt: Schubladen, Türen, Kissen, Vorhänge.<br>
+      <b>Rätsel</b> öffnen Orte, die sonst verschlossen bleiben.<br>
+      <b>Drei Hinweise</b> hast du. Mehr nicht.
+    </div>
+    <button class="knopf" id="start-knopf">Suchen</button>
+  </div>
+
+  <!-- Ende -->
+  <div class="screen hidden" id="screen-ende">
+    <p class="ergebnis-zahl" id="ende-zeit">00:00</p>
+    <p class="ergebnis-label">für alle zwanzig Eier</p>
+    <p class="intro-text" id="ende-text"></p>
+    <div class="eintrag" id="eintrag-bereich">
+      <input type="text" id="name-input" maxlength="12" placeholder="Dein Name">
+      <button class="knopf" id="eintragen-knopf">In Bestenliste eintragen</button>
+    </div>
+    <p class="eintrag-fehler" id="eintrag-fehler"></p>
+    <div class="rangliste" id="rangliste"></div>
+    <div class="knopf-reihe">
+      <a class="knopf" href="index.html">Zurück</a>
+      <button class="knopf sekundaer" id="reset-knopf">Nochmal von vorn</button>
+    </div>
+  </div>
+</div>
+
+<script>
+(function() {
+  'use strict';
+
+  // =====================================================================
+  // EINSTELLUNGEN
+  // =====================================================================
+  const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwxKRKsfh_2YFkS5a5kpDYWSQImA1lEq3ndnVJj4YpPqWcLrqmUinp-l4WA93e5U79MPA/exec';
+  const SPIEL_ID = 'ostern';
+  const SPEICHER_KEY = 'ostern_fortschritt';
+  const HINWEISE_GESAMT = 3;
+  const EDITOR = /[?&]editor=1/.test(location.search);
+
+  // =====================================================================
+  // DATEN — Räume, bewegliche Teile, Eier, Rätsel
+  //
+  // Koordinaten: Welt ist 1600 x 900 (x nach rechts, y nach unten).
+  // Mit ?editor=1 zeigt jeder Klick die Koordinaten an.
+  //
+  // Raum:    { id, name, bild (URL oder '' = Platzhalter), gesperrtBis (Zustand-Key oder null) }
+  // Teil:    { id, raum, x, y, w, h, typ: 'toggle'|'raetsel'|'code'|'info'|'schalter', zustand (Key),
+  //            label, ...rätselfelder }
+  // Ei:      { id, raum, x, y, r, farbe, muster, ebene: 1|2|3, sichtbarWenn: Zustand-Key oder null,
+  //            hinten: true = liegt hinter Möbeln (wird teilweise verdeckt) }
+  // =====================================================================
+  const RAEUME = [
+    // bild = geschlossen, bildOffen = alles offen (Ausschnitte werden daraus eingeblendet), breite/hoehe = Bildpixel
+    { id: 'garage',     name: 'Garage',     bild: 'bilder/garage-zu.png', bildOffen: 'bilder/garage-offen.png', breite: 1774, hoehe: 887, gesperrtBis: null },
+    { id: 'wohnzimmer', name: 'Wohnzimmer', bild: '', gesperrtBis: null },
+    { id: 'kueche',     name: 'Küche',      bild: '', gesperrtBis: null },
+    { id: 'garten',     name: 'Garten',     bild: '', gesperrtBis: null },
+    { id: 'keller',     name: 'Keller',     bild: '', gesperrtBis: 'keller_offen' }
+  ];
+
+  const TEILE = [
+    // --- Garage (Koordinaten im Bild 1774 x 887) ---
+    // typ 'ausschnitt': Antippen blendet diesen Bereich aus bildOffen ein. nah = Bild der Nahaufnahme (später).
+    { id: 'g_akten',   raum: 'garage', x: 88,   y: 428, w: 165, h: 85,  typ: 'ausschnitt', zustand: 'akten_offen',  label: 'Aktenschrank-Schublade', nah: '' },
+    { id: 'g_tuer',    raum: 'garage', x: 318,  y: 588, w: 135, h: 255, typ: 'ausschnitt', zustand: 'tuer_offen',   label: 'Grüner Unterschrank',    nah: '' },
+    { id: 'g_blau',    raum: 'garage', x: 536,  y: 586, w: 170, h: 70,  typ: 'ausschnitt', zustand: 'blau_offen',   label: 'Blauer Rollcontainer',   nah: '' },
+    { id: 'g_steck',   raum: 'garage', x: 1096, y: 668, w: 215, h: 85,  typ: 'ausschnitt', zustand: 'steck_offen',  label: 'Steckschlüssel-Schublade', nah: '' },
+    { id: 'g_wagen',   raum: 'garage', x: 1330, y: 584, w: 318, h: 258, typ: 'ausschnitt', zustand: 'wagen_offen',  label: 'Roter Werkstattwagen',   nah: '' },
+    { id: 'g_zettel',  raum: 'garage', x: 1055, y: 12,  w: 180, h: 112, typ: 'info', label: 'Zeichnung an der Wand',
+      titel: 'Notiz am Rand der Zeichnung', text: '„Aci — der Code für die Kellertür: Zähl die Fenster im Haus und nimm das Jahr, in dem wir eingezogen sind. Wenn du das nicht weisst, hast du nicht zugehört." — Anfisa' },
+    // --- Wohnzimmer ---
+    { id: 'w_kissen',   raum: 'wohnzimmer', x: 220,  y: 520, w: 420, h: 110, typ: 'toggle', form: 'kissen', zustand: 'kissen_weg',    label: 'Sofakissen' },
+    { id: 'w_bild',     raum: 'wohnzimmer', x: 1000, y: 180, w: 260, h: 200, typ: 'toggle', form: 'bild', zustand: 'bild_gedreht',  label: 'Bild an der Wand' },
+    { id: 'w_vorhang',  raum: 'wohnzimmer', x: 1320, y: 120, w: 220, h: 560, typ: 'toggle', form: 'vorhang', zustand: 'vorhang_auf',   label: 'Vorhang' },
+    { id: 'w_raetsel1', raum: 'wohnzimmer', x: 700,  y: 560, w: 180, h: 90,  typ: 'raetsel', zustand: 'truhe_offen', label: 'Verschlossene Truhe',
+      titel: 'Die Truhe', frage: '[RÄTSEL 1 — Platzhalter] Welche Figur hat im letzten Jahr geheiratet? (Vorname)', antworten: ['abeena', 'logan'] },
+    // --- Küche ---
+    { id: 'k_kuehl',    raum: 'kueche', x: 1180, y: 220, w: 220, h: 470, typ: 'toggle', form: 'tuer', zustand: 'kuehl_offen',  label: 'Kühlschrank' },
+    { id: 'k_ofen',     raum: 'kueche', x: 560,  y: 520, w: 260, h: 160, typ: 'toggle', form: 'klappe', zustand: 'ofen_offen',   label: 'Backofen' },
+    { id: 'k_ober',     raum: 'kueche', x: 200,  y: 150, w: 480, h: 170, typ: 'toggle', form: 'tuer', zustand: 'ober_offen',   label: 'Oberschrank' },
+    { id: 'k_raetsel2', raum: 'kueche', x: 900,  y: 120, w: 200, h: 120, typ: 'raetsel', zustand: 'rezept_geloest', label: 'Rezeptbuch',
+      titel: 'Das Rezeptbuch', frage: '[RÄTSEL 2 — Platzhalter] Wie heisst das Magazin der SimsWelt? (ein Wort)', antworten: ['simswelt', 'simswelt news'] },
+    // --- Garten ---
+    { id: 'r_busch',    raum: 'garten', x: 120,  y: 480, w: 300, h: 240, typ: 'toggle', form: 'busch', zustand: 'busch_geteilt', label: 'Busch' },
+    { id: 'r_vogel',    raum: 'garten', x: 1250, y: 180, w: 120, h: 130, typ: 'toggle', form: 'klappe', zustand: 'vogelhaus_offen', label: 'Vogelhaus' },
+    { id: 'r_giess',    raum: 'garten', x: 760,  y: 620, w: 150, h: 110, typ: 'toggle', form: 'kippen', zustand: 'kanne_gekippt', label: 'Giesskanne' },
+    { id: 'r_sonnenuhr', raum: 'garten', x: 880, y: 300, w: 180, h: 180, typ: 'raetsel', zustand: 'sonnenuhr_geloest', label: 'Sonnenuhr',
+      titel: 'Die Sonnenuhr', frage: '[RÄTSEL 3 — Platzhalter] Wer ist Blazes Halbbruder?', antworten: ['delsyn'] },
+    { id: 'r_tuer',     raum: 'garten', x: 1420, y: 400, w: 140, h: 300, typ: 'code', zustand: 'keller_offen', label: 'Kellertür',
+      titel: 'Kellertür', frage: 'Ein Zahlenschloss. Vier Ziffern.', code: '2412' },
+    // --- Keller ---
+    { id: 'e_kiste',    raum: 'keller', x: 200,  y: 560, w: 260, h: 180, typ: 'toggle', form: 'klappe', zustand: 'kiste_offen',   label: 'Holzkiste' },
+    { id: 'e_sicher',   raum: 'keller', x: 1300, y: 160, w: 140, h: 200, typ: 'raetsel', zustand: 'sicherung_geloest', label: 'Sicherungskasten',
+      titel: 'Der Sicherungskasten', frage: '[RÄTSEL 4 — Platzhalter] Welche Nummer hatte die erste Magazin-Ausgabe, die 2026 erschien?', antworten: ['28'] },
+    { id: 'e_tresor',   raum: 'keller', x: 760,  y: 380, w: 200, h: 220, typ: 'raetsel', zustand: 'tresor_offen', label: 'Tresor',
+      titel: 'Der Tresor', frage: '[RÄTSEL 5 — Platzhalter] Ich habe Zähne, aber beisse nicht. Ich habe Zacken, aber schneide nicht. Was bin ich?', antworten: ['schlüssel', 'schluessel', 'kamm', 'zahnrad'] }
+  ];
+
+  // 20 Eier: 8 getarnt (Ebene 1), 7 verschlossen (Ebene 2), 5 Rätsel (Ebene 3)
+  const EIER = [
+    // --- Ebene 1: sichtbar, getarnt ---
+    { id: 'e01', raum: 'garage',     x: 1452, y: 243, r: 7,  farbe: '#6f4d37', muster: 'punkte',   ebene: 1, sichtbarWenn: null },  // Regal oben zwischen den Dosen
+    { id: 'e02', raum: 'garage',     x: 760,  y: 780, r: 7,  farbe: '#8b460b', muster: 'streifen', ebene: 1, sichtbarWenn: null },  // auf der Holzkiste
+    { id: 'e05', raum: 'garage',     x: 1395, y: 432, r: 6,  farbe: '#27282c', muster: 'zickzack', ebene: 1, sichtbarWenn: null },  // im Schubladenkasten
+    { id: 'e08', raum: 'garage',     x: 600,  y: 860, r: 7,  farbe: '#8b613b', muster: 'punkte',   ebene: 1, sichtbarWenn: null },  // Boden vor dem blauen Container
+    { id: 'e04', raum: 'wohnzimmer', x: 1046, y: 760, r: 9,  farbe: '#6b4a32', muster: 'punkte', ebene: 1, sichtbarWenn: null, hinten: true },
+    { id: 'e03', raum: 'kueche',     x: 1560, y: 846, r: 9,  farbe: '#9a9a90', muster: 'streifen', ebene: 1, sichtbarWenn: null },
+    { id: 'e06', raum: 'garten',     x: 1044, y: 846, r: 8,  farbe: '#4e7a3e', muster: 'punkte', ebene: 1, sichtbarWenn: null },
+    { id: 'e07', raum: 'garten',     x: 24,   y: 212, r: 7,  farbe: '#8fb9d9', muster: 'zickzack', ebene: 1, sichtbarWenn: null },
+    // --- Ebene 2: nur nach Öffnen sichtbar ---
+    { id: 'e09', raum: 'garage',     x: 170,  y: 470, r: 8,  farbe: '#5a5337', muster: 'streifen', ebene: 2, sichtbarWenn: 'akten_offen' },  // in der Aktenschrank-Schublade
+    { id: 'e10', raum: 'garage',     x: 618,  y: 618, r: 8,  farbe: '#2a1a12', muster: 'punkte',   ebene: 2, sichtbarWenn: 'blau_offen' },   // in der blauen Schublade
+    { id: 'e11', raum: 'garage',     x: 1195, y: 708, r: 8,  farbe: '#493e36', muster: 'zickzack', ebene: 2, sichtbarWenn: 'steck_offen' },  // zwischen den Steckschlüsseln
+    { id: 'e12', raum: 'wohnzimmer', x: 480,  y: 575, r: 12, farbe: '#e0c080', muster: 'punkte', ebene: 2, sichtbarWenn: 'kissen_weg' },
+    { id: 'e13', raum: 'wohnzimmer', x: 1130, y: 280, r: 11, farbe: '#b88ad0', muster: 'streifen', ebene: 2, sichtbarWenn: 'bild_gedreht' },
+    { id: 'e14', raum: 'kueche',     x: 1290, y: 420, r: 12, farbe: '#f0f0e0', muster: 'punkte', ebene: 2, sichtbarWenn: 'kuehl_offen' },
+    { id: 'e15', raum: 'garten',     x: 1310, y: 250, r: 11, farbe: '#d08a5a', muster: 'zickzack', ebene: 2, sichtbarWenn: 'vogelhaus_offen' },
+    // --- Ebene 3: nur nach Rätsel sichtbar ---
+    { id: 'e16', raum: 'wohnzimmer', x: 790,  y: 600, r: 13, farbe: '#f4d484', muster: 'streifen', ebene: 3, sichtbarWenn: 'truhe_offen' },
+    { id: 'e17', raum: 'kueche',     x: 1000, y: 180, r: 13, farbe: '#f4d484', muster: 'punkte', ebene: 3, sichtbarWenn: 'rezept_geloest' },
+    { id: 'e18', raum: 'garten',     x: 970,  y: 390, r: 13, farbe: '#f4d484', muster: 'zickzack', ebene: 3, sichtbarWenn: 'sonnenuhr_geloest' },
+    { id: 'e19', raum: 'keller',     x: 1370, y: 260, r: 12, farbe: '#f4d484', muster: 'streifen', ebene: 3, sichtbarWenn: 'sicherung_geloest' },
+    { id: 'e20', raum: 'keller',     x: 860,  y: 490, r: 14, farbe: '#f4d484', muster: 'punkte', ebene: 3, sichtbarWenn: 'tresor_offen' }
+  ];
+
+  // Eier, die nach Öffnen eines Dunkel-Bereichs erst erkennbar sind: Garage-Ecke ist dunkel bis Licht an
+  const DUNKEL = [];   // Beispiel: { raum: 'keller', x: 0, y: 0, w: 800, h: 900, hellWenn: 'keller_licht' }
+
+  // Aci-Sprüche bei Meilensteinen
+  const SPRUECHE = {
+    1:  'Eins. Nur noch neunzehn. Ich hol mir einen Kaffee.',
+    5:  'Fünf. Die leichten sind jetzt durch, nehm ich an.',
+    10: 'Halbzeit. Anfisa hat gesagt, ab hier wird es gemein.',
+    15: 'Fünfzehn. Hast du schon mal was geöffnet? Nur so eine Idee.',
+    19: 'Neunzehn. Das letzte ist das, auf das sie am stolzesten ist.',
+    20: 'Zwanzig. Alle. Anfisa wird sauer sein — sie hatte auf dich gewettet.'
+  };
+  const ENDE_TEXT = 'Aci sammelt die Eier in einem Korb ein, den er irgendwo aus dem Keller gezogen hat. „Weisst du, was das Beste ist? Sie hat Fotos von jedem Versteck gemacht. Falls du eins nicht findest. Die zeig ich ihr jetzt. Alle zwanzig abgehakt."';
+
+  // =====================================================================
+  // ZUSTAND
+  // =====================================================================
+  const zustand = {
+    gefunden: [],          // Ei-IDs
+    offen: {},             // Zustand-Keys -> true/false
+    hinweise: HINWEISE_GESAMT,
+    zeit: 0,               // Sekunden
+    raum: 'garage',
+    nah: null,             // Teil-ID, dessen Nahaufnahme gerade offen ist
+    laeuft: false,
+    fertig: false
+  };
+  let zuletztGesagt = 0;
+
+  function speicherLesen() { try { return JSON.parse(localStorage.getItem(SPEICHER_KEY) || 'null'); } catch (e) { return null; } }
+  function speichern() {
+    try {
+      localStorage.setItem(SPEICHER_KEY, JSON.stringify({
+        gefunden: zustand.gefunden, offen: zustand.offen, hinweise: zustand.hinweise, zeit: zustand.zeit, raum: zustand.raum, nah: zustand.nah, fertig: zustand.fertig
+      }));
+    } catch (e) {}
+  }
+  function fortschrittLaden() {
+    const s = speicherLesen();
+    if (!s) return false;
+    zustand.gefunden = Array.isArray(s.gefunden) ? s.gefunden : [];
+    zustand.offen = s.offen || {};
+    zustand.hinweise = typeof s.hinweise === 'number' ? s.hinweise : HINWEISE_GESAMT;
+    zustand.zeit = s.zeit || 0;
+    zustand.raum = s.raum || 'garage';
+    zustand.nah = s.nah || null;
+    zustand.fertig = !!s.fertig;
+    return true;
+  }
+
+  // =====================================================================
+  // PLATZHALTER-RÄUME (SVG-Geometrie) — werden durch deine Bilder ersetzt
+  // =====================================================================
+  function raumHintergrund(raum) {
+    switch (raum) {
+      case 'garage': return `
+        <rect width="1600" height="900" fill="#2b2f36"/>
+        <rect y="640" width="1600" height="260" fill="#3d4148"/>
+        <rect y="636" width="1600" height="6" fill="#23262b"/>
+        <rect x="80" y="520" width="360" height="130" fill="#5a4a38"/><rect x="80" y="510" width="360" height="14" fill="#7a6a52"/>
+        <rect x="110" y="560" width="300" height="60" fill="#4a3c2c" id="form-schub"/>
+        <rect x="560" y="230" width="170" height="440" fill="#5f6672" id="form-spind"/><rect x="565" y="235" width="160" height="430" fill="#6f7784"/>
+        <rect x="800" y="240" width="300" height="340" fill="#3a3f47"/>
+        <rect x="1000" y="470" width="520" height="190" rx="40" fill="#7c2f2f"/><rect x="1060" y="400" width="360" height="110" rx="30" fill="#8f3a3a"/>
+        <rect x="1120" y="420" width="360" height="120" fill="#6a2626" id="form-koffer"/>
+        <circle cx="1090" cy="660" r="48" fill="#1d1d1d"/><circle cx="1430" cy="660" r="48" fill="#1d1d1d"/>
+        <rect x="1480" y="150" width="70" height="110" rx="6" fill="#d8d2c4"/><rect x="1500" y="180" width="30" height="50" rx="4" fill="#8a8477" id="form-licht"/>
+        <rect x="420" y="300" width="90" height="110" fill="#f4ead0" transform="rotate(-5 465 355)"/>
+        <rect x="40" y="800" width="120" height="60" fill="#3b3d3f"/><rect x="190" y="820" width="60" height="40" fill="#2a2c2e"/>
+        <rect x="1300" y="800" width="80" height="20" fill="#4a4f58"/><rect x="1440" y="690" width="110" height="20" fill="#4a4f58"/>`;
+      case 'wohnzimmer': return `
+        <rect width="1600" height="900" fill="#c9b78f"/>
+        <rect y="680" width="1600" height="220" fill="#6b4a32"/>
+        <rect x="180" y="440" width="520" height="240" rx="24" fill="#4d6a8a"/><rect x="200" y="400" width="480" height="80" rx="20" fill="#5a7aa0"/>
+        <rect x="220" y="520" width="420" height="110" rx="18" fill="#7090b4" id="form-kissen"/>
+        <rect x="700" y="560" width="180" height="90" rx="8" fill="#4a3220"/><rect x="700" y="550" width="180" height="20" rx="6" fill="#6a4a30"/>
+        <rect x="1000" y="180" width="260" height="200" fill="#2e3a2a" id="form-bild"/><rect x="1010" y="190" width="240" height="180" fill="#8aa870"/>
+        <rect x="1320" y="120" width="220" height="560" fill="#8a3a3a" id="form-vorhang"/>
+        <rect x="1330" y="140" width="200" height="520" fill="#9a4a4a"/>
+        <rect x="40" y="300" width="60" height="380" fill="#7a7148"/><rect x="30" y="290" width="80" height="20" fill="#5a5438"/>
+        <rect x="900" y="740" width="300" height="60" fill="#5a3a26"/>`;
+      case 'kueche': return `
+        <rect width="1600" height="900" fill="#e8e4d8"/>
+        <rect y="700" width="1600" height="200" fill="#9a9a90"/>
+        <rect x="200" y="150" width="480" height="170" fill="#6a7a8a" id="form-ober"/><rect x="200" y="400" width="680" height="300" fill="#7a8a9a"/>
+        <rect x="200" y="390" width="680" height="16" fill="#aab4bd"/>
+        <rect x="560" y="520" width="260" height="160" fill="#2e2e2e" id="form-ofen"/><rect x="580" y="540" width="220" height="120" fill="#3e3e3e"/>
+        <rect x="1180" y="220" width="220" height="470" rx="12" fill="#d8d8d0" id="form-kuehl"/>
+        <rect x="900" y="120" width="200" height="120" fill="#8a5a3a"/><rect x="905" y="125" width="190" height="110" fill="#f4ead0"/>
+        <rect x="1480" y="800" width="100" height="60" fill="#8a8780"/><rect x="180" y="830" width="80" height="40" fill="#7a7870"/>`;
+      case 'garten': return `
+        <rect width="1600" height="900" fill="#9fd0e8"/>
+        <rect y="520" width="1600" height="380" fill="#5f9a46"/>
+        <ellipse cx="270" cy="600" rx="150" ry="120" fill="#3f7a30" id="form-busch"/>
+        <rect x="1250" y="180" width="120" height="130" fill="#8a5a3a" id="form-vogel"/><polygon points="1240,180 1310,120 1380,180" fill="#6a3a2a"/>
+        <circle cx="970" cy="390" r="90" fill="#aaa" id="form-sonnenuhr"/><circle cx="970" cy="390" r="70" fill="#ccc"/>
+        <rect x="760" y="620" width="150" height="110" rx="10" fill="#3a8a3a" id="form-giess"/>
+        <rect x="1420" y="400" width="140" height="300" fill="#4a3a2a" id="form-tuer"/><circle cx="1540" cy="560" r="10" fill="#c8a040"/>
+        <rect x="0" y="180" width="60" height="340" fill="#5a4a3a"/><ellipse cx="30" cy="180" rx="90" ry="70" fill="#4e7a3e"/>
+        <rect x="1000" y="820" width="90" height="40" fill="#4e7a3e"/>`;
+      case 'keller': return `
+        <rect width="1600" height="900" fill="#1e2024"/>
+        <rect y="700" width="1600" height="200" fill="#2a2c30"/>
+        <rect x="200" y="560" width="260" height="180" fill="#5a4a38" id="form-kiste"/>
+        <rect x="1300" y="160" width="140" height="200" fill="#6a6a70" id="form-sicher"/>
+        <rect x="760" y="380" width="200" height="220" fill="#3a3a44" id="form-tresor"/><circle cx="860" cy="490" r="26" fill="#55556a"/>
+        <rect x="0" y="100" width="100" height="600" fill="#2a2a30"/><rect x="1500" y="100" width="100" height="600" fill="#2a2a30"/>`;
+    }
+    return '';
+  }
+
+  // Zeichnet die bewegliche Variante eines Teils (offen / an) als Überlagerung
+  // Offen-Zustand so gezeichnet, dass man erkennt, WAS passiert ist (nur für Platzhalter nötig)
+  function teilOffenForm(teil) {
+    const { x, y, w, h } = teil;
+    const innen = `<rect x="${x}" y="${y}" width="${w}" height="${h}" fill="#1a1a1e"/>
+                   <rect x="${x + 8}" y="${y + 8}" width="${w - 16}" height="${h - 16}" fill="#3a342c"/>
+                   <line x1="${x + 8}" y1="${y + h / 2}" x2="${x + w - 8}" y2="${y + h / 2}" stroke="#55493a" stroke-width="6"/>`;
+    switch (teil.form || teil.typ) {
+      case 'tuer':      // Tür schwingt nach links auf: Innenraum + schmales Türblatt links
+        return innen + `<polygon points="${x},${y} ${x - w * 0.55},${y + 30} ${x - w * 0.55},${y + h - 30} ${x},${y + h}" fill="#8a9099" stroke="#2a2d33" stroke-width="3"/>
+                        <circle cx="${x - w * 0.45}" cy="${y + h / 2}" r="6" fill="#ddd"/>`;
+      case 'schublade': // Schublade fährt nach unten/vorn raus
+        return `<rect x="${x}" y="${y}" width="${w}" height="${h}" fill="#2a2420"/>
+                <rect x="${x - 10}" y="${y + h * 0.5}" width="${w + 20}" height="${h * 1.2}" fill="#6a5a44" stroke="#2a2420" stroke-width="3"/>
+                <rect x="${x}" y="${y + h * 0.6}" width="${w}" height="${h * 0.9}" fill="#3e3326"/>
+                <rect x="${x + w / 2 - 20}" y="${y + h * 1.4}" width="40" height="8" rx="4" fill="#ccc"/>`;
+      case 'klappe':    // Deckel klappt nach oben
+        return innen + `<polygon points="${x},${y} ${x + w},${y} ${x + w - 20},${y - h * 0.9} ${x + 20},${y - h * 0.9}" fill="#7c3a3a" stroke="#2a1a1a" stroke-width="3" opacity="0.95"/>`;
+      case 'kissen':    // Kissen rutscht zur Seite, darunter die Sitzfläche
+        return `<rect x="${x}" y="${y}" width="${w}" height="${h}" rx="18" fill="#3e5a78"/>
+                <rect x="${x + w * 0.55}" y="${y - 40}" width="${w * 0.5}" height="${h}" rx="18" fill="#7090b4" transform="rotate(-12 ${x + w * 0.8} ${y})"/>`;
+      case 'bild':      // Bild hängt schief, Rückseite sichtbar
+        return `<rect x="${x}" y="${y}" width="${w}" height="${h}" fill="#c9b78f"/>
+                <rect x="${x + 10}" y="${y + 10}" width="${w - 20}" height="${h - 20}" fill="#b89a6a" stroke="#4a3a20" stroke-width="4" transform="rotate(8 ${x + w / 2} ${y + h / 2})"/>
+                <text x="${x + w / 2}" y="${y + h / 2 + 6}" font-size="18" fill="#4a3a20" text-anchor="middle" transform="rotate(8 ${x + w / 2} ${y + h / 2})">Rückseite</text>`;
+      case 'vorhang':   // Vorhang zur Seite gerafft, Fenster frei
+        return `<rect x="${x}" y="${y}" width="${w}" height="${h}" fill="#bfe0f0"/>
+                <rect x="${x + 10}" y="${y + 10}" width="${w - 20}" height="${h - 20}" fill="#9fd0e8"/>
+                <rect x="${x + w - 50}" y="${y}" width="50" height="${h}" rx="20" fill="#8a3a3a"/>`;
+      case 'busch':     // Zweige auseinander, Erde sichtbar
+        return `<ellipse cx="${x + w / 2}" cy="${y + h / 2}" rx="${w * 0.42}" ry="${h * 0.42}" fill="#2a5a20"/>
+                <ellipse cx="${x + w * 0.2}" cy="${y + h / 2}" rx="${w * 0.22}" ry="${h * 0.45}" fill="#3f7a30"/>
+                <ellipse cx="${x + w * 0.8}" cy="${y + h / 2}" rx="${w * 0.22}" ry="${h * 0.45}" fill="#3f7a30"/>
+                <ellipse cx="${x + w / 2}" cy="${y + h * 0.8}" rx="${w * 0.25}" ry="${h * 0.12}" fill="#5a4030"/>`;
+      case 'kippen':    // Kanne liegt gekippt
+        return `<rect x="${x}" y="${y}" width="${w}" height="${h}" rx="10" fill="#5f9a46"/>
+                <rect x="${x}" y="${y + h * 0.3}" width="${w}" height="${h * 0.7}" rx="10" fill="#3a8a3a" transform="rotate(-35 ${x + w / 2} ${y + h})"/>`;
+      case 'schalter':
+        return `<rect x="${x + 20}" y="${y + 30}" width="30" height="50" rx="4" fill="#f4d484"/>`;
+      case 'raetsel': case 'code':
+        return `<rect x="${x}" y="${y}" width="${w}" height="${h}" fill="#f4d484" opacity="0.25"/>
+                <text x="${x + w / 2}" y="${y + h + 22}" font-size="16" fill="#f4d484" text-anchor="middle">gelöst</text>`;
+    }
+    return '';
+  }
+
+  // Beschriftung der Platzhalter — fällt weg, sobald echte Bilder da sind
+  function teilBeschriftung(teil) {
+    return `<text x="${teil.x + teil.w / 2}" y="${teil.y - 8}" font-size="15" fill="rgba(255,255,255,0.55)" text-anchor="middle" font-family="sans-serif" style="pointer-events:none">${teil.label}</text>`;
+  }
+
+  function eiForm(ei) {
+    const rx = ei.r, ry = ei.r * 1.3;
+    const pid = 'm_' + ei.id;
+    let muster = '';
+    if (ei.muster === 'punkte') muster = `<circle cx="2" cy="2" r="1.2" fill="rgba(255,255,255,0.35)"/>`;
+    if (ei.muster === 'streifen') muster = `<rect width="6" height="1.5" fill="rgba(255,255,255,0.3)"/>`;
+    if (ei.muster === 'zickzack') muster = `<path d="M0 3 L2 0 L4 3" stroke="rgba(255,255,255,0.35)" stroke-width="0.8" fill="none"/>`;
+    return `
+      <g class="ei" data-ei="${ei.id}" transform="translate(${ei.x},${ei.y})">
+        <defs><pattern id="${pid}" width="6" height="6" patternUnits="userSpaceOnUse">${muster}</pattern></defs>
+        <ellipse class="ei-form" cx="0" cy="0" rx="${rx}" ry="${ry}" fill="${ei.farbe}" stroke="rgba(0,0,0,0.25)" stroke-width="0.8"/>
+        <ellipse class="ei-form" cx="0" cy="0" rx="${rx}" ry="${ry}" fill="url(#${pid})"/>
+        <circle class="ei-treffer" cx="0" cy="0" r="${Math.max(18, rx * 2.2)}"/>
+      </g>`;
+  }
+
+  // =====================================================================
+  // RAUM RENDERN
+  // =====================================================================
+  const welt = document.getElementById('welt');
+  let RW = 1600, RH = 900;   // Grösse der aktuellen Ansicht in Bildpixeln
+  function aktuelleAnsicht() {
+    // Nahaufnahme eines Teils oder der Raum selbst
+    if (zustand.nah) {
+      const t = TEILE.find(x => x.id === zustand.nah);
+      if (t && t.nah) return { id: t.raum, nahTeil: t.id, bild: t.nah, bildOffen: '', breite: t.nahBreite || 1600, hoehe: t.nahHoehe || 900 };
+      zustand.nah = null;
+    }
+    return RAEUME.find(r => r.id === zustand.raum);
+  }
+  function renderRaum() {
+    const raum = aktuelleAnsicht();
+    const nahTeil = raum.nahTeil || null;
+    RW = raum.breite || 1600; RH = raum.hoehe || 900;
+    welt.style.width = RW + 'px'; welt.style.height = RH + 'px';
+    const imRaum = (o) => o.raum === raum.id && ((o.nah || null) === nahTeil || (nahTeil && o.inNah === nahTeil));
+    const eierHinten = EIER.filter(e => imRaum(e) && e.hinten);
+    const eierVorne = EIER.filter(e => imRaum(e) && !e.hinten);
+    const teile = TEILE.filter(t => t.raum === raum.id && (t.inNah || null) === nahTeil);
+    const dunkel = DUNKEL.filter(d => d.raum === raum.id && !nahTeil);
+    document.getElementById('nah-zurueck').style.display = nahTeil ? '' : 'none';
+
+    let html = '';
+    if (raum.bild) html += `<img class="bild" src="${raum.bild}" alt="">`;
+    html += `<svg viewBox="0 0 ${RW} ${RH}" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">`;
+    if (!raum.bild) html += raumHintergrund(raum.id);
+    // Eier hinter Möbeln: zwischen Hintergrund und Möbel-Vordergrund (bei Bildern: gleich wie vorne)
+    html += `<g id="eier-hinten">${eierHinten.map(eiForm).join('')}</g>`;
+    if (!raum.bild) html += vordergrund(raum.id);
+    // Offen-Zustände der Teile
+    html += `<g id="teile-offen">${teile.map(t => {
+      if (t.typ === 'ausschnitt' && raum.bildOffen) {
+        return `<g data-offen="${t.zustand}">
+          <clipPath id="clip_${t.id}"><rect x="${t.x}" y="${t.y}" width="${t.w}" height="${t.h}"/></clipPath>
+          <image href="${raum.bildOffen}" xlink:href="${raum.bildOffen}" x="0" y="0" width="${RW}" height="${RH}" clip-path="url(#clip_${t.id})"/>
+          <g class="zu-knopf" data-zu="${t.id}" transform="translate(${t.x + t.w - 14},${t.y + 14})" style="cursor:pointer">
+            <circle r="13" fill="rgba(10,18,12,0.85)" stroke="#f4d484" stroke-width="1.5"/>
+            <path d="M-5 -5 L5 5 M5 -5 L-5 5" stroke="#f4d484" stroke-width="2.5" stroke-linecap="round"/>
+          </g></g>`;
+      }
+      return `<g data-offen="${t.zustand || ''}">${teilOffenForm(t)}</g>`;
+    }).join('')}</g>`;
+    if (!raum.bild) html += `<g id="beschriftungen">${teile.map(teilBeschriftung).join('')}</g>`;
+    html += `<g id="eier-vorne">${eierVorne.map(eiForm).join('')}</g>`;
+    // Dunkel-Bereiche
+    html += `<g id="dunkel">${dunkel.map(d => `<rect data-hell="${d.hellWenn}" x="${d.x}" y="${d.y}" width="${d.w}" height="${d.h}" fill="#05070a" opacity="0.93"/>`).join('')}</g>`;
+    // Trefferflächen der Teile (ganz oben, durchsichtig)
+    html += `<g id="teile">${teile.map(t => `<rect class="teil" data-teil="${t.id}" x="${t.x}" y="${t.y}" width="${t.w}" height="${t.h}" fill="transparent"><title>${t.label}</title></rect>`).join('')}</g>`;
+    html += `</svg>`;
+    welt.innerHTML = html;
+    aktualisiereSichtbarkeit();
+    renderRaumKnoepfe();
+  }
+
+  // Möbel-Vordergrund: Dinge, die Eier teilweise verdecken (nur Platzhalter)
+  function vordergrund(raum) {
+    switch (raum) {
+      case 'garage': return `<rect x="1440" y="690" width="60" height="30" fill="#4a4f58"/>`;
+      case 'wohnzimmer': return `<rect x="1030" y="740" width="60" height="40" fill="#5a3a26"/>`;
+      case 'kueche': return `<rect x="190" y="840" width="50" height="40" fill="#7a7870"/>`;
+    }
+    return '';
+  }
+
+  function aktualisiereSichtbarkeit() {
+    welt.querySelectorAll('.ei').forEach(el => {
+      const ei = EIER.find(e => e.id === el.dataset.ei);
+      const sichtbar = !ei.sichtbarWenn || zustand.offen[ei.sichtbarWenn];
+      el.classList.toggle('versteckt', !sichtbar && !EDITOR);
+      el.classList.toggle('gefunden', zustand.gefunden.includes(ei.id));
+    });
+    welt.querySelectorAll('[data-offen]').forEach(el => {
+      const key = el.dataset.offen;
+      el.style.display = key && zustand.offen[key] ? '' : 'none';
+    });
+    welt.querySelectorAll('[data-hell]').forEach(el => {
+      el.style.display = zustand.offen[el.dataset.hell] ? 'none' : '';
+    });
+    document.getElementById('z-gefunden').textContent = zustand.gefunden.length;
+    document.getElementById('z-gesamt').textContent = EIER.length;
+    document.getElementById('hinweis-knopf').textContent = 'Hinweis (' + zustand.hinweise + ')';
+    document.getElementById('hinweis-knopf').disabled = zustand.hinweise <= 0;
+  }
+
+  function renderRaumKnoepfe() {
+    const box = document.getElementById('raeume');
+    box.innerHTML = '';
+    RAEUME.forEach(r => {
+      const gesperrt = r.gesperrtBis && !zustand.offen[r.gesperrtBis];
+      const im = EIER.filter(e => e.raum === r.id);
+      const fertig = im.every(e => zustand.gefunden.includes(e.id));
+      const b = document.createElement('button');
+      b.className = 'raum-knopf' + (r.id === zustand.raum ? ' aktiv' : '') + (gesperrt ? ' gesperrt' : '');
+      b.innerHTML = (gesperrt ? '🔒 ' : '') + r.name + (fertig ? '<span class="fertig-punkt">✓</span>' : '');
+      b.onclick = () => {
+        if (gesperrt) { sag('Zu. Da musst du erst den Weg finden.'); return; }
+        zustand.raum = r.id; zustand.nah = null; speichern(); renderRaum(); zoomReset();
+      };
+      box.appendChild(b);
+    });
+  }
+
+  // =====================================================================
+  // ZOOM & PAN
+  // =====================================================================
+  const buehne = document.getElementById('buehne');
+  let basis = 1, zoom = 1, tx = 0, ty = 0;
+  const ZOOM_MAX = 5;
+  function passeEin() {
+    const bw = buehne.clientWidth, bh = buehne.clientHeight;
+    basis = Math.min(bw / RW, bh / RH);
+  }
+  function wendeTransformAn() {
+    const s = basis * zoom;
+    const bw = buehne.clientWidth, bh = buehne.clientHeight;
+    const ww = RW * s, wh = RH * s;
+    // Zentrieren, wenn kleiner als Bühne; sonst innerhalb halten
+    if (ww <= bw) tx = (bw - ww) / 2; else tx = Math.min(0, Math.max(bw - ww, tx));
+    if (wh <= bh) ty = (bh - wh) / 2; else ty = Math.min(0, Math.max(bh - wh, ty));
+    welt.style.transform = `translate(${tx}px, ${ty}px) scale(${s})`;
+  }
+  function zoomReset() { passeEin(); zoom = 1; tx = 0; ty = 0; wendeTransformAn(); }
+  function zoomUm(faktor, px, py) {
+    const alt = basis * zoom;
+    zoom = Math.max(1, Math.min(ZOOM_MAX, zoom * faktor));
+    const neu = basis * zoom;
+    // Punkt unter dem Zeiger bleibt an Ort
+    tx = px - (px - tx) * (neu / alt);
+    ty = py - (py - ty) * (neu / alt);
+    wendeTransformAn();
+  }
+  window.addEventListener('resize', () => { passeEin(); wendeTransformAn(); });
+  buehne.addEventListener('wheel', (e) => {
+    e.preventDefault();
+    const r = buehne.getBoundingClientRect();
+    zoomUm(e.deltaY < 0 ? 1.15 : 1 / 1.15, e.clientX - r.left, e.clientY - r.top);
+  }, { passive: false });
+  document.getElementById('zoom-plus').onclick = () => zoomUm(1.4, buehne.clientWidth / 2, buehne.clientHeight / 2);
+  document.getElementById('zoom-minus').onclick = () => zoomUm(1 / 1.4, buehne.clientWidth / 2, buehne.clientHeight / 2);
+  document.getElementById('zoom-reset').onclick = zoomReset;
+  document.getElementById('nah-zurueck').onclick = () => { zustand.nah = null; speichern(); renderRaum(); zoomReset(); };
+
+  // Pointer: Tippen, Ziehen, Pinch
+  const zeiger = new Map();
+  let zugStart = null, pinchStart = null, bewegt = false;
+  buehne.addEventListener('pointerdown', (e) => {
+    buehne.setPointerCapture(e.pointerId);
+    zeiger.set(e.pointerId, { x: e.clientX, y: e.clientY });
+    bewegt = false;
+    if (zeiger.size === 1) {
+      zugStart = { x: e.clientX, y: e.clientY, tx, ty, ziel: e.target };
+    } else if (zeiger.size === 2) {
+      const [a, b] = [...zeiger.values()];
+      pinchStart = { dist: Math.hypot(a.x - b.x, a.y - b.y), zoom, mx: (a.x + b.x) / 2, my: (a.y + b.y) / 2, tx, ty };
+      zugStart = null;
+    }
+  });
+  buehne.addEventListener('pointermove', (e) => {
+    if (!zeiger.has(e.pointerId)) return;
+    zeiger.set(e.pointerId, { x: e.clientX, y: e.clientY });
+    if (zeiger.size === 2 && pinchStart) {
+      const [a, b] = [...zeiger.values()];
+      const dist = Math.hypot(a.x - b.x, a.y - b.y);
+      const r = buehne.getBoundingClientRect();
+      const faktor = dist / pinchStart.dist;
+      const zielZoom = Math.max(1, Math.min(ZOOM_MAX, pinchStart.zoom * faktor));
+      const alt = basis * zoom, neu = basis * zielZoom;
+      const px = (a.x + b.x) / 2 - r.left, py = (a.y + b.y) / 2 - r.top;
+      tx = px - (px - tx) * (neu / alt);
+      ty = py - (py - ty) * (neu / alt);
+      zoom = zielZoom;
+      wendeTransformAn();
+      bewegt = true;
+    } else if (zeiger.size === 1 && zugStart) {
+      const dx = e.clientX - zugStart.x, dy = e.clientY - zugStart.y;
+      if (!bewegt && Math.hypot(dx, dy) > 8) { bewegt = true; buehne.classList.add('zieht'); }
+      if (bewegt) { tx = zugStart.tx + dx; ty = zugStart.ty + dy; wendeTransformAn(); }
+    }
+  });
+  function zeigerEnde(e) {
+    if (!zeiger.has(e.pointerId)) return;
+    const warEinzeln = zeiger.size === 1;
+    zeiger.delete(e.pointerId);
+    buehne.classList.remove('zieht');
+    if (zeiger.size < 2) pinchStart = null;
+    if (warEinzeln && !bewegt && zugStart) tippe(e.clientX, e.clientY);
+    zugStart = null;
+  }
+  buehne.addEventListener('pointerup', zeigerEnde);
+  buehne.addEventListener('pointercancel', zeigerEnde);
+
+  // =====================================================================
+  // SPIELLOGIK
+  // =====================================================================
+  function tippe(cx, cy) {
+    if (!zustand.laeuft && !EDITOR) return;
+    const ziel = document.elementFromPoint(cx, cy);
+    if (!ziel) return;
+    if (EDITOR) zeigeKoordinaten(cx, cy, ziel);
+    const eiEl = ziel.closest && ziel.closest('.ei');
+    if (eiEl) { eiGefunden(eiEl.dataset.ei, cx, cy); return; }
+    const zuEl = ziel.closest && ziel.closest('.zu-knopf');
+    if (zuEl) {
+      const t = TEILE.find(x => x.id === zuEl.dataset.zu);
+      if (t) { zustand.offen[t.zustand] = false; ton([380]); aktualisiereSichtbarkeit(); speichern(); sag(t.label + ' — wieder zu.'); }
+      return;
+    }
+    const teilEl = ziel.closest && ziel.closest('.teil');
+    if (teilEl) { teilAngetippt(teilEl.dataset.teil); return; }
+  }
+
+  function eiGefunden(id, cx, cy) {
+    if (zustand.gefunden.includes(id)) return;
+    const ei = EIER.find(e => e.id === id);
+    if (!ei) return;
+    if (ei.sichtbarWenn && !zustand.offen[ei.sichtbarWenn] && !EDITOR) return;
+    zustand.gefunden.push(id);
+    ton([880, 1320]);
+    const r = buehne.getBoundingClientRect();
+    const f = document.createElement('div');
+    f.className = 'fund'; f.textContent = '🥚 ' + zustand.gefunden.length + '/' + EIER.length;
+    f.style.left = (cx - r.left) + 'px'; f.style.top = (cy - r.top) + 'px';
+    buehne.appendChild(f); setTimeout(() => f.remove(), 1000);
+    aktualisiereSichtbarkeit(); renderRaumKnoepfe(); speichern();
+    const n = zustand.gefunden.length;
+    if (SPRUECHE[n]) sag(SPRUECHE[n]);
+    if (n >= EIER.length) setTimeout(spielEnde, 1200);
+  }
+
+  function teilAngetippt(id) {
+    const t = TEILE.find(x => x.id === id);
+    if (!t) return;
+    switch (t.typ) {
+      case 'ausschnitt':
+        if (!zustand.offen[t.zustand]) {
+          zustand.offen[t.zustand] = true;
+          ton([520]); aktualisiereSichtbarkeit(); speichern();
+          sag(t.label + (t.nah ? ' — offen. Nochmal antippen, um näher ranzugehen.' : ' — offen. Schau rein.'));
+        } else if (t.nah) {
+          zustand.nah = t.id; speichern(); renderRaum(); zoomReset();
+          sag(t.label + ' — ganz nah. Jetzt gut hinschauen.');
+        } else {
+          sag(t.label + ' ist offen. Das × schliesst wieder.');
+        }
+        break;
+      case 'toggle':
+      case 'schalter':
+        zustand.offen[t.zustand] = !zustand.offen[t.zustand];
+        ton([zustand.offen[t.zustand] ? 520 : 380]);
+        aktualisiereSichtbarkeit(); speichern();
+        sag(t.label + (t.typ === 'schalter' ? (zustand.offen[t.zustand] ? ' — Licht an.' : ' — Licht aus.') : (zustand.offen[t.zustand] ? ' — offen. Schau rein.' : ' — wieder zu.')));
+        break;
+      case 'info':
+        document.getElementById('info-titel').textContent = t.titel || t.label;
+        document.getElementById('info-text').textContent = t.text || '';
+        document.getElementById('info-modal').classList.add('show');
+        break;
+      case 'raetsel':
+      case 'code':
+        if (zustand.offen[t.zustand]) { sag('Schon offen.'); return; }
+        oeffneRaetsel(t);
+        break;
+    }
+  }
+
+  let aktivesRaetsel = null;
+  function oeffneRaetsel(t) {
+    aktivesRaetsel = t;
+    document.getElementById('raetsel-titel').textContent = t.titel || t.label;
+    document.getElementById('raetsel-frage').textContent = t.frage;
+    const inp = document.getElementById('raetsel-input');
+    inp.value = ''; inp.placeholder = t.typ === 'code' ? '····' : 'Antwort';
+    inp.inputMode = t.typ === 'code' ? 'numeric' : 'text';
+    document.getElementById('raetsel-fehler').textContent = '';
+    document.getElementById('raetsel-modal').classList.add('show');
+    setTimeout(() => inp.focus(), 100);
+  }
+  function normalisiere(s) {
+    return String(s).toLowerCase().trim().replace(/ß/g, 'ss').replace(/[^a-z0-9äöü ]/g, '').replace(/\s+/g, ' ');
+  }
+  function pruefeRaetsel() {
+    if (!aktivesRaetsel) return;
+    const t = aktivesRaetsel;
+    const eingabe = normalisiere(document.getElementById('raetsel-input').value);
+    const richtig = t.typ === 'code'
+      ? eingabe === String(t.code)
+      : (t.antworten || []).some(a => normalisiere(a) === eingabe);
+    if (richtig) {
+      zustand.offen[t.zustand] = true;
+      document.getElementById('raetsel-modal').classList.remove('show');
+      ton([660, 880, 1100]);
+      aktualisiereSichtbarkeit(); renderRaumKnoepfe(); speichern();
+      sag(t.typ === 'code' ? 'Klick. Offen.' : 'Richtig. Anfisa hätte nicht gedacht, dass du das weisst.');
+    } else {
+      document.getElementById('raetsel-fehler').textContent = t.typ === 'code' ? 'Bleibt zu.' : 'Nein. Denk nochmal nach.';
+      ton([220]);
+    }
+  }
+  document.getElementById('raetsel-ok').onclick = pruefeRaetsel;
+  document.getElementById('raetsel-input').addEventListener('keydown', (e) => { if (e.key === 'Enter') pruefeRaetsel(); });
+  document.getElementById('raetsel-abbruch').onclick = () => document.getElementById('raetsel-modal').classList.remove('show');
+  document.getElementById('info-zu').onclick = () => document.getElementById('info-modal').classList.remove('show');
+
+  // Hinweis: nennt Raum und Art eines nicht gefundenen Eis — nie die Stelle
+  document.getElementById('hinweis-knopf').onclick = () => {
+    if (zustand.hinweise <= 0) return;
+    const offen = EIER.filter(e => !zustand.gefunden.includes(e.id));
+    if (!offen.length) return;
+    // Bevorzugt Ebene 1/2 (Rätsel bleiben Rätsel)
+    const pool = offen.filter(e => e.ebene < 3).length ? offen.filter(e => e.ebene < 3) : offen;
+    const e = pool[Math.floor(Math.random() * pool.length)];
+    const raum = RAEUME.find(r => r.id === e.raum).name;
+    const art = e.ebene === 1 ? 'liegt offen da — nur getarnt. Zoom rein.' : e.ebene === 2 ? 'steckt in etwas, das sich öffnen lässt.' : 'braucht ein gelöstes Rätsel.';
+    zustand.hinweise--;
+    aktualisiereSichtbarkeit(); speichern();
+    sag('Hinweis: Eins im Raum „' + raum + '" ' + art);
+  };
+
+  // =====================================================================
+  // DIALOG, TON, UHR
+  // =====================================================================
+  let dialogTimer = null;
+  function sag(text, wer) {
+    const d = document.getElementById('dialog');
+    document.getElementById('dialog-wer').textContent = wer || 'Aci';
+    document.getElementById('dialog-text').textContent = ' ' + text;
+    d.classList.add('zeig');
+    clearTimeout(dialogTimer);
+    dialogTimer = setTimeout(() => d.classList.remove('zeig'), 4500);
+  }
+  let actx = null;
+  function ton(freqs) {
+    try {
+      if (!actx) actx = new (window.AudioContext || window.webkitAudioContext)();
+      if (actx.state === 'suspended') actx.resume();
+      const now = actx.currentTime;
+      freqs.forEach((f, i) => {
+        const o = actx.createOscillator(), g = actx.createGain();
+        o.type = 'sine'; o.frequency.value = f;
+        g.gain.setValueAtTime(0, now + i * 0.08);
+        g.gain.linearRampToValueAtTime(0.12, now + i * 0.08 + 0.01);
+        g.gain.exponentialRampToValueAtTime(0.001, now + i * 0.08 + 0.25);
+        o.connect(g).connect(actx.destination);
+        o.start(now + i * 0.08); o.stop(now + i * 0.08 + 0.3);
+      });
+    } catch (e) {}
+  }
+  let uhrTimer = null;
+  function uhrText(s) { return String(Math.floor(s / 60)).padStart(2, '0') + ':' + String(s % 60).padStart(2, '0'); }
+  function uhrStart() {
+    clearInterval(uhrTimer);
+    uhrTimer = setInterval(() => {
+      if (!zustand.laeuft || document.hidden) return;
+      zustand.zeit++;
+      document.getElementById('uhr').textContent = uhrText(zustand.zeit);
+      if (zustand.zeit % 10 === 0) speichern();
+    }, 1000);
+  }
+
+  // =====================================================================
+  // START / ENDE / BESTENLISTE
+  // =====================================================================
+  function spielEnde() {
+    zustand.laeuft = false; zustand.fertig = true; speichern();
+    document.getElementById('ende-zeit').textContent = uhrText(zustand.zeit);
+    document.getElementById('ende-text').textContent = ENDE_TEXT;
+    document.getElementById('screen-ende').classList.remove('hidden');
+    ladeRangliste();
+  }
+
+  async function holeJson(url, versuche) {
+    versuche = versuche || 3;
+    let letzterFehler = null;
+    for (let i = 1; i <= versuche; i++) {
+      try {
+        const res = await fetch(url);
+        const text = await res.text();
+        try { return JSON.parse(text); } catch (e) { letzterFehler = new Error('Google hat keine Daten geliefert'); }
+      } catch (e) { letzterFehler = e; }
+      if (i < versuche) await new Promise(r => setTimeout(r, 1500 * i));
+    }
+    throw letzterFehler;
+  }
+  async function ladeRangliste(eigenerName) {
+    const el = document.getElementById('rangliste');
+    el.innerHTML = '<p class="rang-laedt">Bestenliste lädt …</p>';
+    try {
+      const data = await holeJson(APPS_SCRIPT_URL + '?action=scores&spiel=' + SPIEL_ID, 3);
+      const liste = (data.scores || []);
+      if (!liste.length) { el.innerHTML = '<p class="rang-laedt">Noch keine Einträge — sei der erste!</p>'; return; }
+      // Punkte = Sekunden; schnellste zuerst (kleinster Wert oben)
+      liste.sort((a, b) => a.punkte - b.punkte);
+      el.innerHTML = liste.slice(0, 10).map((s, i) => `
+        <div class="rang-zeile ${i === 0 ? 'top1' : ''} ${eigenerName && s.name === eigenerName ? 'eigener' : ''}">
+          <span class="platz">${i + 1}.</span><span class="name">${String(s.name).replace(/</g, '&lt;')}</span><span class="pkt">${uhrText(Number(s.punkte) || 0)}</span>
+        </div>`).join('');
+    } catch (e) {
+      el.innerHTML = '<p class="rang-laedt">Bestenliste gerade nicht erreichbar.</p>';
+    }
+  }
+  let speichertGerade = false;
+  async function speicherePunkte() {
+    if (speichertGerade) return;
+    const input = document.getElementById('name-input');
+    const fehler = document.getElementById('eintrag-fehler');
+    const name = input.value.trim().toUpperCase().slice(0, 12);
+    if (name.length < 2) { fehler.textContent = 'Mindestens 2 Zeichen.'; return; }
+    const knopf = document.getElementById('eintragen-knopf');
+    speichertGerade = true; knopf.disabled = true; knopf.textContent = 'Speichert …'; fehler.textContent = '';
+    try {
+      const res = await fetch(APPS_SCRIPT_URL + '?action=score_save&spiel=' + SPIEL_ID + '&name=' + encodeURIComponent(name) + '&punkte=' + zustand.zeit);
+      const text = await res.text();
+      let data; try { data = JSON.parse(text); } catch (e) { throw new Error('Google hat gerade nicht geantwortet — bitte nochmal auf den Knopf'); }
+      if (data.ok) { document.getElementById('eintrag-bereich').style.display = 'none'; ladeRangliste(name); }
+      else { fehler.textContent = 'Speichern fehlgeschlagen' + (data.error ? ': ' + data.error : '.'); knopf.disabled = false; knopf.textContent = 'In Bestenliste eintragen'; }
+    } catch (e) {
+      fehler.textContent = e.message || 'Verbindung fehlgeschlagen.';
+      knopf.disabled = false; knopf.textContent = 'In Bestenliste eintragen';
+    } finally { speichertGerade = false; }
+  }
+  document.getElementById('eintragen-knopf').onclick = speicherePunkte;
+  document.getElementById('name-input').addEventListener('keydown', (e) => { if (e.key === 'Enter') speicherePunkte(); });
+
+  document.getElementById('start-knopf').onclick = () => {
+    document.getElementById('screen-intro').classList.add('hidden');
+    zustand.laeuft = true;
+    uhrStart();
+    ton([520]);
+    setTimeout(() => sag(zustand.gefunden.length ? 'Weiter geht es. ' + zustand.gefunden.length + ' hast du schon.' : 'Fang in der Garage an. Oder wo du willst. Mir egal, ich schau zu.'), 400);
+  };
+  document.getElementById('reset-knopf').onclick = () => {
+    try { localStorage.removeItem(SPEICHER_KEY); } catch (e) {}
+    location.reload();
+  };
+
+  // =====================================================================
+  // AUSRICHTEMODUS (?editor=1): Koordinaten anzeigen, alle Eier sichtbar
+  // =====================================================================
+  function zeigeKoordinaten(cx, cy, ziel) {
+    const s = basis * zoom;
+    const r = buehne.getBoundingClientRect();
+    const wx = Math.round((cx - r.left - tx) / s), wy = Math.round((cy - r.top - ty) / s);
+    const kreuz = document.getElementById('editor-kreuz');
+    kreuz.style.display = 'block'; kreuz.style.left = (cx - r.left) + 'px'; kreuz.style.top = (cy - r.top) + 'px';
+    const was = ziel.closest('.ei') ? 'Ei ' + ziel.closest('.ei').dataset.ei : ziel.closest('.teil') ? 'Teil ' + ziel.closest('.teil').dataset.teil : 'Hintergrund';
+    document.getElementById('editor').textContent =
+      'AUSRICHTEMODUS\nRaum: ' + zustand.raum + (zustand.nah ? ' / Nahaufnahme ' + zustand.nah : '') + '\nBild: ' + RW + ' x ' + RH + '\nx: ' + wx + '  y: ' + wy + '\nGetroffen: ' + was + '\n\nAlle Eier sind hier sichtbar.';
+  }
+
+  // =====================================================================
+  // START
+  // =====================================================================
+  const hatte = fortschrittLaden();
+  passeEin();
+  renderRaum();
+  zoomReset();
+  document.getElementById('uhr').textContent = uhrText(zustand.zeit);
+  if (hatte && zustand.gefunden.length) document.getElementById('start-knopf').textContent = 'Weitersuchen (' + zustand.gefunden.length + '/' + EIER.length + ')';
+  if (hatte && zustand.fertig) { document.getElementById('screen-intro').classList.add('hidden'); spielEnde(); }
+  if (EDITOR) {
+    document.getElementById('editor').classList.add('an');
+    document.getElementById('editor').textContent = 'AUSRICHTEMODUS\nKlick zeigt Koordinaten.\nAlle Eier sind sichtbar.';
+    document.getElementById('screen-intro').classList.add('hidden');
+    zustand.laeuft = true;
+  }
+})();
+</script>
+<script>
+/* Touch-Härtung iOS: Doppeltipp-Zoom (Browser), Halte-Menü unterbinden. Pinch wird vom Spiel selbst übernommen. */
+(function(){
+  function bedienelement(el){ return el && el.closest && el.closest('button, a, input'); }
+  var letzterTipp = 0;
+  document.addEventListener('touchend', function(e){
+    if (bedienelement(e.target)) return;
+    var jetzt = Date.now();
+    if (jetzt - letzterTipp < 350) e.preventDefault();
+    letzterTipp = jetzt;
+  }, { passive: false });
+  document.addEventListener('contextmenu', function(e){ e.preventDefault(); });
+  document.addEventListener('gesturestart', function(e){ e.preventDefault(); });
+  document.addEventListener('gesturechange', function(e){ e.preventDefault(); });
+  document.addEventListener('selectstart', function(e){ if (bedienelement(e.target)) return; e.preventDefault(); });
+  document.addEventListener('dblclick', function(e){ e.preventDefault(); });
+})();
+</script>
+</body>
+</html>
