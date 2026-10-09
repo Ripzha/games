@@ -260,7 +260,7 @@
     { id: 'garage1', raum: 'garage', name: 'Garage — Werkbank', bild: 'bilder/garage-zu.png',  bildOffen: 'bilder/garage-offen.png',  breite: 1774, hoehe: 887 },
     { id: 'garage2', raum: 'garage', name: 'Garage — Tür',      bild: 'bilder/garage2-zu.png', bildOffen: 'bilder/garage2-offen.png', breite: 1774, hoehe: 887 },
     { id: 'treppenhaus', raum: 'treppenhaus', name: 'Treppenhaus', bild: 'bilder/treppenhaus-zu.png', bildOffen: 'bilder/treppenhaus-offen.png', breite: 1774, hoehe: 887 },
-    { id: 'wohnzimmer', raum: 'wohnzimmer', name: 'Wohnzimmer', bild: '' },
+    { id: 'wohnzimmer', raum: 'wohnzimmer', name: 'Wohnzimmer', bild: 'bilder/wohnzimmer-zu.png', bildOffen: 'bilder/wohnzimmer-offen.png', breite: 1774, hoehe: 887 },
     { id: 'kueche',     raum: 'kueche',     name: 'Küche',      bild: '' },
     { id: 'garten',     raum: 'garten',     name: 'Garten',     bild: '' },
     { id: 'keller',     raum: 'keller',     name: 'Keller',     bild: '' }
@@ -299,12 +299,19 @@
     // --- Treppenhaus (Koordinaten im Bild 1774 x 887) ---
     { id: 'th_tuer',  ansicht: 'treppenhaus', x: 960,  y: 20,  w: 230, h: 395, typ: 'ausschnitt', zustand: 'th_tuer_offen',  label: 'Holztür oben an der Treppe', nah: '' },
     { id: 'th_kiste', ansicht: 'treppenhaus', x: 1390, y: 440, w: 240, h: 175, typ: 'ausschnitt', zustand: 'th_kiste_offen', label: 'Holzkiste neben der Treppe', nah: '' },
-    // --- Wohnzimmer ---
-    { id: 'w_kissen',   ansicht: 'wohnzimmer', x: 220,  y: 520, w: 420, h: 110, typ: 'toggle', form: 'kissen', zustand: 'kissen_weg',    label: 'Sofakissen' },
-    { id: 'w_bild',     ansicht: 'wohnzimmer', x: 1000, y: 180, w: 260, h: 200, typ: 'toggle', form: 'bild', zustand: 'bild_gedreht',  label: 'Bild an der Wand' },
-    { id: 'w_vorhang',  ansicht: 'wohnzimmer', x: 1320, y: 120, w: 220, h: 560, typ: 'toggle', form: 'vorhang', zustand: 'vorhang_auf',   label: 'Vorhang' },
-    { id: 'w_raetsel1', ansicht: 'wohnzimmer', x: 700,  y: 560, w: 180, h: 90,  typ: 'raetsel', zustand: 'truhe_offen', label: 'Verschlossene Truhe',
-      titel: 'Die Truhe', frage: '[RÄTSEL 1 — Platzhalter] Welche Figur hat im letzten Jahr geheiratet? (Vorname)', antworten: ['abeena', 'logan'] },
+    // --- Wohnzimmer (Koordinaten im Bild 1774 x 887) ---
+    { id: 'w_regal',    ansicht: 'wohnzimmer', x: 860,  y: 330, w: 230, h: 145, typ: 'ausschnitt', zustand: 'wz_regal_offen', label: 'Schrank unter dem Bücherregal', nah: '' },
+    { id: 'w_tvmoebel', ansicht: 'wohnzimmer', x: 1220, y: 358, w: 290, h: 118, typ: 'ausschnitt', zustand: 'wz_tv_offen',    label: 'Fernsehmöbel',                 nah: '' },
+    { id: 'w_regal_oben', ansicht: 'wohnzimmer', x: 810, y: 60, w: 190, h: 275, typ: 'raetsel', zustand: 'regal_geloest', label: 'Bücherregal',
+      titel: 'Das Bücherregal', frage: '[RÄTSEL 1 — Platzhalter] Welche Figur hat im letzten Jahr geheiratet? (Vorname)', antworten: ['abeena', 'logan'] },
+    // Die Frau im Sessel: drei Frames. 0 = schlafend (Grundbild), 1 = aufgeschreckt, 2 = spricht.
+    // Jeder Klick geht eine Phase weiter, nach der letzten wieder zurück auf schlafend.
+    { id: 'w_frau', ansicht: 'wohnzimmer', x: 240, y: 95, w: 430, h: 330, typ: 'phasen', zustand: 'frau_phase',
+      label: 'Die Frau im Sessel', sprecher: 'Die Frau', phasen: [
+        { bild: '' },
+        { bild: 'bilder/wohnzimmer-frau-wach.png',    text: '[TEXT 1 — aufgeschreckt, folgt noch]' },
+        { bild: 'bilder/wohnzimmer-frau-spricht.png', text: '[TEXT 2 — was sie sagt, folgt noch]' }
+      ] },
     // --- Küche ---
     { id: 'k_kuehl',    ansicht: 'kueche', x: 1180, y: 220, w: 220, h: 470, typ: 'toggle', form: 'tuer', zustand: 'kuehl_offen',  label: 'Kühlschrank' },
     { id: 'k_ofen',     ansicht: 'kueche', x: 560,  y: 520, w: 260, h: 160, typ: 'toggle', form: 'klappe', zustand: 'ofen_offen',   label: 'Backofen' },
@@ -334,7 +341,7 @@
     { id: 'e02', ansicht: 'garage1',     x: 760,  y: 780, r: 7,  farbe: '#8b460b', muster: 'streifen', ebene: 1, sichtbarWenn: null },  // auf der Holzkiste
     { id: 'e05', ansicht: 'garage1',     x: 1395, y: 432, r: 6,  farbe: '#27282c', muster: 'zickzack', ebene: 1, sichtbarWenn: null },  // im Schubladenkasten
     { id: 'e08', ansicht: 'garage1',     x: 600,  y: 860, r: 7,  farbe: '#8b613b', muster: 'punkte',   ebene: 1, sichtbarWenn: null },  // Boden vor dem blauen Container
-    { id: 'e04', ansicht: 'wohnzimmer', x: 1046, y: 760, r: 9,  farbe: '#6b4a32', muster: 'punkte', ebene: 1, sichtbarWenn: null, hinten: true },
+    { id: 'e04', ansicht: 'wohnzimmer', x: 1332, y: 712, r: 9,  farbe: '#8a4a3a', muster: 'punkte', ebene: 1, sichtbarWenn: null },  // auf dem Teppich
     { id: 'e03', ansicht: 'kueche',     x: 1560, y: 846, r: 9,  farbe: '#9a9a90', muster: 'streifen', ebene: 1, sichtbarWenn: null },
     { id: 'e06', ansicht: 'garten',     x: 1044, y: 846, r: 8,  farbe: '#4e7a3e', muster: 'punkte', ebene: 1, sichtbarWenn: null },
     { id: 'e07', ansicht: 'garten',     x: 24,   y: 212, r: 7,  farbe: '#8fb9d9', muster: 'zickzack', ebene: 1, sichtbarWenn: null },
@@ -342,12 +349,12 @@
     { id: 'e09', ansicht: 'garage1',     x: 170,  y: 470, r: 8,  farbe: '#5a5337', muster: 'streifen', ebene: 2, sichtbarWenn: 'akten_offen' },  // in der Aktenschrank-Schublade
     { id: 'e10', ansicht: 'garage1',     x: 618,  y: 618, r: 8,  farbe: '#2a1a12', muster: 'punkte',   ebene: 2, sichtbarWenn: 'blau_offen' },   // in der blauen Schublade
     { id: 'e11', ansicht: 'garage1',     x: 1195, y: 708, r: 8,  farbe: '#493e36', muster: 'zickzack', ebene: 2, sichtbarWenn: 'steck_offen' },  // zwischen den Steckschlüsseln
-    { id: 'e12', ansicht: 'wohnzimmer', x: 480,  y: 575, r: 12, farbe: '#e0c080', muster: 'punkte', ebene: 2, sichtbarWenn: 'kissen_weg' },
-    { id: 'e13', ansicht: 'wohnzimmer', x: 1130, y: 280, r: 11, farbe: '#b88ad0', muster: 'streifen', ebene: 2, sichtbarWenn: 'bild_gedreht' },
+    { id: 'e12', ansicht: 'wohnzimmer', x: 1000, y: 440, r: 9,  farbe: '#6a4a30', muster: 'punkte', ebene: 2, sichtbarWenn: 'wz_regal_offen' },  // im Schrank unter dem Regal
+    { id: 'e13', ansicht: 'wohnzimmer', x: 1398, y: 452, r: 9,  farbe: '#5a4232', muster: 'streifen', ebene: 2, sichtbarWenn: 'wz_tv_offen' },  // im Fernsehmöbel
     { id: 'e14', ansicht: 'kueche',     x: 1290, y: 420, r: 12, farbe: '#f0f0e0', muster: 'punkte', ebene: 2, sichtbarWenn: 'kuehl_offen' },
     { id: 'e15', ansicht: 'garten',     x: 1310, y: 250, r: 11, farbe: '#d08a5a', muster: 'zickzack', ebene: 2, sichtbarWenn: 'vogelhaus_offen' },
     // --- Ebene 3: nur nach Rätsel sichtbar ---
-    { id: 'e16', ansicht: 'wohnzimmer', x: 790,  y: 600, r: 13, farbe: '#f4d484', muster: 'streifen', ebene: 3, sichtbarWenn: 'truhe_offen' },
+    { id: 'e16', ansicht: 'wohnzimmer', x: 950,  y: 250, r: 10, farbe: '#f4d484', muster: 'streifen', ebene: 3, sichtbarWenn: 'regal_geloest' },  // zwischen den Büchern
     { id: 'e17', ansicht: 'kueche',     x: 1000, y: 180, r: 13, farbe: '#f4d484', muster: 'punkte', ebene: 3, sichtbarWenn: 'rezept_geloest' },
     { id: 'e18', ansicht: 'garten',     x: 970,  y: 390, r: 13, farbe: '#f4d484', muster: 'zickzack', ebene: 3, sichtbarWenn: 'sonnenuhr_geloest' },
     { id: 'e19', ansicht: 'keller',     x: 1370, y: 260, r: 12, farbe: '#f4d484', muster: 'streifen', ebene: 3, sichtbarWenn: 'sicherung_geloest' },
@@ -575,12 +582,21 @@
     if (!ans.bild) html += vordergrund(ans.raum);
     // Offen-Zustände der Teile
     html += `<g id="teile-offen">${teile.map(t => {
+      // Figur mit mehreren Frames: jede Phase ein eigener Ausschnitt aus ihrem Bild
+      if (t.typ === 'phasen') {
+        return (t.phasen || []).map((p, i) => !p.bild ? '' : `<g data-phase="${t.zustand}:${i}">
+          <clipPath id="clip_${t.id}_${i}"><rect x="${t.x}" y="${t.y}" width="${t.w}" height="${t.h}"/></clipPath>
+          <image href="${p.bild}" xlink:href="${p.bild}" x="0" y="0" width="${RW}" height="${RH}" clip-path="url(#clip_${t.id}_${i})"/>
+        </g>`).join('');
+      }
       if (t.typ === 'ausschnitt' && ans.bildOffen) {
         return `<g data-offen="${t.zustand}">
           <clipPath id="clip_${t.id}"><rect x="${t.x}" y="${t.y}" width="${t.w}" height="${t.h}"/></clipPath>
           <image href="${ans.bildOffen}" xlink:href="${ans.bildOffen}" x="0" y="0" width="${RW}" height="${RH}" clip-path="url(#clip_${t.id})"/>
         </g>`;
       }
+      // Gezeichnete Platzhalter-Zustände nur in Ansichten ohne echtes Bild
+      if (ans.bild) return '';
       return `<g data-offen="${t.zustand || ''}">${teilOffenForm(t)}</g>`;
     }).join('')}</g>`;
     if (!ans.bild) html += `<g id="beschriftungen">${teile.map(teilBeschriftung).join('')}</g>`;
@@ -658,6 +674,11 @@
     });
     welt.querySelectorAll('[data-hell]').forEach(el => {
       el.style.display = zustand.offen[el.dataset.hell] ? 'none' : '';
+    });
+    // Figuren mit mehreren Frames: nur die aktuelle Phase zeigen
+    welt.querySelectorAll('[data-phase]').forEach(el => {
+      const teil = el.dataset.phase.split(':');
+      el.style.display = (Number(zustand.offen[teil[0]]) || 0) === Number(teil[1]) ? '' : 'none';
     });
     // Durchgänge, die erst nach dem Öffnen begehbar sind (Tür zum Treppenhaus)
     welt.querySelectorAll('[data-wenn]').forEach(el => {
@@ -826,6 +847,16 @@
           aktualisiereSichtbarkeit(); speichern();
         }
         break;
+      case 'phasen': {
+        const anzahl = (t.phasen || []).length || 1;
+        const neu = ((Number(zustand.offen[t.zustand]) || 0) + 1) % anzahl;
+        zustand.offen[t.zustand] = neu;
+        ton([neu ? 600 : 380]);
+        aktualisiereSichtbarkeit(); speichern();
+        const spruch = t.phasen[neu] && t.phasen[neu].text;
+        if (spruch) sag(spruch, t.sprecher || t.label); else schweig();
+        break;
+      }
       case 'toggle':
       case 'schalter':
         zustand.offen[t.zustand] = !zustand.offen[t.zustand];
@@ -909,6 +940,10 @@
     d.classList.add('zeig');
     clearTimeout(dialogTimer);
     dialogTimer = setTimeout(() => d.classList.remove('zeig'), 4500);
+  }
+  function schweig() {
+    clearTimeout(dialogTimer);
+    document.getElementById('dialog').classList.remove('zeig');
   }
   let actx = null;
   function ton(freqs) {

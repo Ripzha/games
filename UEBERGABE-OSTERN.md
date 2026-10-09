@@ -27,6 +27,10 @@ Anführungszeichen „…"). Umlaute immer ausschreiben, auch in Code-Kommentare
   - `bilder/garage2-offen.png` (1774 × 887)
   - `bilder/treppenhaus-zu.png` (1774 × 887)
   - `bilder/treppenhaus-offen.png` (1774 × 887)
+  - `bilder/wohnzimmer-zu.png` (1774 × 887)
+  - `bilder/wohnzimmer-offen.png` (1774 × 887)
+  - `bilder/wohnzimmer-frau-wach.png` (1774 × 887)
+  - `bilder/wohnzimmer-frau-spricht.png` (1774 × 887)
 - **Deploy:** GitHub-Weboberfläche, „Add file → Upload files" → „Commit changes". Kein Terminal.
 
 ### Bestenliste
@@ -67,6 +71,7 @@ Wichtig: TEILE und EIER hängen an einer **Ansicht**, nicht am Raum (`ansicht: '
 | `raetsel` | Texteingabe, `antworten: []` — Gross/Klein und ss/ß egal |
 | `code` | Zahlencode, `code: '2412'` |
 | `info` | Zeigt einen Text (Zettel, Notiz) |
+| `phasen` | Figur mit mehreren Frames. Jeder Klick geht eine Phase weiter, nach der letzten zurück auf 0. Phase 0 = Grundbild. Jede Phase: `{ bild, text }`, der Text erscheint in der Sprechblase mit `sprecher` als Namen. |
 | `schalter` | Licht an/aus für DUNKEL-Bereiche |
 
 Aci kommentiert **nicht** mehr jeden Klick. Er meldet sich nur noch bei
@@ -84,7 +89,7 @@ in Bildpixeln. **So werden Eier, Hotspots und Durchgänge platziert.**
 | Garage | `garage1` Werkbank | **JA** | 7 | 5 Ausschnitte, fertig verdrahtet |
 | Garage | `garage2` Tür | **JA** | 0 | 4 Ausschnitte, noch keine Eier |
 | Treppenhaus | `treppenhaus` | **JA** | 0 | 2 Ausschnitte, noch keine Eier, nicht in der Kopfzeile |
-| Wohnzimmer | `wohnzimmer` | nein | 4 | Platzhalter-Geometrie |
+| Wohnzimmer | `wohnzimmer` | **JA** | 4 | 2 Ausschnitte, 1 Rätsel, Frau mit 3 Frames |
 | Küche | `kueche` | nein | 3 | Platzhalter-Geometrie |
 | Garten | `garten` | nein | 4 | Platzhalter-Geometrie |
 | Keller | `keller` | nein | 2 | Platzhalter, gesperrt bis Code 2412 |
@@ -104,6 +109,24 @@ Vier Ausschnitte, alle mit `nah: ''` — **Nahaufnahmen fehlen noch**:
 - `g2_unten` Grosser Schrank, unten (470,548 380×265)
 - `g2_tuer` Tür zum Treppenhaus (1045,110 390×720) — schaltet den Weg zur Treppe frei
 - `g2_spind` Spind rechts (1560,150 214×680)
+
+### Wohnzimmer im Detail
+- `w_regal` Schrank unter dem Bücherregal (860,330 230×145) → Ei e12
+- `w_tvmoebel` Fernsehmöbel (1220,358 290×118) → Ei e13
+- `w_regal_oben` Bücherregal (810,60 190×275), Rätsel 1 → Ei e16
+- `w_frau` Die Frau im Sessel (240,95 430×330), typ `phasen`:
+  0 schlafend (Grundbild) · 1 aufgeschreckt · 2 spricht · danach wieder 0.
+  **Beide Texte sind Platzhalter.**
+- Ei e04 liegt getarnt auf dem Teppich (1332,712)
+
+Geplant, aber noch nicht gebaut: In einem anderen Raum liegt eine
+Zigarettenschachtel. Gibt man sie der Frau, steht sie auf und geht weg —
+erst dann lässt sich der Sessel untersuchen. Dafür fehlt noch das Bild
+des Raums ohne die Frau.
+
+Die alten Platzhalter-Teile des Wohnzimmers (Sofakissen, Bild an der Wand,
+Vorhang, Truhe) sind weg, sie passten nicht zum echten Bild. Die vier Eier
+wurden auf das neue Bild umgesetzt, Rätsel 1 hängt jetzt am Bücherregal.
 
 ### Treppenhaus im Detail
 - `th_tuer` Holztür oben an der Treppe (960,20 230×395) — schaltet den Weg in den Flur frei
@@ -156,6 +179,8 @@ Eier in einer Nahaufnahme bekommen `inNah: '<teil-id>'`.
 2. **Bilder für Wohnzimmer, Küche, Garten, Keller** fehlen
 3. **In garage2 und treppenhaus fehlen die Eier** — die Ausschnitte sind
    verdrahtet, aber es liegt in beiden Ansichten noch kein Ei.
+   Die Eier im Wohnzimmer sind grob platziert und sollten im Ausrichtemodus
+   noch feinjustiert werden.
 4. **Nahaufnahmen** aller Garage-Schränke fehlen
 5. **„Zurück"-Knopf** am Spielende zeigt auf `index.html`, die im games-Repo nicht
    existiert → Ziel noch festzulegen (Forum? Übersichtsseite? weg?)
