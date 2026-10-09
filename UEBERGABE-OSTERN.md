@@ -159,7 +159,7 @@ Vier Ausschnitte, alle mit `nah: ''` — **Nahaufnahmen fehlen noch**:
 - `g2_spind` Spind rechts (1560,150 214×680)
 
 ### Wohnzimmer im Detail
-- `w_regal` Schrank unter dem Bücherregal (862,336 236×146), Flicken → Ei e12
+- `w_regal` Schrank unter dem Bücherregal (862,336 236×146), Flicken mit Aussparung für die Tasse → Ei e12
 - `w_tvmoebel` Fernsehmöbel (1215,400 559×108) → Ei e13. Flicken, Kante unter den Porzellanfiguren — die stehen in den beiden Bildern versetzt.
 - `w_gemaelde` Bild an der Wand (415,0 275×188), typ `nehmen` → Gegenstand `gemaelde`
 - `w_nagel` derselbe Fleck, typ `ziel`, nur sichtbar wenn `bild_ab`. Nimmt das
@@ -312,6 +312,10 @@ macht daraus ein PNG mit Alphakanal:
 1. Quellbild farblich ans Grundbild angleichen, zweistufig
 2. Maske auf die veränderte Form beschränken — entweder automatisch aus dem
    Differenzbild oder per `form=(x0,y0,x1,y1)` fest vorgegeben
+2b. `aussparung=[(x0,y0,x1,y1), ...]` nimmt Bereiche wieder heraus. Nötig für
+   Dinge, die halb im Ausschnitt stehen und im Quellbild versetzt sind — die
+   erscheinen sonst doppelt. Im Wohnzimmer betrifft das die Tasse auf dem
+   Couchtisch, die in den Ausschnitt des Bücherregal-Schranks ragt.
 3. Maskenrand weich auslaufen lassen
 4. Auf die Maskengrösse zuschneiden
 
