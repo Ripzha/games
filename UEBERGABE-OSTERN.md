@@ -135,9 +135,10 @@ in Bildpixeln. **So werden Eier, Hotspots und Durchgänge platziert.**
 |---|---|---|---|---|
 | Garage | `garage1` Werkbank | **JA** | 7 | 5 Ausschnitte, fertig verdrahtet |
 | Garage | `garage2` Tür | **JA** | 0 | 4 Ausschnitte, noch keine Eier |
-| Treppenhaus | `treppenhaus` | **JA** | 0 | 2 Ausschnitte, noch keine Eier, nicht in der Kopfzeile |
+| Treppenhaus | `treppenhaus` | **JA**, dunkel + hell | 0 | 2 Ausschnitte, Lichtschalter, nicht in der Kopfzeile |
 | Wohnzimmer | `wohnzimmer` | **JA** | 4 | 2 Ausschnitte, 1 Rätsel, Frau mit 3 Frames |
-| Küche | `kueche` | **JA**, dunkel + hell | 3 | 8 Ausschnitte, Licht über die Sicherung |
+| Küche | `kueche` | **JA**, dunkel + hell | 3 | 11 Ausschnitte, Licht über die Sicherung |
+| Flur | `flur` | nein | 0 | Platzhalter. Verbindet Küche und Dachboden |
 | Garten | `garten` | nein | 4 | Platzhalter-Geometrie |
 | Keller | `keller` | nein | 2 | Platzhalter, gesperrt bis Code 2412 |
 
@@ -149,13 +150,19 @@ in Bildpixeln. **So werden Eier, Hotspots und Durchgänge platziert.**
 - `treppenhaus` → Holztür oben (998,55 90×270) → `wohnzimmer`, erst wenn `th_tuer_offen`
 - `wohnzimmer` → Pfeil unten → `treppenhaus`
 - `wohnzimmer` → Pfeil links → `kueche`, `kueche` → Pfeil rechts → `wohnzimmer`
-- Garten und Keller hängen noch an keinem Weg, nur an den Raum-Knöpfen oben
+- `kueche` → Türausschnitt (100,100 95×560) → `flur`, erst wenn `k_tuer_offen`
+- `flur` → Pfeil rechts → `kueche`; `flur` → Pfeil oben → `dachboden`
+- `dachboden` → Pfeil unten → `flur`
+- Flur und Dachboden stehen nicht in der Kopfzeile, sie sind nur über Wege erreichbar
+- Der Garten hängt noch an keinem Weg, nur am Raum-Knopf oben
 
 ### garage2 im Detail
 Vier Ausschnitte, alle mit `nah: ''` — **Nahaufnahmen fehlen noch**:
 - `g2_oben` Grosser Schrank, oben (470,150 350×396)
 - `g2_unten` Grosser Schrank, unten (470,548 380×265)
-- `g2_tuer` Tür zum Treppenhaus (1045,110 390×720) — schaltet den Weg zur Treppe frei
+- `g2_tuer` Tür zum Treppenhaus (1045,110 390×720) — schaltet den Weg zur Treppe frei.
+  Zeigt das Treppenhaus dahinter, hängt also über ein eigenes `hellWenn: 'th_licht'`
+  am Licht des Nachbarraums, nicht am eigenen.
 - `g2_spind` Spind rechts (1560,150 214×680)
 
 ### Wohnzimmer im Detail
@@ -239,6 +246,9 @@ goldene Marke. Position ändern heisst: x/y/w/h bei `k_lampe` beziehungsweise
 `g_batterien` anpassen.
 
 ### Treppenhaus im Detail
+Startet **dunkel**. Das helle Grundbild ist das gelieferte Bild, das dunkle ist
+daraus errechnet (siehe Abschnitt 8c) — darum liegen beide pixelgenau aufeinander.
+- `th_schalter` Lichtschalter links an der Wand (386,334 58×92) → `th_licht`
 - `th_tuer` Holztür oben an der Treppe (960,20 230×395) — schaltet den Weg in den Flur frei
 - `th_kiste` Holzkiste neben der Treppe (1390,440 240×175)
 - `th_kippen` Zigarettenschachtel in der Kiste (1420,520 140×65), typ `nehmen`
@@ -292,6 +302,11 @@ Eier in einer Nahaufnahme bekommen `inNah: '<teil-id>'`.
    Die Eier im Wohnzimmer sind grob platziert und sollten im Ausrichtemodus
    feinjustiert werden.
 4. **Nahaufnahmen** der Garage-Schränke fehlen.
+4b. **Bild für den Flur** fehlt. Dort kommt der Aufgang zum Dachboden hin —
+   vorerst ist das ein Pfeil nach oben, später eine Luke oder Klapptreppe als
+   Stelle im Bild. Offen ist noch, ob dieser Flur derselbe ist, den man durch
+   die Holztür im Treppenhaus sieht. Falls ja, führen beide Wege dorthin und
+   `treppenhaus` → `wohnzimmer` müsste auf `flur` umgebogen werden.
 5. **Die Zigarettenschachtel** liegt vorläufig in der Treppenhaus-Kiste. Gibt man
    sie Anfisa, steht sie auf (`anfisa_weg`). Ihr dritter Text fehlt noch, und der
    Sessel ist danach noch nicht untersuchbar — dafür braucht es ein Bild davon.
@@ -346,8 +361,13 @@ Faktor auf das dunkle Bild gelegt wird. Das Ergebnis ist warm beleuchtet und
 geometrisch identisch mit dem dunklen Bild. Backofen- und Kühlschrankinneres
 werden zusätzlich lokal aufgehellt, weil die Beleuchtungskarte davon nichts weiss.
 
-Damit stammen beide Küchen-Grundbilder und alle sechzehn Flicken aus derselben
+Damit stammen beide Küchen-Grundbilder und alle Flicken aus derselben
 Bildfamilie. Beim Lichtschalten bewegt sich nichts mehr.
+
+Beim Treppenhaus läuft es umgekehrt: Dort war das **helle** Bild vorhanden und
+das dunkle wurde daraus errechnet — aus dem gelieferten Paar „hell offen" und
+„dunkel offen" wird eine Abdunkelungskarte gewonnen und auf das helle
+Grundbild gelegt. Ein eigenes Bild „dunkel, alles zu" braucht es dadurch nicht.
 
 ### Für neue Bilder
 Am besten wäre, die Varianten eines Raums als Bearbeitung desselben Bildes zu

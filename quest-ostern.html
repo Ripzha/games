@@ -294,20 +294,24 @@
     { id: 'wohnzimmer', name: 'Wohnzimmer', start: 'wohnzimmer', gesperrtBis: null },
     { id: 'kueche',     name: 'Küche',      start: 'kueche',     gesperrtBis: null },
     { id: 'garten',     name: 'Garten',     start: 'garten',     gesperrtBis: null },
-    // Der Dachboden ist vorerst offen und nur über den Knopf oben erreichbar.
-    // Sobald der Aufgang da ist, kommt hier gesperrtBis und ein Weg dorthin.
-    { id: 'dachboden', name: 'Dachboden', start: 'dachboden', gesperrtBis: null }
+    // Flur und Dachboden sind Durchgangsräume: nur über Wege erreichbar,
+    // nicht über die Knöpfe oben. Beide warten noch auf ihre Bilder.
+    { id: 'flur',      name: 'Flur',      start: 'flur',      gesperrtBis: null, imMenu: false },
+    { id: 'dachboden', name: 'Dachboden', start: 'dachboden', gesperrtBis: null, imMenu: false }
   ];
 
   const ANSICHTEN = [
     // bild = geschlossen, bildOffen = alles offen (Ausschnitte werden daraus eingeblendet), breite/hoehe = Bildpixel
     { id: 'garage1', raum: 'garage', name: 'Garage — Werkbank', bild: 'bilder/garage-zu.png',  bildOffen: 'bilder/garage-offen.png',  breite: 1774, hoehe: 887 },
     { id: 'garage2', raum: 'garage', name: 'Garage — Tür',      bild: 'bilder/garage2-zu.png', bildOffen: 'bilder/garage2-offen.png', breite: 1774, hoehe: 887 },
-    { id: 'treppenhaus', raum: 'treppenhaus', name: 'Treppenhaus', bild: 'bilder/treppenhaus-zu.png', bildOffen: 'bilder/treppenhaus-offen.png', breite: 1774, hoehe: 887 },
+    // Startet dunkel. Der Schalter links an der Wand macht Licht.
+    { id: 'treppenhaus', raum: 'treppenhaus', name: 'Treppenhaus', bild: 'bilder/treppenhaus-dunkel.png',
+      hellWenn: 'th_licht', bildHell: 'bilder/treppenhaus-zu.png', breite: 1774, hoehe: 887 },
     { id: 'wohnzimmer', raum: 'wohnzimmer', name: 'Wohnzimmer', bild: 'bilder/wohnzimmer-zu.png', bildOffen: 'bilder/wohnzimmer-offen.png', breite: 1774, hoehe: 887 },
     { id: 'kueche', raum: 'kueche', name: 'Küche', bild: 'bilder/kueche-dunkel.png',
       hellWenn: 'kueche_licht', bildHell: 'bilder/kueche-hell.png', breite: 1774, hoehe: 887 },
     { id: 'garten',     raum: 'garten',     name: 'Garten',     bild: '' },
+    { id: 'flur', raum: 'flur', name: 'Flur', bild: '' },
     { id: 'dachboden', raum: 'dachboden', name: 'Dachboden', bild: '',
       lampeWenn: 'lampe_an', lampeRadius: 160 },
     // Nahansichten von Gegenständen, die man in die Hand nimmt.
@@ -345,6 +349,15 @@
     { von: 'wohnzimmer', nach: 'treppenhaus', art: 'unten',  label: 'zurück ins Treppenhaus' },
     { von: 'wohnzimmer', nach: 'kueche',       art: 'links',  label: 'in die Küche' },
     { von: 'kueche',     nach: 'wohnzimmer',   art: 'rechts', label: 'zurück ins Wohnzimmer' },
+    // Durch die Küchentür in den Flur, von dort auf den Dachboden.
+    // Der Hotspot liegt im Türausschnitt, nicht auf dem Türblatt.
+    { von: 'kueche', nach: 'flur', art: 'rein', pfeil: 'links', x: 100, y: 100, w: 95, h: 560,
+      wennOffen: 'k_tuer_offen', label: 'in den Flur' },
+    { von: 'flur',   nach: 'kueche',    art: 'rechts', label: 'zurück in die Küche' },
+    // VORLÄUFIG ein Pfeil nach oben. Sobald das Flurbild da ist, wird daraus
+    // eine Luke oder Klapptreppe als Stelle im Bild.
+    { von: 'flur',      nach: 'dachboden', art: 'oben',  label: 'hinauf auf den Dachboden' },
+    { von: 'dachboden', nach: 'flur',      art: 'unten', label: 'hinunter in den Flur' },
     // Bild in der Hand wenden
     { von: 'bild_vorn',   nach: 'bild_hinten', art: 'wenden', label: '↻ Umdrehen' },
     { von: 'bild_hinten', nach: 'bild_vorn',   art: 'wenden', label: '↻ Umdrehen' }
@@ -367,11 +380,20 @@
     // --- Garage, Ansicht 2: Türseite (Koordinaten im Bild 1774 x 887) ---
     { id: 'g2_oben',  ansicht: 'garage2', x: 470,  y: 150, w: 350, h: 396, typ: 'ausschnitt', zustand: 'g2_oben_offen',  label: 'Grosser Schrank, oben',  nah: '' },
     { id: 'g2_unten', ansicht: 'garage2', x: 470,  y: 548, w: 380, h: 265, typ: 'ausschnitt', zustand: 'g2_unten_offen', label: 'Grosser Schrank, unten', nah: '' },
-    { id: 'g2_tuer',  ansicht: 'garage2', x: 1045, y: 110, w: 390, h: 720, typ: 'ausschnitt', zustand: 'g2_tuer_offen',  label: 'Tür zum Treppenhaus',   nah: '' },
+    { id: 'g2_tuer',  ansicht: 'garage2', x: 1045, y: 110, w: 390, h: 720, typ: 'ausschnitt', zustand: 'g2_tuer_offen',  label: 'Tür zum Treppenhaus',
+      hellWenn: 'th_licht',
+      patch: 'bilder/g2-tuer-dunkel.png', patchX: 1039, patchY: 104, patchW: 402, patchH: 732,
+      patchHell: 'bilder/g2-tuer-hell.png', patchHellX: 1039, patchHellY: 104, patchHellW: 402, patchHellH: 732 },
     { id: 'g2_spind', ansicht: 'garage2', x: 1560, y: 150, w: 214, h: 680, typ: 'ausschnitt', zustand: 'g2_spind_offen', label: 'Spind rechts',          nah: '' },
     // --- Treppenhaus (Koordinaten im Bild 1774 x 887) ---
-    { id: 'th_tuer',  ansicht: 'treppenhaus', x: 960,  y: 20,  w: 230, h: 395, typ: 'ausschnitt', zustand: 'th_tuer_offen',  label: 'Holztür oben an der Treppe', nah: '' },
-    { id: 'th_kiste', ansicht: 'treppenhaus', x: 1390, y: 440, w: 240, h: 175, typ: 'ausschnitt', zustand: 'th_kiste_offen', label: 'Holzkiste neben der Treppe', nah: '' },
+    { id: 'th_schalter', ansicht: 'treppenhaus', x: 386, y: 334, w: 58, h: 92, typ: 'toggle', zustand: 'th_licht',
+      neuzeichnen: true, label: 'Lichtschalter' },
+    { id: 'th_tuer',  ansicht: 'treppenhaus', x: 960,  y: 20,  w: 230, h: 395, typ: 'ausschnitt', zustand: 'th_tuer_offen',  label: 'Holztür oben an der Treppe',
+      patch: 'bilder/th-tuer-dunkel.png', patchX: 954, patchY: 14, patchW: 242, patchH: 407,
+      patchHell: 'bilder/th-tuer-hell.png', patchHellX: 954, patchHellY: 14, patchHellW: 242, patchHellH: 407 },
+    { id: 'th_kiste', ansicht: 'treppenhaus', x: 1390, y: 440, w: 240, h: 175, typ: 'ausschnitt', zustand: 'th_kiste_offen', label: 'Holzkiste neben der Treppe',
+      patch: 'bilder/th-kiste-dunkel.png', patchX: 1384, patchY: 434, patchW: 252, patchH: 187,
+      patchHell: 'bilder/th-kiste-hell.png', patchHellX: 1384, patchHellY: 434, patchHellW: 252, patchHellH: 187 },
     // VORLÄUFIGER ORT der Zigarettenschachtel. Sobald klar ist, wo sie wirklich
     // liegt, nur ansicht/x/y/w/h ändern. Ohne bildAus zeichnet das Spiel eine Marke.
     { id: 'th_kippen', ansicht: 'treppenhaus', x: 1420, y: 520, w: 140, h: 65, typ: 'nehmen', zustand: 'kippen_weg',
@@ -600,6 +622,14 @@
         <rect x="1420" y="400" width="140" height="300" fill="#4a3a2a" id="form-tuer"/><circle cx="1540" cy="560" r="10" fill="#c8a040"/>
         <rect x="0" y="180" width="60" height="340" fill="#5a4a3a"/><ellipse cx="30" cy="180" rx="90" ry="70" fill="#4e7a3e"/>
         <rect x="1000" y="820" width="90" height="40" fill="#4e7a3e"/>`;
+      case 'flur': return `
+        <rect width="1600" height="900" fill="#b9a885"/>
+        <rect y="700" width="1600" height="200" fill="#6b4a32"/>
+        <rect x="120" y="150" width="200" height="550" fill="#8a6a4a"/><circle cx="300" cy="430" r="10" fill="#c8a040"/>
+        <rect x="1280" y="150" width="200" height="550" fill="#8a6a4a"/><circle cx="1300" cy="430" r="10" fill="#c8a040"/>
+        <rect x="640" y="60" width="320" height="40" fill="#7a6a52"/>
+        <rect x="660" y="100" width="280" height="30" fill="#5a4a38"/>
+        <text x="800" y="90" font-size="22" fill="#e8d8b8" text-anchor="middle" font-family="sans-serif">Luke zum Dachboden</text>`;
       case 'dachboden': return `
         <rect width="1600" height="900" fill="#1e2024"/>
         <rect y="700" width="1600" height="200" fill="#2a2c30"/>
@@ -742,10 +772,12 @@
       // eingeblendet, nicht aus einem Vollbild ausgeschnitten. Keine Rechteckkante.
       if (t.patch) {
         const bild = (p, x, y, w, h) => `<g data-offen="${t.zustand}"><image href="${p}" xlink:href="${p}" x="${x}" y="${y}" width="${w}" height="${h}"/></g>`;
-        if (!t.patchHell || !ans.hellWenn) return bild(t.patch, t.patchX, t.patchY, t.patchW, t.patchH);
-        // Zwei Fassungen: eine für dunkel, eine für hell
-        return `<g data-nicht="${ans.hellWenn}">${bild(t.patch, t.patchX, t.patchY, t.patchW, t.patchH)}</g>`
-             + `<g data-wenn="${ans.hellWenn}">${bild(t.patchHell, t.patchHellX, t.patchHellY, t.patchHellW, t.patchHellH)}</g>`;
+        // hellWenn am Teil schlägt das der Ansicht — die Garagentür zeigt das
+        // Treppenhaus dahinter, hängt also an dessen Licht, nicht am eigenen Raum.
+        const hw = t.hellWenn || ans.hellWenn;
+        if (!t.patchHell || !hw) return bild(t.patch, t.patchX, t.patchY, t.patchW, t.patchH);
+        return `<g data-nicht="${hw}">${bild(t.patch, t.patchX, t.patchY, t.patchW, t.patchH)}</g>`
+             + `<g data-wenn="${hw}">${bild(t.patchHell, t.patchHellX, t.patchHellY, t.patchHellW, t.patchHellH)}</g>`;
       }
       // Aufnehmbares ohne eigenes Bild: goldene Marke, damit man es überhaupt sieht
       if (t.typ === 'nehmen' && !quelle && !t.patch) {
