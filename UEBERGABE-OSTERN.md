@@ -182,7 +182,7 @@ Vier Ausschnitte, alle mit `nah: ''` — **Nahaufnahmen fehlen noch**:
   zurückhängen.. Der Rahmen reicht bis y=190, ein kürzerer Ausschnitt lässt die Rahmenunterkante stehen.
 - `w_tv` Fernseher (1408,148 217×200) — an und aus. Der Flicken stammt aus einem eigenen Bild, das pixelgenau zum Grundbild passt; darum stehen die Porzellanfiguren exakt gleich.
 - `w_sessel_leer` Overlay ohne Anfisa (150,80 850×770), schaltet auf `anfisa_weg`
-- `w_frau` Anfisa im Sessel (Flicken 200,93 520×377, Klickfläche 240,192 430×233),
+- `w_frau` Anfisa im Sessel (Flicken 237,97 543×402, Klickfläche 240,192 430×233),
   typ `phasen`, nimmt `kippen` entgegen und setzt damit `anfisa_weg`:
   0 schlafend (Grundbild) · 1 aufgeschreckt · 2 spricht · danach wieder 0.
   **Beide Texte sind Platzhalter.**
@@ -347,7 +347,14 @@ macht daraus ein PNG mit Alphakanal:
 1. Quellbild farblich ans Grundbild angleichen, zweistufig
 2. Maske auf die veränderte Form beschränken — entweder automatisch aus dem
    Differenzbild oder per `form=(x0,y0,x1,y1)` fest vorgegeben
-2b. `aussparung=[(x0,y0,x1,y1), ...]` nimmt Bereiche wieder heraus. Nötig für
+2b. Der Maskenrand muss eng am Objekt liegen. Jeder Pixel Hintergrund, den der
+   Flicken mitnimmt, wird falsch, sobald sich dieser Hintergrund ändern kann —
+   bei Anfisa hat ein zu grosszügiger Rand Teile des Gemäldes mitgeschleppt, die
+   dann auf der leeren Wand standen. Umgekehrt muss die volle Deckkraft weit
+   genug reichen, um das alte Objekt zu überdecken, sonst bleibt dessen Umriss
+   als Geist stehen. Richtig ist: niedrige Schwelle, nur der grösste
+   zusammenhängende Bereich, wenig wachsen, wenig weich.
+2c. `aussparung=[(x0,y0,x1,y1), ...]` nimmt Bereiche wieder heraus. Nötig für
    Dinge, die halb im Ausschnitt stehen und im Quellbild versetzt sind — die
    erscheinen sonst doppelt. Im Wohnzimmer betrifft das die Tasse auf dem
    Couchtisch, die in den Ausschnitt des Bücherregal-Schranks ragt.
