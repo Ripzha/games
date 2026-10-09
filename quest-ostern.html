@@ -244,7 +244,10 @@
       <b>Pfeile</b> am Bildrand drehen dich im Raum. Goldene Marken sind Durchgänge.<br>
       <b>Drei Hinweise</b> hast du. Mehr nicht.
     </div>
-    <button class="knopf" id="start-knopf">Suchen</button>
+    <div class="knopf-reihe">
+      <button class="knopf" id="start-knopf">Suchen</button>
+      <button class="knopf sekundaer" id="neu-knopf" style="display:none">Von vorn anfangen</button>
+    </div>
   </div>
 
   <!-- Ende -->
@@ -277,6 +280,11 @@
   const SPEICHER_KEY = 'ostern_fortschritt';
   const HINWEISE_GESAMT = 3;
   const EDITOR = /[?&]editor=1/.test(location.search);
+  // ?neu=1 löscht den Spielstand und fängt von vorn an
+  if (/[?&]neu=1/.test(location.search)) {
+    try { localStorage.removeItem(SPEICHER_KEY); } catch (e) {}
+    location.replace(location.pathname + (EDITOR ? '?editor=1' : ''));
+  }
 
   // =====================================================================
   // DATEN — Räume, bewegliche Teile, Eier, Rätsel
@@ -1544,7 +1552,14 @@
   renderRaum();
   zoomReset();
   document.getElementById('uhr').textContent = uhrText(zustand.zeit);
-  if (hatte && zustand.gefunden.length) document.getElementById('start-knopf').textContent = 'Weitersuchen (' + zustand.gefunden.length + '/' + EIER.length + ')';
+  if (hatte) {
+    if (zustand.gefunden.length) document.getElementById('start-knopf').textContent = 'Weitersuchen (' + zustand.gefunden.length + '/' + EIER.length + ')';
+    document.getElementById('neu-knopf').style.display = '';
+  }
+  document.getElementById('neu-knopf').onclick = () => {
+    try { localStorage.removeItem(SPEICHER_KEY); } catch (e) {}
+    location.reload();
+  };
   if (hatte && zustand.fertig) { document.getElementById('screen-intro').classList.add('hidden'); spielEnde(); }
   if (EDITOR) {
     document.getElementById('editor').classList.add('an');

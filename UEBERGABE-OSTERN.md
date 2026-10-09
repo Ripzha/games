@@ -143,6 +143,12 @@ die Ansicht trotzdem, falls ein Bild fehlt.
 Nach dem Start werden ausserdem alle Bilder des Spiels im Hintergrund vorgeladen,
 damit spätere Räume sofort da sind.
 
+### Zurücksetzen
+- Im Startbildschirm der Knopf **„Von vorn anfangen"** — erscheint nur, wenn ein
+  Spielstand da ist.
+- Oder die Seite mit **`?neu=1`** aufrufen, das löscht den Stand und lädt neu.
+- Am Ende des Spiels gibt es wie bisher „Nochmal von vorn".
+
 ### Ausrichtemodus
 `quest-ostern.html?editor=1` → alle Eier sichtbar, jeder Klick zeigt die Koordinaten
 in Bildpixeln. **So werden Eier, Hotspots und Durchgänge platziert.**
