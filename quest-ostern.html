@@ -306,7 +306,8 @@
     { id: 'garage2', raum: 'garage', name: 'Garage — Tür',      bild: 'bilder/garage2-zu.png', bildOffen: 'bilder/garage2-offen.png', breite: 1774, hoehe: 887 },
     // Startet dunkel. Der Schalter links an der Wand macht Licht.
     { id: 'treppenhaus', raum: 'treppenhaus', name: 'Treppenhaus', bild: 'bilder/treppenhaus-dunkel.png',
-      hellWenn: 'th_licht', bildHell: 'bilder/treppenhaus-zu.png', breite: 1774, hoehe: 887 },
+      hellWenn: 'th_licht', bildHell: 'bilder/treppenhaus-zu.png', breite: 1774, hoehe: 887,
+      verlassenSetzt: 'th_verlassen', verlassenWenn: 'th_geladen' },
     { id: 'wohnzimmer', raum: 'wohnzimmer', name: 'Wohnzimmer', bild: 'bilder/wohnzimmer-zu.png', bildOffen: 'bilder/wohnzimmer-offen.png', breite: 1774, hoehe: 887 },
     { id: 'kueche', raum: 'kueche', name: 'Küche', bild: 'bilder/kueche-dunkel.png',
       hellWenn: 'kueche_licht', bildHell: 'bilder/kueche-hell.png', breite: 1774, hoehe: 887 },
@@ -390,8 +391,11 @@
       setztAuch: 'th_geladen', neuzeichnen: true, label: 'Lichtschalter' },
     // Leuchtschrift an der Wand: lädt sich im Licht auf und leuchtet danach im
     // Dunkeln nach. Sichtbar nur, wenn das Licht schon einmal an war und jetzt aus ist.
+    // Drei Bedingungen: Licht war einmal an, der Raum wurde danach verlassen,
+    // und das Licht ist jetzt aus.
     { id: 'th_code', ansicht: 'treppenhaus', x: 472, y: 357, w: 152, h: 114, typ: 'overlay', zustand: 'th_geladen',
-      nichtWenn: 'th_licht', patch: 'bilder/th-code.png', patchX: 472, patchY: 357, patchW: 152, patchH: 114,
+      sichtbarWenn: 'th_verlassen', nichtWenn: 'th_licht',
+      patch: 'bilder/th-code.png', patchX: 472, patchY: 357, patchW: 152, patchH: 114,
       label: 'Leuchtschrift' },
     { id: 'th_tuer',  ansicht: 'treppenhaus', x: 960,  y: 20,  w: 230, h: 395, typ: 'ausschnitt', zustand: 'th_tuer_offen',  label: 'Holztür oben an der Treppe',
       patch: 'bilder/th-tuer-dunkel.png', patchX: 954, patchY: 14, patchW: 242, patchH: 407,
@@ -884,6 +888,14 @@
   function geheZu(ansichtId) {
     const ziel = ansichtVon(ansichtId);
     if (!ziel) return;
+    // Merken, dass der Raum verlassen wurde (die Leuchtschrift zeigt sich erst,
+    // wenn man einmal weg war und danach das Licht ausmacht)
+    if (!ziel.istNah && ansichtId !== zustand.ansicht) {
+      const alt = ansichtVon(zustand.ansicht);
+      if (alt && alt.verlassenSetzt && (!alt.verlassenWenn || zustand.offen[alt.verlassenWenn])) {
+        zustand.offen[alt.verlassenSetzt] = true;
+      }
+    }
     if (ziel.istNah) {
       zustand.nah = ansichtId;
     } else {

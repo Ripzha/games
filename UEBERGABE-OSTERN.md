@@ -98,6 +98,10 @@ Wichtig: TEILE und EIER hängen an einer **Ansicht**, nicht am Raum (`ansicht: '
 der nie wieder gelöscht wird. Damit merkt sich das Spiel, dass das Licht schon
 einmal an war.
 
+Eine Ansicht kann mit `verlassenSetzt` und `verlassenWenn` festhalten, dass der
+Raum verlassen wurde — optional nur dann, wenn eine Bedingung erfüllt ist.
+Nahansichten zählen nicht als Verlassen.
+
 Zusatzfelder für jedes Teil: `patch` (freigestelltes PNG mit Transparenz, dazu
 `patchX/patchY/patchW/patchH`), `bildAus` (aus welchem Bild der Ausschnitt kommt,
 sonst `bildOffen` der Ansicht; bei `nehmen` nur `bildAus`, sonst zeichnet das Spiel
@@ -251,9 +255,9 @@ daraus errechnet (siehe Abschnitt 8c) — darum liegen beide pixelgenau aufeinan
 - `th_schalter` Lichtschalter links an der Wand (386,334 58×92) → `th_licht`,
   setzt zusätzlich dauerhaft `th_geladen`
 - `th_code` Leuchtschrift **7392** an der Wand (472,357 152×114), typ `overlay`.
-  Sichtbar nur wenn `th_geladen` gesetzt und `th_licht` aus — die Schrift lädt
-  sich im Licht auf und leuchtet danach im Dunkeln nach. Wozu der Code gehört,
-  ist noch offen.
+  Drei Bedingungen: `th_geladen` (Licht war einmal an), `th_verlassen` (danach
+  war man mindestens einmal weg) und `th_licht` aus. Sofort wieder ausschalten
+  genügt also nicht. Wozu der Code gehört, ist noch offen.
 - `th_tuer` Holztür oben an der Treppe (960,20 230×395) — schaltet den Weg in den Flur frei
 - `th_kiste` Holzkiste neben der Treppe (1390,440 240×175)
 - `th_kippen` Zigarettenschachtel in der Kiste (1420,520 140×65), typ `nehmen`
