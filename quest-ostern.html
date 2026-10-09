@@ -279,6 +279,9 @@
   const SPIEL_ID = 'ostern';
   const SPEICHER_KEY = 'ostern_fortschritt';
   const HINWEISE_GESAMT = 3;
+  // Gemeinsamer Faktor für alle Eier. Die Radien in EIER bleiben, hier wird
+  // zentral skaliert — eine Zahl ändern statt zwanzig.
+  const EI_GROESSE = 1.5;
   const EDITOR = /[?&]editor=1/.test(location.search);
   // ?neu=1 löscht den Spielstand und fängt von vorn an
   if (/[?&]neu=1/.test(location.search)) {
@@ -715,7 +718,7 @@
   }
 
   function eiForm(ei) {
-    const rx = ei.r, ry = ei.r * 1.3;
+    const rx = ei.r * EI_GROESSE, ry = ei.r * EI_GROESSE * 1.3;
     const pid = 'm_' + ei.id;
     let muster = '';
     if (ei.muster === 'punkte') muster = `<circle cx="2" cy="2" r="1.2" fill="rgba(255,255,255,0.35)"/>`;

@@ -71,7 +71,9 @@ Alles Inhaltliche steht oben im `<script>` unter **„DATEN"**:
     ist (zum Beispiel eine geöffnete Tür)
 - **TEILE** — bewegliche/antippbare Objekte: `ansicht`, x, y, w, h (Bildpixel),
   `typ`, `zustand`, `label`
-- **EIER** — `ansicht`, x, y, r, farbe, muster, `ebene` (1/2/3), `sichtbarWenn`
+- **EIER** — `ansicht`, x, y, r, farbe, muster, `ebene` (1/2/3), `sichtbarWenn`.
+  Der Radius wird zentral mit `EI_GROESSE` skaliert (oben bei den Einstellungen),
+  alle Eier auf einmal. Die Trefferfläche wächst mit.
 - **GEGENSTAENDE** — Inventar: id, `symbol` (Emoji fürs Rucksack-Fach), name,
   `nah` (ID einer Nahansicht), `text`.
   Zusammensetzen: `nimmt` (andere Gegenstand-ID), `setzt`, `verbraucht`, `antwort`.
