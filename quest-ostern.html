@@ -316,7 +316,7 @@
     // Ziel später anpassen, wenn das Treppenhaus ein eigenes Bild hat.
     { von: 'garage2', nach: 'treppenhaus', art: 'rein', x: 1200, y: 200, w: 190, h: 600, wennOffen: 'g2_tuer_offen', label: 'Treppe nach oben' },
     // Treppenhaus: die Metalltür links führt zurück in die Garage, die Holztür oben weiter
-    { von: 'treppenhaus', nach: 'garage2',    art: 'rein', x: 10,  y: 60, w: 270, h: 760, label: 'zurück in die Garage' },
+    { von: 'treppenhaus', nach: 'garage2',    art: 'rein', pfeil: 'links', x: 10, y: 60, w: 270, h: 760, label: 'zurück in die Garage' },
     { von: 'treppenhaus', nach: 'wohnzimmer', art: 'rein', x: 998, y: 55, w: 90,  h: 270, wennOffen: 'th_tuer_offen', label: 'Tür in den Flur' },
     { von: 'wohnzimmer', nach: 'treppenhaus', art: 'unten',  label: 'zurück ins Treppenhaus' },
     { von: 'wohnzimmer', nach: 'kueche',       art: 'links',  label: 'in die Küche' },
@@ -693,14 +693,17 @@
     renderRaumKnoepfe();
   }
 
-  // Marke auf einem Durchgang im Bild: Kreis mit Pfeil nach oben
+  // Marke auf einem Durchgang im Bild: Kreis mit Pfeil.
+  // pfeil: 'hoch' (Standard), 'runter', 'links', 'rechts'
+  const PFEIL_WINKEL = { hoch: 0, rechts: 90, runter: 180, links: 270 };
   function durchgangForm(w) {
     const mx = w.x + w.w / 2, my = w.y + w.h / 2;
+    const winkel = PFEIL_WINKEL[w.pfeil] || 0;
     return `<g class="durchgang" data-weg="${w.nach}" data-wenn="${w.wennOffen || ''}" transform="translate(${mx},${my})">
       <rect x="${-w.w / 2}" y="${-w.h / 2}" width="${w.w}" height="${w.h}" fill="transparent"><title>${w.label || 'weiter'}</title></rect>
       <g class="marke">
         <circle r="30" fill="rgba(10,18,12,0.6)" stroke="#f4d484" stroke-width="2"/>
-        <path d="M0 -13 L13 6 L0 0 L-13 6 Z" fill="#f4d484"/>
+        <path d="M0 -13 L13 6 L0 0 L-13 6 Z" fill="#f4d484" transform="rotate(${winkel})"/>
       </g></g>`;
   }
 

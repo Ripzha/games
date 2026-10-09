@@ -60,7 +60,8 @@ Alles Inhaltliche steht oben im `<script>` unter **„DATEN"**:
   - `art: 'unten'` / `'oben'` → Pfeil mittig am unteren/oberen Bildrand
   - `art: 'raus'` → Knopf unten in der Mitte (mit `label` als Beschriftung)
   - `art: 'rein'` → anklickbare Stelle im Bild, braucht zusätzlich `x, y, w, h`
-    in Bildpixeln; wird mit einer goldenen Marke angezeigt
+    in Bildpixeln; wird mit einer goldenen Marke angezeigt. `pfeil` dreht die
+    Marke: `hoch` (Standard), `runter`, `links`, `rechts`
   - `wennOffen: '<zustand>'` → der Weg erscheint erst, wenn dieser Zustand gesetzt
     ist (zum Beispiel eine geöffnete Tür)
 - **TEILE** — bewegliche/antippbare Objekte: `ansicht`, x, y, w, h (Bildpixel),
@@ -127,7 +128,7 @@ in Bildpixeln. **So werden Eier, Hotspots und Durchgänge platziert.**
 - `garage1` → Pfeil rechts → `garage2`
 - `garage2` → Pfeil links → `garage1`
 - `garage2` → Treppe (1200,200 190×600) → `treppenhaus`, erst wenn `g2_tuer_offen`
-- `treppenhaus` → Metalltür links (10,60 270×760) → `garage2`
+- `treppenhaus` → Metalltür links (10,60 270×760) → `garage2`, Pfeil nach links
 - `treppenhaus` → Holztür oben (998,55 90×270) → `wohnzimmer`, erst wenn `th_tuer_offen`
 - `wohnzimmer` → Pfeil unten → `treppenhaus`
 - `wohnzimmer` → Pfeil links → `kueche`, `kueche` → Pfeil rechts → `wohnzimmer`
