@@ -108,8 +108,10 @@ Eine Ansicht kann mit `verlassenSetzt` und `verlassenWenn` festhalten, dass der
 Raum verlassen wurde — optional nur dann, wenn eine Bedingung erfüllt ist.
 Nahansichten zählen nicht als Verlassen.
 
-Zusatzfelder für jedes Teil: `patch` (freigestelltes PNG mit Transparenz, dazu
-`patchX/patchY/patchW/patchH`), `bildAus` (aus welchem Bild der Ausschnitt kommt,
+Zusatzfelder für jedes Teil: `patch` (freigestelltes Bild mit Transparenz, dazu
+`patchX/patchY/patchW/patchH`; mit `patchNicht: true` gilt der Flicken, solange
+der Zustand NICHT gesetzt ist — für Gegenstände, die im Bild liegen und beim
+Aufnehmen verschwinden), `bildAus` (aus welchem Bild der Ausschnitt kommt,
 sonst `bildOffen` der Ansicht; bei `nehmen` nur `bildAus`, sonst zeichnet das Spiel
 eine goldene Marke), `sichtbarWenn` und `nichtWenn` (Zustand-Keys, die das Teil
 ein- oder ausblenden), `nah` (ID einer Nahansicht), `treffer: {x,y,w,h}` (eigene
@@ -206,8 +208,8 @@ Vier Ausschnitte, alle mit `nah: ''` — **Nahaufnahmen fehlen noch**:
 - `g2_unten` Grosser Schrank, unten (470,548 380×265). Zweites Antippen öffnet
   `gruen_nah` (1448×1086). Dort die Blechkiste aufklappen (230,230 470×225),
   nochmal antippen führt in `kiste_nah` (1361×1028) — darin das Feuerzeug und Ei e08.
-  **Offen:** ein Bild der leeren Kiste. Das Feuerzeug bleibt im Bild liegen,
-  auch nachdem man es genommen hat.
+  Grundbild ist die **leere** Kiste; das Feuerzeug liegt als Flicken darauf
+  (`patchNicht: true`) und verschwindet beim Aufnehmen.
 - `g2_tuer` Tür zum Treppenhaus (1045,110 390×720) — schaltet den Weg zur Treppe frei.
   Zeigt das Treppenhaus dahinter, hängt also über ein eigenes `hellWenn: 'th_licht'`
   am Licht des Nachbarraums, nicht am eigenen.

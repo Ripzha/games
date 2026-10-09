@@ -406,8 +406,11 @@
     { id: 'gn_kiste', ansicht: 'gruen_nah', x: 230, y: 230, w: 470, h: 225, typ: 'ausschnitt', zustand: 'kiste_auf', label: 'Blechkiste',
       patch: 'bilder/gruen-kiste.webp', patchX: 218, patchY: 78, patchW: 494, patchH: 384, nah: 'kiste_nah' },
     // In der Kiste: Feuerzeug. Es bleibt im Bild liegen, dafür fehlt noch ein Bild der leeren Kiste.
-    { id: 'ki_feuerzeug', ansicht: 'kiste_nah', x: 440, y: 495, w: 400, h: 225, typ: 'nehmen', zustand: 'feuerzeug_weg',
-      gibt: 'feuerzeug', ohneMarke: true, label: 'Feuerzeug' },
+    // Grundbild ist die leere Kiste; das Feuerzeug liegt als Flicken darauf und
+    // verschwindet, sobald man es genommen hat.
+    { id: 'ki_feuerzeug', ansicht: 'kiste_nah', x: 478, y: 558, w: 410, h: 219, typ: 'nehmen', zustand: 'feuerzeug_weg',
+      gibt: 'feuerzeug', label: 'Feuerzeug',
+      patch: 'bilder/kiste-feuerzeug.webp', patchNicht: true, patchX: 483, patchY: 563, patchW: 400, patchH: 209 },
     { id: 'g2_tuer',  ansicht: 'garage2', x: 1045, y: 110, w: 390, h: 720, typ: 'ausschnitt', zustand: 'g2_tuer_offen',  label: 'Tür zum Treppenhaus',
       hellWenn: 'th_licht',
       patch: 'bilder/g2-tuer-dunkel.webp', patchX: 1039, patchY: 104, patchW: 402, patchH: 732,
@@ -865,7 +868,10 @@
       // Freigestellter Flicken mit Alphakanal: wird an seiner eigenen Stelle
       // eingeblendet, nicht aus einem Vollbild ausgeschnitten. Keine Rechteckkante.
       if (t.patch) {
-        const bild = (p, x, y, w, h) => `<g data-offen="${t.zustand}"><image href="${p}" xlink:href="${p}" x="${x}" y="${y}" width="${w}" height="${h}"/></g>`;
+        // patchNicht: der Flicken liegt da, SOLANGE der Zustand nicht gesetzt ist
+        // (ein Gegenstand, der im Bild liegt und nach dem Aufnehmen verschwindet)
+        const bed = t.patchNicht ? `data-nicht="${t.zustand}"` : `data-offen="${t.zustand}"`;
+        const bild = (p, x, y, w, h) => `<g ${bed}><image href="${p}" xlink:href="${p}" x="${x}" y="${y}" width="${w}" height="${h}"/></g>`;
         // hellWenn am Teil schlägt das der Ansicht — die Garagentür zeigt das
         // Treppenhaus dahinter, hängt also an dessen Licht, nicht am eigenen Raum.
         const hw = t.hellWenn || ans.hellWenn;
