@@ -349,20 +349,22 @@
     { id: 'th_kippen', ansicht: 'treppenhaus', x: 1420, y: 520, w: 140, h: 65, typ: 'nehmen', zustand: 'kippen_weg',
       gibt: 'kippen', sichtbarWenn: 'th_kiste_offen', label: 'Zigarettenschachtel' },
     // --- Wohnzimmer (Koordinaten im Bild 1774 x 887) ---
-    { id: 'w_regal',    ansicht: 'wohnzimmer', x: 860,  y: 330, w: 230, h: 145, typ: 'ausschnitt', zustand: 'wz_regal_offen', label: 'Schrank unter dem Bücherregal', nah: '' },
+    { id: 'w_regal',    ansicht: 'wohnzimmer', x: 862,  y: 336, w: 236, h: 146, typ: 'ausschnitt', zustand: 'wz_regal_offen', label: 'Schrank unter dem Bücherregal',
+      patch: 'bilder/wz-regal-auf.png', patchX: 856, patchY: 330, patchW: 248, patchH: 158 },
     // Schnittkante liegt unter den Porzellanfiguren — die stehen in beiden Bildern
     // leicht versetzt, ein höherer Schnitt zerschneidet sie.
-    { id: 'w_tvmoebel', ansicht: 'wohnzimmer', x: 1215, y: 400, w: 559, h: 108, typ: 'ausschnitt', zustand: 'wz_tv_offen',    label: 'Fernsehmöbel',                 nah: '' },
+    { id: 'w_tvmoebel', ansicht: 'wohnzimmer', x: 1215, y: 398, w: 559, h: 112, typ: 'ausschnitt', zustand: 'wz_tv_offen',    label: 'Fernsehmöbel',
+      patch: 'bilder/wz-tvmoebel-auf.png', patchX: 1209, patchY: 392, patchW: 565, patchH: 124 },
     // Die Frau im Sessel: drei Frames. 0 = schlafend (Grundbild), 1 = aufgeschreckt, 2 = spricht.
     // Jeder Klick geht eine Phase weiter, nach der letzten wieder zurück auf schlafend.
     // Sessel ohne Anfisa. Liegt vor dem Bild an der Wand, damit ein abgehängtes Bild
     // nicht wieder auftaucht, wenn sie weg ist.
-    { id: 'w_sessel_leer', ansicht: 'wohnzimmer', x: 150, y: 80, w: 850, h: 770, typ: 'overlay', zustand: 'anfisa_weg',
-      bildAus: 'bilder/wohnzimmer-leer.png', label: 'Sessel' },
-    { id: 'w_gemaelde', ansicht: 'wohnzimmer', x: 420, y: 0, w: 265, h: 190, typ: 'nehmen', zustand: 'bild_ab', gibt: 'gemaelde',
-      bildAus: 'bilder/wohnzimmer-aus.png', label: 'Bild an der Wand' },
-    { id: 'w_tv', ansicht: 'wohnzimmer', x: 1400, y: 145, w: 240, h: 200, typ: 'ausschnitt', zustand: 'tv_aus',
-      bildAus: 'bilder/wohnzimmer-aus.png', label: 'Fernseher' },
+    { id: 'w_sessel_leer', ansicht: 'wohnzimmer', x: 177, y: 124, w: 823, h: 712, typ: 'overlay', zustand: 'anfisa_weg',
+      patch: 'bilder/wz-sessel-leer.png', patchX: 177, patchY: 124, patchW: 823, patchH: 712, label: 'Sessel' },
+    { id: 'w_gemaelde', ansicht: 'wohnzimmer', x: 415, y: 0, w: 275, h: 188, typ: 'nehmen', zustand: 'bild_ab', gibt: 'gemaelde',
+      patch: 'bilder/wz-bild-ab.png', patchX: 405, patchY: 0, patchW: 292, patchH: 195, label: 'Bild an der Wand' },
+    { id: 'w_tv', ansicht: 'wohnzimmer', x: 1408, y: 145, w: 232, h: 237, typ: 'ausschnitt', zustand: 'tv_aus',
+      patch: 'bilder/wz-tv-aus.png', patchX: 1402, patchY: 139, patchW: 244, patchH: 249, label: 'Fernseher' },
     // --- Das Bild in der Hand, Rückseite ---
     { id: 'bi_fach', ansicht: 'bild_hinten', x: 510, y: 600, w: 570, h: 210, typ: 'ausschnitt', zustand: 'fach_offen',
       bildAus: 'bilder/bild-hinten-offen.png', label: 'Fach in der Rückwand' },
@@ -654,8 +656,13 @@
       }
       // Ausschnitt, Overlay und aufgenommener Gegenstand: Bereich aus einem zweiten Bild einblenden
       const quelle = t.typ === 'nehmen' ? t.bildAus : (t.bildAus || ans.bildOffen);
+      // Freigestellter Flicken mit Alphakanal: wird an seiner eigenen Stelle
+      // eingeblendet, nicht aus einem Vollbild ausgeschnitten. Keine Rechteckkante.
+      if (t.patch) {
+        return `<g data-offen="${t.zustand}"><image href="${t.patch}" xlink:href="${t.patch}" x="${t.patchX}" y="${t.patchY}" width="${t.patchW}" height="${t.patchH}"/></g>`;
+      }
       // Aufnehmbares ohne eigenes Bild: goldene Marke, damit man es überhaupt sieht
-      if (t.typ === 'nehmen' && !quelle) {
+      if (t.typ === 'nehmen' && !quelle && !t.patch) {
         return `<g data-nicht="${t.zustand}" class="nimm-marke" transform="translate(${t.x + t.w / 2},${t.y + t.h / 2})">
           <circle r="22" fill="rgba(10,18,12,0.55)" stroke="#f4d484" stroke-width="2"/>
           <path d="M-7 2 L0 -8 L7 2 Z M-7 6 L7 6" stroke="#f4d484" stroke-width="2.5" fill="none" stroke-linecap="round"/>

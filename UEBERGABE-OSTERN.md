@@ -86,7 +86,8 @@ Wichtig: TEILE und EIER hängen an einer **Ansicht**, nicht am Raum (`ansicht: '
 | `phasen` | Figur mit mehreren Frames. Jeder Klick geht eine Phase weiter, nach der letzten zurück auf 0. Phase 0 = Grundbild. Jede Phase: `{ bild, text }`, der Text erscheint in der Sprechblase mit `sprecher` als Namen. |
 | `schalter` | Licht an/aus für DUNKEL-Bereiche |
 
-Zusatzfelder für jedes Teil: `bildAus` (aus welchem Bild der Ausschnitt kommt,
+Zusatzfelder für jedes Teil: `patch` (freigestelltes PNG mit Transparenz, dazu
+`patchX/patchY/patchW/patchH`), `bildAus` (aus welchem Bild der Ausschnitt kommt,
 sonst `bildOffen` der Ansicht; bei `nehmen` nur `bildAus`, sonst zeichnet das Spiel
 eine goldene Marke), `sichtbarWenn` und `nichtWenn` (Zustand-Keys, die das Teil
 ein- oder ausblenden), `nah` (ID einer Nahansicht), `treffer: {x,y,w,h}` (eigene
@@ -142,8 +143,8 @@ Vier Ausschnitte, alle mit `nah: ''` — **Nahaufnahmen fehlen noch**:
 - `g2_spind` Spind rechts (1560,150 214×680)
 
 ### Wohnzimmer im Detail
-- `w_regal` Schrank unter dem Bücherregal (860,330 230×145) → Ei e12
-- `w_tvmoebel` Fernsehmöbel (1215,400 559×108) → Ei e13. Die Schnittkante muss unter den Porzellanfiguren liegen, die stehen in den beiden Bildern versetzt.
+- `w_regal` Schrank unter dem Bücherregal (862,336 236×146), Flicken → Ei e12
+- `w_tvmoebel` Fernsehmöbel (1215,400 559×108) → Ei e13. Flicken, Kante unter den Porzellanfiguren — die stehen in den beiden Bildern versetzt.
 - `w_gemaelde` Bild an der Wand (420,0 265×190), typ `nehmen` → Gegenstand `gemaelde`. Der Rahmen reicht bis y=190, ein kürzerer Ausschnitt lässt die Rahmenunterkante stehen.
 - `w_tv` Fernseher (1400,145 240×200) — an und aus
 - `w_sessel_leer` Overlay ohne Anfisa (150,80 850×770), schaltet auf `anfisa_weg`
@@ -230,12 +231,35 @@ Eier in einer Nahaufnahme bekommen `inNah: '<teil-id>'`.
    nicht gibt → Ziel noch festzulegen.
 7. Am Handy noch nicht getestet (Zoom, Pinch, Tippen).
 
-### Zwei Dinge, die beim Ausschneiden schiefgehen können
-- **Versetzte Objekte.** Zwei getrennt erzeugte Bilder liegen selten exakt
-  übereinander. Vor jedem neuen Ausschnitt ein Kompositbild bauen und
-  draufschauen, nicht nur dem Differenzbild vertrauen.
-- **Schnittkanten durch Objekte.** Die Kante gehört in eine ruhige Fläche,
-  nie quer durch eine Tür, eine Figur oder eine Kante im Bild.
+## 8. AUSSCHNEIDEN — ZWEI VERFAHREN
+
+### a) Rechteck aus dem zweiten Vollbild (`bildAus` / `bildOffen`)
+Funktioniert nur, wenn die beiden Bilder pixelgenau übereinanderliegen und
+denselben Farbton haben. Das ist der Fall bei garage2, treppenhaus und den
+Bildrückseiten — die sind offensichtlich als Varianten desselben Bildes
+entstanden. Die Schnittkante gehört trotzdem in eine ruhige Fläche, nie quer
+durch eine Tür, eine Figur oder eine Kante.
+
+### b) Freigestellter Flicken (`patch`)
+Nötig, sobald die beiden Bilder getrennt erzeugt wurden. Dann unterscheidet
+sich die ganze Fläche: Tapetenmuster, Helligkeit, Farbton. Ein Rechteck fällt
+dann sofort als heller Kasten auf. Das Wohnzimmer ist so ein Fall.
+
+Das Skript `freistellen.py` (liegt nicht im Repo, bei Bedarf neu anfordern)
+macht daraus ein PNG mit Alphakanal:
+1. Quellbild farblich ans Grundbild angleichen, zweistufig
+2. Maske auf die veränderte Form beschränken — entweder automatisch aus dem
+   Differenzbild oder per `form=(x0,y0,x1,y1)` fest vorgegeben
+3. Maskenrand weich auslaufen lassen
+4. Auf die Maskengrösse zuschneiden
+
+Im Spiel wird so ein Flicken mit `patch` und `patchX/Y/W/H` eingeblendet.
+Die Klickfläche des Teils bleibt davon unabhängig.
+
+### Für neue Bilder
+Am besten wäre, die Varianten eines Raums als Bearbeitung desselben Bildes zu
+erzeugen statt als neue Generierung. Dann passen Muster und Farben exakt und
+Verfahren a) reicht. Wenn das nicht geht, ist b) nötig.
 
 ## 7. ARBEITSWEISE KNOX
 
