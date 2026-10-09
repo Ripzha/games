@@ -122,9 +122,15 @@ etwas fehlt).
 Ist `nimmt` eine Liste, müssen alle Gegenstände im Rucksack liegen. Angetippt
 wird nur einer davon, verbraucht werden alle.
 
-Strafe: `strafeWenn` (Zustand, der nicht sein darf), `strafeSetzt` und
-`strafeAntwort`. Ist die Bedingung erfüllt, passiert **gar nichts** — kein
-Zustand wird gesetzt, nichts verbraucht. Nur der Strafzustand und der Text.
+Strafen: `strafen: [{ wenn, setzt, antwort }, ...]` — die erste zutreffende
+Bedingung greift. Dann passiert **gar nichts**: kein Zustand wird gesetzt,
+nichts verbraucht. Nur der Strafzustand und der Text. Die alten Einzelfelder
+`strafeWenn`, `strafeSetzt`, `strafeAntwort` gehen weiterhin.
+
+Schaltbare Teile können beim Umschalten etwas sagen: `sagtAn` (Zustand wird
+gesetzt), `sagtAus` (Zustand wird aufgehoben), `sprecher` und `sagtNichtWenn`
+(dann bleibt es still). Beim Fernseher ist zu beachten, dass der Zustand
+`tv_aus` heisst — gesetzt bedeutet also ausgeschaltet.
 
 Bedienung: Rucksack unten rechts antippen, er öffnet ein Gitter mit festen
 Fächern. Ein Fach antippen nimmt den Gegenstand in die Hand und schliesst den
@@ -199,7 +205,7 @@ Vier Ausschnitte, alle mit `nah: ''` — **Nahaufnahmen fehlen noch**:
 - `w_nagel` derselbe Fleck, typ `ziel`, nur sichtbar wenn `bild_ab`. Nimmt das
   Bild wieder entgegen und hebt `bild_ab` auf. Damit lässt sich das Bild
   zurückhängen.. Der Rahmen reicht bis y=190, ein kürzerer Ausschnitt lässt die Rahmenunterkante stehen.
-- `w_tv` Fernseher (1408,148 217×200) — an und aus. Der Flicken stammt aus einem eigenen Bild, das pixelgenau zum Grundbild passt; darum stehen die Porzellanfiguren exakt gleich.
+- `w_tv` Fernseher (1408,148 217×200) — an und aus. Anfisa kommentiert beides, solange sie da ist, und rührt sich nicht vom Sessel, solange der Fernseher aus ist. Der Flicken stammt aus einem eigenen Bild, das pixelgenau zum Grundbild passt; darum stehen die Porzellanfiguren exakt gleich.
 - `w_sessel_leer` Overlay ohne Anfisa (150,80 850×770), schaltet auf `anfisa_weg`
 - `w_frau` Anfisa im Sessel (Flicken 237,97 543×402, Klickfläche 240,192 430×233),
   typ `phasen`, nimmt `kippen` entgegen und setzt damit `anfisa_weg`:

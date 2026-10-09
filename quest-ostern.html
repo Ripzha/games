@@ -446,7 +446,11 @@
     { id: 'w_nagel', ansicht: 'wohnzimmer', x: 415, y: 0, w: 275, h: 188, typ: 'ziel', sichtbarWenn: 'bild_ab',
       nimmt: 'gemaelde', loescht: 'bild_ab', verbraucht: true, antwort: 'Hängt wieder gerade.', label: 'Nagel in der Wand' },
     { id: 'w_tv', ansicht: 'wohnzimmer', x: 1408, y: 148, w: 217, h: 200, typ: 'ausschnitt', zustand: 'tv_aus',
-      patch: 'bilder/wz-tv-aus.png', patchX: 1402, patchY: 142, patchW: 229, patchH: 206, label: 'Fernseher' },
+      patch: 'bilder/wz-tv-aus.png', patchX: 1402, patchY: 142, patchW: 229, patchH: 206, label: 'Fernseher',
+      // Achtung: der Zustand heisst tv_aus. Gesetzt = Fernseher ist AUS.
+      sprecher: 'Anfisa', sagtNichtWenn: 'anfisa_weg',
+      sagtAn:  '„Hey!" Sie richtet sich halb auf. „Das war mein Film. Mach wieder an."',
+      sagtAus: '„Nu also." Sie sinkt zurück. „Geht doch."' },
     // --- Das Bild in der Hand, Rückseite ---
     { id: 'bi_fach', ansicht: 'bild_hinten', x: 510, y: 600, w: 570, h: 210, typ: 'ausschnitt', zustand: 'fach_offen',
       bildAus: 'bilder/bild-hinten-offen.png', label: 'Fach in der Rückwand' },
@@ -460,8 +464,12 @@
       nimmt: ['kippen', 'feuerzeug'], setzt: 'anfisa_weg', verbraucht: true,
       antwort: '„Papirossy. Und Feuer dazu." Sie stemmt sich hoch, langsam wie ein Schrank. „Nu gut. Ich gehe rauchen. Sessel ist frei — aber mach keine Unordnung."',
       fehlt: '„Halbe Sachen." Sie streckt die Hand aus und lässt sie wieder sinken. „Bring mir beides. Dann reden wir."',
-      strafeWenn: 'bild_ab', strafeSetzt: 'anfisa_sauer',
-      strafeAntwort: '„Stoj." Sie deutet mit dem Kinn zur Wand. „Da ist Loch. Wo ist mein Bild? Erst hängst du zurück, dann kriegst du Sessel."',
+      strafen: [
+        { wenn: 'bild_ab', setzt: 'anfisa_sauer',
+          antwort: '„Stoj." Sie deutet mit dem Kinn zur Wand. „Da ist Loch. Wo ist mein Bild? Erst hängst du zurück, dann kriegst du Sessel."' },
+        { wenn: 'tv_aus',
+          antwort: '„Erst Fernseher wieder an." Sie verschränkt die Arme. „Ich gehe nicht raus, solange hier Totenstille ist."' }
+      ],
       phasen: [
         { bild: '' },
         { bild: 'bilder/wz-frau-wach.png', x: 237, y: 97, w: 543, h: 402, texte: [
@@ -1128,11 +1136,14 @@
     const noetig = !teil ? [] : (Array.isArray(teil.nimmt) ? teil.nimmt : [teil.nimmt]).filter(Boolean);
     if (!noetig.includes(gegenstandId)) { sag('Das bringt hier nichts.'); return false; }
 
-    // Strafe: eine Bedingung verhindert, dass überhaupt etwas passiert
-    if (teil.strafeWenn && zustand.offen[teil.strafeWenn]) {
-      if (teil.strafeSetzt) zustand.offen[teil.strafeSetzt] = true;
+    // Strafen: die erste zutreffende Bedingung verhindert, dass etwas passiert
+    const strafen = teil.strafen || (teil.strafeWenn
+      ? [{ wenn: teil.strafeWenn, setzt: teil.strafeSetzt, antwort: teil.strafeAntwort }] : []);
+    const greift = strafen.find(x => zustand.offen[x.wenn]);
+    if (greift) {
+      if (greift.setzt) zustand.offen[greift.setzt] = true;
       waehle(null, true); ton([220]); speichern();
-      sag(teil.strafeAntwort || 'So nicht.', teil.sprecher || teil.label);
+      sag(greift.antwort || 'So nicht.', teil.sprecher || teil.label);
       return false;
     }
     // Fehlt noch etwas aus der Liste?
@@ -1327,6 +1338,7 @@
           zustand.offen[t.zustand] = !zustand.offen[t.zustand];
           ton([zustand.offen[t.zustand] ? 520 : 380]);
           aktualisiereSichtbarkeit(); speichern();
+          kommentar(t);
         }
         break;
       case 'nehmen':
@@ -1365,6 +1377,7 @@
         ton([zustand.offen[t.zustand] ? 520 : 380]);
         speichern();
         if (t.neuzeichnen) renderRaum(); else aktualisiereSichtbarkeit();
+        kommentar(t);
         break;
       case 'info':
         document.getElementById('info-titel').textContent = t.titel || t.label;
@@ -1377,6 +1390,13 @@
         oeffneRaetsel(t);
         break;
     }
+  }
+
+  // Kommentar beim Schalten, sofern die Bedingung nicht dagegen spricht
+  function kommentar(t) {
+    if (t.sagtNichtWenn && zustand.offen[t.sagtNichtWenn]) return;
+    const satz = zustand.offen[t.zustand] ? t.sagtAn : t.sagtAus;
+    if (satz) sag(satz, t.sprecher || t.label);
   }
 
   let aktivesRaetsel = null;
