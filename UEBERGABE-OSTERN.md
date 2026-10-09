@@ -200,8 +200,11 @@ Dunkeln öffnen.
 | `k_tuer` Tür zum Flur | 0,0 222×800 | `k_tuer_offen` |
 | `k_sicherung` Wandschränkchen | 245,212 167×186 | `sicherung_offen` |
 | `k_licht` Sicherung | 330,238 78×155 | `kueche_licht`, nur sichtbar wenn offen |
-| `k_ober_links` | 425,50 590×252 | `k_ober_links_offen` |
-| `k_ober_rechts` | 1015,50 357×252 | `k_ober_rechts_offen` |
+| `k_ober1` | 425,78 171×228 | `k_ober1_offen` |
+| `k_ober2` | 596,78 126×228 | `k_ober2_offen` |
+| `k_ober3` über dem Herd | 722,78 290×228 | `k_ober3_offen` |
+| `k_ober4` | 1012,78 129×228 | `k_ober4_offen` |
+| `k_ober5` rechts | 1141,78 233×228 | `k_ober5_offen` |
 | `k_unten_links` | 370,492 378×210 | `k_unten_links_offen` |
 | `k_ofen` Backofen | 848,488 200×212 | `k_ofen_offen` → Ei e17 |
 | `k_unten_rechts` Spüle | 1070,500 278×192 | `k_unten_rechts_offen` |
@@ -209,6 +212,14 @@ Dunkeln öffnen.
 
 Das Wandschränkchen ist im geschlossenen Zustand nur ein feiner Umriss auf der
 Tapete, praktisch unsichtbar. Das ist Absicht.
+
+**Warum fünf Oberschränke und nicht sieben.** Im Bild sind sieben Türen, aber es
+gibt nur die beiden Fassungen „alle zu" und „alle offen". Beim Öffnen schwingen
+die Türen seitlich und überlappen die Nachbarfelder. Ein Trennschnitt ist nur
+dort möglich, wo sich zwischen den beiden Fassungen nichts verändert — das sind
+die Spalten bei 596, 722, 1012 und 1141. Daraus ergeben sich fünf Gruppen, drei
+davon sind einzelne Türen. Für alle sieben einzeln bräuchte es Bilder, in denen
+nur jeweils eine Tür offen ist.
 
 Alle drei Küchen-Eier brauchen `kueche_licht`: e03 in der Obstschale, e14 in der
 Eierablage im Kühlschrank, e17 auf dem Rost im Backofen. Ohne Sicherung ist in
