@@ -116,6 +116,18 @@
   .rang-zeile.eigener { background: rgba(200,146,72,0.18); }
   .rang-laedt { color: var(--himmel-text); font-size: 13px; }
 
+  /* ---------- Wege zwischen den Ansichten ---------- */
+  .weg { position: absolute; z-index: 8; border: 1px solid var(--panel-rand); background: rgba(10,18,12,0.72); color: var(--gold-hell); cursor: pointer; font: inherit; display: flex; align-items: center; justify-content: center; gap: 6px; backdrop-filter: blur(2px); }
+  .weg:hover { background: rgba(200,146,72,0.3); border-color: var(--gold); }
+  .weg-seite { top: 50%; transform: translateY(-50%); width: 48px; height: 96px; border-radius: 10px; font-size: 26px; line-height: 1; }
+  .weg-links { left: 10px; }
+  .weg-rechts { right: 10px; }
+  .weg-raus { left: 50%; bottom: 10px; transform: translateX(-50%); padding: 8px 16px; border-radius: 10px; font-size: 13px; font-weight: 600; }
+  .ansicht-name { position: absolute; left: 50%; top: 10px; transform: translateX(-50%); z-index: 5; font-size: 12px; color: var(--himmel-text); background: rgba(10,18,12,0.6); padding: 4px 9px; border-radius: 6px; pointer-events: none; }
+  .durchgang { cursor: pointer; }
+  .durchgang .marke { animation: pochen 2.2s ease-in-out infinite; transform-origin: center; }
+  @keyframes pochen { 0%, 100% { opacity: 0.55; } 50% { opacity: 1; } }
+
   /* ---------- Ausrichtemodus ---------- */
   .editor { position: absolute; left: 10px; top: 10px; z-index: 50; background: rgba(0,0,0,0.85); color: #9ee493; font: 12px/1.5 ui-monospace, Menlo, Consolas, monospace; padding: 8px 10px; border-radius: 8px; max-width: 320px; display: none; white-space: pre-wrap; }
   .editor.an { display: block; }
@@ -135,6 +147,8 @@
   <div class="buehne" id="buehne">
     <div class="welt" id="welt"></div>
     <div class="editor-kreuz" id="editor-kreuz"></div>
+    <div class="ansicht-name" id="ansicht-name"></div>
+    <div id="wege"></div>
     <div class="zoom-knoepfe">
       <button id="zoom-minus" aria-label="Verkleinern">−</button>
       <button id="zoom-plus" aria-label="Vergrössern">+</button>
@@ -175,7 +189,8 @@
     <p class="intro-text">Aci lehnt im Türrahmen und grinst. <em>„Anfisa hat sie versteckt. Alle zwanzig. Und ich sag dir gleich: Sie hat es ernst gemeint. Manche siehst du nur, wenn du ganz nah rangehst. Manche nur, wenn du was öffnest. Und für ein paar musst du nachdenken."</em></p>
     <div class="regeln">
       <b>Zoomen</b> mit zwei Fingern oder Mausrad — die kleinen sind wirklich klein.<br>
-      <b>Antippen</b>, was sich öffnen lässt: Schubladen, Türen, Kissen, Vorhänge.<br>
+      <b>Antippen</b>, was sich öffnen lässt: Schubladen, Türen, Kissen, Vorhänge. Nochmal antippen schliesst wieder.<br>
+      <b>Pfeile</b> am Bildrand drehen dich im Raum. Goldene Marken sind Durchgänge.<br>
       <b>Rätsel</b> öffnen Orte, die sonst verschlossen bleiben.<br>
       <b>Drei Hinweise</b> hast du. Mehr nicht.
     </div>
@@ -219,88 +234,111 @@
   // Koordinaten: Welt ist 1600 x 900 (x nach rechts, y nach unten).
   // Mit ?editor=1 zeigt jeder Klick die Koordinaten an.
   //
-  // Raum:    { id, name, bild (URL oder '' = Platzhalter), gesperrtBis (Zustand-Key oder null) }
-  // Teil:    { id, raum, x, y, w, h, typ: 'toggle'|'raetsel'|'code'|'info'|'schalter', zustand (Key),
-  //            label, ...rätselfelder }
-  // Ei:      { id, raum, x, y, r, farbe, muster, ebene: 1|2|3, sichtbarWenn: Zustand-Key oder null,
+  // Raum:    { id, name, start (Ansicht-ID), gesperrtBis (Zustand-Key oder null) }
+  // Ansicht: { id, raum, name, bild (''=Platzhalter), bildOffen, breite, hoehe }
+  //          Ein Raum kann mehrere Ansichten haben (Blickwinkel). Gewechselt wird über WEGE.
+  // Weg:     { von (Ansicht-ID), nach (Ansicht-ID), art: 'links'|'rechts'|'raus'|'rein', label }
+  //          'links'/'rechts' = Pfeil am Bildrand, 'raus' = Knopf unten Mitte,
+  //          'rein' = anklickbare Stelle im Bild (braucht x, y, w, h in Bildpixeln)
+  // Teil:    { id, ansicht, x, y, w, h, typ: 'ausschnitt'|'toggle'|'raetsel'|'code'|'info'|'schalter',
+  //            zustand (Key), label, ...rätselfelder }
+  // Ei:      { id, ansicht, x, y, r, farbe, muster, ebene: 1|2|3, sichtbarWenn: Zustand-Key oder null,
   //            hinten: true = liegt hinter Möbeln (wird teilweise verdeckt) }
   // =====================================================================
   const RAEUME = [
+    { id: 'garage',     name: 'Garage',     start: 'garage1',    gesperrtBis: null },
+    { id: 'wohnzimmer', name: 'Wohnzimmer', start: 'wohnzimmer', gesperrtBis: null },
+    { id: 'kueche',     name: 'Küche',      start: 'kueche',     gesperrtBis: null },
+    { id: 'garten',     name: 'Garten',     start: 'garten',     gesperrtBis: null },
+    { id: 'keller',     name: 'Keller',     start: 'keller',     gesperrtBis: 'keller_offen' }
+  ];
+
+  const ANSICHTEN = [
     // bild = geschlossen, bildOffen = alles offen (Ausschnitte werden daraus eingeblendet), breite/hoehe = Bildpixel
-    { id: 'garage',     name: 'Garage',     bild: 'bilder/garage-zu.png', bildOffen: 'bilder/garage-offen.png', breite: 1774, hoehe: 887, gesperrtBis: null },
-    { id: 'wohnzimmer', name: 'Wohnzimmer', bild: '', gesperrtBis: null },
-    { id: 'kueche',     name: 'Küche',      bild: '', gesperrtBis: null },
-    { id: 'garten',     name: 'Garten',     bild: '', gesperrtBis: null },
-    { id: 'keller',     name: 'Keller',     bild: '', gesperrtBis: 'keller_offen' }
+    { id: 'garage1', raum: 'garage', name: 'Garage — Werkbank', bild: 'bilder/garage-zu.png',  bildOffen: 'bilder/garage-offen.png',  breite: 1774, hoehe: 887 },
+    { id: 'garage2', raum: 'garage', name: 'Garage — Tür',      bild: 'bilder/garage2-zu.png', bildOffen: 'bilder/garage2-offen.png', breite: 1774, hoehe: 887 },
+    { id: 'wohnzimmer', raum: 'wohnzimmer', name: 'Wohnzimmer', bild: '' },
+    { id: 'kueche',     raum: 'kueche',     name: 'Küche',      bild: '' },
+    { id: 'garten',     raum: 'garten',     name: 'Garten',     bild: '' },
+    { id: 'keller',     raum: 'keller',     name: 'Keller',     bild: '' }
+  ];
+
+  const WEGE = [
+    // In der Garage: nach rechts drehen und zurück
+    { von: 'garage1', nach: 'garage2', art: 'rechts', label: 'weiter nach rechts' },
+    { von: 'garage2', nach: 'garage1', art: 'links',  label: 'zurück zur Werkbank' },
+    // Durch die Tür mit der Treppe — Ziel später anpassen, wenn das Treppenhaus ein eigenes Bild hat
+    { von: 'garage2', nach: 'wohnzimmer', art: 'rein', x: 1090, y: 140, w: 305, h: 680, label: 'Tür zur Treppe' },
+    { von: 'wohnzimmer', nach: 'garage2', art: 'raus', label: '↓ Treppe hinunter in die Garage' }
   ];
 
   const TEILE = [
     // --- Garage (Koordinaten im Bild 1774 x 887) ---
     // typ 'ausschnitt': Antippen blendet diesen Bereich aus bildOffen ein. nah = Bild der Nahaufnahme (später).
-    { id: 'g_akten',   raum: 'garage', x: 88,   y: 428, w: 165, h: 85,  typ: 'ausschnitt', zustand: 'akten_offen',  label: 'Aktenschrank-Schublade', nah: '' },
-    { id: 'g_tuer',    raum: 'garage', x: 318,  y: 588, w: 135, h: 255, typ: 'ausschnitt', zustand: 'tuer_offen',   label: 'Grüner Unterschrank',    nah: '' },
-    { id: 'g_blau',    raum: 'garage', x: 536,  y: 586, w: 170, h: 70,  typ: 'ausschnitt', zustand: 'blau_offen',   label: 'Blauer Rollcontainer',   nah: '' },
-    { id: 'g_steck',   raum: 'garage', x: 1096, y: 668, w: 215, h: 85,  typ: 'ausschnitt', zustand: 'steck_offen',  label: 'Steckschlüssel-Schublade', nah: '' },
-    { id: 'g_wagen',   raum: 'garage', x: 1330, y: 584, w: 318, h: 258, typ: 'ausschnitt', zustand: 'wagen_offen',  label: 'Roter Werkstattwagen',   nah: '' },
-    { id: 'g_zettel',  raum: 'garage', x: 1055, y: 12,  w: 180, h: 112, typ: 'info', label: 'Zeichnung an der Wand',
+    { id: 'g_akten',   ansicht: 'garage1', x: 88,   y: 428, w: 165, h: 85,  typ: 'ausschnitt', zustand: 'akten_offen',  label: 'Aktenschrank-Schublade', nah: '' },
+    { id: 'g_tuer',    ansicht: 'garage1', x: 318,  y: 588, w: 135, h: 255, typ: 'ausschnitt', zustand: 'tuer_offen',   label: 'Grüner Unterschrank',    nah: '' },
+    { id: 'g_blau',    ansicht: 'garage1', x: 536,  y: 586, w: 170, h: 70,  typ: 'ausschnitt', zustand: 'blau_offen',   label: 'Blauer Rollcontainer',   nah: '' },
+    { id: 'g_steck',   ansicht: 'garage1', x: 1096, y: 668, w: 215, h: 85,  typ: 'ausschnitt', zustand: 'steck_offen',  label: 'Steckschlüssel-Schublade', nah: '' },
+    { id: 'g_wagen',   ansicht: 'garage1', x: 1330, y: 584, w: 318, h: 258, typ: 'ausschnitt', zustand: 'wagen_offen',  label: 'Roter Werkstattwagen',   nah: '' },
+    { id: 'g_zettel',  ansicht: 'garage1', x: 1055, y: 12,  w: 180, h: 112, typ: 'info', label: 'Zeichnung an der Wand',
       titel: 'Notiz am Rand der Zeichnung', text: '„Aci — der Code für die Kellertür: Zähl die Fenster im Haus und nimm das Jahr, in dem wir eingezogen sind. Wenn du das nicht weisst, hast du nicht zugehört." — Anfisa' },
     // --- Wohnzimmer ---
-    { id: 'w_kissen',   raum: 'wohnzimmer', x: 220,  y: 520, w: 420, h: 110, typ: 'toggle', form: 'kissen', zustand: 'kissen_weg',    label: 'Sofakissen' },
-    { id: 'w_bild',     raum: 'wohnzimmer', x: 1000, y: 180, w: 260, h: 200, typ: 'toggle', form: 'bild', zustand: 'bild_gedreht',  label: 'Bild an der Wand' },
-    { id: 'w_vorhang',  raum: 'wohnzimmer', x: 1320, y: 120, w: 220, h: 560, typ: 'toggle', form: 'vorhang', zustand: 'vorhang_auf',   label: 'Vorhang' },
-    { id: 'w_raetsel1', raum: 'wohnzimmer', x: 700,  y: 560, w: 180, h: 90,  typ: 'raetsel', zustand: 'truhe_offen', label: 'Verschlossene Truhe',
+    { id: 'w_kissen',   ansicht: 'wohnzimmer', x: 220,  y: 520, w: 420, h: 110, typ: 'toggle', form: 'kissen', zustand: 'kissen_weg',    label: 'Sofakissen' },
+    { id: 'w_bild',     ansicht: 'wohnzimmer', x: 1000, y: 180, w: 260, h: 200, typ: 'toggle', form: 'bild', zustand: 'bild_gedreht',  label: 'Bild an der Wand' },
+    { id: 'w_vorhang',  ansicht: 'wohnzimmer', x: 1320, y: 120, w: 220, h: 560, typ: 'toggle', form: 'vorhang', zustand: 'vorhang_auf',   label: 'Vorhang' },
+    { id: 'w_raetsel1', ansicht: 'wohnzimmer', x: 700,  y: 560, w: 180, h: 90,  typ: 'raetsel', zustand: 'truhe_offen', label: 'Verschlossene Truhe',
       titel: 'Die Truhe', frage: '[RÄTSEL 1 — Platzhalter] Welche Figur hat im letzten Jahr geheiratet? (Vorname)', antworten: ['abeena', 'logan'] },
     // --- Küche ---
-    { id: 'k_kuehl',    raum: 'kueche', x: 1180, y: 220, w: 220, h: 470, typ: 'toggle', form: 'tuer', zustand: 'kuehl_offen',  label: 'Kühlschrank' },
-    { id: 'k_ofen',     raum: 'kueche', x: 560,  y: 520, w: 260, h: 160, typ: 'toggle', form: 'klappe', zustand: 'ofen_offen',   label: 'Backofen' },
-    { id: 'k_ober',     raum: 'kueche', x: 200,  y: 150, w: 480, h: 170, typ: 'toggle', form: 'tuer', zustand: 'ober_offen',   label: 'Oberschrank' },
-    { id: 'k_raetsel2', raum: 'kueche', x: 900,  y: 120, w: 200, h: 120, typ: 'raetsel', zustand: 'rezept_geloest', label: 'Rezeptbuch',
+    { id: 'k_kuehl',    ansicht: 'kueche', x: 1180, y: 220, w: 220, h: 470, typ: 'toggle', form: 'tuer', zustand: 'kuehl_offen',  label: 'Kühlschrank' },
+    { id: 'k_ofen',     ansicht: 'kueche', x: 560,  y: 520, w: 260, h: 160, typ: 'toggle', form: 'klappe', zustand: 'ofen_offen',   label: 'Backofen' },
+    { id: 'k_ober',     ansicht: 'kueche', x: 200,  y: 150, w: 480, h: 170, typ: 'toggle', form: 'tuer', zustand: 'ober_offen',   label: 'Oberschrank' },
+    { id: 'k_raetsel2', ansicht: 'kueche', x: 900,  y: 120, w: 200, h: 120, typ: 'raetsel', zustand: 'rezept_geloest', label: 'Rezeptbuch',
       titel: 'Das Rezeptbuch', frage: '[RÄTSEL 2 — Platzhalter] Wie heisst das Magazin der SimsWelt? (ein Wort)', antworten: ['simswelt', 'simswelt news'] },
     // --- Garten ---
-    { id: 'r_busch',    raum: 'garten', x: 120,  y: 480, w: 300, h: 240, typ: 'toggle', form: 'busch', zustand: 'busch_geteilt', label: 'Busch' },
-    { id: 'r_vogel',    raum: 'garten', x: 1250, y: 180, w: 120, h: 130, typ: 'toggle', form: 'klappe', zustand: 'vogelhaus_offen', label: 'Vogelhaus' },
-    { id: 'r_giess',    raum: 'garten', x: 760,  y: 620, w: 150, h: 110, typ: 'toggle', form: 'kippen', zustand: 'kanne_gekippt', label: 'Giesskanne' },
-    { id: 'r_sonnenuhr', raum: 'garten', x: 880, y: 300, w: 180, h: 180, typ: 'raetsel', zustand: 'sonnenuhr_geloest', label: 'Sonnenuhr',
+    { id: 'r_busch',    ansicht: 'garten', x: 120,  y: 480, w: 300, h: 240, typ: 'toggle', form: 'busch', zustand: 'busch_geteilt', label: 'Busch' },
+    { id: 'r_vogel',    ansicht: 'garten', x: 1250, y: 180, w: 120, h: 130, typ: 'toggle', form: 'klappe', zustand: 'vogelhaus_offen', label: 'Vogelhaus' },
+    { id: 'r_giess',    ansicht: 'garten', x: 760,  y: 620, w: 150, h: 110, typ: 'toggle', form: 'kippen', zustand: 'kanne_gekippt', label: 'Giesskanne' },
+    { id: 'r_sonnenuhr', ansicht: 'garten', x: 880, y: 300, w: 180, h: 180, typ: 'raetsel', zustand: 'sonnenuhr_geloest', label: 'Sonnenuhr',
       titel: 'Die Sonnenuhr', frage: '[RÄTSEL 3 — Platzhalter] Wer ist Blazes Halbbruder?', antworten: ['delsyn'] },
-    { id: 'r_tuer',     raum: 'garten', x: 1420, y: 400, w: 140, h: 300, typ: 'code', zustand: 'keller_offen', label: 'Kellertür',
+    { id: 'r_tuer',     ansicht: 'garten', x: 1420, y: 400, w: 140, h: 300, typ: 'code', zustand: 'keller_offen', label: 'Kellertür',
       titel: 'Kellertür', frage: 'Ein Zahlenschloss. Vier Ziffern.', code: '2412' },
     // --- Keller ---
-    { id: 'e_kiste',    raum: 'keller', x: 200,  y: 560, w: 260, h: 180, typ: 'toggle', form: 'klappe', zustand: 'kiste_offen',   label: 'Holzkiste' },
-    { id: 'e_sicher',   raum: 'keller', x: 1300, y: 160, w: 140, h: 200, typ: 'raetsel', zustand: 'sicherung_geloest', label: 'Sicherungskasten',
+    { id: 'e_kiste',    ansicht: 'keller', x: 200,  y: 560, w: 260, h: 180, typ: 'toggle', form: 'klappe', zustand: 'kiste_offen',   label: 'Holzkiste' },
+    { id: 'e_sicher',   ansicht: 'keller', x: 1300, y: 160, w: 140, h: 200, typ: 'raetsel', zustand: 'sicherung_geloest', label: 'Sicherungskasten',
       titel: 'Der Sicherungskasten', frage: '[RÄTSEL 4 — Platzhalter] Welche Nummer hatte die erste Magazin-Ausgabe, die 2026 erschien?', antworten: ['28'] },
-    { id: 'e_tresor',   raum: 'keller', x: 760,  y: 380, w: 200, h: 220, typ: 'raetsel', zustand: 'tresor_offen', label: 'Tresor',
+    { id: 'e_tresor',   ansicht: 'keller', x: 760,  y: 380, w: 200, h: 220, typ: 'raetsel', zustand: 'tresor_offen', label: 'Tresor',
       titel: 'Der Tresor', frage: '[RÄTSEL 5 — Platzhalter] Ich habe Zähne, aber beisse nicht. Ich habe Zacken, aber schneide nicht. Was bin ich?', antworten: ['schlüssel', 'schluessel', 'kamm', 'zahnrad'] }
   ];
 
   // 20 Eier: 8 getarnt (Ebene 1), 7 verschlossen (Ebene 2), 5 Rätsel (Ebene 3)
   const EIER = [
     // --- Ebene 1: sichtbar, getarnt ---
-    { id: 'e01', raum: 'garage',     x: 1452, y: 243, r: 7,  farbe: '#6f4d37', muster: 'punkte',   ebene: 1, sichtbarWenn: null },  // Regal oben zwischen den Dosen
-    { id: 'e02', raum: 'garage',     x: 760,  y: 780, r: 7,  farbe: '#8b460b', muster: 'streifen', ebene: 1, sichtbarWenn: null },  // auf der Holzkiste
-    { id: 'e05', raum: 'garage',     x: 1395, y: 432, r: 6,  farbe: '#27282c', muster: 'zickzack', ebene: 1, sichtbarWenn: null },  // im Schubladenkasten
-    { id: 'e08', raum: 'garage',     x: 600,  y: 860, r: 7,  farbe: '#8b613b', muster: 'punkte',   ebene: 1, sichtbarWenn: null },  // Boden vor dem blauen Container
-    { id: 'e04', raum: 'wohnzimmer', x: 1046, y: 760, r: 9,  farbe: '#6b4a32', muster: 'punkte', ebene: 1, sichtbarWenn: null, hinten: true },
-    { id: 'e03', raum: 'kueche',     x: 1560, y: 846, r: 9,  farbe: '#9a9a90', muster: 'streifen', ebene: 1, sichtbarWenn: null },
-    { id: 'e06', raum: 'garten',     x: 1044, y: 846, r: 8,  farbe: '#4e7a3e', muster: 'punkte', ebene: 1, sichtbarWenn: null },
-    { id: 'e07', raum: 'garten',     x: 24,   y: 212, r: 7,  farbe: '#8fb9d9', muster: 'zickzack', ebene: 1, sichtbarWenn: null },
+    { id: 'e01', ansicht: 'garage1',     x: 1452, y: 243, r: 7,  farbe: '#6f4d37', muster: 'punkte',   ebene: 1, sichtbarWenn: null },  // Regal oben zwischen den Dosen
+    { id: 'e02', ansicht: 'garage1',     x: 760,  y: 780, r: 7,  farbe: '#8b460b', muster: 'streifen', ebene: 1, sichtbarWenn: null },  // auf der Holzkiste
+    { id: 'e05', ansicht: 'garage1',     x: 1395, y: 432, r: 6,  farbe: '#27282c', muster: 'zickzack', ebene: 1, sichtbarWenn: null },  // im Schubladenkasten
+    { id: 'e08', ansicht: 'garage1',     x: 600,  y: 860, r: 7,  farbe: '#8b613b', muster: 'punkte',   ebene: 1, sichtbarWenn: null },  // Boden vor dem blauen Container
+    { id: 'e04', ansicht: 'wohnzimmer', x: 1046, y: 760, r: 9,  farbe: '#6b4a32', muster: 'punkte', ebene: 1, sichtbarWenn: null, hinten: true },
+    { id: 'e03', ansicht: 'kueche',     x: 1560, y: 846, r: 9,  farbe: '#9a9a90', muster: 'streifen', ebene: 1, sichtbarWenn: null },
+    { id: 'e06', ansicht: 'garten',     x: 1044, y: 846, r: 8,  farbe: '#4e7a3e', muster: 'punkte', ebene: 1, sichtbarWenn: null },
+    { id: 'e07', ansicht: 'garten',     x: 24,   y: 212, r: 7,  farbe: '#8fb9d9', muster: 'zickzack', ebene: 1, sichtbarWenn: null },
     // --- Ebene 2: nur nach Öffnen sichtbar ---
-    { id: 'e09', raum: 'garage',     x: 170,  y: 470, r: 8,  farbe: '#5a5337', muster: 'streifen', ebene: 2, sichtbarWenn: 'akten_offen' },  // in der Aktenschrank-Schublade
-    { id: 'e10', raum: 'garage',     x: 618,  y: 618, r: 8,  farbe: '#2a1a12', muster: 'punkte',   ebene: 2, sichtbarWenn: 'blau_offen' },   // in der blauen Schublade
-    { id: 'e11', raum: 'garage',     x: 1195, y: 708, r: 8,  farbe: '#493e36', muster: 'zickzack', ebene: 2, sichtbarWenn: 'steck_offen' },  // zwischen den Steckschlüsseln
-    { id: 'e12', raum: 'wohnzimmer', x: 480,  y: 575, r: 12, farbe: '#e0c080', muster: 'punkte', ebene: 2, sichtbarWenn: 'kissen_weg' },
-    { id: 'e13', raum: 'wohnzimmer', x: 1130, y: 280, r: 11, farbe: '#b88ad0', muster: 'streifen', ebene: 2, sichtbarWenn: 'bild_gedreht' },
-    { id: 'e14', raum: 'kueche',     x: 1290, y: 420, r: 12, farbe: '#f0f0e0', muster: 'punkte', ebene: 2, sichtbarWenn: 'kuehl_offen' },
-    { id: 'e15', raum: 'garten',     x: 1310, y: 250, r: 11, farbe: '#d08a5a', muster: 'zickzack', ebene: 2, sichtbarWenn: 'vogelhaus_offen' },
+    { id: 'e09', ansicht: 'garage1',     x: 170,  y: 470, r: 8,  farbe: '#5a5337', muster: 'streifen', ebene: 2, sichtbarWenn: 'akten_offen' },  // in der Aktenschrank-Schublade
+    { id: 'e10', ansicht: 'garage1',     x: 618,  y: 618, r: 8,  farbe: '#2a1a12', muster: 'punkte',   ebene: 2, sichtbarWenn: 'blau_offen' },   // in der blauen Schublade
+    { id: 'e11', ansicht: 'garage1',     x: 1195, y: 708, r: 8,  farbe: '#493e36', muster: 'zickzack', ebene: 2, sichtbarWenn: 'steck_offen' },  // zwischen den Steckschlüsseln
+    { id: 'e12', ansicht: 'wohnzimmer', x: 480,  y: 575, r: 12, farbe: '#e0c080', muster: 'punkte', ebene: 2, sichtbarWenn: 'kissen_weg' },
+    { id: 'e13', ansicht: 'wohnzimmer', x: 1130, y: 280, r: 11, farbe: '#b88ad0', muster: 'streifen', ebene: 2, sichtbarWenn: 'bild_gedreht' },
+    { id: 'e14', ansicht: 'kueche',     x: 1290, y: 420, r: 12, farbe: '#f0f0e0', muster: 'punkte', ebene: 2, sichtbarWenn: 'kuehl_offen' },
+    { id: 'e15', ansicht: 'garten',     x: 1310, y: 250, r: 11, farbe: '#d08a5a', muster: 'zickzack', ebene: 2, sichtbarWenn: 'vogelhaus_offen' },
     // --- Ebene 3: nur nach Rätsel sichtbar ---
-    { id: 'e16', raum: 'wohnzimmer', x: 790,  y: 600, r: 13, farbe: '#f4d484', muster: 'streifen', ebene: 3, sichtbarWenn: 'truhe_offen' },
-    { id: 'e17', raum: 'kueche',     x: 1000, y: 180, r: 13, farbe: '#f4d484', muster: 'punkte', ebene: 3, sichtbarWenn: 'rezept_geloest' },
-    { id: 'e18', raum: 'garten',     x: 970,  y: 390, r: 13, farbe: '#f4d484', muster: 'zickzack', ebene: 3, sichtbarWenn: 'sonnenuhr_geloest' },
-    { id: 'e19', raum: 'keller',     x: 1370, y: 260, r: 12, farbe: '#f4d484', muster: 'streifen', ebene: 3, sichtbarWenn: 'sicherung_geloest' },
-    { id: 'e20', raum: 'keller',     x: 860,  y: 490, r: 14, farbe: '#f4d484', muster: 'punkte', ebene: 3, sichtbarWenn: 'tresor_offen' }
+    { id: 'e16', ansicht: 'wohnzimmer', x: 790,  y: 600, r: 13, farbe: '#f4d484', muster: 'streifen', ebene: 3, sichtbarWenn: 'truhe_offen' },
+    { id: 'e17', ansicht: 'kueche',     x: 1000, y: 180, r: 13, farbe: '#f4d484', muster: 'punkte', ebene: 3, sichtbarWenn: 'rezept_geloest' },
+    { id: 'e18', ansicht: 'garten',     x: 970,  y: 390, r: 13, farbe: '#f4d484', muster: 'zickzack', ebene: 3, sichtbarWenn: 'sonnenuhr_geloest' },
+    { id: 'e19', ansicht: 'keller',     x: 1370, y: 260, r: 12, farbe: '#f4d484', muster: 'streifen', ebene: 3, sichtbarWenn: 'sicherung_geloest' },
+    { id: 'e20', ansicht: 'keller',     x: 860,  y: 490, r: 14, farbe: '#f4d484', muster: 'punkte', ebene: 3, sichtbarWenn: 'tresor_offen' }
   ];
 
   // Eier, die nach Öffnen eines Dunkel-Bereichs erst erkennbar sind: Garage-Ecke ist dunkel bis Licht an
-  const DUNKEL = [];   // Beispiel: { raum: 'keller', x: 0, y: 0, w: 800, h: 900, hellWenn: 'keller_licht' }
+  const DUNKEL = [];   // Beispiel: { ansicht: 'keller', x: 0, y: 0, w: 800, h: 900, hellWenn: 'keller_licht' }
 
   // Aci-Sprüche bei Meilensteinen
   const SPRUECHE = {
@@ -321,7 +359,7 @@
     offen: {},             // Zustand-Keys -> true/false
     hinweise: HINWEISE_GESAMT,
     zeit: 0,               // Sekunden
-    raum: 'garage',
+    ansicht: 'garage1',    // aktuelle Ansicht (nicht der Raum)
     nah: null,             // Teil-ID, dessen Nahaufnahme gerade offen ist
     laeuft: false,
     fertig: false
@@ -332,7 +370,7 @@
   function speichern() {
     try {
       localStorage.setItem(SPEICHER_KEY, JSON.stringify({
-        gefunden: zustand.gefunden, offen: zustand.offen, hinweise: zustand.hinweise, zeit: zustand.zeit, raum: zustand.raum, nah: zustand.nah, fertig: zustand.fertig
+        gefunden: zustand.gefunden, offen: zustand.offen, hinweise: zustand.hinweise, zeit: zustand.zeit, ansicht: zustand.ansicht, nah: zustand.nah, fertig: zustand.fertig
       }));
     } catch (e) {}
   }
@@ -343,7 +381,11 @@
     zustand.offen = s.offen || {};
     zustand.hinweise = typeof s.hinweise === 'number' ? s.hinweise : HINWEISE_GESAMT;
     zustand.zeit = s.zeit || 0;
-    zustand.raum = s.raum || 'garage';
+    // Altstand: dort stand noch eine Raum-ID. Auf die Startansicht des Raums umbiegen.
+    const gespeichert = s.ansicht || s.raum || 'garage1';
+    zustand.ansicht = ANSICHTEN.some(a => a.id === gespeichert)
+      ? gespeichert
+      : ((RAEUME.find(r => r.id === gespeichert) || {}).start || 'garage1');
     zustand.nah = s.nah || null;
     zustand.fertig = !!s.fertig;
     return true;
@@ -482,57 +524,96 @@
   // =====================================================================
   const welt = document.getElementById('welt');
   let RW = 1600, RH = 900;   // Grösse der aktuellen Ansicht in Bildpixeln
+  function ansichtVon(id) { return ANSICHTEN.find(a => a.id === id); }
+  function raumVon(ansichtId) { const a = ansichtVon(ansichtId); return a ? a.raum : null; }
   function aktuelleAnsicht() {
-    // Nahaufnahme eines Teils oder der Raum selbst
+    // Nahaufnahme eines Teils oder die Ansicht selbst
     if (zustand.nah) {
       const t = TEILE.find(x => x.id === zustand.nah);
-      if (t && t.nah) return { id: t.raum, nahTeil: t.id, bild: t.nah, bildOffen: '', breite: t.nahBreite || 1600, hoehe: t.nahHoehe || 900 };
+      if (t && t.nah) return { id: t.ansicht, raum: raumVon(t.ansicht), nahTeil: t.id, bild: t.nah, bildOffen: '', breite: t.nahBreite || 1600, hoehe: t.nahHoehe || 900 };
       zustand.nah = null;
     }
-    return RAEUME.find(r => r.id === zustand.raum);
+    return ansichtVon(zustand.ansicht) || ANSICHTEN[0];
   }
   function renderRaum() {
-    const raum = aktuelleAnsicht();
-    const nahTeil = raum.nahTeil || null;
-    RW = raum.breite || 1600; RH = raum.hoehe || 900;
+    const ans = aktuelleAnsicht();
+    const nahTeil = ans.nahTeil || null;
+    RW = ans.breite || 1600; RH = ans.hoehe || 900;
     welt.style.width = RW + 'px'; welt.style.height = RH + 'px';
-    const imRaum = (o) => o.raum === raum.id && ((o.nah || null) === nahTeil || (nahTeil && o.inNah === nahTeil));
-    const eierHinten = EIER.filter(e => imRaum(e) && e.hinten);
-    const eierVorne = EIER.filter(e => imRaum(e) && !e.hinten);
-    const teile = TEILE.filter(t => t.raum === raum.id && (t.inNah || null) === nahTeil);
-    const dunkel = DUNKEL.filter(d => d.raum === raum.id && !nahTeil);
+    const hier = (o) => o.ansicht === ans.id && ((o.inNah || null) === nahTeil);
+    const eierHinten = EIER.filter(e => hier(e) && e.hinten);
+    const eierVorne = EIER.filter(e => hier(e) && !e.hinten);
+    const teile = TEILE.filter(hier);
+    const dunkel = DUNKEL.filter(d => d.ansicht === ans.id && !nahTeil);
+    const durchgaenge = nahTeil ? [] : WEGE.filter(w => w.von === ans.id && w.art === 'rein');
     document.getElementById('nah-zurueck').style.display = nahTeil ? '' : 'none';
+    document.getElementById('ansicht-name').textContent = nahTeil ? '' : (ans.name || '');
 
     let html = '';
-    if (raum.bild) html += `<img class="bild" src="${raum.bild}" alt="">`;
+    if (ans.bild) html += `<img class="bild" src="${ans.bild}" alt="">`;
     html += `<svg viewBox="0 0 ${RW} ${RH}" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">`;
-    if (!raum.bild) html += raumHintergrund(raum.id);
+    if (!ans.bild) html += raumHintergrund(ans.raum);
     // Eier hinter Möbeln: zwischen Hintergrund und Möbel-Vordergrund (bei Bildern: gleich wie vorne)
     html += `<g id="eier-hinten">${eierHinten.map(eiForm).join('')}</g>`;
-    if (!raum.bild) html += vordergrund(raum.id);
+    if (!ans.bild) html += vordergrund(ans.raum);
     // Offen-Zustände der Teile
     html += `<g id="teile-offen">${teile.map(t => {
-      if (t.typ === 'ausschnitt' && raum.bildOffen) {
+      if (t.typ === 'ausschnitt' && ans.bildOffen) {
         return `<g data-offen="${t.zustand}">
           <clipPath id="clip_${t.id}"><rect x="${t.x}" y="${t.y}" width="${t.w}" height="${t.h}"/></clipPath>
-          <image href="${raum.bildOffen}" xlink:href="${raum.bildOffen}" x="0" y="0" width="${RW}" height="${RH}" clip-path="url(#clip_${t.id})"/>
-          <g class="zu-knopf" data-zu="${t.id}" transform="translate(${t.x + t.w - 14},${t.y + 14})" style="cursor:pointer">
-            <circle r="13" fill="rgba(10,18,12,0.85)" stroke="#f4d484" stroke-width="1.5"/>
-            <path d="M-5 -5 L5 5 M5 -5 L-5 5" stroke="#f4d484" stroke-width="2.5" stroke-linecap="round"/>
-          </g></g>`;
+          <image href="${ans.bildOffen}" xlink:href="${ans.bildOffen}" x="0" y="0" width="${RW}" height="${RH}" clip-path="url(#clip_${t.id})"/>
+        </g>`;
       }
       return `<g data-offen="${t.zustand || ''}">${teilOffenForm(t)}</g>`;
     }).join('')}</g>`;
-    if (!raum.bild) html += `<g id="beschriftungen">${teile.map(teilBeschriftung).join('')}</g>`;
+    if (!ans.bild) html += `<g id="beschriftungen">${teile.map(teilBeschriftung).join('')}</g>`;
     html += `<g id="eier-vorne">${eierVorne.map(eiForm).join('')}</g>`;
     // Dunkel-Bereiche
     html += `<g id="dunkel">${dunkel.map(d => `<rect data-hell="${d.hellWenn}" x="${d.x}" y="${d.y}" width="${d.w}" height="${d.h}" fill="#05070a" opacity="0.93"/>`).join('')}</g>`;
+    // Durchgänge im Bild (Tür, Treppe) — mit sichtbarer Marke
+    html += `<g id="durchgaenge">${durchgaenge.map(w => durchgangForm(w)).join('')}</g>`;
     // Trefferflächen der Teile (ganz oben, durchsichtig)
     html += `<g id="teile">${teile.map(t => `<rect class="teil" data-teil="${t.id}" x="${t.x}" y="${t.y}" width="${t.w}" height="${t.h}" fill="transparent"><title>${t.label}</title></rect>`).join('')}</g>`;
     html += `</svg>`;
     welt.innerHTML = html;
     aktualisiereSichtbarkeit();
     renderRaumKnoepfe();
+    renderWege();
+  }
+
+  // Marke auf einem Durchgang im Bild: Kreis mit Pfeil nach oben
+  function durchgangForm(w) {
+    const mx = w.x + w.w / 2, my = w.y + w.h / 2;
+    return `<g class="durchgang" data-weg="${w.nach}" transform="translate(${mx},${my})">
+      <rect x="${-w.w / 2}" y="${-w.h / 2}" width="${w.w}" height="${w.h}" fill="transparent"><title>${w.label || 'weiter'}</title></rect>
+      <g class="marke">
+        <circle r="30" fill="rgba(10,18,12,0.6)" stroke="#f4d484" stroke-width="2"/>
+        <path d="M0 -13 L13 6 L0 0 L-13 6 Z" fill="#f4d484"/>
+      </g></g>`;
+  }
+
+  // Pfeile am Bildrand und Knopf nach unten
+  function renderWege() {
+    const box = document.getElementById('wege');
+    box.innerHTML = '';
+    if (zustand.nah) return;
+    WEGE.filter(w => w.von === zustand.ansicht && w.art !== 'rein').forEach(w => {
+      const b = document.createElement('button');
+      b.className = 'weg ' + (w.art === 'raus' ? 'weg-raus' : 'weg-seite weg-' + w.art);
+      b.textContent = w.art === 'links' ? '‹' : w.art === 'rechts' ? '›' : (w.label || 'zurück');
+      b.title = w.label || '';
+      b.onclick = () => geheZu(w.nach);
+      box.appendChild(b);
+    });
+  }
+
+  function geheZu(ansichtId) {
+    const ziel = ansichtVon(ansichtId);
+    if (!ziel) return;
+    const raum = RAEUME.find(r => r.id === ziel.raum);
+    if (raum && raum.gesperrtBis && !zustand.offen[raum.gesperrtBis]) { sag('Zu. Da musst du erst den Weg finden.'); return; }
+    zustand.ansicht = ansichtId; zustand.nah = null;
+    speichern(); renderRaum(); zoomReset(); ton([480]);
   }
 
   // Möbel-Vordergrund: Dinge, die Eier teilweise verdecken (nur Platzhalter)
@@ -568,17 +649,15 @@
   function renderRaumKnoepfe() {
     const box = document.getElementById('raeume');
     box.innerHTML = '';
+    const aktiverRaum = raumVon(zustand.ansicht);
     RAEUME.forEach(r => {
       const gesperrt = r.gesperrtBis && !zustand.offen[r.gesperrtBis];
-      const im = EIER.filter(e => e.raum === r.id);
-      const fertig = im.every(e => zustand.gefunden.includes(e.id));
+      const im = EIER.filter(e => raumVon(e.ansicht) === r.id);
+      const fertig = im.length && im.every(e => zustand.gefunden.includes(e.id));
       const b = document.createElement('button');
-      b.className = 'raum-knopf' + (r.id === zustand.raum ? ' aktiv' : '') + (gesperrt ? ' gesperrt' : '');
+      b.className = 'raum-knopf' + (r.id === aktiverRaum ? ' aktiv' : '') + (gesperrt ? ' gesperrt' : '');
       b.innerHTML = (gesperrt ? '🔒 ' : '') + r.name + (fertig ? '<span class="fertig-punkt">✓</span>' : '');
-      b.onclick = () => {
-        if (gesperrt) { sag('Zu. Da musst du erst den Weg finden.'); return; }
-        zustand.raum = r.id; zustand.nah = null; speichern(); renderRaum(); zoomReset();
-      };
+      b.onclick = () => geheZu(r.start);
       box.appendChild(b);
     });
   }
@@ -627,6 +706,8 @@
   const zeiger = new Map();
   let zugStart = null, pinchStart = null, bewegt = false;
   buehne.addEventListener('pointerdown', (e) => {
+    // Knöpfe auf der Bühne (Zoom, Wege) nicht als Ziehen oder Tippen ins Bild werten
+    if (e.target.closest && e.target.closest('button')) return;
     buehne.setPointerCapture(e.pointerId);
     zeiger.set(e.pointerId, { x: e.clientX, y: e.clientY });
     bewegt = false;
@@ -682,12 +763,8 @@
     if (EDITOR) zeigeKoordinaten(cx, cy, ziel);
     const eiEl = ziel.closest && ziel.closest('.ei');
     if (eiEl) { eiGefunden(eiEl.dataset.ei, cx, cy); return; }
-    const zuEl = ziel.closest && ziel.closest('.zu-knopf');
-    if (zuEl) {
-      const t = TEILE.find(x => x.id === zuEl.dataset.zu);
-      if (t) { zustand.offen[t.zustand] = false; ton([380]); aktualisiereSichtbarkeit(); speichern(); sag(t.label + ' — wieder zu.'); }
-      return;
-    }
+    const wegEl = ziel.closest && ziel.closest('.durchgang');
+    if (wegEl) { geheZu(wegEl.dataset.weg); return; }
     const teilEl = ziel.closest && ziel.closest('.teil');
     if (teilEl) { teilAngetippt(teilEl.dataset.teil); return; }
   }
@@ -715,15 +792,13 @@
     if (!t) return;
     switch (t.typ) {
       case 'ausschnitt':
-        if (!zustand.offen[t.zustand]) {
-          zustand.offen[t.zustand] = true;
-          ton([520]); aktualisiereSichtbarkeit(); speichern();
-          sag(t.label + (t.nah ? ' — offen. Nochmal antippen, um näher ranzugehen.' : ' — offen. Schau rein.'));
-        } else if (t.nah) {
+        // Offen -> mit Nahaufnahme: näher ran. Ohne Nahaufnahme: zweites Antippen schliesst wieder.
+        if (zustand.offen[t.zustand] && t.nah) {
           zustand.nah = t.id; speichern(); renderRaum(); zoomReset();
-          sag(t.label + ' — ganz nah. Jetzt gut hinschauen.');
         } else {
-          sag(t.label + ' ist offen. Das × schliesst wieder.');
+          zustand.offen[t.zustand] = !zustand.offen[t.zustand];
+          ton([zustand.offen[t.zustand] ? 520 : 380]);
+          aktualisiereSichtbarkeit(); speichern();
         }
         break;
       case 'toggle':
@@ -731,7 +806,6 @@
         zustand.offen[t.zustand] = !zustand.offen[t.zustand];
         ton([zustand.offen[t.zustand] ? 520 : 380]);
         aktualisiereSichtbarkeit(); speichern();
-        sag(t.label + (t.typ === 'schalter' ? (zustand.offen[t.zustand] ? ' — Licht an.' : ' — Licht aus.') : (zustand.offen[t.zustand] ? ' — offen. Schau rein.' : ' — wieder zu.')));
         break;
       case 'info':
         document.getElementById('info-titel').textContent = t.titel || t.label;
@@ -740,7 +814,7 @@
         break;
       case 'raetsel':
       case 'code':
-        if (zustand.offen[t.zustand]) { sag('Schon offen.'); return; }
+        if (zustand.offen[t.zustand]) return;
         oeffneRaetsel(t);
         break;
     }
@@ -792,7 +866,7 @@
     // Bevorzugt Ebene 1/2 (Rätsel bleiben Rätsel)
     const pool = offen.filter(e => e.ebene < 3).length ? offen.filter(e => e.ebene < 3) : offen;
     const e = pool[Math.floor(Math.random() * pool.length)];
-    const raum = RAEUME.find(r => r.id === e.raum).name;
+    const raum = (RAEUME.find(r => r.id === raumVon(e.ansicht)) || { name: '?' }).name;
     const art = e.ebene === 1 ? 'liegt offen da — nur getarnt. Zoom rein.' : e.ebene === 2 ? 'steckt in etwas, das sich öffnen lässt.' : 'braucht ein gelöstes Rätsel.';
     zustand.hinweise--;
     aktualisiereSichtbarkeit(); speichern();
@@ -927,7 +1001,7 @@
     kreuz.style.display = 'block'; kreuz.style.left = (cx - r.left) + 'px'; kreuz.style.top = (cy - r.top) + 'px';
     const was = ziel.closest('.ei') ? 'Ei ' + ziel.closest('.ei').dataset.ei : ziel.closest('.teil') ? 'Teil ' + ziel.closest('.teil').dataset.teil : 'Hintergrund';
     document.getElementById('editor').textContent =
-      'AUSRICHTEMODUS\nRaum: ' + zustand.raum + (zustand.nah ? ' / Nahaufnahme ' + zustand.nah : '') + '\nBild: ' + RW + ' x ' + RH + '\nx: ' + wx + '  y: ' + wy + '\nGetroffen: ' + was + '\n\nAlle Eier sind hier sichtbar.';
+      'AUSRICHTEMODUS\nAnsicht: ' + zustand.ansicht + (zustand.nah ? ' / Nahaufnahme ' + zustand.nah : '') + '\nBild: ' + RW + ' x ' + RH + '\nx: ' + wx + '  y: ' + wy + '\nGetroffen: ' + was + '\n\nAlle Eier sind hier sichtbar.';
   }
 
   // =====================================================================
