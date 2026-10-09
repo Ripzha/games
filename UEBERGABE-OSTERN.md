@@ -93,7 +93,8 @@ Wichtig: TEILE und EIER hängen an einer **Ansicht**, nicht am Raum (`ansicht: '
 | `nehmen` | Gegenstand aufnehmen. `gibt` = ID aus GEGENSTAENDE, `zustand` wird gesetzt, `bildAus` blendet den Bereich ohne den Gegenstand ein. Danach nicht mehr anklickbar. |
 | `ziel` | Nimmt nur Gegenstände entgegen, ein blosser Klick tut nichts. Für Stellen, an denen etwas hingehört (leerer Nagel). |
 | `overlay` | Nur ein eingeblendeter Bereich, nicht anklickbar. Für Zustände, die von woanders geschaltet werden. |
-| `phasen` | Figur mit mehreren Frames. Jeder Klick geht eine Phase weiter, nach der letzten zurück auf 0. Phase 0 = Grundbild. Jede Phase: `{ bild, x, y, w, h, text }` — mit x/y/w/h ein freigestellter Flicken, ohne sie ein Rechteckausschnitt aus dem Vollbild. Freigestellt ist richtig, sobald sich hinter der Figur etwas ändern kann. |
+| `phasen` | Figur mit mehreren Frames. Jeder Klick geht eine Phase weiter, nach der letzten zurück auf 0. Phase 0 = Grundbild. Jede Phase: `{ bild, x, y, w, h, text }` oder `texte: [...]` für mehrere Sprüche,
+die beim wiederholten Antippen der Reihe nach kommen — mit x/y/w/h ein freigestellter Flicken, ohne sie ein Rechteckausschnitt aus dem Vollbild. Freigestellt ist richtig, sobald sich hinter der Figur etwas ändern kann. |
 | `schalter` | Licht an/aus für DUNKEL-Bereiche |
 
 `setztAuch` an einem Schalter setzt beim Einschalten einen zweiten Zustand,
@@ -203,7 +204,9 @@ Vier Ausschnitte, alle mit `nah: ''` — **Nahaufnahmen fehlen noch**:
 - `w_frau` Anfisa im Sessel (Flicken 237,97 543×402, Klickfläche 240,192 430×233),
   typ `phasen`, nimmt `kippen` entgegen und setzt damit `anfisa_weg`:
   0 schlafend (Grundbild) · 1 aufgeschreckt · 2 spricht · danach wieder 0.
-  **Beide Texte sind Platzhalter.**
+  Vier Sprüche beim Aufschrecken, sechs beim Reden, der Reihe nach.
+  Dazu drei Einzeltexte: wenn ihr etwas fehlt, wenn sie beides bekommt, und
+  wenn das Bild nicht an der Wand hängt. Sie spricht mit russischem Akzent.
 - Eier e04 (Teppich, 1332,712) und e16 (Hefte unter dem Couchtisch, 1150,600) liegen getarnt offen
 
 ### Das Bild in der Hand

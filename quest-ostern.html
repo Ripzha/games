@@ -458,13 +458,26 @@
       // Sie will beides: Schachtel und Feuerzeug. Und solange das Bild nicht
       // an der Wand hängt, nimmt sie gar nichts an.
       nimmt: ['kippen', 'feuerzeug'], setzt: 'anfisa_weg', verbraucht: true,
-      antwort: '[TEXT 3 — Anfisa nimmt Schachtel und Feuerzeug und steht auf, folgt noch]',
-      fehlt: '[TEXT 4 — ihr fehlt noch das eine oder das andere, folgt noch]',
+      antwort: '„Papirossy. Und Feuer dazu." Sie stemmt sich hoch, langsam wie ein Schrank. „Nu gut. Ich gehe rauchen. Sessel ist frei — aber mach keine Unordnung."',
+      fehlt: '„Halbe Sachen." Sie streckt die Hand aus und lässt sie wieder sinken. „Bring mir beides. Dann reden wir."',
       strafeWenn: 'bild_ab', strafeSetzt: 'anfisa_sauer',
-      strafeAntwort: '[STRAFE — sie sieht die leere Wand und rührt sich nicht. Text folgt]', phasen: [
+      strafeAntwort: '„Stoj." Sie deutet mit dem Kinn zur Wand. „Da ist Loch. Wo ist mein Bild? Erst hängst du zurück, dann kriegst du Sessel."',
+      phasen: [
         { bild: '' },
-        { bild: 'bilder/wz-frau-wach.png',    x: 237, y: 97, w: 543, h: 402, text: '[TEXT 1 — aufgeschreckt, folgt noch]' },
-        { bild: 'bilder/wz-frau-spricht.png', x: 238, y: 98, w: 542, h: 402, text: '[TEXT 2 — was sie sagt, folgt noch]' }
+        { bild: 'bilder/wz-frau-wach.png', x: 237, y: 97, w: 543, h: 402, texte: [
+          '„Ah! … Tschort. Du schleichst wie Katze und machst Lärm wie Panzer."',
+          '„Nu? Was ist? Ich habe geschlafen, falls du nicht gemerkt hast."',
+          '„Himmel. Mein Herz ist alt, weisst du das?"',
+          '„Schon wieder du. Hast du nichts Besseres?"'
+        ] },
+        { bild: 'bilder/wz-frau-spricht.png', x: 238, y: 98, w: 542, h: 402, texte: [
+          '„Was willst du? Hier gibt es nichts für dich."',
+          '„Lass mich in Ruhe. Fernseher läuft."',
+          '„Ich sitze, du gehst. So ist Ordnung in diesem Haus."',
+          '„Suchst du Eier? Anfisa versteckt gut. Anfisa versteckt sehr gut."',
+          '„Frag nicht mich. Frag deine Augen."',
+          '„Geh raus. Draussen ist Luft, hier ist nur ich."'
+        ] }
       ] },
     // --- Küche ---
     // --- Küche. Grundbild ist dunkel; erst die Sicherung macht Licht.
@@ -570,6 +583,7 @@
     fertig: false
   };
   let zuletztGesagt = 0;
+  const spruchZaehler = {};   // damit eine Figur nicht immer dasselbe sagt
 
   function speicherLesen() { try { return JSON.parse(localStorage.getItem(SPEICHER_KEY) || 'null'); } catch (e) { return null; } }
   function speichern() {
@@ -1331,7 +1345,14 @@
         zustand.offen[t.zustand] = neu;
         ton([neu ? 600 : 380]);
         aktualisiereSichtbarkeit(); speichern();
-        const spruch = t.phasen[neu] && t.phasen[neu].text;
+        const ph = t.phasen[neu] || {};
+        let spruch = ph.text;
+        if (ph.texte && ph.texte.length) {
+          const schluessel = t.id + ':' + neu;
+          const i = (spruchZaehler[schluessel] || 0) % ph.texte.length;
+          spruchZaehler[schluessel] = i + 1;
+          spruch = ph.texte[i];
+        }
         if (spruch) sag(spruch, t.sprecher || t.label); else schweig();
         break;
       }
