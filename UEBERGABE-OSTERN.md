@@ -89,6 +89,7 @@ Wichtig: TEILE und EIER hängen an einer **Ansicht**, nicht am Raum (`ansicht: '
 | `code` | Zahlencode, `code: '2412'` |
 | `info` | Zeigt einen Text (Zettel, Notiz) |
 | `nehmen` | Gegenstand aufnehmen. `gibt` = ID aus GEGENSTAENDE, `zustand` wird gesetzt, `bildAus` blendet den Bereich ohne den Gegenstand ein. Danach nicht mehr anklickbar. |
+| `ziel` | Nimmt nur Gegenstände entgegen, ein blosser Klick tut nichts. Für Stellen, an denen etwas hingehört (leerer Nagel). |
 | `overlay` | Nur ein eingeblendeter Bereich, nicht anklickbar. Für Zustände, die von woanders geschaltet werden. |
 | `phasen` | Figur mit mehreren Frames. Jeder Klick geht eine Phase weiter, nach der letzten zurück auf 0. Phase 0 = Grundbild. Jede Phase: `{ bild, text }`, der Text erscheint in der Sprechblase mit `sprecher` als Namen. |
 | `schalter` | Licht an/aus für DUNKEL-Bereiche |
@@ -101,10 +102,14 @@ ein- oder ausblenden), `nah` (ID einer Nahansicht), `treffer: {x,y,w,h}` (eigene
 Klickfläche, wenn der Bildausschnitt grösser ist als das Anklickbare).
 
 ### Gegenstände benutzen
-Ein Teil nimmt einen Gegenstand entgegen über drei Felder:
-`nimmt` (Gegenstand-ID), `setzt` (Zustand, der dadurch gesetzt wird),
-`verbraucht: true` (Gegenstand verschwindet aus dem Inventar) und optional
+Ein Teil nimmt einen Gegenstand entgegen über diese Felder:
+`nimmt` (Gegenstand-ID), `setzt` (Zustand setzen), `loescht` (Zustand wieder
+aufheben), `verbraucht: true` (Gegenstand verschwindet aus dem Inventar) und
 `antwort` (Text in der Sprechblase).
+
+Strafe: `strafeWenn` (Zustand, der nicht sein sollte), `strafeSetzt` (Zustand,
+der dann gesetzt wird) und `strafeAntwort`. Greift genau dann, wenn der
+Gegenstand benutzt wird und die Bedingung erfüllt ist.
 
 Bedienung: Rucksack unten rechts antippen, er öffnet ein Gitter mit festen
 Fächern. Ein Fach antippen nimmt den Gegenstand in die Hand und schliesst den
@@ -152,7 +157,10 @@ Vier Ausschnitte, alle mit `nah: ''` — **Nahaufnahmen fehlen noch**:
 ### Wohnzimmer im Detail
 - `w_regal` Schrank unter dem Bücherregal (862,336 236×146), Flicken → Ei e12
 - `w_tvmoebel` Fernsehmöbel (1215,400 559×108) → Ei e13. Flicken, Kante unter den Porzellanfiguren — die stehen in den beiden Bildern versetzt.
-- `w_gemaelde` Bild an der Wand (420,0 265×190), typ `nehmen` → Gegenstand `gemaelde`. Der Rahmen reicht bis y=190, ein kürzerer Ausschnitt lässt die Rahmenunterkante stehen.
+- `w_gemaelde` Bild an der Wand (415,0 275×188), typ `nehmen` → Gegenstand `gemaelde`
+- `w_nagel` derselbe Fleck, typ `ziel`, nur sichtbar wenn `bild_ab`. Nimmt das
+  Bild wieder entgegen und hebt `bild_ab` auf. Damit lässt sich das Bild
+  zurückhängen.. Der Rahmen reicht bis y=190, ein kürzerer Ausschnitt lässt die Rahmenunterkante stehen.
 - `w_tv` Fernseher (1400,145 240×200) — an und aus
 - `w_sessel_leer` Overlay ohne Anfisa (150,80 850×770), schaltet auf `anfisa_weg`
 - `w_frau` Anfisa im Sessel (240,95 430×330, Klickfläche 240,160 430×265),
@@ -166,7 +174,8 @@ Zwei Nahansichten, über das Inventar erreichbar:
 - `bild_vorn` Landschaft, Knopf „Umdrehen"
 - `bild_hinten` Rückwand mit Fach
   - `bi_fach` (510,600 570×210) schiebt die Abdeckung auf
-  - `bi_schluessel` (575,645 240×110), typ `nehmen` → Gegenstand `schluessel`,
+  - `bi_schluessel` (535,622 268×136), typ `nehmen` → Gegenstand `schluessel`,
+    Der Ausschnitt muss den Bügel links mitnehmen, sonst bleibt ein Rest stehen.
     nur sichtbar wenn `fach_offen`
 
 Wozu der Schlüssel passt, ist noch offen.
@@ -271,6 +280,9 @@ Eier in einer Nahaufnahme bekommen `inNah: '<teil-id>'`.
 5. **Die Zigarettenschachtel** liegt vorläufig in der Treppenhaus-Kiste. Gibt man
    sie Anfisa, steht sie auf (`anfisa_weg`). Ihr dritter Text fehlt noch, und der
    Sessel ist danach noch nicht untersuchbar — dafür braucht es ein Bild davon.
+6. **Die Strafe ist noch offen.** Steht Anfisa auf, während das Bild nicht an
+   der Wand hängt, wird `anfisa_sauer` gesetzt und ein Platzhaltertext gezeigt.
+   Was daraus folgt, ist noch nicht entschieden.
 6. **„Zurück"-Knopf** am Spielende zeigt auf `index.html`, die es im games-Repo
    nicht gibt → Ziel noch festzulegen.
 7. Am Handy noch nicht getestet (Zoom, Pinch, Tippen).
