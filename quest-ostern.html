@@ -65,7 +65,7 @@
   .ei.gefunden .ei-form { opacity: 0.25; }
   .ei.gefunden .ei-treffer { cursor: default; }
   .ei.versteckt { display: none; }
-  .zoom-hinweis { position: absolute; right: 10px; bottom: 10px; font-size: 11px; color: var(--himmel-text); background: rgba(10,18,12,0.7); padding: 4px 8px; border-radius: 6px; pointer-events: none; z-index: 5; }
+  .zoom-hinweis { position: absolute; right: 10px; top: 10px; font-size: 11px; color: var(--himmel-text); background: rgba(10,18,12,0.7); padding: 4px 8px; border-radius: 6px; pointer-events: none; z-index: 5; }
   .zoom-knoepfe { position: absolute; left: 10px; bottom: 10px; display: flex; gap: 6px; z-index: 5; }
   .zoom-knoepfe button { width: 36px; height: 36px; border-radius: 8px; border: 1px solid var(--panel-rand); background: rgba(10,18,12,0.85); color: var(--cream); font-size: 18px; cursor: pointer; }
 
@@ -116,11 +116,26 @@
   .rang-zeile.eigener { background: rgba(200,146,72,0.18); }
   .rang-laedt { color: var(--himmel-text); font-size: 13px; }
 
-  /* ---------- Inventar ---------- */
-  .inventar { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; }
-  .inventar:empty { display: none; }
-  .gegenstand { font: inherit; font-size: 12px; font-weight: 600; padding: 6px 10px; border-radius: 6px; border: 1px solid var(--gold); background: rgba(200,146,72,0.18); color: var(--gold-hell); cursor: pointer; white-space: nowrap; }
-  .gegenstand:hover { background: rgba(200,146,72,0.35); }
+  /* ---------- Rucksack ---------- */
+  .rucksack { position: absolute; right: 10px; bottom: 10px; width: 54px; height: 54px; border-radius: 12px; border: 1px solid var(--gold); background: rgba(10,18,12,0.88); color: var(--gold-hell); font-size: 26px; line-height: 1; cursor: pointer; z-index: 11; display: flex; align-items: center; justify-content: center; }
+  .rucksack:hover { background: rgba(200,146,72,0.3); }
+  .rucksack .zahl { position: absolute; top: -7px; right: -7px; min-width: 19px; padding: 1px 5px; border-radius: 10px; background: var(--gold); color: var(--tinte); font-family: var(--sans); font-size: 11px; font-weight: 700; }
+  .rucksack .zahl.leer { display: none; }
+  .beutel { position: absolute; right: 10px; bottom: 74px; width: min(250px, 72vw); background: rgba(10,18,12,0.96); border: 1px solid var(--panel-rand); border-radius: 12px; padding: 12px; z-index: 11; display: none; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
+  .beutel.auf { display: block; }
+  .beutel .titel { font-family: var(--serif); font-size: 14px; color: var(--gold-hell); margin-bottom: 10px; }
+  .gitter { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+  .fach { position: relative; aspect-ratio: 1; border: 1px dashed rgba(58,90,68,0.8); border-radius: 8px; }
+  .fach.voll { border-style: solid; border-color: var(--gold); }
+  .fach .tasten { position: absolute; inset: 0; width: 100%; height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; font: inherit; border: 0; border-radius: 8px; background: rgba(200,146,72,0.14); color: var(--cream); cursor: pointer; }
+  .fach .tasten:hover { background: rgba(200,146,72,0.3); }
+  .fach.gewaehlt .tasten { background: var(--gold); color: var(--tinte); }
+  .fach .sym { font-size: 22px; line-height: 1; }
+  .fach .etikett { font-size: 10px; font-weight: 600; }
+  .fach .lupe { position: absolute; top: -7px; right: -7px; width: 22px; height: 22px; border-radius: 11px; border: 1px solid var(--gold); background: rgba(10,18,12,0.95); color: var(--gold-hell); font-size: 11px; line-height: 1; cursor: pointer; padding: 0; }
+  .beutel .hinweis { font-size: 11px; color: var(--himmel-text); margin-top: 10px; line-height: 1.4; }
+  .buehne.zielt { cursor: copy; }
+  .nimm-marke { animation: pochen 2.2s ease-in-out infinite; transform-origin: center; pointer-events: none; }
 
   /* ---------- Wege zwischen den Ansichten ---------- */
   .weg { position: absolute; z-index: 8; border: 1px solid var(--panel-rand); background: rgba(10,18,12,0.72); color: var(--gold-hell); cursor: pointer; font: inherit; display: flex; align-items: center; justify-content: center; gap: 6px; backdrop-filter: blur(2px); }
@@ -128,6 +143,9 @@
   .weg-seite { top: 50%; transform: translateY(-50%); width: 48px; height: 96px; border-radius: 10px; font-size: 26px; line-height: 1; }
   .weg-links { left: 10px; }
   .weg-rechts { right: 10px; }
+  .weg-mitte { left: 50%; transform: translateX(-50%); width: 96px; height: 44px; border-radius: 10px; font-size: 26px; line-height: 1; }
+  .weg-unten { bottom: 10px; }
+  .weg-oben { top: 40px; }
   .weg-raus { left: 50%; bottom: 10px; transform: translateX(-50%); padding: 8px 16px; border-radius: 10px; font-size: 13px; font-weight: 600; }
   .ansicht-name { position: absolute; left: 50%; top: 10px; transform: translateX(-50%); z-index: 5; font-size: 12px; color: var(--himmel-text); background: rgba(10,18,12,0.6); padding: 4px 9px; border-radius: 6px; pointer-events: none; }
   .durchgang { cursor: pointer; }
@@ -147,7 +165,6 @@
     <span class="uhr" id="uhr">00:00</span>
     <button class="hinweis-knopf" id="hinweis-knopf">Hinweis (3)</button>
     <button class="hinweis-knopf" id="nah-zurueck" style="display:none">← Zurück in den Raum</button>
-    <div class="inventar" id="inventar"></div>
     <div class="raeume" id="raeume"></div>
   </div>
 
@@ -156,6 +173,12 @@
     <div class="editor-kreuz" id="editor-kreuz"></div>
     <div class="ansicht-name" id="ansicht-name"></div>
     <div id="wege"></div>
+    <div class="beutel" id="beutel">
+      <div class="titel">Rucksack</div>
+      <div class="gitter" id="gitter"></div>
+      <p class="hinweis" id="beutel-hinweis">Noch nichts drin.</p>
+    </div>
+    <button class="rucksack" id="rucksack" aria-label="Rucksack">🎒<span class="zahl leer" id="rucksack-zahl">0</span></button>
     <div class="zoom-knoepfe">
       <button id="zoom-minus" aria-label="Verkleinern">−</button>
       <button id="zoom-plus" aria-label="Vergrössern">+</button>
@@ -278,9 +301,9 @@
 
   // Gegenstände im Inventar. nah = ID der Nahansicht, die ein Klick darauf öffnet.
   const GEGENSTAENDE = [
-    { id: 'gemaelde',   name: '🖼 Bild',       nah: 'bild_vorn' },
-    { id: 'schluessel', name: '🗝 Schlüssel',  text: 'Ein alter Messingschlüssel. Wozu er passt, weiss ich noch nicht.' },
-    { id: 'kippen',     name: '🚬 Schachtel',  text: 'Eine angebrochene Schachtel Zigaretten.' }
+    { id: 'gemaelde',   symbol: '🖼', name: 'Bild',      nah: 'bild_vorn', text: 'Ein Landschaftsbild in einem alten Holzrahmen.' },
+    { id: 'schluessel', symbol: '🗝', name: 'Schlüssel', text: 'Ein alter Messingschlüssel. Wozu er passt, weiss ich noch nicht.' },
+    { id: 'kippen',     symbol: '🚬', name: 'Schachtel', text: 'Eine angebrochene Schachtel Zigaretten.' }
   ];
 
   const WEGE = [
@@ -295,7 +318,9 @@
     // Treppenhaus: die Metalltür links führt zurück in die Garage, die Holztür oben weiter
     { von: 'treppenhaus', nach: 'garage2',    art: 'rein', x: 10,  y: 60, w: 270, h: 760, label: 'zurück in die Garage' },
     { von: 'treppenhaus', nach: 'wohnzimmer', art: 'rein', x: 998, y: 55, w: 90,  h: 270, wennOffen: 'th_tuer_offen', label: 'Tür in den Flur' },
-    { von: 'wohnzimmer', nach: 'treppenhaus', art: 'links', label: 'zurück ins Treppenhaus' },
+    { von: 'wohnzimmer', nach: 'treppenhaus', art: 'unten',  label: 'zurück ins Treppenhaus' },
+    { von: 'wohnzimmer', nach: 'kueche',       art: 'links',  label: 'in die Küche' },
+    { von: 'kueche',     nach: 'wohnzimmer',   art: 'rechts', label: 'zurück ins Wohnzimmer' },
     // Bild in der Hand wenden
     { von: 'bild_vorn',   nach: 'bild_hinten', art: 'wenden', label: '↻ Umdrehen' },
     { von: 'bild_hinten', nach: 'bild_vorn',   art: 'wenden', label: '↻ Umdrehen' }
@@ -334,7 +359,7 @@
     // nicht wieder auftaucht, wenn sie weg ist.
     { id: 'w_sessel_leer', ansicht: 'wohnzimmer', x: 150, y: 80, w: 850, h: 770, typ: 'overlay', zustand: 'anfisa_weg',
       bildAus: 'bilder/wohnzimmer-leer.png', label: 'Sessel' },
-    { id: 'w_gemaelde', ansicht: 'wohnzimmer', x: 425, y: 5, w: 255, h: 150, typ: 'nehmen', zustand: 'bild_ab', gibt: 'gemaelde',
+    { id: 'w_gemaelde', ansicht: 'wohnzimmer', x: 420, y: 0, w: 265, h: 190, typ: 'nehmen', zustand: 'bild_ab', gibt: 'gemaelde',
       bildAus: 'bilder/wohnzimmer-aus.png', label: 'Bild an der Wand' },
     { id: 'w_tv', ansicht: 'wohnzimmer', x: 1400, y: 145, w: 240, h: 200, typ: 'ausschnitt', zustand: 'tv_aus',
       bildAus: 'bilder/wohnzimmer-aus.png', label: 'Fernseher' },
@@ -345,7 +370,9 @@
       gibt: 'schluessel', bildAus: 'bilder/bild-hinten-leer.png', sichtbarWenn: 'fach_offen', label: 'Schlüssel im Fach' },
     { id: 'w_frau', ansicht: 'wohnzimmer', x: 240, y: 95, w: 430, h: 330, typ: 'phasen', zustand: 'frau_phase',
       treffer: { x: 240, y: 160, w: 430, h: 265 },
-      nichtWenn: 'anfisa_weg', label: 'Die Frau im Sessel', sprecher: 'Anfisa', phasen: [
+      nichtWenn: 'anfisa_weg', label: 'Die Frau im Sessel', sprecher: 'Anfisa',
+      nimmt: 'kippen', setzt: 'anfisa_weg', verbraucht: true,
+      antwort: '[TEXT 3 — Anfisa nimmt die Schachtel und steht auf, folgt noch]', phasen: [
         { bild: '' },
         { bild: 'bilder/wohnzimmer-frau-wach.png',    text: '[TEXT 1 — aufgeschreckt, folgt noch]' },
         { bild: 'bilder/wohnzimmer-frau-spricht.png', text: '[TEXT 2 — was sie sagt, folgt noch]' }
@@ -415,6 +442,7 @@
     hinweise: HINWEISE_GESAMT,
     zeit: 0,               // Sekunden
     inventar: [],          // IDs aus GEGENSTAENDE
+    gewaehlt: null,        // Gegenstand in der Hand (wird nicht gespeichert)
     ansicht: 'garage1',    // aktuelle Ansicht (nicht der Raum)
     nah: null,             // ID der Nahansicht, die gerade offen ist
     laeuft: false,
@@ -684,8 +712,11 @@
     WEGE.filter(w => w.von === hier && w.art !== 'rein'
                      && (!w.wennOffen || zustand.offen[w.wennOffen])).forEach(w => {
       const b = document.createElement('button');
-      b.className = 'weg ' + (w.art === 'links' || w.art === 'rechts' ? 'weg-seite weg-' + w.art : 'weg-raus');
-      b.textContent = w.art === 'links' ? '‹' : w.art === 'rechts' ? '›' : (w.label || 'zurück');
+      const seite = w.art === 'links' || w.art === 'rechts';
+      const mitte = w.art === 'unten' || w.art === 'oben';
+      b.className = 'weg ' + (seite ? 'weg-seite weg-' + w.art : mitte ? 'weg-mitte weg-' + w.art : 'weg-raus');
+      b.textContent = w.art === 'links' ? '‹' : w.art === 'rechts' ? '›'
+                    : w.art === 'unten' ? '⌄' : w.art === 'oben' ? '⌃' : (w.label || 'zurück');
       b.title = w.label || '';
       b.onclick = () => geheZu(w.nach);
       box.appendChild(b);
@@ -750,31 +781,53 @@
     document.getElementById('hinweis-knopf').disabled = zustand.hinweise <= 0;
   }
 
+  // Rucksack: Gitter mit festen Fächern, leere Fächer bleiben sichtbar
+  const FAECHER_MIN = 6;
   function renderInventar() {
-    const box = document.getElementById('inventar');
-    box.innerHTML = '';
-    zustand.inventar.forEach(id => {
-      const g = GEGENSTAENDE.find(x => x.id === id);
-      if (!g) return;
-      const b = document.createElement('button');
-      b.className = 'gegenstand' + (zustand.gewaehlt === id ? ' gewaehlt' : '');
-      b.textContent = g.name;
-      b.title = 'Antippen, dann auf etwas im Bild tippen. Am Rechner geht auch Ziehen.';
-      b.draggable = true;
-      b.ondragstart = (e) => { waehle(id, true); try { e.dataTransfer.setData('text/plain', id); } catch (err) {} };
-      b.ondragend = () => buehne.classList.remove('zielt');
-      b.onclick = () => waehle(zustand.gewaehlt === id ? null : id);
-      box.appendChild(b);
-      if (g.nah) {
-        const l = document.createElement('button');
-        l.className = 'gegenstand lupe';
-        l.textContent = '🔍';
-        l.title = 'Genauer ansehen';
-        l.onclick = () => { waehle(null); geheZu(g.nah); };
-        box.appendChild(l);
+    const gitter = document.getElementById('gitter');
+    const zahl = document.getElementById('rucksack-zahl');
+    const hinweis = document.getElementById('beutel-hinweis');
+    const n = zustand.inventar.length;
+    zahl.textContent = n;
+    zahl.classList.toggle('leer', n === 0);
+    hinweis.textContent = n === 0
+      ? 'Noch nichts drin.'
+      : 'Antippen nimmt es in die Hand, dann im Bild antippen, wohin damit. 🔍 sieht es genauer an.';
+    const faecher = Math.max(FAECHER_MIN, Math.ceil(n / 3) * 3);
+    gitter.innerHTML = '';
+    for (let i = 0; i < faecher; i++) {
+      const fach = document.createElement('div');
+      fach.className = 'fach';
+      const id = zustand.inventar[i];
+      const g = id ? GEGENSTAENDE.find(x => x.id === id) : null;
+      if (g) {
+        fach.classList.add('voll');
+        if (zustand.gewaehlt === id) fach.classList.add('gewaehlt');
+        const b = document.createElement('button');
+        b.className = 'tasten';
+        b.innerHTML = `<span class="sym">${g.symbol || '?'}</span><span class="etikett">${g.name}</span>`;
+        b.title = g.text || g.name;
+        b.draggable = true;
+        b.ondragstart = (e) => { waehle(id, true); beutelZu(); try { e.dataTransfer.setData('text/plain', id); } catch (err) {} };
+        b.ondragend = () => buehne.classList.remove('zielt');
+        b.onclick = () => { const an = zustand.gewaehlt !== id; waehle(an ? id : null); if (an) beutelZu(); };
+        fach.appendChild(b);
+        if (g.nah) {
+          const l = document.createElement('button');
+          l.className = 'lupe';
+          l.textContent = '🔍';
+          l.title = 'Genauer ansehen';
+          l.onclick = () => { waehle(null, true); beutelZu(); geheZu(g.nah); };
+          fach.appendChild(l);
+        }
       }
-    });
+      gitter.appendChild(fach);
+    }
   }
+  function beutelZu() { document.getElementById('beutel').classList.remove('auf'); }
+  document.getElementById('rucksack').onclick = () => {
+    document.getElementById('beutel').classList.toggle('auf');
+  };
 
   // Einen Gegenstand in die Hand nehmen, um ihn zu benutzen
   function waehle(id, still) {
@@ -864,7 +917,8 @@
   let zugStart = null, pinchStart = null, bewegt = false;
   buehne.addEventListener('pointerdown', (e) => {
     // Knöpfe auf der Bühne (Zoom, Wege) nicht als Ziehen oder Tippen ins Bild werten
-    if (e.target.closest && e.target.closest('button')) return;
+    if (e.target.closest && (e.target.closest('button') || e.target.closest('.beutel'))) return;
+    beutelZu();
     buehne.setPointerCapture(e.pointerId);
     zeiger.set(e.pointerId, { x: e.clientX, y: e.clientY });
     bewegt = false;

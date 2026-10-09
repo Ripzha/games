@@ -57,6 +57,7 @@ Alles Inhaltliche steht oben im `<script>` unter **„DATEN"**:
   Ein Raum kann mehrere Ansichten haben (Garage: `garage1` Werkbank, `garage2` Tür).
 - **WEGE** — Verbindungen zwischen Ansichten: `{ von, nach, art, label }`
   - `art: 'links'` / `'rechts'` → Pfeil am linken/rechten Bildrand
+  - `art: 'unten'` / `'oben'` → Pfeil mittig am unteren/oberen Bildrand
   - `art: 'raus'` → Knopf unten in der Mitte (mit `label` als Beschriftung)
   - `art: 'rein'` → anklickbare Stelle im Bild, braucht zusätzlich `x, y, w, h`
     in Bildpixeln; wird mit einer goldenen Marke angezeigt
@@ -65,7 +66,8 @@ Alles Inhaltliche steht oben im `<script>` unter **„DATEN"**:
 - **TEILE** — bewegliche/antippbare Objekte: `ansicht`, x, y, w, h (Bildpixel),
   `typ`, `zustand`, `label`
 - **EIER** — `ansicht`, x, y, r, farbe, muster, `ebene` (1/2/3), `sichtbarWenn`
-- **GEGENSTAENDE** — Inventar: id, name, `nah` (ID einer Nahansicht) oder `text`
+- **GEGENSTAENDE** — Inventar: id, `symbol` (Emoji fürs Rucksack-Fach), name,
+  `nah` (ID einer Nahansicht), `text`
 - **DUNKEL** — dunkle Bereiche, die erst nach einem Lichtschalter sichtbar werden (derzeit leer)
 
 Wichtig: TEILE und EIER hängen an einer **Ansicht**, nicht am Raum (`ansicht: 'garage1'`).
@@ -95,10 +97,11 @@ Ein Teil nimmt einen Gegenstand entgegen über drei Felder:
 `verbraucht: true` (Gegenstand verschwindet aus dem Inventar) und optional
 `antwort` (Text in der Sprechblase).
 
-Bedienung: Gegenstand oben antippen, er wird golden hinterlegt, dann im Bild
-antippen, wohin er soll. Daneben getippt legt ihn wieder weg. Am Rechner geht
-zusätzlich Ziehen und Fallenlassen. Gegenstände mit Nahansicht haben einen
-zweiten kleinen Knopf 🔍.
+Bedienung: Rucksack unten rechts antippen, er öffnet ein Gitter mit festen
+Fächern. Ein Fach antippen nimmt den Gegenstand in die Hand und schliesst den
+Rucksack, danach im Bild antippen, wohin er soll. Daneben getippt legt ihn
+wieder weg. Am Rechner geht zusätzlich Ziehen und Fallenlassen. Fächer mit
+Nahansicht haben oben rechts ein kleines 🔍.
 
 Aci kommentiert **nicht** mehr jeden Klick. Er meldet sich nur noch bei
 Meilensteinen (SPRUECHE), bei einem Hinweis, bei einem gelösten Rätsel und
@@ -126,8 +129,9 @@ in Bildpixeln. **So werden Eier, Hotspots und Durchgänge platziert.**
 - `garage2` → Treppe (1200,200 190×600) → `treppenhaus`, erst wenn `g2_tuer_offen`
 - `treppenhaus` → Metalltür links (10,60 270×760) → `garage2`
 - `treppenhaus` → Holztür oben (998,55 90×270) → `wohnzimmer`, erst wenn `th_tuer_offen`
-- `wohnzimmer` → Pfeil links → `treppenhaus`
-- Küche, Garten und Keller hängen noch an keinem Weg, nur an den Raum-Knöpfen oben
+- `wohnzimmer` → Pfeil unten → `treppenhaus`
+- `wohnzimmer` → Pfeil links → `kueche`, `kueche` → Pfeil rechts → `wohnzimmer`
+- Garten und Keller hängen noch an keinem Weg, nur an den Raum-Knöpfen oben
 
 ### garage2 im Detail
 Vier Ausschnitte, alle mit `nah: ''` — **Nahaufnahmen fehlen noch**:
@@ -139,7 +143,7 @@ Vier Ausschnitte, alle mit `nah: ''` — **Nahaufnahmen fehlen noch**:
 ### Wohnzimmer im Detail
 - `w_regal` Schrank unter dem Bücherregal (860,330 230×145) → Ei e12
 - `w_tvmoebel` Fernsehmöbel (1215,400 559×108) → Ei e13. Die Schnittkante muss unter den Porzellanfiguren liegen, die stehen in den beiden Bildern versetzt.
-- `w_gemaelde` Bild an der Wand (425,5 255×150), typ `nehmen` → Gegenstand `gemaelde`
+- `w_gemaelde` Bild an der Wand (420,0 265×190), typ `nehmen` → Gegenstand `gemaelde`. Der Rahmen reicht bis y=190, ein kürzerer Ausschnitt lässt die Rahmenunterkante stehen.
 - `w_tv` Fernseher (1400,145 240×200) — an und aus
 - `w_sessel_leer` Overlay ohne Anfisa (150,80 850×770), schaltet auf `anfisa_weg`
 - `w_frau` Anfisa im Sessel (240,95 430×330, Klickfläche 240,160 430×265),
