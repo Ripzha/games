@@ -94,6 +94,7 @@ Wichtig: TEILE und EIER hängen an einer **Ansicht**, nicht am Raum (`ansicht: '
 | `code` | Zahlencode, `code: '2412'` |
 | `info` | Zeigt einen Text (Zettel, Notiz) |
 | `nehmen` | Gegenstand aufnehmen. `gibt` = ID aus GEGENSTAENDE, `zustand` wird gesetzt, `bildAus` blendet den Bereich ohne den Gegenstand ein. Danach nicht mehr anklickbar. |
+| `naehe` | Führt beim Antippen direkt in die Nahansicht aus `nah`. Für Dinge ohne offen/zu. |
 | `ziel` | Nimmt nur Gegenstände entgegen, ein blosser Klick tut nichts. Für Stellen, an denen etwas hingehört (leerer Nagel). |
 | `overlay` | Nur ein eingeblendeter Bereich, nicht anklickbar. Für Zustände, die von woanders geschaltet werden. |
 | `phasen` | Figur mit mehreren Frames. Jeder Klick geht eine Phase weiter, nach der letzten zurück auf 0. Phase 0 = Grundbild. Jede Phase: `{ bild, x, y, w, h, text }` oder `texte: [...]` für mehrere Sprüche,
@@ -287,6 +288,26 @@ der Küche nichts zu finden.
 
 **Vorläufig:** Ein Klick auf die offene Sicherung schaltet direkt das Licht.
 Sobald die Nahaufnahme des Sicherungskastens da ist, wird daraus das Auswechseln.
+
+### Anfisas Sessel
+Erst wenn `anfisa_weg` gesetzt ist, lässt sich der Sessel im Wohnzimmer
+antippen (`w_sessel`, typ `naehe`) und führt in `sessel_nah` (1774×887).
+- `se_hammer` (50,65 226×319) — Hammer auf der Lehne, Flicken mit `patchNicht`,
+  gibt den Gegenstand `hammer`. **Wofür der Hammer gut ist, ist noch offen.**
+- `se_kissen` (420,200 940×480) — Sitzkissen abheben und wieder auflegen
+- `se_zettel` (980,300 230×150) — nur sichtbar wenn das Kissen weg ist. Ein
+  gezeichneter Papierfetzen mit **392**, die erste Ziffer ist abgerissen.
+  Der volle Code **7392** steht als Leuchtschrift im Treppenhaus.
+
+Der Zettel ist kein Bild, sondern über das Feld `zeichnung` direkt als SVG im
+Teil hinterlegt. So lassen sich kleine Dinge ergänzen, ohne ein Bild zu brauchen.
+
+### Klang
+Statt Sinustönen klingt jetzt gefiltertes Rauschen mit schnellem Abfall, je
+nach Material: `holz`, `metall`, `stoff`, `nehmen`, `fehler`, `ei`. Ein Teil
+wählt seine Art über das Feld `klang`, sonst gilt `holz`. Das ist immer noch
+erzeugt und kein aufgenommener Ton — echte Aufnahmen wären besser, dafür
+bräuchte es Klangdateien im Repo.
 
 ### Taschenlampe und Dachboden
 Der Dachboden hat `lampeWenn: 'lampe_an'`. Ohne Lampe sieht man nichts.

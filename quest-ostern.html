@@ -341,7 +341,8 @@
     // Nahaufnahme eines Schranks: wird über `nah` am Teil geöffnet
     { id: 'spind_nah', istNah: true, name: 'Spind rechts — von nahem', bild: 'bilder/spind-nah.webp', breite: 1024, hoehe: 1536 },
     { id: 'gruen_nah', istNah: true, name: 'Unterschrank — von nahem', bild: 'bilder/gruen-nah.webp', breite: 1448, hoehe: 1086 },
-    { id: 'kiste_nah', istNah: true, name: 'Blechkiste', bild: 'bilder/kiste-nah.webp', breite: 1361, hoehe: 1028 }
+    { id: 'kiste_nah', istNah: true, name: 'Blechkiste', bild: 'bilder/kiste-nah.webp', breite: 1361, hoehe: 1028 },
+    { id: 'sessel_nah', istNah: true, name: 'Anfisas Sessel', bild: 'bilder/sessel-nah.webp', breite: 1774, hoehe: 887 }
   ];
 
   // Gegenstände im Inventar. nah = ID der Nahansicht, die ein Klick darauf öffnet.
@@ -355,7 +356,8 @@
       antwort: 'Batterien drin. Jetzt tut sie wieder.',
       schaltet: 'lampe_an', nurWenn: 'lampe_bereit', fehlt: 'Tote Lampe. Da müssen Batterien rein.' },
     { id: 'batterien',  symbol: '🔋', name: 'Batterien', text: 'Zwei Batterien. Sehen noch brauchbar aus.' },
-    { id: 'feuerzeug',  symbol: '🔥', name: 'Feuerzeug', text: 'Ein abgegriffenes Feuerzeug. Tut es noch.' }
+    { id: 'feuerzeug',  symbol: '🔥', name: 'Feuerzeug', text: 'Ein abgegriffenes Feuerzeug. Tut es noch.' },
+    { id: 'hammer',     symbol: '🔨', name: 'Hammer',    text: 'Anfisas Hammer. Schwer, der Stiel ist speckig vom vielen Anfassen.' }
   ];
 
   const WEGE = [
@@ -411,7 +413,7 @@
     { id: 'ki_feuerzeug', ansicht: 'kiste_nah', x: 478, y: 558, w: 410, h: 219, typ: 'nehmen', zustand: 'feuerzeug_weg',
       gibt: 'feuerzeug', label: 'Feuerzeug',
       patch: 'bilder/kiste-feuerzeug.webp', patchNicht: true, patchX: 483, patchY: 563, patchW: 400, patchH: 209 },
-    { id: 'g2_tuer',  ansicht: 'garage2', x: 1045, y: 110, w: 390, h: 720, typ: 'ausschnitt', zustand: 'g2_tuer_offen',  label: 'Tür zum Treppenhaus',
+    { id: 'g2_tuer',  ansicht: 'garage2', x: 1045, y: 110, w: 390, h: 720, klang: 'metall', typ: 'ausschnitt', zustand: 'g2_tuer_offen',  label: 'Tür zum Treppenhaus',
       hellWenn: 'th_licht',
       patch: 'bilder/g2-tuer-dunkel.webp', patchX: 1039, patchY: 104, patchW: 402, patchH: 732,
       patchHell: 'bilder/g2-tuer-hell.webp', patchHellX: 1039, patchHellY: 104, patchHellW: 402, patchHellH: 732 },
@@ -430,7 +432,7 @@
       sichtbarWenn: 'th_verlassen', nichtWenn: 'th_licht',
       patch: 'bilder/th-code.webp', patchX: 472, patchY: 357, patchW: 152, patchH: 114,
       label: 'Leuchtschrift' },
-    { id: 'th_tuer',  ansicht: 'treppenhaus', x: 960,  y: 20,  w: 230, h: 395, typ: 'ausschnitt', zustand: 'th_tuer_offen',  label: 'Holztür oben an der Treppe',
+    { id: 'th_tuer',  ansicht: 'treppenhaus', x: 960,  y: 20,  w: 230, h: 395, klang: 'holz', typ: 'ausschnitt', zustand: 'th_tuer_offen',  label: 'Holztür oben an der Treppe',
       patch: 'bilder/th-tuer-dunkel.webp', patchX: 954, patchY: 14, patchW: 242, patchH: 407,
       patchHell: 'bilder/th-tuer-hell.webp', patchHellX: 954, patchHellY: 14, patchHellW: 242, patchHellH: 407 },
     { id: 'th_kiste', ansicht: 'treppenhaus', x: 1390, y: 440, w: 240, h: 175, typ: 'ausschnitt', zustand: 'th_kiste_offen', label: 'Holzkiste neben der Treppe',
@@ -459,7 +461,10 @@
     // Der leere Nagel: nimmt das Bild wieder entgegen. Nur da, solange es fehlt.
     { id: 'w_nagel', ansicht: 'wohnzimmer', x: 415, y: 0, w: 275, h: 188, typ: 'ziel', sichtbarWenn: 'bild_ab',
       nimmt: 'gemaelde', loescht: 'bild_ab', verbraucht: true, antwort: 'Hängt wieder gerade.', label: 'Nagel in der Wand' },
-    { id: 'w_tv', ansicht: 'wohnzimmer', x: 1408, y: 148, w: 217, h: 200, typ: 'ausschnitt', zustand: 'tv_aus',
+    // Erst wenn Anfisa weg ist, kommt man an den Sessel heran
+    { id: 'w_sessel', ansicht: 'wohnzimmer', x: 250, y: 430, w: 520, h: 250, typ: 'naehe', nah: 'sessel_nah',
+      sichtbarWenn: 'anfisa_weg', label: 'Sessel' },
+    { id: 'w_tv', ansicht: 'wohnzimmer', x: 1408, y: 148, w: 217, h: 200, klang: 'metall', typ: 'ausschnitt', zustand: 'tv_aus',
       patch: 'bilder/wz-tv-aus.webp', patchX: 1402, patchY: 142, patchW: 229, patchH: 206, label: 'Fernseher',
       // Achtung: der Zustand heisst tv_aus. Gesetzt = Fernseher ist AUS.
       sprecher: 'Anfisa', sagtNichtWenn: 'anfisa_weg',
@@ -502,13 +507,30 @@
           '„Schachtel ist leer seit gestern. Niemand denkt an alte Frau."'
         ] }
       ] },
+    // --- Sessel von nahem ---
+    { id: 'se_hammer', ansicht: 'sessel_nah', x: 50, y: 65, w: 226, h: 319, typ: 'nehmen', zustand: 'hammer_weg',
+      gibt: 'hammer', label: 'Hammer',
+      patch: 'bilder/sessel-hammer.webp', patchNicht: true, patchX: 45, patchY: 60, patchW: 236, patchH: 329 },
+    { id: 'se_kissen', ansicht: 'sessel_nah', x: 420, y: 200, w: 940, h: 480, klang: 'stoff', typ: 'ausschnitt', zustand: 'kissen_weg', label: 'Sitzkissen',
+      patch: 'bilder/sessel-kissen.webp', patchX: 372, patchY: 132, patchW: 1036, patchH: 755 },
+    // Abgerissener Zettel unter dem Kissen. Die erste Ziffer fehlt.
+    { id: 'se_zettel', ansicht: 'sessel_nah', x: 980, y: 300, w: 230, h: 150, typ: 'info', zustand: 'zettel_gelesen',
+      sichtbarWenn: 'kissen_weg', label: 'Abgerissener Zettel',
+      titel: 'Ein Fetzen Papier', text: 'Die linke Hälfte fehlt, da ist das Papier abgerissen. Zu lesen ist noch: … 3 9 2',
+      zeichnung: `<g transform="translate(1000,315) rotate(-7)">
+        <path d="M0 6 L14 0 L190 4 L205 18 L198 112 L182 126 L22 120 L4 104 Z" fill="#cdc0a2" stroke="#7e7459" stroke-width="1.5"/>
+        <path d="M0 6 L10 22 L0 38 L12 54 L2 70 L12 86 L4 104" fill="none" stroke="#8a7f66" stroke-width="2"/>
+        <text x="62" y="86" font-family="Georgia, serif" font-size="44" fill="#3a3326" letter-spacing="7">392</text>
+        <path d="M40 28 L172 30 M40 42 L148 44" stroke="#9a9078" stroke-width="2" opacity="0.7"/>
+      </g>` },
+
     // --- Küche ---
     // --- Küche. Grundbild ist dunkel; erst die Sicherung macht Licht.
     //     Jeder Schrank hat zwei Flicken: einen für dunkel, einen für hell. ---
     { id: 'k_tuer', ansicht: 'kueche', x: 0, y: 0, w: 222, h: 800, typ: 'ausschnitt', zustand: 'k_tuer_offen', label: 'Tür zum Flur',
       patch: 'bilder/kue-tuer-dunkel.webp', patchX: 0, patchY: 0, patchW: 229, patchH: 807,
       patchHell: 'bilder/kue-tuer-hell.webp', patchHellX: 0, patchHellY: 0, patchHellW: 229, patchHellH: 807 },
-    { id: 'k_sicherung', ansicht: 'kueche', x: 245, y: 212, w: 167, h: 186, typ: 'ausschnitt', zustand: 'sicherung_offen', label: 'Wandschränkchen',
+    { id: 'k_sicherung', ansicht: 'kueche', x: 245, y: 212, w: 167, h: 186, klang: 'metall', typ: 'ausschnitt', zustand: 'sicherung_offen', label: 'Wandschränkchen',
       patch: 'bilder/kue-sicherung-dunkel.webp', patchX: 238, patchY: 205, patchW: 181, patchH: 200,
       patchHell: 'bilder/kue-sicherung-hell.webp', patchHellX: 238, patchHellY: 205, patchHellW: 181, patchHellH: 200 },
     // Die Sicherung selbst, erst sichtbar wenn das Schränkchen offen ist.
@@ -537,7 +559,7 @@
       patchHell: 'bilder/kue-unten-rechts-hell.webp', patchHellX: 1063, patchHellY: 493, patchHellW: 292, patchHellH: 206 },
     // Schnittkante unter der Oberseite: die Emailledose dort steht nur im
     // geöffneten Bild, sonst taucht sie beim Öffnen aus dem Nichts auf.
-    { id: 'k_kuehl', ansicht: 'kueche', x: 1374, y: 186, w: 316, h: 500, typ: 'ausschnitt', zustand: 'k_kuehl_offen', label: 'Kühlschrank',
+    { id: 'k_kuehl', ansicht: 'kueche', x: 1374, y: 186, w: 316, h: 500, klang: 'metall', typ: 'ausschnitt', zustand: 'k_kuehl_offen', label: 'Kühlschrank',
       patch: 'bilder/kue-kuehl-dunkel.webp', patchX: 1361, patchY: 179, patchW: 336, patchH: 513,
       patchHell: 'bilder/kue-kuehl-hell.webp', patchHellX: 1361, patchHellY: 179, patchHellW: 336, patchHellH: 513 },
     // --- Garten ---
@@ -865,6 +887,10 @@
       }
       // Ausschnitt, Overlay und aufgenommener Gegenstand: Bereich aus einem zweiten Bild einblenden
       const quelle = t.typ === 'nehmen' ? t.bildAus : (t.bildAus || ans.bildOffen);
+      // Frei gezeichnetes Teil (SVG), unabhängig vom Grundbild
+      if (t.zeichnung) {
+        return `<g data-offen="${t.zustand || ''}">${t.zeichnung}</g>`;
+      }
       // Freigestellter Flicken mit Alphakanal: wird an seiner eigenen Stelle
       // eingeblendet, nicht aus einem Vollbild ausgeschnitten. Keine Rechteckkante.
       if (t.patch) {
@@ -1087,7 +1113,7 @@
       if (raum && raum.gesperrtBis && !zustand.offen[raum.gesperrtBis]) { sag('Zu. Da musst du erst den Weg finden.'); return; }
       zustand.ansicht = ansichtId; zustand.nah = null;
     }
-    speichern(); renderRaum(); zoomReset(); ton([480]);
+    speichern(); renderRaum(); zoomReset(); klang('stoff');
   }
 
   // Möbel-Vordergrund: Dinge, die Eier teilweise verdecken (nur Platzhalter)
@@ -1172,7 +1198,7 @@
           if (g.schaltet) {
             if (g.nurWenn && !zustand.offen[g.nurWenn]) { sag(g.fehlt || 'Geht so noch nicht.'); return; }
             zustand.offen[g.schaltet] = !zustand.offen[g.schaltet];
-            ton([zustand.offen[g.schaltet] ? 760 : 380]);
+            klang('metall');
             speichern(); renderRaum();
             return;
           }
@@ -1213,7 +1239,7 @@
     if (ziel.setzt) zustand.offen[ziel.setzt] = true;
     if (ziel.verbraucht) zustand.inventar = zustand.inventar.filter(x => x !== gegenstandId);
     waehle(null, true);
-    ton([660, 880, 1100]);
+    klang('nehmen');
     renderRaum(); speichern();
     if (ziel.antwort) sag(ziel.antwort);
     return true;
@@ -1232,13 +1258,13 @@
     const greift = strafen.find(x => zustand.offen[x.wenn]);
     if (greift) {
       if (greift.setzt) zustand.offen[greift.setzt] = true;
-      waehle(null, true); ton([220]); speichern();
+      waehle(null, true); klang('fehler'); speichern();
       sag(greift.antwort || 'So nicht.', teil.sprecher || teil.label);
       return false;
     }
     // Fehlt noch etwas aus der Liste?
     if (noetig.some(id => !zustand.inventar.includes(id))) {
-      waehle(null, true); ton([220]);
+      waehle(null, true); klang('fehler');
       sag(teil.fehlt || 'Da fehlt noch etwas.', teil.sprecher || teil.label);
       return false;
     }
@@ -1247,7 +1273,7 @@
     if (teil.loescht) zustand.offen[teil.loescht] = false;
     if (teil.verbraucht) zustand.inventar = zustand.inventar.filter(x => !noetig.includes(x));
     waehle(null, true);
-    ton([660, 880, 1100]);
+    klang('nehmen');
     renderRaum();
     speichern();
     if (teil.antwort) sag(teil.antwort, teil.sprecher || teil.label);
@@ -1404,7 +1430,7 @@
     if (!ei) return;
     if (ei.sichtbarWenn && !zustand.offen[ei.sichtbarWenn] && !EDITOR) return;
     zustand.gefunden.push(id);
-    ton([880, 1320]);
+    fanfare([880, 1180, 1480]); klang('ei');
     const r = buehne.getBoundingClientRect();
     const f = document.createElement('div');
     f.className = 'fund'; f.textContent = '🥚 ' + zustand.gefunden.length + '/' + EIER.length;
@@ -1426,7 +1452,7 @@
           geheZu(t.nah);
         } else {
           zustand.offen[t.zustand] = !zustand.offen[t.zustand];
-          ton([zustand.offen[t.zustand] ? 520 : 380]);
+          klang(t.klang || 'holz');
           aktualisiereSichtbarkeit(); speichern();
           kommentar(t);
         }
@@ -1435,9 +1461,12 @@
         if (zustand.offen[t.zustand]) return;
         zustand.offen[t.zustand] = true;
         if (t.gibt && !zustand.inventar.includes(t.gibt)) zustand.inventar.push(t.gibt);
-        ton([700, 980]);
+        klang('nehmen');
         aktualisiereSichtbarkeit(); speichern();
         break;
+      case 'naehe':
+        if (t.nah) geheZu(t.nah);
+        return;
       case 'overlay':
       case 'ziel':
         return;
@@ -1445,7 +1474,7 @@
         const anzahl = (t.phasen || []).length || 1;
         const neu = ((Number(zustand.offen[t.zustand]) || 0) + 1) % anzahl;
         zustand.offen[t.zustand] = neu;
-        ton([neu ? 600 : 380]);
+        klang('stoff');
         aktualisiereSichtbarkeit(); speichern();
         const ph = t.phasen[neu] || {};
         let spruch = ph.text;
@@ -1464,7 +1493,7 @@
         // setztAuch wird beim Einschalten gesetzt und nie wieder gelöscht —
         // die Leuchtschrift lädt sich im Licht auf und bleibt danach geladen.
         if (t.setztAuch && zustand.offen[t.zustand]) zustand.offen[t.setztAuch] = true;
-        ton([zustand.offen[t.zustand] ? 520 : 380]);
+        klang(t.klang || 'holz');
         speichern();
         if (t.neuzeichnen) renderRaum(); else aktualisiereSichtbarkeit();
         kommentar(t);
@@ -1514,12 +1543,12 @@
     if (richtig) {
       zustand.offen[t.zustand] = true;
       document.getElementById('raetsel-modal').classList.remove('show');
-      ton([660, 880, 1100]);
+      klang('nehmen');
       aktualisiereSichtbarkeit(); renderRaumKnoepfe(); speichern();
       sag(t.typ === 'code' ? 'Klick. Offen.' : 'Richtig. Anfisa hätte nicht gedacht, dass du das weisst.');
     } else {
       document.getElementById('raetsel-fehler').textContent = t.typ === 'code' ? 'Bleibt zu.' : 'Nein. Denk nochmal nach.';
-      ton([220]);
+      klang('fehler');
     }
   }
   document.getElementById('raetsel-ok').onclick = pruefeRaetsel;
@@ -1559,21 +1588,79 @@
     document.getElementById('dialog').classList.remove('zeig');
   }
   let actx = null;
-  function ton(freqs) {
+  // =====================================================================
+  // KLANG
+  // Kein Piepsen mehr: gefiltertes Rauschen mit schnellem Abfall klingt wie
+  // Holz, Metall oder Stoff — je nach Filter und Länge.
+  // =====================================================================
+  // actx wird beim ersten Klang erzeugt — vorher erlauben Browser keinen Ton
+  function tonAn() {
     try {
       if (!actx) actx = new (window.AudioContext || window.webkitAudioContext)();
       if (actx.state === 'suspended') actx.resume();
-      const now = actx.currentTime;
-      freqs.forEach((f, i) => {
-        const o = actx.createOscillator(), g = actx.createGain();
-        o.type = 'sine'; o.frequency.value = f;
-        g.gain.setValueAtTime(0, now + i * 0.08);
-        g.gain.linearRampToValueAtTime(0.12, now + i * 0.08 + 0.01);
-        g.gain.exponentialRampToValueAtTime(0.001, now + i * 0.08 + 0.25);
-        o.connect(g).connect(actx.destination);
-        o.start(now + i * 0.08); o.stop(now + i * 0.08 + 0.3);
-      });
-    } catch (e) {}
+      return !!actx;
+    } catch (e) { return false; }
+  }
+  function rauschen(dauer) {
+    const n = Math.floor(actx.sampleRate * dauer);
+    const puffer = actx.createBuffer(1, n, actx.sampleRate);
+    const d = puffer.getChannelData(0);
+    for (let i = 0; i < n; i++) d[i] = Math.random() * 2 - 1;
+    return puffer;
+  }
+  // art: 'holz' | 'metall' | 'stoff' | 'nehmen' | 'fehler' | 'ei'
+  function klang(art) {
+    if (!tonAn()) return;
+    const t = actx.currentTime;
+    const rezept = {
+      holz:   { dauer: 0.16, tief: 620,  spitze: 0.34, hoehe: 150, q: 2.5 },
+      metall: { dauer: 0.26, tief: 1900, spitze: 0.22, hoehe: 430, q: 6 },
+      stoff:  { dauer: 0.20, tief: 380,  spitze: 0.20, hoehe: 90,  q: 1.2 },
+      nehmen: { dauer: 0.13, tief: 1400, spitze: 0.24, hoehe: 320, q: 3 },
+      fehler: { dauer: 0.22, tief: 300,  spitze: 0.26, hoehe: 110, q: 1.5 },
+      ei:     { dauer: 0.12, tief: 2600, spitze: 0.20, hoehe: 900, q: 4 }
+    }[art] || { dauer: 0.16, tief: 700, spitze: 0.25, hoehe: 180, q: 2 };
+
+    const quelle = actx.createBufferSource();
+    quelle.buffer = rauschen(rezept.dauer);
+    const filter = actx.createBiquadFilter();
+    filter.type = 'bandpass';
+    filter.frequency.setValueAtTime(rezept.tief, t);
+    filter.frequency.exponentialRampToValueAtTime(rezept.hoehe, t + rezept.dauer);
+    filter.Q.value = rezept.q;
+    const huelle = actx.createGain();
+    huelle.gain.setValueAtTime(0.0001, t);
+    huelle.gain.exponentialRampToValueAtTime(rezept.spitze, t + 0.006);
+    huelle.gain.exponentialRampToValueAtTime(0.0001, t + rezept.dauer);
+    quelle.connect(filter); filter.connect(huelle); huelle.connect(actx.destination);
+    quelle.start(t); quelle.stop(t + rezept.dauer + 0.02);
+
+    // Ein kurzer tiefer Anschlag darunter gibt dem Ganzen Körper
+    if (art !== 'ei') {
+      const o = actx.createOscillator(), g = actx.createGain();
+      o.type = 'sine';
+      o.frequency.setValueAtTime(rezept.hoehe * 0.9, t);
+      o.frequency.exponentialRampToValueAtTime(rezept.hoehe * 0.45, t + rezept.dauer * 0.7);
+      g.gain.setValueAtTime(0.0001, t);
+      g.gain.exponentialRampToValueAtTime(0.16, t + 0.008);
+      g.gain.exponentialRampToValueAtTime(0.0001, t + rezept.dauer * 0.9);
+      o.connect(g); g.connect(actx.destination);
+      o.start(t); o.stop(t + rezept.dauer);
+    }
+  }
+  // Fanfare beim Ei: kurze aufsteigende Töne
+  function fanfare(noten) {
+    if (!tonAn()) return;
+    noten.forEach((f, i) => {
+      const t = actx.currentTime + i * 0.085;
+      const o = actx.createOscillator(), g = actx.createGain();
+      o.type = 'triangle'; o.frequency.setValueAtTime(f, t);
+      g.gain.setValueAtTime(0.0001, t);
+      g.gain.exponentialRampToValueAtTime(0.16, t + 0.012);
+      g.gain.exponentialRampToValueAtTime(0.0001, t + 0.26);
+      o.connect(g); g.connect(actx.destination);
+      o.start(t); o.stop(t + 0.3);
+    });
   }
   let uhrTimer = null;
   function uhrText(s) { return String(Math.floor(s / 60)).padStart(2, '0') + ':' + String(s % 60).padStart(2, '0'); }
@@ -1655,7 +1742,7 @@
     document.getElementById('screen-intro').classList.add('hidden');
     zustand.laeuft = true;
     uhrStart();
-    ton([520]);
+    klang('holz');
     setTimeout(() => sag(zustand.gefunden.length ? 'Weiter geht es. ' + zustand.gefunden.length + ' hast du schon.' : 'Fang in der Garage an. Oder wo du willst. Mir egal, ich schau zu.'), 400);
   };
   document.getElementById('reset-knopf').onclick = () => {
