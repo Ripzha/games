@@ -73,7 +73,10 @@ Alles Inhaltliche steht oben im `<script>` unter **„DATEN"**:
   `typ`, `zustand`, `label`
 - **EIER** — `ansicht`, x, y, r, farbe, muster, `ebene` (1/2/3), `sichtbarWenn`.
   Der Radius wird zentral mit `EI_GROESSE` skaliert (oben bei den Einstellungen),
-  alle Eier auf einmal. Die Trefferfläche wächst mit.
+  alle Eier auf einmal. Die Trefferfläche wächst mit. Gezeichnet werden sie mit
+  Farbverlauf, Glanzpunkt und weichem Schlagschatten, damit sie im Bild liegen
+  statt darauf zu kleben. In Nahaufnahmen braucht es grössere Radien, weil die
+  Ansicht dort weniger Bildpixel auf die Fläche verteilt.
 - **GEGENSTAENDE** — Inventar: id, `symbol` (Emoji fürs Rucksack-Fach), name,
   `nah` (ID einer Nahansicht), `text`.
   Zusammensetzen: `nimmt` (andere Gegenstand-ID), `setzt`, `verbraucht`, `antwort`.
@@ -200,7 +203,11 @@ in Bildpixeln. **So werden Eier, Hotspots und Durchgänge platziert.**
 ### garage2 im Detail
 Vier Ausschnitte, alle mit `nah: ''` — **Nahaufnahmen fehlen noch**:
 - `g2_oben` Grosser Schrank, oben (470,150 350×396)
-- `g2_unten` Grosser Schrank, unten (470,548 380×265)
+- `g2_unten` Grosser Schrank, unten (470,548 380×265). Zweites Antippen öffnet
+  `gruen_nah` (1448×1086). Dort die Blechkiste aufklappen (230,230 470×225),
+  nochmal antippen führt in `kiste_nah` (1361×1028) — darin das Feuerzeug und Ei e08.
+  **Offen:** ein Bild der leeren Kiste. Das Feuerzeug bleibt im Bild liegen,
+  auch nachdem man es genommen hat.
 - `g2_tuer` Tür zum Treppenhaus (1045,110 390×720) — schaltet den Weg zur Treppe frei.
   Zeigt das Treppenhaus dahinter, hängt also über ein eigenes `hellWenn: 'th_licht'`
   am Licht des Nachbarraums, nicht am eigenen.
