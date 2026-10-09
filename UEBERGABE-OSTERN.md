@@ -133,6 +133,16 @@ Aci kommentiert **nicht** mehr jeden Klick. Er meldet sich nur noch bei
 Meilensteinen (SPRUECHE), bei einem Hinweis, bei einem gelösten Rätsel und
 wenn ein Weg gesperrt ist.
 
+### Bilder laden
+Die Welt bleibt verborgen (`welt.laedt`), bis alle Bilder der Ansicht geladen
+sind — Grundbild und alle Flicken. Sonst stünden die Eier beim Raumwechsel als
+bunte Punkte auf leerem Grund und wären sofort zu sehen. Dauert es länger als
+eine Viertelsekunde, erscheint ein „lädt …". Nach acht Sekunden zeigt das Spiel
+die Ansicht trotzdem, falls ein Bild fehlt.
+
+Nach dem Start werden ausserdem alle Bilder des Spiels im Hintergrund vorgeladen,
+damit spätere Räume sofort da sind.
+
 ### Ausrichtemodus
 `quest-ostern.html?editor=1` → alle Eier sichtbar, jeder Klick zeigt die Koordinaten
 in Bildpixeln. **So werden Eier, Hotspots und Durchgänge platziert.**
