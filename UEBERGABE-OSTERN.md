@@ -165,7 +165,7 @@ Vier Ausschnitte, alle mit `nah: ''` — **Nahaufnahmen fehlen noch**:
 - `w_nagel` derselbe Fleck, typ `ziel`, nur sichtbar wenn `bild_ab`. Nimmt das
   Bild wieder entgegen und hebt `bild_ab` auf. Damit lässt sich das Bild
   zurückhängen.. Der Rahmen reicht bis y=190, ein kürzerer Ausschnitt lässt die Rahmenunterkante stehen.
-- `w_tv` Fernseher (1400,145 240×200) — an und aus
+- `w_tv` Fernseher (1408,148 217×200) — an und aus. Der Flicken stammt aus einem eigenen Bild, das pixelgenau zum Grundbild passt; darum stehen die Porzellanfiguren exakt gleich.
 - `w_sessel_leer` Overlay ohne Anfisa (150,80 850×770), schaltet auf `anfisa_weg`
 - `w_frau` Anfisa im Sessel (Flicken 200,93 520×377, Klickfläche 240,192 430×233),
   typ `phasen`, nimmt `kippen` entgegen und setzt damit `anfisa_weg`:
