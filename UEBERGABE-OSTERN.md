@@ -25,6 +25,8 @@ Anführungszeichen „…"). Umlaute immer ausschreiben, auch in Code-Kommentare
   - `bilder/garage-offen.png` (1774 × 887)
   - `bilder/garage2-zu.png` (1774 × 887)
   - `bilder/garage2-offen.png` (1774 × 887)
+  - `bilder/treppenhaus-zu.png` (1774 × 887)
+  - `bilder/treppenhaus-offen.png` (1774 × 887)
 - **Deploy:** GitHub-Weboberfläche, „Add file → Upload files" → „Commit changes". Kein Terminal.
 
 ### Bestenliste
@@ -38,7 +40,8 @@ Gewertet wird die **Zeit in Sekunden** (kleinster Wert = bester Platz). Am Scrip
 
 Alles Inhaltliche steht oben im `<script>` unter **„DATEN"**:
 
-- **RAEUME** — id, name, `start` (ID der ersten Ansicht), `gesperrtBis`
+- **RAEUME** — id, name, `start` (ID der ersten Ansicht), `gesperrtBis`,
+  `imMenu: false` für Durchgangsräume, die nicht in der Kopfzeile stehen sollen
 - **ANSICHTEN** — ein Blickwinkel eines Raums: id, raum, name, `bild` (geschlossen),
   `bildOffen` (alles offen), `breite`/`hoehe` in Bildpixeln.
   Ein Raum kann mehrere Ansichten haben (Garage: `garage1` Werkbank, `garage2` Tür).
@@ -47,6 +50,8 @@ Alles Inhaltliche steht oben im `<script>` unter **„DATEN"**:
   - `art: 'raus'` → Knopf unten in der Mitte (mit `label` als Beschriftung)
   - `art: 'rein'` → anklickbare Stelle im Bild, braucht zusätzlich `x, y, w, h`
     in Bildpixeln; wird mit einer goldenen Marke angezeigt
+  - `wennOffen: '<zustand>'` → der Weg erscheint erst, wenn dieser Zustand gesetzt
+    ist (zum Beispiel eine geöffnete Tür)
 - **TEILE** — bewegliche/antippbare Objekte: `ansicht`, x, y, w, h (Bildpixel),
   `typ`, `zustand`, `label`
 - **EIER** — `ansicht`, x, y, r, farbe, muster, `ebene` (1/2/3), `sichtbarWenn`
@@ -76,8 +81,9 @@ in Bildpixeln. **So werden Eier, Hotspots und Durchgänge platziert.**
 
 | Raum | Ansicht | Bild | Eier | Status |
 |---|---|---|---|---|
-| Garage | `garage1` Werkbank | **JA** (1774×887) | 7 | Fertig verdrahtet, 5 Ausschnitte |
-| Garage | `garage2` Tür | **JA** (1774×887) | 0 | 4 Ausschnitte verdrahtet, noch keine Eier |
+| Garage | `garage1` Werkbank | **JA** | 7 | 5 Ausschnitte, fertig verdrahtet |
+| Garage | `garage2` Tür | **JA** | 0 | 4 Ausschnitte, noch keine Eier |
+| Treppenhaus | `treppenhaus` | **JA** | 0 | 2 Ausschnitte, noch keine Eier, nicht in der Kopfzeile |
 | Wohnzimmer | `wohnzimmer` | nein | 4 | Platzhalter-Geometrie |
 | Küche | `kueche` | nein | 3 | Platzhalter-Geometrie |
 | Garten | `garten` | nein | 4 | Platzhalter-Geometrie |
@@ -86,10 +92,10 @@ in Bildpixeln. **So werden Eier, Hotspots und Durchgänge platziert.**
 ### Navigation (Stand jetzt)
 - `garage1` → Pfeil rechts → `garage2`
 - `garage2` → Pfeil links → `garage1`
-- `garage2` → Treppe (1200,200 190×600) → `wohnzimmer` — erst begehbar, wenn
-  `g2_tuer_offen` gesetzt ist, also die Tür geöffnet wurde. **Ziel provisorisch**,
-  gedacht ist dort das Treppenhaus
-- `wohnzimmer` → Knopf unten → `garage2`
+- `garage2` → Treppe (1200,200 190×600) → `treppenhaus`, erst wenn `g2_tuer_offen`
+- `treppenhaus` → Metalltür links (10,60 270×760) → `garage2`
+- `treppenhaus` → Holztür oben (998,55 90×270) → `wohnzimmer`, erst wenn `th_tuer_offen`
+- `wohnzimmer` → Knopf unten → `treppenhaus`
 - Küche, Garten und Keller hängen noch an keinem Weg, nur an den Raum-Knöpfen oben
 
 ### garage2 im Detail
@@ -99,8 +105,12 @@ Vier Ausschnitte, alle mit `nah: ''` — **Nahaufnahmen fehlen noch**:
 - `g2_tuer` Tür zum Treppenhaus (1045,110 390×720) — schaltet den Weg zur Treppe frei
 - `g2_spind` Spind rechts (1560,150 214×680)
 
-Noch keine Eier in dieser Ansicht. Wenn welche dazukommen, muss anderswo
-eines weg — die Gesamtzahl 20 ist fix.
+### Treppenhaus im Detail
+- `th_tuer` Holztür oben an der Treppe (960,20 230×395) — schaltet den Weg in den Flur frei
+- `th_kiste` Holzkiste neben der Treppe (1390,440 240×175)
+
+Weder `garage2` noch `treppenhaus` haben bisher Eier. Wenn welche dazukommen,
+muss anderswo eines weg — die Gesamtzahl 20 ist fix.
 
 ### garage1 im Detail (fertig)
 Fünf Ausschnitte, alle mit `nah: ''` — **Nahaufnahmen fehlen noch**:
@@ -144,8 +154,8 @@ Eier in einer Nahaufnahme bekommen `inNah: '<teil-id>'`.
    - e_tresor: Scherzrätsel → schlüssel/kamm/zahnrad
    - r_tuer (Kellertür): Code **2412**, Hinweis liegt auf der Garagen-Zeichnung
 2. **Bilder für Wohnzimmer, Küche, Garten, Keller** fehlen
-3. **In garage2 fehlen die Eier** — die vier Ausschnitte sind verdrahtet, aber
-   es liegt noch kein Ei in dieser Ansicht.
+3. **In garage2 und treppenhaus fehlen die Eier** — die Ausschnitte sind
+   verdrahtet, aber es liegt in beiden Ansichten noch kein Ei.
 4. **Nahaufnahmen** aller Garage-Schränke fehlen
 5. **„Zurück"-Knopf** am Spielende zeigt auf `index.html`, die im games-Repo nicht
    existiert → Ziel noch festzulegen (Forum? Übersichtsseite? weg?)
