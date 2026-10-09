@@ -94,6 +94,10 @@ Wichtig: TEILE und EIER hängen an einer **Ansicht**, nicht am Raum (`ansicht: '
 | `phasen` | Figur mit mehreren Frames. Jeder Klick geht eine Phase weiter, nach der letzten zurück auf 0. Phase 0 = Grundbild. Jede Phase: `{ bild, x, y, w, h, text }` — mit x/y/w/h ein freigestellter Flicken, ohne sie ein Rechteckausschnitt aus dem Vollbild. Freigestellt ist richtig, sobald sich hinter der Figur etwas ändern kann. |
 | `schalter` | Licht an/aus für DUNKEL-Bereiche |
 
+`setztAuch` an einem Schalter setzt beim Einschalten einen zweiten Zustand,
+der nie wieder gelöscht wird. Damit merkt sich das Spiel, dass das Licht schon
+einmal an war.
+
 Zusatzfelder für jedes Teil: `patch` (freigestelltes PNG mit Transparenz, dazu
 `patchX/patchY/patchW/patchH`), `bildAus` (aus welchem Bild der Ausschnitt kommt,
 sonst `bildOffen` der Ansicht; bei `nehmen` nur `bildAus`, sonst zeichnet das Spiel
@@ -248,7 +252,12 @@ goldene Marke. Position ändern heisst: x/y/w/h bei `k_lampe` beziehungsweise
 ### Treppenhaus im Detail
 Startet **dunkel**. Das helle Grundbild ist das gelieferte Bild, das dunkle ist
 daraus errechnet (siehe Abschnitt 8c) — darum liegen beide pixelgenau aufeinander.
-- `th_schalter` Lichtschalter links an der Wand (386,334 58×92) → `th_licht`
+- `th_schalter` Lichtschalter links an der Wand (386,334 58×92) → `th_licht`,
+  setzt zusätzlich dauerhaft `th_geladen`
+- `th_code` Leuchtschrift **7392** an der Wand (472,357 152×114), typ `overlay`.
+  Sichtbar nur wenn `th_geladen` gesetzt und `th_licht` aus — die Schrift lädt
+  sich im Licht auf und leuchtet danach im Dunkeln nach. Wozu der Code gehört,
+  ist noch offen.
 - `th_tuer` Holztür oben an der Treppe (960,20 230×395) — schaltet den Weg in den Flur frei
 - `th_kiste` Holzkiste neben der Treppe (1390,440 240×175)
 - `th_kippen` Zigarettenschachtel in der Kiste (1420,520 140×65), typ `nehmen`

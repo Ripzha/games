@@ -387,7 +387,12 @@
     { id: 'g2_spind', ansicht: 'garage2', x: 1560, y: 150, w: 214, h: 680, typ: 'ausschnitt', zustand: 'g2_spind_offen', label: 'Spind rechts',          nah: '' },
     // --- Treppenhaus (Koordinaten im Bild 1774 x 887) ---
     { id: 'th_schalter', ansicht: 'treppenhaus', x: 386, y: 334, w: 58, h: 92, typ: 'toggle', zustand: 'th_licht',
-      neuzeichnen: true, label: 'Lichtschalter' },
+      setztAuch: 'th_geladen', neuzeichnen: true, label: 'Lichtschalter' },
+    // Leuchtschrift an der Wand: lädt sich im Licht auf und leuchtet danach im
+    // Dunkeln nach. Sichtbar nur, wenn das Licht schon einmal an war und jetzt aus ist.
+    { id: 'th_code', ansicht: 'treppenhaus', x: 472, y: 357, w: 152, h: 114, typ: 'overlay', zustand: 'th_geladen',
+      nichtWenn: 'th_licht', patch: 'bilder/th-code.png', patchX: 472, patchY: 357, patchW: 152, patchH: 114,
+      label: 'Leuchtschrift' },
     { id: 'th_tuer',  ansicht: 'treppenhaus', x: 960,  y: 20,  w: 230, h: 395, typ: 'ausschnitt', zustand: 'th_tuer_offen',  label: 'Holztür oben an der Treppe',
       patch: 'bilder/th-tuer-dunkel.png', patchX: 954, patchY: 14, patchW: 242, patchH: 407,
       patchHell: 'bilder/th-tuer-hell.png', patchHellX: 954, patchHellY: 14, patchHellW: 242, patchHellH: 407 },
@@ -1253,6 +1258,9 @@
       case 'toggle':
       case 'schalter':
         zustand.offen[t.zustand] = !zustand.offen[t.zustand];
+        // setztAuch wird beim Einschalten gesetzt und nie wieder gelöscht —
+        // die Leuchtschrift lädt sich im Licht auf und bleibt danach geladen.
+        if (t.setztAuch && zustand.offen[t.zustand]) zustand.offen[t.setztAuch] = true;
         ton([zustand.offen[t.zustand] ? 520 : 380]);
         speichern();
         if (t.neuzeichnen) renderRaum(); else aktualisiereSichtbarkeit();
