@@ -103,13 +103,17 @@ Klickfläche, wenn der Bildausschnitt grösser ist als das Anklickbare).
 
 ### Gegenstände benutzen
 Ein Teil nimmt einen Gegenstand entgegen über diese Felder:
-`nimmt` (Gegenstand-ID), `setzt` (Zustand setzen), `loescht` (Zustand wieder
-aufheben), `verbraucht: true` (Gegenstand verschwindet aus dem Inventar) und
-`antwort` (Text in der Sprechblase).
+`nimmt` (Gegenstand-ID **oder Liste**), `setzt` (Zustand setzen), `loescht`
+(Zustand wieder aufheben), `verbraucht: true` (verschwindet aus dem Inventar),
+`antwort` (Text in der Sprechblase) und `fehlt` (Text, wenn aus der Liste noch
+etwas fehlt).
 
-Strafe: `strafeWenn` (Zustand, der nicht sein sollte), `strafeSetzt` (Zustand,
-der dann gesetzt wird) und `strafeAntwort`. Greift genau dann, wenn der
-Gegenstand benutzt wird und die Bedingung erfüllt ist.
+Ist `nimmt` eine Liste, müssen alle Gegenstände im Rucksack liegen. Angetippt
+wird nur einer davon, verbraucht werden alle.
+
+Strafe: `strafeWenn` (Zustand, der nicht sein darf), `strafeSetzt` und
+`strafeAntwort`. Ist die Bedingung erfüllt, passiert **gar nichts** — kein
+Zustand wird gesetzt, nichts verbraucht. Nur der Strafzustand und der Text.
 
 Bedienung: Rucksack unten rechts antippen, er öffnet ein Gitter mit festen
 Fächern. Ein Fach antippen nimmt den Gegenstand in die Hand und schliesst den
@@ -280,9 +284,11 @@ Eier in einer Nahaufnahme bekommen `inNah: '<teil-id>'`.
 5. **Die Zigarettenschachtel** liegt vorläufig in der Treppenhaus-Kiste. Gibt man
    sie Anfisa, steht sie auf (`anfisa_weg`). Ihr dritter Text fehlt noch, und der
    Sessel ist danach noch nicht untersuchbar — dafür braucht es ein Bild davon.
-6. **Die Strafe ist noch offen.** Steht Anfisa auf, während das Bild nicht an
-   der Wand hängt, wird `anfisa_sauer` gesetzt und ein Platzhaltertext gezeigt.
-   Was daraus folgt, ist noch nicht entschieden.
+6. **Anfisa braucht Schachtel und Feuerzeug.** Beides muss im Rucksack liegen.
+   Hängt das Bild nicht an der Wand, nimmt sie nichts an und rührt sich nicht —
+   man muss es erst zurückhängen. Verloren geht dabei nichts.
+   Fundorte: Schachtel in der Treppenhaus-Kiste, Feuerzeug im grünen
+   Unterschrank der Garage. Drei ihrer Texte sind noch Platzhalter.
 6. **„Zurück"-Knopf** am Spielende zeigt auf `index.html`, die es im games-Repo
    nicht gibt → Ziel noch festzulegen.
 7. Am Handy noch nicht getestet (Zoom, Pinch, Tippen).
