@@ -116,6 +116,12 @@
   .rang-zeile.eigener { background: rgba(200,146,72,0.18); }
   .rang-laedt { color: var(--himmel-text); font-size: 13px; }
 
+  /* ---------- Inventar ---------- */
+  .inventar { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; }
+  .inventar:empty { display: none; }
+  .gegenstand { font: inherit; font-size: 12px; font-weight: 600; padding: 6px 10px; border-radius: 6px; border: 1px solid var(--gold); background: rgba(200,146,72,0.18); color: var(--gold-hell); cursor: pointer; white-space: nowrap; }
+  .gegenstand:hover { background: rgba(200,146,72,0.35); }
+
   /* ---------- Wege zwischen den Ansichten ---------- */
   .weg { position: absolute; z-index: 8; border: 1px solid var(--panel-rand); background: rgba(10,18,12,0.72); color: var(--gold-hell); cursor: pointer; font: inherit; display: flex; align-items: center; justify-content: center; gap: 6px; backdrop-filter: blur(2px); }
   .weg:hover { background: rgba(200,146,72,0.3); border-color: var(--gold); }
@@ -141,6 +147,7 @@
     <span class="uhr" id="uhr">00:00</span>
     <button class="hinweis-knopf" id="hinweis-knopf">Hinweis (3)</button>
     <button class="hinweis-knopf" id="nah-zurueck" style="display:none">← Zurück in den Raum</button>
+    <div class="inventar" id="inventar"></div>
     <div class="raeume" id="raeume"></div>
   </div>
 
@@ -191,7 +198,6 @@
       <b>Zoomen</b> mit zwei Fingern oder Mausrad — die kleinen sind wirklich klein.<br>
       <b>Antippen</b>, was sich öffnen lässt: Schubladen, Türen, Kissen, Vorhänge. Nochmal antippen schliesst wieder.<br>
       <b>Pfeile</b> am Bildrand drehen dich im Raum. Goldene Marken sind Durchgänge.<br>
-      <b>Rätsel</b> öffnen Orte, die sonst verschlossen bleiben.<br>
       <b>Drei Hinweise</b> hast du. Mehr nicht.
     </div>
     <button class="knopf" id="start-knopf">Suchen</button>
@@ -263,7 +269,17 @@
     { id: 'wohnzimmer', raum: 'wohnzimmer', name: 'Wohnzimmer', bild: 'bilder/wohnzimmer-zu.png', bildOffen: 'bilder/wohnzimmer-offen.png', breite: 1774, hoehe: 887 },
     { id: 'kueche',     raum: 'kueche',     name: 'Küche',      bild: '' },
     { id: 'garten',     raum: 'garten',     name: 'Garten',     bild: '' },
-    { id: 'keller',     raum: 'keller',     name: 'Keller',     bild: '' }
+    { id: 'keller',     raum: 'keller',     name: 'Keller',     bild: '' },
+    // Nahansichten von Gegenständen, die man in die Hand nimmt.
+    // istNah: true = gehört zu keinem Raum, wird über das Inventar geöffnet.
+    { id: 'bild_vorn',   istNah: true, name: 'Landschaftsbild — Vorderseite', bild: 'bilder/bild-vorn.png',      breite: 1402, hoehe: 912 },
+    { id: 'bild_hinten', istNah: true, name: 'Landschaftsbild — Rückseite',   bild: 'bilder/bild-hinten-zu.png', breite: 1402, hoehe: 912 }
+  ];
+
+  // Gegenstände im Inventar. nah = ID der Nahansicht, die ein Klick darauf öffnet.
+  const GEGENSTAENDE = [
+    { id: 'gemaelde',   name: '🖼 Bild',       nah: 'bild_vorn' },
+    { id: 'schluessel', name: '🗝 Schlüssel',  text: 'Ein alter Messingschlüssel. Wozu er passt, weiss ich noch nicht.' }
   ];
 
   const WEGE = [
@@ -278,7 +294,10 @@
     // Treppenhaus: die Metalltür links führt zurück in die Garage, die Holztür oben weiter
     { von: 'treppenhaus', nach: 'garage2',    art: 'rein', x: 10,  y: 60, w: 270, h: 760, label: 'zurück in die Garage' },
     { von: 'treppenhaus', nach: 'wohnzimmer', art: 'rein', x: 998, y: 55, w: 90,  h: 270, wennOffen: 'th_tuer_offen', label: 'Tür in den Flur' },
-    { von: 'wohnzimmer', nach: 'treppenhaus', art: 'raus', label: '↓ Treppe hinunter' }
+    { von: 'wohnzimmer', nach: 'treppenhaus', art: 'links', label: 'zurück ins Treppenhaus' },
+    // Bild in der Hand wenden
+    { von: 'bild_vorn',   nach: 'bild_hinten', art: 'wenden', label: '↻ Umdrehen' },
+    { von: 'bild_hinten', nach: 'bild_vorn',   art: 'wenden', label: '↻ Umdrehen' }
   ];
 
   const TEILE = [
@@ -301,13 +320,26 @@
     { id: 'th_kiste', ansicht: 'treppenhaus', x: 1390, y: 440, w: 240, h: 175, typ: 'ausschnitt', zustand: 'th_kiste_offen', label: 'Holzkiste neben der Treppe', nah: '' },
     // --- Wohnzimmer (Koordinaten im Bild 1774 x 887) ---
     { id: 'w_regal',    ansicht: 'wohnzimmer', x: 860,  y: 330, w: 230, h: 145, typ: 'ausschnitt', zustand: 'wz_regal_offen', label: 'Schrank unter dem Bücherregal', nah: '' },
-    { id: 'w_tvmoebel', ansicht: 'wohnzimmer', x: 1220, y: 358, w: 290, h: 118, typ: 'ausschnitt', zustand: 'wz_tv_offen',    label: 'Fernsehmöbel',                 nah: '' },
-    { id: 'w_regal_oben', ansicht: 'wohnzimmer', x: 810, y: 60, w: 190, h: 275, typ: 'raetsel', zustand: 'regal_geloest', label: 'Bücherregal',
-      titel: 'Das Bücherregal', frage: '[RÄTSEL 1 — Platzhalter] Welche Figur hat im letzten Jahr geheiratet? (Vorname)', antworten: ['abeena', 'logan'] },
+    // Schnittkante liegt unter den Porzellanfiguren — die stehen in beiden Bildern
+    // leicht versetzt, ein höherer Schnitt zerschneidet sie.
+    { id: 'w_tvmoebel', ansicht: 'wohnzimmer', x: 1215, y: 400, w: 559, h: 108, typ: 'ausschnitt', zustand: 'wz_tv_offen',    label: 'Fernsehmöbel',                 nah: '' },
     // Die Frau im Sessel: drei Frames. 0 = schlafend (Grundbild), 1 = aufgeschreckt, 2 = spricht.
     // Jeder Klick geht eine Phase weiter, nach der letzten wieder zurück auf schlafend.
+    // Sessel ohne Anfisa. Liegt vor dem Bild an der Wand, damit ein abgehängtes Bild
+    // nicht wieder auftaucht, wenn sie weg ist.
+    { id: 'w_sessel_leer', ansicht: 'wohnzimmer', x: 150, y: 80, w: 850, h: 770, typ: 'overlay', zustand: 'anfisa_weg',
+      bildAus: 'bilder/wohnzimmer-leer.png', label: 'Sessel' },
+    { id: 'w_gemaelde', ansicht: 'wohnzimmer', x: 425, y: 5, w: 255, h: 150, typ: 'nehmen', zustand: 'bild_ab', gibt: 'gemaelde',
+      bildAus: 'bilder/wohnzimmer-aus.png', label: 'Bild an der Wand' },
+    { id: 'w_tv', ansicht: 'wohnzimmer', x: 1400, y: 145, w: 240, h: 200, typ: 'ausschnitt', zustand: 'tv_aus',
+      bildAus: 'bilder/wohnzimmer-aus.png', label: 'Fernseher' },
+    // --- Das Bild in der Hand, Rückseite ---
+    { id: 'bi_fach', ansicht: 'bild_hinten', x: 510, y: 600, w: 570, h: 210, typ: 'ausschnitt', zustand: 'fach_offen',
+      bildAus: 'bilder/bild-hinten-offen.png', label: 'Fach in der Rückwand' },
+    { id: 'bi_schluessel', ansicht: 'bild_hinten', x: 575, y: 645, w: 240, h: 110, typ: 'nehmen', zustand: 'schluessel_weg',
+      gibt: 'schluessel', bildAus: 'bilder/bild-hinten-leer.png', sichtbarWenn: 'fach_offen', label: 'Schlüssel im Fach' },
     { id: 'w_frau', ansicht: 'wohnzimmer', x: 240, y: 95, w: 430, h: 330, typ: 'phasen', zustand: 'frau_phase',
-      label: 'Die Frau im Sessel', sprecher: 'Die Frau', phasen: [
+      nichtWenn: 'anfisa_weg', label: 'Die Frau im Sessel', sprecher: 'Anfisa', phasen: [
         { bild: '' },
         { bild: 'bilder/wohnzimmer-frau-wach.png',    text: '[TEXT 1 — aufgeschreckt, folgt noch]' },
         { bild: 'bilder/wohnzimmer-frau-spricht.png', text: '[TEXT 2 — was sie sagt, folgt noch]' }
@@ -316,22 +348,15 @@
     { id: 'k_kuehl',    ansicht: 'kueche', x: 1180, y: 220, w: 220, h: 470, typ: 'toggle', form: 'tuer', zustand: 'kuehl_offen',  label: 'Kühlschrank' },
     { id: 'k_ofen',     ansicht: 'kueche', x: 560,  y: 520, w: 260, h: 160, typ: 'toggle', form: 'klappe', zustand: 'ofen_offen',   label: 'Backofen' },
     { id: 'k_ober',     ansicht: 'kueche', x: 200,  y: 150, w: 480, h: 170, typ: 'toggle', form: 'tuer', zustand: 'ober_offen',   label: 'Oberschrank' },
-    { id: 'k_raetsel2', ansicht: 'kueche', x: 900,  y: 120, w: 200, h: 120, typ: 'raetsel', zustand: 'rezept_geloest', label: 'Rezeptbuch',
-      titel: 'Das Rezeptbuch', frage: '[RÄTSEL 2 — Platzhalter] Wie heisst das Magazin der SimsWelt? (ein Wort)', antworten: ['simswelt', 'simswelt news'] },
     // --- Garten ---
     { id: 'r_busch',    ansicht: 'garten', x: 120,  y: 480, w: 300, h: 240, typ: 'toggle', form: 'busch', zustand: 'busch_geteilt', label: 'Busch' },
     { id: 'r_vogel',    ansicht: 'garten', x: 1250, y: 180, w: 120, h: 130, typ: 'toggle', form: 'klappe', zustand: 'vogelhaus_offen', label: 'Vogelhaus' },
     { id: 'r_giess',    ansicht: 'garten', x: 760,  y: 620, w: 150, h: 110, typ: 'toggle', form: 'kippen', zustand: 'kanne_gekippt', label: 'Giesskanne' },
-    { id: 'r_sonnenuhr', ansicht: 'garten', x: 880, y: 300, w: 180, h: 180, typ: 'raetsel', zustand: 'sonnenuhr_geloest', label: 'Sonnenuhr',
-      titel: 'Die Sonnenuhr', frage: '[RÄTSEL 3 — Platzhalter] Wer ist Blazes Halbbruder?', antworten: ['delsyn'] },
     { id: 'r_tuer',     ansicht: 'garten', x: 1420, y: 400, w: 140, h: 300, typ: 'code', zustand: 'keller_offen', label: 'Kellertür',
       titel: 'Kellertür', frage: 'Ein Zahlenschloss. Vier Ziffern.', code: '2412' },
     // --- Keller ---
     { id: 'e_kiste',    ansicht: 'keller', x: 200,  y: 560, w: 260, h: 180, typ: 'toggle', form: 'klappe', zustand: 'kiste_offen',   label: 'Holzkiste' },
-    { id: 'e_sicher',   ansicht: 'keller', x: 1300, y: 160, w: 140, h: 200, typ: 'raetsel', zustand: 'sicherung_geloest', label: 'Sicherungskasten',
-      titel: 'Der Sicherungskasten', frage: '[RÄTSEL 4 — Platzhalter] Welche Nummer hatte die erste Magazin-Ausgabe, die 2026 erschien?', antworten: ['28'] },
-    { id: 'e_tresor',   ansicht: 'keller', x: 760,  y: 380, w: 200, h: 220, typ: 'raetsel', zustand: 'tresor_offen', label: 'Tresor',
-      titel: 'Der Tresor', frage: '[RÄTSEL 5 — Platzhalter] Ich habe Zähne, aber beisse nicht. Ich habe Zacken, aber schneide nicht. Was bin ich?', antworten: ['schlüssel', 'schluessel', 'kamm', 'zahnrad'] }
+    { id: 'e_kisteb',   ansicht: 'keller', x: 1300, y: 160, w: 140, h: 200, typ: 'toggle', form: 'klappe', zustand: 'sicherung_offen', label: 'Sicherungskasten' }
   ];
 
   // 20 Eier: 8 getarnt (Ebene 1), 7 verschlossen (Ebene 2), 5 Rätsel (Ebene 3)
@@ -354,11 +379,11 @@
     { id: 'e14', ansicht: 'kueche',     x: 1290, y: 420, r: 12, farbe: '#f0f0e0', muster: 'punkte', ebene: 2, sichtbarWenn: 'kuehl_offen' },
     { id: 'e15', ansicht: 'garten',     x: 1310, y: 250, r: 11, farbe: '#d08a5a', muster: 'zickzack', ebene: 2, sichtbarWenn: 'vogelhaus_offen' },
     // --- Ebene 3: nur nach Rätsel sichtbar ---
-    { id: 'e16', ansicht: 'wohnzimmer', x: 950,  y: 250, r: 10, farbe: '#f4d484', muster: 'streifen', ebene: 3, sichtbarWenn: 'regal_geloest' },  // zwischen den Büchern
-    { id: 'e17', ansicht: 'kueche',     x: 1000, y: 180, r: 13, farbe: '#f4d484', muster: 'punkte', ebene: 3, sichtbarWenn: 'rezept_geloest' },
-    { id: 'e18', ansicht: 'garten',     x: 970,  y: 390, r: 13, farbe: '#f4d484', muster: 'zickzack', ebene: 3, sichtbarWenn: 'sonnenuhr_geloest' },
-    { id: 'e19', ansicht: 'keller',     x: 1370, y: 260, r: 12, farbe: '#f4d484', muster: 'streifen', ebene: 3, sichtbarWenn: 'sicherung_geloest' },
-    { id: 'e20', ansicht: 'keller',     x: 860,  y: 490, r: 14, farbe: '#f4d484', muster: 'punkte', ebene: 3, sichtbarWenn: 'tresor_offen' }
+    { id: 'e16', ansicht: 'wohnzimmer', x: 1150, y: 600, r: 8,  farbe: '#cfc0a4', muster: 'streifen', ebene: 1, sichtbarWenn: null },  // bei den Heften unter dem Couchtisch
+    { id: 'e17', ansicht: 'kueche',     x: 690,  y: 600, r: 12, farbe: '#4a4a4a', muster: 'punkte', ebene: 2, sichtbarWenn: 'ofen_offen' },
+    { id: 'e18', ansicht: 'garten',     x: 270,  y: 600, r: 12, farbe: '#5a4030', muster: 'zickzack', ebene: 2, sichtbarWenn: 'busch_geteilt' },
+    { id: 'e19', ansicht: 'keller',     x: 330,  y: 650, r: 12, farbe: '#3a342c', muster: 'streifen', ebene: 2, sichtbarWenn: 'kiste_offen' },
+    { id: 'e20', ansicht: 'keller',     x: 860,  y: 490, r: 12, farbe: '#55556a', muster: 'punkte', ebene: 1, sichtbarWenn: null }
   ];
 
   // Eier, die nach Öffnen eines Dunkel-Bereichs erst erkennbar sind: Garage-Ecke ist dunkel bis Licht an
@@ -383,8 +408,9 @@
     offen: {},             // Zustand-Keys -> true/false
     hinweise: HINWEISE_GESAMT,
     zeit: 0,               // Sekunden
+    inventar: [],          // IDs aus GEGENSTAENDE
     ansicht: 'garage1',    // aktuelle Ansicht (nicht der Raum)
-    nah: null,             // Teil-ID, dessen Nahaufnahme gerade offen ist
+    nah: null,             // ID der Nahansicht, die gerade offen ist
     laeuft: false,
     fertig: false
   };
@@ -394,7 +420,7 @@
   function speichern() {
     try {
       localStorage.setItem(SPEICHER_KEY, JSON.stringify({
-        gefunden: zustand.gefunden, offen: zustand.offen, hinweise: zustand.hinweise, zeit: zustand.zeit, ansicht: zustand.ansicht, nah: zustand.nah, fertig: zustand.fertig
+        gefunden: zustand.gefunden, offen: zustand.offen, inventar: zustand.inventar, hinweise: zustand.hinweise, zeit: zustand.zeit, ansicht: zustand.ansicht, nah: zustand.nah, fertig: zustand.fertig
       }));
     } catch (e) {}
   }
@@ -410,7 +436,8 @@
     zustand.ansicht = ANSICHTEN.some(a => a.id === gespeichert)
       ? gespeichert
       : ((RAEUME.find(r => r.id === gespeichert) || {}).start || 'garage1');
-    zustand.nah = s.nah || null;
+    zustand.inventar = Array.isArray(s.inventar) ? s.inventar : [];
+    zustand.nah = ANSICHTEN.some(a => a.id === s.nah) ? s.nah : null;
     zustand.fertig = !!s.fertig;
     return true;
   }
@@ -553,25 +580,24 @@
   function aktuelleAnsicht() {
     // Nahaufnahme eines Teils oder die Ansicht selbst
     if (zustand.nah) {
-      const t = TEILE.find(x => x.id === zustand.nah);
-      if (t && t.nah) return { id: t.ansicht, raum: raumVon(t.ansicht), nahTeil: t.id, bild: t.nah, bildOffen: '', breite: t.nahBreite || 1600, hoehe: t.nahHoehe || 900 };
+      const a = ansichtVon(zustand.nah);
+      if (a) return a;
       zustand.nah = null;
     }
     return ansichtVon(zustand.ansicht) || ANSICHTEN[0];
   }
   function renderRaum() {
     const ans = aktuelleAnsicht();
-    const nahTeil = ans.nahTeil || null;
     RW = ans.breite || 1600; RH = ans.hoehe || 900;
     welt.style.width = RW + 'px'; welt.style.height = RH + 'px';
-    const hier = (o) => o.ansicht === ans.id && ((o.inNah || null) === nahTeil);
+    const hier = (o) => o.ansicht === ans.id;
     const eierHinten = EIER.filter(e => hier(e) && e.hinten);
     const eierVorne = EIER.filter(e => hier(e) && !e.hinten);
     const teile = TEILE.filter(hier);
-    const dunkel = DUNKEL.filter(d => d.ansicht === ans.id && !nahTeil);
-    const durchgaenge = nahTeil ? [] : WEGE.filter(w => w.von === ans.id && w.art === 'rein');
-    document.getElementById('nah-zurueck').style.display = nahTeil ? '' : 'none';
-    document.getElementById('ansicht-name').textContent = nahTeil ? '' : (ans.name || '');
+    const dunkel = DUNKEL.filter(hier);
+    const durchgaenge = WEGE.filter(w => w.von === ans.id && w.art === 'rein');
+    document.getElementById('nah-zurueck').style.display = zustand.nah ? '' : 'none';
+    document.getElementById('ansicht-name').textContent = ans.name || '';
 
     let html = '';
     if (ans.bild) html += `<img class="bild" src="${ans.bild}" alt="">`;
@@ -581,7 +607,10 @@
     html += `<g id="eier-hinten">${eierHinten.map(eiForm).join('')}</g>`;
     if (!ans.bild) html += vordergrund(ans.raum);
     // Offen-Zustände der Teile
-    html += `<g id="teile-offen">${teile.map(t => {
+    // Bedingungs-Hülle: data-wenn muss gesetzt sein, data-nicht darf nicht gesetzt sein
+    const huelle = (t, inhalt) => (!inhalt || (!t.sichtbarWenn && !t.nichtWenn)) ? inhalt
+      : `<g data-wenn="${t.sichtbarWenn || ''}" data-nicht="${t.nichtWenn || ''}">${inhalt}</g>`;
+    html += `<g id="teile-offen">${teile.map(t => huelle(t, (() => {
       // Figur mit mehreren Frames: jede Phase ein eigener Ausschnitt aus ihrem Bild
       if (t.typ === 'phasen') {
         return (t.phasen || []).map((p, i) => !p.bild ? '' : `<g data-phase="${t.zustand}:${i}">
@@ -589,22 +618,27 @@
           <image href="${p.bild}" xlink:href="${p.bild}" x="0" y="0" width="${RW}" height="${RH}" clip-path="url(#clip_${t.id}_${i})"/>
         </g>`).join('');
       }
-      if (t.typ === 'ausschnitt' && ans.bildOffen) {
+      // Ausschnitt, Overlay und aufgenommener Gegenstand: Bereich aus einem zweiten Bild einblenden
+      const quelle = t.bildAus || ans.bildOffen;
+      if ((t.typ === 'ausschnitt' || t.typ === 'overlay' || t.typ === 'nehmen') && quelle) {
         return `<g data-offen="${t.zustand}">
           <clipPath id="clip_${t.id}"><rect x="${t.x}" y="${t.y}" width="${t.w}" height="${t.h}"/></clipPath>
-          <image href="${ans.bildOffen}" xlink:href="${ans.bildOffen}" x="0" y="0" width="${RW}" height="${RH}" clip-path="url(#clip_${t.id})"/>
+          <image href="${quelle}" xlink:href="${quelle}" x="0" y="0" width="${RW}" height="${RH}" clip-path="url(#clip_${t.id})"/>
         </g>`;
       }
       // Gezeichnete Platzhalter-Zustände nur in Ansichten ohne echtes Bild
       if (ans.bild) return '';
       return `<g data-offen="${t.zustand || ''}">${teilOffenForm(t)}</g>`;
-    }).join('')}</g>`;
+    })())).join('')}</g>`;
     if (!ans.bild) html += `<g id="beschriftungen">${teile.map(teilBeschriftung).join('')}</g>`;
     // Dunkel-Bereiche
     html += `<g id="dunkel">${dunkel.map(d => `<rect data-hell="${d.hellWenn}" x="${d.x}" y="${d.y}" width="${d.w}" height="${d.h}" fill="#05070a" opacity="0.93"/>`).join('')}</g>`;
     // Trefferflächen der Teile — durchsichtig, liegen unter Durchgängen und Eiern,
     // sonst liesse sich ein Ei in einer offenen Schublade nicht mehr antippen
-    html += `<g id="teile">${teile.map(t => `<rect class="teil" data-teil="${t.id}" x="${t.x}" y="${t.y}" width="${t.w}" height="${t.h}" fill="transparent"><title>${t.label}</title></rect>`).join('')}</g>`;
+    html += `<g id="teile">${teile.filter(t => t.typ !== 'overlay').map(t => {
+      const nicht = [t.nichtWenn, t.typ === 'nehmen' ? t.zustand : ''].filter(Boolean).join(',');
+      return `<rect class="teil" data-teil="${t.id}" data-wenn="${t.sichtbarWenn || ''}" data-nicht="${nicht}" x="${t.x}" y="${t.y}" width="${t.w}" height="${t.h}" fill="transparent"><title>${t.label}</title></rect>`;
+    }).join('')}</g>`;
     // Durchgänge im Bild (Tür, Treppe) — mit sichtbarer Marke
     html += `<g id="durchgaenge">${durchgaenge.map(w => durchgangForm(w)).join('')}</g>`;
     // Eier ganz oben, damit sie jeden Klick bekommen
@@ -630,11 +664,11 @@
   function renderWege() {
     const box = document.getElementById('wege');
     box.innerHTML = '';
-    if (zustand.nah) return;
-    WEGE.filter(w => w.von === zustand.ansicht && w.art !== 'rein'
+    const hier = zustand.nah || zustand.ansicht;
+    WEGE.filter(w => w.von === hier && w.art !== 'rein'
                      && (!w.wennOffen || zustand.offen[w.wennOffen])).forEach(w => {
       const b = document.createElement('button');
-      b.className = 'weg ' + (w.art === 'raus' ? 'weg-raus' : 'weg-seite weg-' + w.art);
+      b.className = 'weg ' + (w.art === 'links' || w.art === 'rechts' ? 'weg-seite weg-' + w.art : 'weg-raus');
       b.textContent = w.art === 'links' ? '‹' : w.art === 'rechts' ? '›' : (w.label || 'zurück');
       b.title = w.label || '';
       b.onclick = () => geheZu(w.nach);
@@ -645,9 +679,13 @@
   function geheZu(ansichtId) {
     const ziel = ansichtVon(ansichtId);
     if (!ziel) return;
-    const raum = RAEUME.find(r => r.id === ziel.raum);
-    if (raum && raum.gesperrtBis && !zustand.offen[raum.gesperrtBis]) { sag('Zu. Da musst du erst den Weg finden.'); return; }
-    zustand.ansicht = ansichtId; zustand.nah = null;
+    if (ziel.istNah) {
+      zustand.nah = ansichtId;
+    } else {
+      const raum = RAEUME.find(r => r.id === ziel.raum);
+      if (raum && raum.gesperrtBis && !zustand.offen[raum.gesperrtBis]) { sag('Zu. Da musst du erst den Weg finden.'); return; }
+      zustand.ansicht = ansichtId; zustand.nah = null;
+    }
     speichern(); renderRaum(); zoomReset(); ton([480]);
   }
 
@@ -680,16 +718,35 @@
       const teil = el.dataset.phase.split(':');
       el.style.display = (Number(zustand.offen[teil[0]]) || 0) === Number(teil[1]) ? '' : 'none';
     });
-    // Durchgänge, die erst nach dem Öffnen begehbar sind (Tür zum Treppenhaus)
-    welt.querySelectorAll('[data-wenn]').forEach(el => {
-      const key = el.dataset.wenn;
-      el.style.display = (!key || zustand.offen[key]) ? '' : 'none';
+    // Bedingungen: data-wenn muss gesetzt sein, data-nicht darf nicht gesetzt sein.
+    // Beides sind Listen, mit Komma getrennt.
+    welt.querySelectorAll('[data-wenn], [data-nicht]').forEach(el => {
+      const ja = (el.dataset.wenn || '').split(',').filter(Boolean);
+      const nein = (el.dataset.nicht || '').split(',').filter(Boolean);
+      const gilt = ja.every(k => zustand.offen[k]) && nein.every(k => !zustand.offen[k]);
+      el.style.display = gilt ? '' : 'none';
     });
     renderWege();
+    renderInventar();
     document.getElementById('z-gefunden').textContent = zustand.gefunden.length;
     document.getElementById('z-gesamt').textContent = EIER.length;
     document.getElementById('hinweis-knopf').textContent = 'Hinweis (' + zustand.hinweise + ')';
     document.getElementById('hinweis-knopf').disabled = zustand.hinweise <= 0;
+  }
+
+  function renderInventar() {
+    const box = document.getElementById('inventar');
+    box.innerHTML = '';
+    zustand.inventar.forEach(id => {
+      const g = GEGENSTAENDE.find(x => x.id === id);
+      if (!g) return;
+      const b = document.createElement('button');
+      b.className = 'gegenstand';
+      b.textContent = g.name;
+      b.title = g.nah ? 'Genauer ansehen' : (g.text || g.name);
+      b.onclick = () => { if (g.nah) geheZu(g.nah); else sag(g.text || g.name); };
+      box.appendChild(b);
+    });
   }
 
   function renderRaumKnoepfe() {
@@ -840,13 +897,22 @@
       case 'ausschnitt':
         // Offen -> mit Nahaufnahme: näher ran. Ohne Nahaufnahme: zweites Antippen schliesst wieder.
         if (zustand.offen[t.zustand] && t.nah) {
-          zustand.nah = t.id; speichern(); renderRaum(); zoomReset();
+          geheZu(t.nah);
         } else {
           zustand.offen[t.zustand] = !zustand.offen[t.zustand];
           ton([zustand.offen[t.zustand] ? 520 : 380]);
           aktualisiereSichtbarkeit(); speichern();
         }
         break;
+      case 'nehmen':
+        if (zustand.offen[t.zustand]) return;
+        zustand.offen[t.zustand] = true;
+        if (t.gibt && !zustand.inventar.includes(t.gibt)) zustand.inventar.push(t.gibt);
+        ton([700, 980]);
+        aktualisiereSichtbarkeit(); speichern();
+        break;
+      case 'overlay':
+        return;
       case 'phasen': {
         const anzahl = (t.phasen || []).length || 1;
         const neu = ((Number(zustand.offen[t.zustand]) || 0) + 1) % anzahl;
@@ -923,7 +989,7 @@
     const pool = offen.filter(e => e.ebene < 3).length ? offen.filter(e => e.ebene < 3) : offen;
     const e = pool[Math.floor(Math.random() * pool.length)];
     const raum = (RAEUME.find(r => r.id === raumVon(e.ansicht)) || { name: '?' }).name;
-    const art = e.ebene === 1 ? 'liegt offen da — nur getarnt. Zoom rein.' : e.ebene === 2 ? 'steckt in etwas, das sich öffnen lässt.' : 'braucht ein gelöstes Rätsel.';
+    const art = e.ebene === 1 ? 'liegt offen da — nur getarnt. Zoom rein.' : 'steckt in etwas, das sich öffnen lässt.';
     zustand.hinweise--;
     aktualisiereSichtbarkeit(); speichern();
     sag('Hinweis: Eins im Raum „' + raum + '" ' + art);
@@ -1061,7 +1127,7 @@
     kreuz.style.display = 'block'; kreuz.style.left = (cx - r.left) + 'px'; kreuz.style.top = (cy - r.top) + 'px';
     const was = ziel.closest('.ei') ? 'Ei ' + ziel.closest('.ei').dataset.ei : ziel.closest('.teil') ? 'Teil ' + ziel.closest('.teil').dataset.teil : 'Hintergrund';
     document.getElementById('editor').textContent =
-      'AUSRICHTEMODUS\nAnsicht: ' + zustand.ansicht + (zustand.nah ? ' / Nahaufnahme ' + zustand.nah : '') + '\nBild: ' + RW + ' x ' + RH + '\nx: ' + wx + '  y: ' + wy + '\nGetroffen: ' + was + '\n\nAlle Eier sind hier sichtbar.';
+      'AUSRICHTEMODUS\nAnsicht: ' + (zustand.nah || zustand.ansicht) + (zustand.nah ? ' / Nahaufnahme ' + zustand.nah : '') + '\nBild: ' + RW + ' x ' + RH + '\nx: ' + wx + '  y: ' + wy + '\nGetroffen: ' + was + '\n\nAlle Eier sind hier sichtbar.';
   }
 
   // =====================================================================

@@ -31,6 +31,10 @@ Anführungszeichen „…"). Umlaute immer ausschreiben, auch in Code-Kommentare
   - `bilder/wohnzimmer-offen.png` (1774 × 887)
   - `bilder/wohnzimmer-frau-wach.png` (1774 × 887)
   - `bilder/wohnzimmer-frau-spricht.png` (1774 × 887)
+  - `bilder/wohnzimmer-leer.png` (1774 × 887) — ohne Anfisa
+  - `bilder/wohnzimmer-aus.png` (1774 × 887) — ohne Anfisa, Fernseher aus, Bild abgehängt
+  - `bilder/bild-vorn.png` (1402 × 912) — Nahansicht, Tapete weggeschnitten
+  - `bilder/bild-hinten-zu.png` / `-offen.png` / `-leer.png` (1402 × 912)
 - **Deploy:** GitHub-Weboberfläche, „Add file → Upload files" → „Commit changes". Kein Terminal.
 
 ### Bestenliste
@@ -48,6 +52,8 @@ Alles Inhaltliche steht oben im `<script>` unter **„DATEN"**:
   `imMenu: false` für Durchgangsräume, die nicht in der Kopfzeile stehen sollen
 - **ANSICHTEN** — ein Blickwinkel eines Raums: id, raum, name, `bild` (geschlossen),
   `bildOffen` (alles offen), `breite`/`hoehe` in Bildpixeln.
+  `istNah: true` = Nahansicht eines Gegenstands, gehört zu keinem Raum und wird
+  über das Inventar oder über `nah` an einem Teil geöffnet.
   Ein Raum kann mehrere Ansichten haben (Garage: `garage1` Werkbank, `garage2` Tür).
 - **WEGE** — Verbindungen zwischen Ansichten: `{ von, nach, art, label }`
   - `art: 'links'` / `'rechts'` → Pfeil am linken/rechten Bildrand
@@ -59,6 +65,7 @@ Alles Inhaltliche steht oben im `<script>` unter **„DATEN"**:
 - **TEILE** — bewegliche/antippbare Objekte: `ansicht`, x, y, w, h (Bildpixel),
   `typ`, `zustand`, `label`
 - **EIER** — `ansicht`, x, y, r, farbe, muster, `ebene` (1/2/3), `sichtbarWenn`
+- **GEGENSTAENDE** — Inventar: id, name, `nah` (ID einer Nahansicht) oder `text`
 - **DUNKEL** — dunkle Bereiche, die erst nach einem Lichtschalter sichtbar werden (derzeit leer)
 
 Wichtig: TEILE und EIER hängen an einer **Ansicht**, nicht am Raum (`ansicht: 'garage1'`).
@@ -71,8 +78,14 @@ Wichtig: TEILE und EIER hängen an einer **Ansicht**, nicht am Raum (`ansicht: '
 | `raetsel` | Texteingabe, `antworten: []` — Gross/Klein und ss/ß egal |
 | `code` | Zahlencode, `code: '2412'` |
 | `info` | Zeigt einen Text (Zettel, Notiz) |
+| `nehmen` | Gegenstand aufnehmen. `gibt` = ID aus GEGENSTAENDE, `zustand` wird gesetzt, `bildAus` blendet den Bereich ohne den Gegenstand ein. Danach nicht mehr anklickbar. |
+| `overlay` | Nur ein eingeblendeter Bereich, nicht anklickbar. Für Zustände, die von woanders geschaltet werden. |
 | `phasen` | Figur mit mehreren Frames. Jeder Klick geht eine Phase weiter, nach der letzten zurück auf 0. Phase 0 = Grundbild. Jede Phase: `{ bild, text }`, der Text erscheint in der Sprechblase mit `sprecher` als Namen. |
 | `schalter` | Licht an/aus für DUNKEL-Bereiche |
+
+Zusatzfelder für jedes Teil: `bildAus` (aus welchem Bild der Ausschnitt kommt,
+sonst `bildOffen` der Ansicht), `sichtbarWenn` und `nichtWenn` (Zustand-Keys, die
+das Teil ein- oder ausblenden), `nah` (ID einer Nahansicht).
 
 Aci kommentiert **nicht** mehr jeden Klick. Er meldet sich nur noch bei
 Meilensteinen (SPRUECHE), bei einem Hinweis, bei einem gelösten Rätsel und
@@ -100,7 +113,7 @@ in Bildpixeln. **So werden Eier, Hotspots und Durchgänge platziert.**
 - `garage2` → Treppe (1200,200 190×600) → `treppenhaus`, erst wenn `g2_tuer_offen`
 - `treppenhaus` → Metalltür links (10,60 270×760) → `garage2`
 - `treppenhaus` → Holztür oben (998,55 90×270) → `wohnzimmer`, erst wenn `th_tuer_offen`
-- `wohnzimmer` → Knopf unten → `treppenhaus`
+- `wohnzimmer` → Pfeil links → `treppenhaus`
 - Küche, Garten und Keller hängen noch an keinem Weg, nur an den Raum-Knöpfen oben
 
 ### garage2 im Detail
@@ -112,21 +125,30 @@ Vier Ausschnitte, alle mit `nah: ''` — **Nahaufnahmen fehlen noch**:
 
 ### Wohnzimmer im Detail
 - `w_regal` Schrank unter dem Bücherregal (860,330 230×145) → Ei e12
-- `w_tvmoebel` Fernsehmöbel (1220,358 290×118) → Ei e13
-- `w_regal_oben` Bücherregal (810,60 190×275), Rätsel 1 → Ei e16
-- `w_frau` Die Frau im Sessel (240,95 430×330), typ `phasen`:
+- `w_tvmoebel` Fernsehmöbel (1215,400 559×108) → Ei e13. Die Schnittkante muss unter den Porzellanfiguren liegen, die stehen in den beiden Bildern versetzt.
+- `w_gemaelde` Bild an der Wand (425,5 255×150), typ `nehmen` → Gegenstand `gemaelde`
+- `w_tv` Fernseher (1400,145 240×200) — an und aus
+- `w_sessel_leer` Overlay ohne Anfisa (150,80 850×770), schaltet auf `anfisa_weg`
+- `w_frau` Anfisa im Sessel (240,95 430×330), typ `phasen`, verschwindet bei `anfisa_weg`:
   0 schlafend (Grundbild) · 1 aufgeschreckt · 2 spricht · danach wieder 0.
   **Beide Texte sind Platzhalter.**
-- Ei e04 liegt getarnt auf dem Teppich (1332,712)
+- Eier e04 (Teppich, 1332,712) und e16 (Hefte unter dem Couchtisch, 1150,600) liegen getarnt offen
 
-Geplant, aber noch nicht gebaut: In einem anderen Raum liegt eine
-Zigarettenschachtel. Gibt man sie der Frau, steht sie auf und geht weg —
-erst dann lässt sich der Sessel untersuchen. Dafür fehlt noch das Bild
-des Raums ohne die Frau.
+### Das Bild in der Hand
+Zwei Nahansichten, über das Inventar erreichbar:
+- `bild_vorn` Landschaft, Knopf „Umdrehen"
+- `bild_hinten` Rückwand mit Fach
+  - `bi_fach` (510,600 570×210) schiebt die Abdeckung auf
+  - `bi_schluessel` (575,645 240×110), typ `nehmen` → Gegenstand `schluessel`,
+    nur sichtbar wenn `fach_offen`
 
-Die alten Platzhalter-Teile des Wohnzimmers (Sofakissen, Bild an der Wand,
-Vorhang, Truhe) sind weg, sie passten nicht zum echten Bild. Die vier Eier
-wurden auf das neue Bild umgesetzt, Rätsel 1 hängt jetzt am Bücherregal.
+Wozu der Schlüssel passt, ist noch offen.
+
+**Noch nicht gebaut:** Die Zigarettenschachtel, mit der Anfisa aufsteht.
+`anfisa_weg` wird bisher von nichts gesetzt, das Overlay ist also nur über
+den Spielstand testbar. Sobald klar ist, wo die Schachtel liegt, kommt sie
+als `nehmen`-Teil dazu und ein Klick auf Anfisa mit der Schachtel im Inventar
+setzt `anfisa_weg`. Danach lässt sich der Sessel untersuchen.
 
 ### Treppenhaus im Detail
 - `th_tuer` Holztür oben an der Treppe (960,20 230×395) — schaltet den Weg in den Flur frei
@@ -168,25 +190,27 @@ Eier in einer Nahaufnahme bekommen `inNah: '<teil-id>'`.
 
 ## 6. OFFENE PUNKTE
 
-1. **Die 5 Rätsel sind Platzhalter** — markiert mit `[RÄTSEL 1–5]`. Knox muss echtes
-   RPG-Wissen liefern (Figuren, Magazin-Inhalte, Orte). Aktuelle Platzhalter:
-   - w_raetsel1 (Truhe): „Welche Figur hat geheiratet?" → abeena/logan
-   - k_raetsel2 (Rezeptbuch): „Wie heisst das Magazin?" → simswelt
-   - r_sonnenuhr: „Blazes Halbbruder?" → delsyn
-   - e_sicher: „Nummer der ersten Ausgabe 2026?" → 28
-   - e_tresor: Scherzrätsel → schlüssel/kamm/zahnrad
-   - r_tuer (Kellertür): Code **2412**, Hinweis liegt auf der Garagen-Zeichnung
-2. **Bilder für Wohnzimmer, Küche, Garten, Keller** fehlen
-3. **In garage2 und treppenhaus fehlen die Eier** — die Ausschnitte sind
-   verdrahtet, aber es liegt in beiden Ansichten noch kein Ei.
+1. **Die Platzhalter-Rätsel sind raus.** Erfundene Wissensfragen ergaben keinen Sinn.
+   Übrig ist nur `r_tuer`, der Zahlencode **2412** für die Kellertür; der Hinweis
+   dazu steht auf der Zeichnung in der Garage. Die Eier, die vorher hinter Rätseln
+   lagen, hängen jetzt an vorhandenen Öffnungen oder liegen getarnt offen.
+   Verteilung dadurch: Ebene 1 zehn Eier, Ebene 2 zehn, Ebene 3 keine.
+2. **Bilder für Küche, Garten, Keller** fehlen, dort steht noch Platzhalter-Geometrie.
+3. **In garage2 und treppenhaus liegt noch kein Ei.** Die Ausschnitte sind verdrahtet.
    Die Eier im Wohnzimmer sind grob platziert und sollten im Ausrichtemodus
-   noch feinjustiert werden.
-4. **Nahaufnahmen** aller Garage-Schränke fehlen
-5. **„Zurück"-Knopf** am Spielende zeigt auf `index.html`, die im games-Repo nicht
-   existiert → Ziel noch festzulegen (Forum? Übersichtsseite? weg?)
-6. Am Handy noch nicht getestet (Zoom, Pinch, Tippen)
+   feinjustiert werden.
+4. **Nahaufnahmen** der Garage-Schränke fehlen.
+5. **Die Zigarettenschachtel** fehlt, damit setzt nichts `anfisa_weg`.
+6. **„Zurück"-Knopf** am Spielende zeigt auf `index.html`, die es im games-Repo
+   nicht gibt → Ziel noch festzulegen.
+7. Am Handy noch nicht getestet (Zoom, Pinch, Tippen).
 
----
+### Zwei Dinge, die beim Ausschneiden schiefgehen können
+- **Versetzte Objekte.** Zwei getrennt erzeugte Bilder liegen selten exakt
+  übereinander. Vor jedem neuen Ausschnitt ein Kompositbild bauen und
+  draufschauen, nicht nur dem Differenzbild vertrauen.
+- **Schnittkanten durch Objekte.** Die Kante gehört in eine ruhige Fläche,
+  nie quer durch eine Tür, eine Figur oder eine Kante im Bild.
 
 ## 7. ARBEITSWEISE KNOX
 
