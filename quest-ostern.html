@@ -321,23 +321,23 @@
 
   const ANSICHTEN = [
     // bild = geschlossen, bildOffen = alles offen (Ausschnitte werden daraus eingeblendet), breite/hoehe = Bildpixel
-    { id: 'garage1', raum: 'garage', name: 'Garage — Werkbank', bild: 'bilder/garage-zu.png',  bildOffen: 'bilder/garage-offen.png',  breite: 1774, hoehe: 887 },
-    { id: 'garage2', raum: 'garage', name: 'Garage — Tür',      bild: 'bilder/garage2-zu.png', bildOffen: 'bilder/garage2-offen.png', breite: 1774, hoehe: 887 },
+    { id: 'garage1', raum: 'garage', name: 'Garage — Werkbank', bild: 'bilder/garage-zu.webp',  bildOffen: 'bilder/garage-offen.webp',  breite: 1774, hoehe: 887 },
+    { id: 'garage2', raum: 'garage', name: 'Garage — Tür',      bild: 'bilder/garage2-zu.webp', bildOffen: 'bilder/garage2-offen.webp', breite: 1774, hoehe: 887 },
     // Startet dunkel. Der Schalter links an der Wand macht Licht.
-    { id: 'treppenhaus', raum: 'treppenhaus', name: 'Treppenhaus', bild: 'bilder/treppenhaus-dunkel.png',
-      hellWenn: 'th_licht', bildHell: 'bilder/treppenhaus-zu.png', breite: 1774, hoehe: 887,
+    { id: 'treppenhaus', raum: 'treppenhaus', name: 'Treppenhaus', bild: 'bilder/treppenhaus-dunkel.webp',
+      hellWenn: 'th_licht', bildHell: 'bilder/treppenhaus-zu.webp', breite: 1774, hoehe: 887,
       verlassenSetzt: 'th_verlassen', verlassenWenn: 'th_geladen' },
-    { id: 'wohnzimmer', raum: 'wohnzimmer', name: 'Wohnzimmer', bild: 'bilder/wohnzimmer-zu.png', bildOffen: 'bilder/wohnzimmer-offen.png', breite: 1774, hoehe: 887 },
-    { id: 'kueche', raum: 'kueche', name: 'Küche', bild: 'bilder/kueche-dunkel.png',
-      hellWenn: 'kueche_licht', bildHell: 'bilder/kueche-hell.png', breite: 1774, hoehe: 887 },
+    { id: 'wohnzimmer', raum: 'wohnzimmer', name: 'Wohnzimmer', bild: 'bilder/wohnzimmer-zu.webp', breite: 1774, hoehe: 887 },
+    { id: 'kueche', raum: 'kueche', name: 'Küche', bild: 'bilder/kueche-dunkel.webp',
+      hellWenn: 'kueche_licht', bildHell: 'bilder/kueche-hell.webp', breite: 1774, hoehe: 887 },
     { id: 'garten',     raum: 'garten',     name: 'Garten',     bild: '' },
     { id: 'flur', raum: 'flur', name: 'Flur', bild: '' },
     { id: 'dachboden', raum: 'dachboden', name: 'Dachboden', bild: '',
       lampeWenn: 'lampe_an', lampeRadius: 160 },
     // Nahansichten von Gegenständen, die man in die Hand nimmt.
     // istNah: true = gehört zu keinem Raum, wird über das Inventar geöffnet.
-    { id: 'bild_vorn',   istNah: true, name: 'Landschaftsbild — Vorderseite', bild: 'bilder/bild-vorn.png',      breite: 1402, hoehe: 912 },
-    { id: 'bild_hinten', istNah: true, name: 'Landschaftsbild — Rückseite',   bild: 'bilder/bild-hinten-zu.png', breite: 1402, hoehe: 912 }
+    { id: 'bild_vorn',   istNah: true, name: 'Landschaftsbild — Vorderseite', bild: 'bilder/bild-vorn.webp',      breite: 1402, hoehe: 912 },
+    { id: 'bild_hinten', istNah: true, name: 'Landschaftsbild — Rückseite',   bild: 'bilder/bild-hinten-zu.webp', breite: 1402, hoehe: 912 }
   ];
 
   // Gegenstände im Inventar. nah = ID der Nahansicht, die ein Klick darauf öffnet.
@@ -402,8 +402,8 @@
     { id: 'g2_unten', ansicht: 'garage2', x: 470,  y: 548, w: 380, h: 265, typ: 'ausschnitt', zustand: 'g2_unten_offen', label: 'Grosser Schrank, unten', nah: '' },
     { id: 'g2_tuer',  ansicht: 'garage2', x: 1045, y: 110, w: 390, h: 720, typ: 'ausschnitt', zustand: 'g2_tuer_offen',  label: 'Tür zum Treppenhaus',
       hellWenn: 'th_licht',
-      patch: 'bilder/g2-tuer-dunkel.png', patchX: 1039, patchY: 104, patchW: 402, patchH: 732,
-      patchHell: 'bilder/g2-tuer-hell.png', patchHellX: 1039, patchHellY: 104, patchHellW: 402, patchHellH: 732 },
+      patch: 'bilder/g2-tuer-dunkel.webp', patchX: 1039, patchY: 104, patchW: 402, patchH: 732,
+      patchHell: 'bilder/g2-tuer-hell.webp', patchHellX: 1039, patchHellY: 104, patchHellW: 402, patchHellH: 732 },
     { id: 'g2_spind', ansicht: 'garage2', x: 1560, y: 150, w: 214, h: 680, typ: 'ausschnitt', zustand: 'g2_spind_offen', label: 'Spind rechts',          nah: '' },
     // --- Treppenhaus (Koordinaten im Bild 1774 x 887) ---
     { id: 'th_schalter', ansicht: 'treppenhaus', x: 386, y: 334, w: 58, h: 92, typ: 'toggle', zustand: 'th_licht',
@@ -414,48 +414,48 @@
     // und das Licht ist jetzt aus.
     { id: 'th_code', ansicht: 'treppenhaus', x: 472, y: 357, w: 152, h: 114, typ: 'overlay', zustand: 'th_geladen',
       sichtbarWenn: 'th_verlassen', nichtWenn: 'th_licht',
-      patch: 'bilder/th-code.png', patchX: 472, patchY: 357, patchW: 152, patchH: 114,
+      patch: 'bilder/th-code.webp', patchX: 472, patchY: 357, patchW: 152, patchH: 114,
       label: 'Leuchtschrift' },
     { id: 'th_tuer',  ansicht: 'treppenhaus', x: 960,  y: 20,  w: 230, h: 395, typ: 'ausschnitt', zustand: 'th_tuer_offen',  label: 'Holztür oben an der Treppe',
-      patch: 'bilder/th-tuer-dunkel.png', patchX: 954, patchY: 14, patchW: 242, patchH: 407,
-      patchHell: 'bilder/th-tuer-hell.png', patchHellX: 954, patchHellY: 14, patchHellW: 242, patchHellH: 407 },
+      patch: 'bilder/th-tuer-dunkel.webp', patchX: 954, patchY: 14, patchW: 242, patchH: 407,
+      patchHell: 'bilder/th-tuer-hell.webp', patchHellX: 954, patchHellY: 14, patchHellW: 242, patchHellH: 407 },
     { id: 'th_kiste', ansicht: 'treppenhaus', x: 1390, y: 440, w: 240, h: 175, typ: 'ausschnitt', zustand: 'th_kiste_offen', label: 'Holzkiste neben der Treppe',
-      patch: 'bilder/th-kiste-dunkel.png', patchX: 1384, patchY: 434, patchW: 252, patchH: 187,
-      patchHell: 'bilder/th-kiste-hell.png', patchHellX: 1384, patchHellY: 434, patchHellW: 252, patchHellH: 187 },
+      patch: 'bilder/th-kiste-dunkel.webp', patchX: 1384, patchY: 434, patchW: 252, patchH: 187,
+      patchHell: 'bilder/th-kiste-hell.webp', patchHellX: 1384, patchHellY: 434, patchHellW: 252, patchHellH: 187 },
     // VORLÄUFIGER ORT der Zigarettenschachtel. Sobald klar ist, wo sie wirklich
     // liegt, nur ansicht/x/y/w/h ändern. Ohne bildAus zeichnet das Spiel eine Marke.
     { id: 'th_kippen', ansicht: 'treppenhaus', x: 1420, y: 520, w: 140, h: 65, typ: 'nehmen', zustand: 'kippen_weg',
       gibt: 'kippen', sichtbarWenn: 'th_kiste_offen', label: 'Zigarettenschachtel' },
     // --- Wohnzimmer (Koordinaten im Bild 1774 x 887) ---
     { id: 'w_regal',    ansicht: 'wohnzimmer', x: 862,  y: 336, w: 236, h: 146, typ: 'ausschnitt', zustand: 'wz_regal_offen', label: 'Schrank unter dem Bücherregal',
-      patch: 'bilder/wz-regal-auf.png', patchX: 856, patchY: 330, patchW: 248, patchH: 158 },
+      patch: 'bilder/wz-regal-auf.webp', patchX: 856, patchY: 330, patchW: 248, patchH: 158 },
     // Nur die linke Tür geht auf. Das mittlere Fach und der Couchtisch sind in
     // beiden Bildern unterschiedlich gefüllt und bleiben darum aus dem Flicken
     // ausgespart, sonst verändert sich beim Öffnen das halbe Möbel.
     { id: 'w_tvmoebel', ansicht: 'wohnzimmer', x: 1215, y: 398, w: 205, h: 118, typ: 'ausschnitt', zustand: 'wz_tv_offen', label: 'Fernsehmöbel',
-      patch: 'bilder/wz-tvmoebel-auf.png', patchX: 1209, patchY: 390, patchW: 542, patchH: 132 },
+      patch: 'bilder/wz-tvmoebel-auf.webp', patchX: 1209, patchY: 390, patchW: 542, patchH: 132 },
     // Die Frau im Sessel: drei Frames. 0 = schlafend (Grundbild), 1 = aufgeschreckt, 2 = spricht.
     // Jeder Klick geht eine Phase weiter, nach der letzten wieder zurück auf schlafend.
     // Sessel ohne Anfisa. Liegt vor dem Bild an der Wand, damit ein abgehängtes Bild
     // nicht wieder auftaucht, wenn sie weg ist.
     { id: 'w_sessel_leer', ansicht: 'wohnzimmer', x: 177, y: 124, w: 823, h: 712, typ: 'overlay', zustand: 'anfisa_weg',
-      patch: 'bilder/wz-sessel-leer.png', patchX: 177, patchY: 124, patchW: 823, patchH: 712, label: 'Sessel' },
+      patch: 'bilder/wz-sessel-leer.webp', patchX: 177, patchY: 124, patchW: 823, patchH: 712, label: 'Sessel' },
     { id: 'w_gemaelde', ansicht: 'wohnzimmer', x: 415, y: 0, w: 275, h: 188, typ: 'nehmen', zustand: 'bild_ab', gibt: 'gemaelde',
-      patch: 'bilder/wz-bild-ab.png', patchX: 405, patchY: 0, patchW: 292, patchH: 195, label: 'Bild an der Wand' },
+      patch: 'bilder/wz-bild-ab.webp', patchX: 405, patchY: 0, patchW: 292, patchH: 195, label: 'Bild an der Wand' },
     // Der leere Nagel: nimmt das Bild wieder entgegen. Nur da, solange es fehlt.
     { id: 'w_nagel', ansicht: 'wohnzimmer', x: 415, y: 0, w: 275, h: 188, typ: 'ziel', sichtbarWenn: 'bild_ab',
       nimmt: 'gemaelde', loescht: 'bild_ab', verbraucht: true, antwort: 'Hängt wieder gerade.', label: 'Nagel in der Wand' },
     { id: 'w_tv', ansicht: 'wohnzimmer', x: 1408, y: 148, w: 217, h: 200, typ: 'ausschnitt', zustand: 'tv_aus',
-      patch: 'bilder/wz-tv-aus.png', patchX: 1402, patchY: 142, patchW: 229, patchH: 206, label: 'Fernseher',
+      patch: 'bilder/wz-tv-aus.webp', patchX: 1402, patchY: 142, patchW: 229, patchH: 206, label: 'Fernseher',
       // Achtung: der Zustand heisst tv_aus. Gesetzt = Fernseher ist AUS.
       sprecher: 'Anfisa', sagtNichtWenn: 'anfisa_weg',
       sagtAn:  '„Hey!" Sie richtet sich halb auf. „Das war mein Film. Mach wieder an."',
       sagtAus: '„Nu also." Sie sinkt zurück. „Geht doch."' },
     // --- Das Bild in der Hand, Rückseite ---
     { id: 'bi_fach', ansicht: 'bild_hinten', x: 510, y: 600, w: 570, h: 210, typ: 'ausschnitt', zustand: 'fach_offen',
-      bildAus: 'bilder/bild-hinten-offen.png', label: 'Fach in der Rückwand' },
+      bildAus: 'bilder/bild-hinten-offen.webp', label: 'Fach in der Rückwand' },
     { id: 'bi_schluessel', ansicht: 'bild_hinten', x: 535, y: 622, w: 268, h: 136, typ: 'nehmen', zustand: 'schluessel_weg',
-      gibt: 'schluessel', bildAus: 'bilder/bild-hinten-leer.png', sichtbarWenn: 'fach_offen', label: 'Schlüssel im Fach' },
+      gibt: 'schluessel', bildAus: 'bilder/bild-hinten-leer.webp', sichtbarWenn: 'fach_offen', label: 'Schlüssel im Fach' },
     { id: 'w_frau', ansicht: 'wohnzimmer', x: 240, y: 95, w: 430, h: 330, typ: 'phasen', zustand: 'frau_phase',
       treffer: { x: 240, y: 192, w: 430, h: 233 },
       nichtWenn: 'anfisa_weg', label: 'Die Frau im Sessel', sprecher: 'Anfisa',
@@ -472,13 +472,13 @@
       ],
       phasen: [
         { bild: '' },
-        { bild: 'bilder/wz-frau-wach.png', x: 237, y: 97, w: 543, h: 402, texte: [
+        { bild: 'bilder/wz-frau-wach.webp', x: 237, y: 97, w: 543, h: 402, texte: [
           '„Ah! … Tschort. Du schleichst wie Katze und machst Lärm wie Panzer."',
           '„Nu? Was ist? Ich habe geschlafen, falls du nicht gemerkt hast."',
           '„Himmel. Mein Herz ist alt, weisst du das?"',
           '„Schon wieder du. Hast du nichts Besseres?"'
         ] },
-        { bild: 'bilder/wz-frau-spricht.png', x: 238, y: 98, w: 542, h: 402, texte: [
+        { bild: 'bilder/wz-frau-spricht.webp', x: 238, y: 98, w: 542, h: 402, texte: [
           '„Was willst du? Hier gibt es nichts für dich."',
           '„Lass mich in Ruhe. Fernseher läuft."',
           '„Ich sitze, du gehst. So ist Ordnung in diesem Haus."',
@@ -492,11 +492,11 @@
     // --- Küche. Grundbild ist dunkel; erst die Sicherung macht Licht.
     //     Jeder Schrank hat zwei Flicken: einen für dunkel, einen für hell. ---
     { id: 'k_tuer', ansicht: 'kueche', x: 0, y: 0, w: 222, h: 800, typ: 'ausschnitt', zustand: 'k_tuer_offen', label: 'Tür zum Flur',
-      patch: 'bilder/kue-tuer-dunkel.png', patchX: 0, patchY: 0, patchW: 229, patchH: 807,
-      patchHell: 'bilder/kue-tuer-hell.png', patchHellX: 0, patchHellY: 0, patchHellW: 229, patchHellH: 807 },
+      patch: 'bilder/kue-tuer-dunkel.webp', patchX: 0, patchY: 0, patchW: 229, patchH: 807,
+      patchHell: 'bilder/kue-tuer-hell.webp', patchHellX: 0, patchHellY: 0, patchHellW: 229, patchHellH: 807 },
     { id: 'k_sicherung', ansicht: 'kueche', x: 245, y: 212, w: 167, h: 186, typ: 'ausschnitt', zustand: 'sicherung_offen', label: 'Wandschränkchen',
-      patch: 'bilder/kue-sicherung-dunkel.png', patchX: 238, patchY: 205, patchW: 181, patchH: 200,
-      patchHell: 'bilder/kue-sicherung-hell.png', patchHellX: 238, patchHellY: 205, patchHellW: 181, patchHellH: 200 },
+      patch: 'bilder/kue-sicherung-dunkel.webp', patchX: 238, patchY: 205, patchW: 181, patchH: 200,
+      patchHell: 'bilder/kue-sicherung-hell.webp', patchHellX: 238, patchHellY: 205, patchHellW: 181, patchHellH: 200 },
     // Die Sicherung selbst, erst sichtbar wenn das Schränkchen offen ist.
     // VORLÄUFIG schaltet ein Klick direkt das Licht. Die Nahaufnahme kommt später.
     { id: 'k_licht', ansicht: 'kueche', x: 330, y: 238, w: 78, h: 155, typ: 'toggle', zustand: 'kueche_licht',
@@ -505,27 +505,27 @@
     // Feldgrenzen hinweg. Bei einer feineren Teilung steht an der Trennlinie
     // eine offene Tür ohne ihren Schrank.
     { id: 'k_ober_links', ansicht: 'kueche', x: 425, y: 50, w: 590, h: 252, typ: 'ausschnitt', zustand: 'k_ober_links_offen', label: 'Oberschränke links',
-      patch: 'bilder/kue-ober-links-dunkel.png', patchX: 418, patchY: 43, patchW: 604, patchH: 266,
-      patchHell: 'bilder/kue-ober-links-hell.png', patchHellX: 418, patchHellY: 43, patchHellW: 604, patchHellH: 266 },
+      patch: 'bilder/kue-ober-links-dunkel.webp', patchX: 418, patchY: 43, patchW: 604, patchH: 266,
+      patchHell: 'bilder/kue-ober-links-hell.webp', patchHellX: 418, patchHellY: 43, patchHellW: 604, patchHellH: 266 },
     { id: 'k_ober_rechts', ansicht: 'kueche', x: 1015, y: 50, w: 357, h: 252, typ: 'ausschnitt', zustand: 'k_ober_rechts_offen', label: 'Oberschränke rechts',
-      patch: 'bilder/kue-ober-rechts-dunkel.png', patchX: 1008, patchY: 43, patchW: 371, patchH: 266,
-      patchHell: 'bilder/kue-ober-rechts-hell.png', patchHellX: 1008, patchHellY: 43, patchHellW: 371, patchHellH: 266 },
+      patch: 'bilder/kue-ober-rechts-dunkel.webp', patchX: 1008, patchY: 43, patchW: 371, patchH: 266,
+      patchHell: 'bilder/kue-ober-rechts-hell.webp', patchHellX: 1008, patchHellY: 43, patchHellW: 371, patchHellH: 266 },
     { id: 'k_unten_links', ansicht: 'kueche', x: 370, y: 492, w: 378, h: 210, typ: 'ausschnitt', zustand: 'k_unten_links_offen', label: 'Unterschrank links',
-      patch: 'bilder/kue-unten-links-dunkel.png', patchX: 363, patchY: 485, patchW: 392, patchH: 224,
-      patchHell: 'bilder/kue-unten-links-hell.png', patchHellX: 363, patchHellY: 485, patchHellW: 392, patchHellH: 224 },
+      patch: 'bilder/kue-unten-links-dunkel.webp', patchX: 363, patchY: 485, patchW: 392, patchH: 224,
+      patchHell: 'bilder/kue-unten-links-hell.webp', patchHellX: 363, patchHellY: 485, patchHellW: 392, patchHellH: 224 },
     { id: 'k_lampe', ansicht: 'kueche', x: 400, y: 530, w: 110, h: 80, typ: 'nehmen', zustand: 'lampe_weg',
       gibt: 'lampe', sichtbarWenn: ['k_unten_links_offen', 'kueche_licht'], label: 'Taschenlampe' },
     { id: 'k_ofen', ansicht: 'kueche', x: 848, y: 488, w: 200, h: 212, typ: 'ausschnitt', zustand: 'k_ofen_offen', label: 'Backofen',
-      patch: 'bilder/kue-ofen-dunkel.png', patchX: 841, patchY: 481, patchW: 214, patchH: 226,
-      patchHell: 'bilder/kue-ofen-hell.png', patchHellX: 841, patchHellY: 481, patchHellW: 214, patchHellH: 226 },
+      patch: 'bilder/kue-ofen-dunkel.webp', patchX: 841, patchY: 481, patchW: 214, patchH: 226,
+      patchHell: 'bilder/kue-ofen-hell.webp', patchHellX: 841, patchHellY: 481, patchHellW: 214, patchHellH: 226 },
     { id: 'k_unten_rechts', ansicht: 'kueche', x: 1070, y: 500, w: 278, h: 192, typ: 'ausschnitt', zustand: 'k_unten_rechts_offen', label: 'Unterschrank unter der Spüle',
-      patch: 'bilder/kue-unten-rechts-dunkel.png', patchX: 1063, patchY: 493, patchW: 292, patchH: 206,
-      patchHell: 'bilder/kue-unten-rechts-hell.png', patchHellX: 1063, patchHellY: 493, patchHellW: 292, patchHellH: 206 },
+      patch: 'bilder/kue-unten-rechts-dunkel.webp', patchX: 1063, patchY: 493, patchW: 292, patchH: 206,
+      patchHell: 'bilder/kue-unten-rechts-hell.webp', patchHellX: 1063, patchHellY: 493, patchHellW: 292, patchHellH: 206 },
     // Schnittkante unter der Oberseite: die Emailledose dort steht nur im
     // geöffneten Bild, sonst taucht sie beim Öffnen aus dem Nichts auf.
     { id: 'k_kuehl', ansicht: 'kueche', x: 1374, y: 186, w: 316, h: 500, typ: 'ausschnitt', zustand: 'k_kuehl_offen', label: 'Kühlschrank',
-      patch: 'bilder/kue-kuehl-dunkel.png', patchX: 1361, patchY: 179, patchW: 336, patchH: 513,
-      patchHell: 'bilder/kue-kuehl-hell.png', patchHellX: 1361, patchHellY: 179, patchHellW: 336, patchHellH: 513 },
+      patch: 'bilder/kue-kuehl-dunkel.webp', patchX: 1361, patchY: 179, patchW: 336, patchH: 513,
+      patchHell: 'bilder/kue-kuehl-hell.webp', patchHellX: 1361, patchHellY: 179, patchHellW: 336, patchHellH: 513 },
     // --- Garten ---
     { id: 'r_busch',    ansicht: 'garten', x: 120,  y: 480, w: 300, h: 240, typ: 'toggle', form: 'busch', zustand: 'busch_geteilt', label: 'Busch' },
     { id: 'r_vogel',    ansicht: 'garten', x: 1250, y: 180, w: 120, h: 130, typ: 'toggle', form: 'klappe', zustand: 'vogelhaus_offen', label: 'Vogelhaus' },
@@ -867,6 +867,7 @@
     aktualisiereSichtbarkeit();
     renderRaumKnoepfe();
     setzeLampe(ans);
+    nachbarnVorladen(ans.id);
   }
 
   // =====================================================================
@@ -910,6 +911,8 @@
       const u = el.getAttribute('href') || el.getAttribute('xlink:href');
       if (u) urls.push(u);
     });
+    const einmalig = [...new Set(urls)];
+    urls.length = 0; urls.push(...einmalig);
     if (!urls.length) { welt.classList.remove('laedt'); hinweisLaden(false); return; }
     const lauf = ++ladeZaehler;
     welt.classList.add('laedt');
@@ -928,7 +931,7 @@
     }, 8000);
     urls.forEach(u => {
       const b = new Image();
-      b.onload = fertig; b.onerror = fertig;
+      b.onload = b.onerror = () => { schonGeladen.add(u); fertig(); };
       b.src = u;
     });
   }
@@ -936,15 +939,49 @@
     document.getElementById('laed-hinweis').classList.toggle('an', !!an);
   }
 
-  // Alles im Hintergrund vorladen, damit spätere Räume sofort da sind
-  function bilderVorladen() {
-    const alle = new Set();
-    ANSICHTEN.forEach(a => [a.bild, a.bildHell, a.bildOffen].forEach(u => u && alle.add(u)));
-    TEILE.forEach(t => {
-      [t.patch, t.patchHell, t.bildAus].forEach(u => u && alle.add(u));
-      (t.phasen || []).forEach(p => p.bild && alle.add(p.bild));
+  // Hintergrund-Vorladen mit Warteschlange. Höchstens vier gleichzeitig, damit
+  // der Raum, in dem man gerade steht, nicht ausgebremst wird.
+  const schonGeladen = new Set();
+  let ladeSchlange = [], ladeAktiv = 0;
+  function einreihen(urls, vorn) {
+    const neu = urls.filter(u => u && !schonGeladen.has(u) && !ladeSchlange.includes(u));
+    if (!neu.length) return;
+    ladeSchlange = vorn ? neu.concat(ladeSchlange) : ladeSchlange.concat(neu);
+    schubLaden();
+  }
+  function schubLaden() {
+    while (ladeAktiv < 4 && ladeSchlange.length) {
+      const u = ladeSchlange.shift();
+      if (schonGeladen.has(u)) continue;
+      ladeAktiv++;
+      const b = new Image();
+      b.onload = b.onerror = () => { schonGeladen.add(u); ladeAktiv--; schubLaden(); };
+      b.src = u;
+    }
+  }
+  function bilderDerAnsicht(id) {
+    const a = ansichtVon(id);
+    if (!a) return [];
+    const u = [a.bild, a.bildHell, a.bildOffen];
+    TEILE.filter(t => t.ansicht === id).forEach(t => {
+      u.push(t.patch, t.patchHell, t.bildAus);
+      (t.phasen || []).forEach(p => u.push(p.bild));
     });
-    [...alle].forEach(u => { const b = new Image(); b.src = u; });
+    return u.filter(Boolean);
+  }
+  // Nachbarn der aktuellen Ansicht bevorzugt holen
+  function nachbarnVorladen(id) {
+    const ziele = WEGE.filter(w => w.von === id).map(w => w.nach);
+    RAEUME.filter(r => r.imMenu !== false).forEach(r => ziele.push(r.start));
+    const u = [];
+    [...new Set(ziele)].forEach(z => u.push(...bilderDerAnsicht(z)));
+    einreihen(u, true);
+  }
+  // Alles Übrige, mit niedriger Dringlichkeit
+  function bilderVorladen() {
+    const alle = [];
+    ANSICHTEN.forEach(a => alle.push(...bilderDerAnsicht(a.id)));
+    einreihen(alle, false);
   }
 
   // Marke auf einem Durchgang im Bild: Kreis mit Pfeil.
@@ -1564,7 +1601,6 @@
 
   document.getElementById('start-knopf').onclick = () => {
     document.getElementById('screen-intro').classList.add('hidden');
-    bilderVorladen();
     zustand.laeuft = true;
     uhrStart();
     ton([520]);
@@ -1595,6 +1631,7 @@
   const hatte = fortschrittLaden();
   passeEin();
   renderRaum();
+  bilderVorladen();   // läuft schon, während der Startbildschirm offen ist
   zoomReset();
   document.getElementById('uhr').textContent = uhrText(zustand.zeit);
   if (hatte) {

@@ -142,6 +142,12 @@ Aci kommentiert **nicht** mehr jeden Klick. Er meldet sich nur noch bei
 Meilensteinen (SPRUECHE), bei einem Hinweis, bei einem gelösten Rätsel und
 wenn ein Weg gesperrt ist.
 
+### Bildformat
+Alle Bilder im Spiel sind **WebP**, Qualität 92. Das sind 6 MB statt 35 MB als
+PNG, bei identischem Aussehen — gegengeprüft an einem getarnten Ei bei
+vierfacher Vergrösserung. Neue Bilder bitte genauso umwandeln, PNG nur als
+Arbeitsformat behalten.
+
 ### Bilder laden
 Die Welt bleibt verborgen (`welt.laedt`), bis alle Bilder der Ansicht geladen
 sind — Grundbild und alle Flicken. Sonst stünden die Eier beim Raumwechsel als
@@ -149,8 +155,10 @@ bunte Punkte auf leerem Grund und wären sofort zu sehen. Dauert es länger als
 eine Viertelsekunde, erscheint ein „lädt …". Nach acht Sekunden zeigt das Spiel
 die Ansicht trotzdem, falls ein Bild fehlt.
 
-Nach dem Start werden ausserdem alle Bilder des Spiels im Hintergrund vorgeladen,
-damit spätere Räume sofort da sind.
+Vorgeladen wird in drei Stufen: die Bilder der aktuellen Ansicht zuerst, dann die
+der Nachbarräume, dann der Rest. Es laufen nie mehr als vier Hintergrund-Ladungen
+gleichzeitig, damit der Raum, in dem man steht, nicht ausgebremst wird. Das
+Vorladen beginnt schon, während der Startbildschirm offen ist.
 
 ### Zurücksetzen
 - Im Startbildschirm der Knopf **„Von vorn anfangen"** — erscheint nur, wenn ein
