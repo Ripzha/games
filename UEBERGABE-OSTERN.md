@@ -322,10 +322,26 @@ macht daraus ein PNG mit Alphakanal:
 Im Spiel wird so ein Flicken mit `patch` und `patchX/Y/W/H` eingeblendet.
 Die Klickfläche des Teils bleibt davon unabhängig.
 
+### c) Licht aus dem dunklen Bild ableiten
+Für die Küche ging auch b) nicht sauber: Das dunkle und das helle Bild sind
+getrennt erzeugt, und dabei haben sich Gegenstände in der Grösse verändert —
+der Samowar auf der Arbeitsfläche war im hellen Bild deutlich grösser. Beim
+Lichtschalten wären die Dinge gewachsen.
+
+Lösung: Das helle Grundbild wird **aus dem dunklen errechnet**. Dazu wird aus
+dem echten hellen Bild nur die Beleuchtung übernommen, nicht die Zeichnung —
+ein stark weichgezeichnetes Verhältnis der beiden Bilder pro Farbkanal, das als
+Faktor auf das dunkle Bild gelegt wird. Das Ergebnis ist warm beleuchtet und
+geometrisch identisch mit dem dunklen Bild. Backofen- und Kühlschrankinneres
+werden zusätzlich lokal aufgehellt, weil die Beleuchtungskarte davon nichts weiss.
+
+Damit stammen beide Küchen-Grundbilder und alle sechzehn Flicken aus derselben
+Bildfamilie. Beim Lichtschalten bewegt sich nichts mehr.
+
 ### Für neue Bilder
 Am besten wäre, die Varianten eines Raums als Bearbeitung desselben Bildes zu
 erzeugen statt als neue Generierung. Dann passen Muster und Farben exakt und
-Verfahren a) reicht. Wenn das nicht geht, ist b) nötig.
+Verfahren a) reicht. Sonst b), und bei Licht-/Dunkel-Paaren c).
 
 ## 7. ARBEITSWEISE KNOX
 
