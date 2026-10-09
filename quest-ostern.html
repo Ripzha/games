@@ -281,7 +281,9 @@
     { id: 'wohnzimmer', name: 'Wohnzimmer', start: 'wohnzimmer', gesperrtBis: null },
     { id: 'kueche',     name: 'Küche',      start: 'kueche',     gesperrtBis: null },
     { id: 'garten',     name: 'Garten',     start: 'garten',     gesperrtBis: null },
-    { id: 'keller',     name: 'Keller',     start: 'keller',     gesperrtBis: 'keller_offen' }
+    // Der Dachboden ist vorerst offen und nur über den Knopf oben erreichbar.
+    // Sobald der Aufgang da ist, kommt hier gesperrtBis und ein Weg dorthin.
+    { id: 'dachboden', name: 'Dachboden', start: 'dachboden', gesperrtBis: null }
   ];
 
   const ANSICHTEN = [
@@ -293,7 +295,7 @@
     { id: 'kueche', raum: 'kueche', name: 'Küche', bild: 'bilder/kueche-dunkel.png',
       hellWenn: 'kueche_licht', bildHell: 'bilder/kueche-hell.png', breite: 1774, hoehe: 887 },
     { id: 'garten',     raum: 'garten',     name: 'Garten',     bild: '' },
-    { id: 'keller',     raum: 'keller',     name: 'Keller',     bild: '' },
+    { id: 'dachboden', raum: 'dachboden', name: 'Dachboden', bild: '' },
     // Nahansichten von Gegenständen, die man in die Hand nimmt.
     // istNah: true = gehört zu keinem Raum, wird über das Inventar geöffnet.
     { id: 'bild_vorn',   istNah: true, name: 'Landschaftsbild — Vorderseite', bild: 'bilder/bild-vorn.png',      breite: 1402, hoehe: 912 },
@@ -336,7 +338,7 @@
     { id: 'g_steck',   ansicht: 'garage1', x: 1096, y: 668, w: 215, h: 85,  typ: 'ausschnitt', zustand: 'steck_offen',  label: 'Steckschlüssel-Schublade', nah: '' },
     { id: 'g_wagen',   ansicht: 'garage1', x: 1330, y: 584, w: 318, h: 258, typ: 'ausschnitt', zustand: 'wagen_offen',  label: 'Roter Werkstattwagen',   nah: '' },
     { id: 'g_zettel',  ansicht: 'garage1', x: 1055, y: 12,  w: 180, h: 112, typ: 'info', label: 'Zeichnung an der Wand',
-      titel: 'Notiz am Rand der Zeichnung', text: '„Aci — der Code für die Kellertür: Zähl die Fenster im Haus und nimm das Jahr, in dem wir eingezogen sind. Wenn du das nicht weisst, hast du nicht zugehört." — Anfisa' },
+      titel: 'Notiz am Rand der Zeichnung', text: '[PLATZHALTER — Text kommt, sobald klar ist, wozu der Code gehört] „Vier Ziffern. Wenn du sie nicht weisst, hast du nicht zugehört." — Anfisa' },
     // --- Garage, Ansicht 2: Türseite (Koordinaten im Bild 1774 x 887) ---
     { id: 'g2_oben',  ansicht: 'garage2', x: 470,  y: 150, w: 350, h: 396, typ: 'ausschnitt', zustand: 'g2_oben_offen',  label: 'Grosser Schrank, oben',  nah: '' },
     { id: 'g2_unten', ansicht: 'garage2', x: 470,  y: 548, w: 380, h: 265, typ: 'ausschnitt', zustand: 'g2_unten_offen', label: 'Grosser Schrank, unten', nah: '' },
@@ -415,11 +417,9 @@
     { id: 'r_busch',    ansicht: 'garten', x: 120,  y: 480, w: 300, h: 240, typ: 'toggle', form: 'busch', zustand: 'busch_geteilt', label: 'Busch' },
     { id: 'r_vogel',    ansicht: 'garten', x: 1250, y: 180, w: 120, h: 130, typ: 'toggle', form: 'klappe', zustand: 'vogelhaus_offen', label: 'Vogelhaus' },
     { id: 'r_giess',    ansicht: 'garten', x: 760,  y: 620, w: 150, h: 110, typ: 'toggle', form: 'kippen', zustand: 'kanne_gekippt', label: 'Giesskanne' },
-    { id: 'r_tuer',     ansicht: 'garten', x: 1420, y: 400, w: 140, h: 300, typ: 'code', zustand: 'keller_offen', label: 'Kellertür',
-      titel: 'Kellertür', frage: 'Ein Zahlenschloss. Vier Ziffern.', code: '2412' },
-    // --- Keller ---
-    { id: 'e_kiste',    ansicht: 'keller', x: 200,  y: 560, w: 260, h: 180, typ: 'toggle', form: 'klappe', zustand: 'kiste_offen',   label: 'Holzkiste' },
-    { id: 'e_kisteb',   ansicht: 'keller', x: 1300, y: 160, w: 140, h: 200, typ: 'toggle', form: 'klappe', zustand: 'sicherung_offen', label: 'Sicherungskasten' }
+    // --- Dachboden (noch Platzhalter-Geometrie) ---
+    { id: 'd_kiste',    ansicht: 'dachboden', x: 200,  y: 560, w: 260, h: 180, typ: 'toggle', form: 'klappe', zustand: 'dach_kiste_offen', label: 'Holzkiste' },
+    { id: 'd_schrank',  ansicht: 'dachboden', x: 1300, y: 160, w: 140, h: 200, typ: 'toggle', form: 'klappe', zustand: 'dach_schrank_offen', label: 'Alter Schrank' }
   ];
 
   // 20 Eier: 8 getarnt (Ebene 1), 7 verschlossen (Ebene 2), 5 Rätsel (Ebene 3)
@@ -445,12 +445,12 @@
     { id: 'e16', ansicht: 'wohnzimmer', x: 1150, y: 600, r: 8,  farbe: '#cfc0a4', muster: 'streifen', ebene: 1, sichtbarWenn: null },  // bei den Heften unter dem Couchtisch
     { id: 'e17', ansicht: 'kueche',     x: 955,  y: 602, r: 9,  farbe: '#a8702e', muster: 'punkte', ebene: 2, sichtbarWenn: ['k_ofen_offen', 'kueche_licht'] },  // auf dem Rost im Backofen
     { id: 'e18', ansicht: 'garten',     x: 270,  y: 600, r: 12, farbe: '#5a4030', muster: 'zickzack', ebene: 2, sichtbarWenn: 'busch_geteilt' },
-    { id: 'e19', ansicht: 'keller',     x: 330,  y: 650, r: 12, farbe: '#3a342c', muster: 'streifen', ebene: 2, sichtbarWenn: 'kiste_offen' },
-    { id: 'e20', ansicht: 'keller',     x: 860,  y: 490, r: 12, farbe: '#55556a', muster: 'punkte', ebene: 1, sichtbarWenn: null }
+    { id: 'e19', ansicht: 'dachboden',  x: 330,  y: 650, r: 12, farbe: '#3a342c', muster: 'streifen', ebene: 2, sichtbarWenn: 'dach_kiste_offen' },
+    { id: 'e20', ansicht: 'dachboden',  x: 860,  y: 490, r: 12, farbe: '#55556a', muster: 'punkte', ebene: 1, sichtbarWenn: null }
   ];
 
   // Eier, die nach Öffnen eines Dunkel-Bereichs erst erkennbar sind: Garage-Ecke ist dunkel bis Licht an
-  const DUNKEL = [];   // Beispiel: { ansicht: 'keller', x: 0, y: 0, w: 800, h: 900, hellWenn: 'keller_licht' }
+  const DUNKEL = [];   // Beispiel: { ansicht: 'dachboden', x: 0, y: 0, w: 800, h: 900, hellWenn: 'dach_licht' }
 
   // Aci-Sprüche bei Meilensteinen
   const SPRUECHE = {
@@ -461,7 +461,7 @@
     19: 'Neunzehn. Das letzte ist das, auf das sie am stolzesten ist.',
     20: 'Zwanzig. Alle. Anfisa wird sauer sein — sie hatte auf dich gewettet.'
   };
-  const ENDE_TEXT = 'Aci sammelt die Eier in einem Korb ein, den er irgendwo aus dem Keller gezogen hat. „Weisst du, was das Beste ist? Sie hat Fotos von jedem Versteck gemacht. Falls du eins nicht findest. Die zeig ich ihr jetzt. Alle zwanzig abgehakt."';
+  const ENDE_TEXT = 'Aci sammelt die Eier in einem Korb ein, den er irgendwo vom Dachboden geholt hat. „Weisst du, was das Beste ist? Sie hat Fotos von jedem Versteck gemacht. Falls du eins nicht findest. Die zeig ich ihr jetzt. Alle zwanzig abgehakt."';
 
   // =====================================================================
   // ZUSTAND
@@ -556,7 +556,7 @@
         <rect x="1420" y="400" width="140" height="300" fill="#4a3a2a" id="form-tuer"/><circle cx="1540" cy="560" r="10" fill="#c8a040"/>
         <rect x="0" y="180" width="60" height="340" fill="#5a4a3a"/><ellipse cx="30" cy="180" rx="90" ry="70" fill="#4e7a3e"/>
         <rect x="1000" y="820" width="90" height="40" fill="#4e7a3e"/>`;
-      case 'keller': return `
+      case 'dachboden': return `
         <rect width="1600" height="900" fill="#1e2024"/>
         <rect y="700" width="1600" height="200" fill="#2a2c30"/>
         <rect x="200" y="560" width="260" height="180" fill="#5a4a38" id="form-kiste"/>
