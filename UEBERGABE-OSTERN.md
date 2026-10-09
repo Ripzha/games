@@ -84,8 +84,21 @@ Wichtig: TEILE und EIER hängen an einer **Ansicht**, nicht am Raum (`ansicht: '
 | `schalter` | Licht an/aus für DUNKEL-Bereiche |
 
 Zusatzfelder für jedes Teil: `bildAus` (aus welchem Bild der Ausschnitt kommt,
-sonst `bildOffen` der Ansicht), `sichtbarWenn` und `nichtWenn` (Zustand-Keys, die
-das Teil ein- oder ausblenden), `nah` (ID einer Nahansicht).
+sonst `bildOffen` der Ansicht; bei `nehmen` nur `bildAus`, sonst zeichnet das Spiel
+eine goldene Marke), `sichtbarWenn` und `nichtWenn` (Zustand-Keys, die das Teil
+ein- oder ausblenden), `nah` (ID einer Nahansicht), `treffer: {x,y,w,h}` (eigene
+Klickfläche, wenn der Bildausschnitt grösser ist als das Anklickbare).
+
+### Gegenstände benutzen
+Ein Teil nimmt einen Gegenstand entgegen über drei Felder:
+`nimmt` (Gegenstand-ID), `setzt` (Zustand, der dadurch gesetzt wird),
+`verbraucht: true` (Gegenstand verschwindet aus dem Inventar) und optional
+`antwort` (Text in der Sprechblase).
+
+Bedienung: Gegenstand oben antippen, er wird golden hinterlegt, dann im Bild
+antippen, wohin er soll. Daneben getippt legt ihn wieder weg. Am Rechner geht
+zusätzlich Ziehen und Fallenlassen. Gegenstände mit Nahansicht haben einen
+zweiten kleinen Knopf 🔍.
 
 Aci kommentiert **nicht** mehr jeden Klick. Er meldet sich nur noch bei
 Meilensteinen (SPRUECHE), bei einem Hinweis, bei einem gelösten Rätsel und
@@ -129,7 +142,8 @@ Vier Ausschnitte, alle mit `nah: ''` — **Nahaufnahmen fehlen noch**:
 - `w_gemaelde` Bild an der Wand (425,5 255×150), typ `nehmen` → Gegenstand `gemaelde`
 - `w_tv` Fernseher (1400,145 240×200) — an und aus
 - `w_sessel_leer` Overlay ohne Anfisa (150,80 850×770), schaltet auf `anfisa_weg`
-- `w_frau` Anfisa im Sessel (240,95 430×330), typ `phasen`, verschwindet bei `anfisa_weg`:
+- `w_frau` Anfisa im Sessel (240,95 430×330, Klickfläche 240,160 430×265),
+  typ `phasen`, nimmt `kippen` entgegen und setzt damit `anfisa_weg`:
   0 schlafend (Grundbild) · 1 aufgeschreckt · 2 spricht · danach wieder 0.
   **Beide Texte sind Platzhalter.**
 - Eier e04 (Teppich, 1332,712) und e16 (Hefte unter dem Couchtisch, 1150,600) liegen getarnt offen
@@ -153,6 +167,10 @@ setzt `anfisa_weg`. Danach lässt sich der Sessel untersuchen.
 ### Treppenhaus im Detail
 - `th_tuer` Holztür oben an der Treppe (960,20 230×395) — schaltet den Weg in den Flur frei
 - `th_kiste` Holzkiste neben der Treppe (1390,440 240×175)
+- `th_kippen` Zigarettenschachtel in der Kiste (1420,520 140×65), typ `nehmen`
+  → Gegenstand `kippen`. **Vorläufiger Ort**, nur ansicht/x/y/w/h ändern, wenn
+  die Schachtel woanders liegen soll. Hat kein eigenes Bild, darum zeigt das
+  Spiel dort eine goldene Marke.
 
 Weder `garage2` noch `treppenhaus` haben bisher Eier. Wenn welche dazukommen,
 muss anderswo eines weg — die Gesamtzahl 20 ist fix.
@@ -200,7 +218,9 @@ Eier in einer Nahaufnahme bekommen `inNah: '<teil-id>'`.
    Die Eier im Wohnzimmer sind grob platziert und sollten im Ausrichtemodus
    feinjustiert werden.
 4. **Nahaufnahmen** der Garage-Schränke fehlen.
-5. **Die Zigarettenschachtel** fehlt, damit setzt nichts `anfisa_weg`.
+5. **Die Zigarettenschachtel** liegt vorläufig in der Treppenhaus-Kiste. Gibt man
+   sie Anfisa, steht sie auf (`anfisa_weg`). Ihr dritter Text fehlt noch, und der
+   Sessel ist danach noch nicht untersuchbar — dafür braucht es ein Bild davon.
 6. **„Zurück"-Knopf** am Spielende zeigt auf `index.html`, die es im games-Repo
    nicht gibt → Ziel noch festzulegen.
 7. Am Handy noch nicht getestet (Zoom, Pinch, Tippen).

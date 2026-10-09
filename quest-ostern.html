@@ -279,7 +279,8 @@
   // Gegenstände im Inventar. nah = ID der Nahansicht, die ein Klick darauf öffnet.
   const GEGENSTAENDE = [
     { id: 'gemaelde',   name: '🖼 Bild',       nah: 'bild_vorn' },
-    { id: 'schluessel', name: '🗝 Schlüssel',  text: 'Ein alter Messingschlüssel. Wozu er passt, weiss ich noch nicht.' }
+    { id: 'schluessel', name: '🗝 Schlüssel',  text: 'Ein alter Messingschlüssel. Wozu er passt, weiss ich noch nicht.' },
+    { id: 'kippen',     name: '🚬 Schachtel',  text: 'Eine angebrochene Schachtel Zigaretten.' }
   ];
 
   const WEGE = [
@@ -318,6 +319,10 @@
     // --- Treppenhaus (Koordinaten im Bild 1774 x 887) ---
     { id: 'th_tuer',  ansicht: 'treppenhaus', x: 960,  y: 20,  w: 230, h: 395, typ: 'ausschnitt', zustand: 'th_tuer_offen',  label: 'Holztür oben an der Treppe', nah: '' },
     { id: 'th_kiste', ansicht: 'treppenhaus', x: 1390, y: 440, w: 240, h: 175, typ: 'ausschnitt', zustand: 'th_kiste_offen', label: 'Holzkiste neben der Treppe', nah: '' },
+    // VORLÄUFIGER ORT der Zigarettenschachtel. Sobald klar ist, wo sie wirklich
+    // liegt, nur ansicht/x/y/w/h ändern. Ohne bildAus zeichnet das Spiel eine Marke.
+    { id: 'th_kippen', ansicht: 'treppenhaus', x: 1420, y: 520, w: 140, h: 65, typ: 'nehmen', zustand: 'kippen_weg',
+      gibt: 'kippen', sichtbarWenn: 'th_kiste_offen', label: 'Zigarettenschachtel' },
     // --- Wohnzimmer (Koordinaten im Bild 1774 x 887) ---
     { id: 'w_regal',    ansicht: 'wohnzimmer', x: 860,  y: 330, w: 230, h: 145, typ: 'ausschnitt', zustand: 'wz_regal_offen', label: 'Schrank unter dem Bücherregal', nah: '' },
     // Schnittkante liegt unter den Porzellanfiguren — die stehen in beiden Bildern
@@ -339,6 +344,7 @@
     { id: 'bi_schluessel', ansicht: 'bild_hinten', x: 575, y: 645, w: 240, h: 110, typ: 'nehmen', zustand: 'schluessel_weg',
       gibt: 'schluessel', bildAus: 'bilder/bild-hinten-leer.png', sichtbarWenn: 'fach_offen', label: 'Schlüssel im Fach' },
     { id: 'w_frau', ansicht: 'wohnzimmer', x: 240, y: 95, w: 430, h: 330, typ: 'phasen', zustand: 'frau_phase',
+      treffer: { x: 240, y: 160, w: 430, h: 265 },
       nichtWenn: 'anfisa_weg', label: 'Die Frau im Sessel', sprecher: 'Anfisa', phasen: [
         { bild: '' },
         { bild: 'bilder/wohnzimmer-frau-wach.png',    text: '[TEXT 1 — aufgeschreckt, folgt noch]' },
@@ -619,7 +625,14 @@
         </g>`).join('');
       }
       // Ausschnitt, Overlay und aufgenommener Gegenstand: Bereich aus einem zweiten Bild einblenden
-      const quelle = t.bildAus || ans.bildOffen;
+      const quelle = t.typ === 'nehmen' ? t.bildAus : (t.bildAus || ans.bildOffen);
+      // Aufnehmbares ohne eigenes Bild: goldene Marke, damit man es überhaupt sieht
+      if (t.typ === 'nehmen' && !quelle) {
+        return `<g data-nicht="${t.zustand}" class="nimm-marke" transform="translate(${t.x + t.w / 2},${t.y + t.h / 2})">
+          <circle r="22" fill="rgba(10,18,12,0.55)" stroke="#f4d484" stroke-width="2"/>
+          <path d="M-7 2 L0 -8 L7 2 Z M-7 6 L7 6" stroke="#f4d484" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+        </g>`;
+      }
       if ((t.typ === 'ausschnitt' || t.typ === 'overlay' || t.typ === 'nehmen') && quelle) {
         return `<g data-offen="${t.zustand}">
           <clipPath id="clip_${t.id}"><rect x="${t.x}" y="${t.y}" width="${t.w}" height="${t.h}"/></clipPath>
@@ -637,7 +650,10 @@
     // sonst liesse sich ein Ei in einer offenen Schublade nicht mehr antippen
     html += `<g id="teile">${teile.filter(t => t.typ !== 'overlay').map(t => {
       const nicht = [t.nichtWenn, t.typ === 'nehmen' ? t.zustand : ''].filter(Boolean).join(',');
-      return `<rect class="teil" data-teil="${t.id}" data-wenn="${t.sichtbarWenn || ''}" data-nicht="${nicht}" x="${t.x}" y="${t.y}" width="${t.w}" height="${t.h}" fill="transparent"><title>${t.label}</title></rect>`;
+      // treffer: eigene Klickfläche, falls der Bildausschnitt grösser ist als das,
+      // was angeklickt werden soll (Anfisas Frames reichen bis hinter das Bild an der Wand)
+      const r = t.treffer || t;
+      return `<rect class="teil" data-teil="${t.id}" data-wenn="${t.sichtbarWenn || ''}" data-nicht="${nicht}" x="${r.x}" y="${r.y}" width="${r.w}" height="${r.h}" fill="transparent"><title>${t.label}</title></rect>`;
     }).join('')}</g>`;
     // Durchgänge im Bild (Tür, Treppe) — mit sichtbarer Marke
     html += `<g id="durchgaenge">${durchgaenge.map(w => durchgangForm(w)).join('')}</g>`;
@@ -741,12 +757,50 @@
       const g = GEGENSTAENDE.find(x => x.id === id);
       if (!g) return;
       const b = document.createElement('button');
-      b.className = 'gegenstand';
+      b.className = 'gegenstand' + (zustand.gewaehlt === id ? ' gewaehlt' : '');
       b.textContent = g.name;
-      b.title = g.nah ? 'Genauer ansehen' : (g.text || g.name);
-      b.onclick = () => { if (g.nah) geheZu(g.nah); else sag(g.text || g.name); };
+      b.title = 'Antippen, dann auf etwas im Bild tippen. Am Rechner geht auch Ziehen.';
+      b.draggable = true;
+      b.ondragstart = (e) => { waehle(id, true); try { e.dataTransfer.setData('text/plain', id); } catch (err) {} };
+      b.ondragend = () => buehne.classList.remove('zielt');
+      b.onclick = () => waehle(zustand.gewaehlt === id ? null : id);
       box.appendChild(b);
+      if (g.nah) {
+        const l = document.createElement('button');
+        l.className = 'gegenstand lupe';
+        l.textContent = '🔍';
+        l.title = 'Genauer ansehen';
+        l.onclick = () => { waehle(null); geheZu(g.nah); };
+        box.appendChild(l);
+      }
     });
+  }
+
+  // Einen Gegenstand in die Hand nehmen, um ihn zu benutzen
+  function waehle(id, still) {
+    zustand.gewaehlt = id;
+    buehne.classList.toggle('zielt', !!id);
+    renderInventar();
+    if (id && !still) {
+      const g = GEGENSTAENDE.find(x => x.id === id);
+      sag((g ? g.name : 'Gegenstand') + ' in der Hand. Tipp jetzt an, wohin damit.');
+    }
+  }
+
+  // Gewählten Gegenstand auf ein Teil anwenden
+  function benutze(gegenstandId, teil) {
+    if (!teil || teil.nimmt !== gegenstandId) {
+      sag('Das bringt hier nichts.');
+      return false;
+    }
+    if (teil.setzt) zustand.offen[teil.setzt] = true;
+    if (teil.verbraucht) zustand.inventar = zustand.inventar.filter(x => x !== gegenstandId);
+    waehle(null, true);
+    ton([660, 880, 1100]);
+    renderRaum();
+    speichern();
+    if (teil.antwort) sag(teil.antwort, teil.sprecher || teil.label);
+    return true;
   }
 
   function renderRaumKnoepfe() {
@@ -853,6 +907,17 @@
     if (warEinzeln && !bewegt && zugStart) tippe(e.clientX, e.clientY);
     zugStart = null;
   }
+  buehne.addEventListener('dragover', (e) => { if (zustand.gewaehlt) e.preventDefault(); });
+  buehne.addEventListener('drop', (e) => {
+    e.preventDefault();
+    const id = zustand.gewaehlt;
+    if (!id) return;
+    buehne.classList.remove('zielt');
+    const ziel = document.elementFromPoint(e.clientX, e.clientY);
+    const teilEl = ziel && ziel.closest && ziel.closest('.teil');
+    const t = teilEl ? TEILE.find(x => x.id === teilEl.dataset.teil) : null;
+    if (t) benutze(id, t); else waehle(null, true);
+  });
   buehne.addEventListener('pointerup', zeigerEnde);
   buehne.addEventListener('pointercancel', zeigerEnde);
 
@@ -869,6 +934,12 @@
     const wegEl = ziel.closest && ziel.closest('.durchgang');
     if (wegEl) { geheZu(wegEl.dataset.weg); return; }
     const teilEl = ziel.closest && ziel.closest('.teil');
+    if (zustand.gewaehlt) {
+      const t = teilEl ? TEILE.find(x => x.id === teilEl.dataset.teil) : null;
+      if (!t) { waehle(null, true); return; }   // daneben getippt: Gegenstand wieder weglegen
+      benutze(zustand.gewaehlt, t);
+      return;
+    }
     if (teilEl) { teilAngetippt(teilEl.dataset.teil); return; }
   }
 
