@@ -342,7 +342,8 @@
     { id: 'spind_nah', istNah: true, name: 'Spind rechts — von nahem', bild: 'bilder/spind-nah.webp', breite: 1024, hoehe: 1536 },
     { id: 'gruen_nah', istNah: true, name: 'Unterschrank — von nahem', bild: 'bilder/gruen-nah.webp', breite: 1448, hoehe: 1086 },
     { id: 'kiste_nah', istNah: true, name: 'Blechkiste', bild: 'bilder/kiste-nah.webp', breite: 1361, hoehe: 1028 },
-    { id: 'sessel_nah', istNah: true, name: 'Anfisas Sessel', bild: 'bilder/sessel-nah.webp', breite: 1774, hoehe: 887 }
+    { id: 'sessel_nah', istNah: true, name: 'Anfisas Sessel', bild: 'bilder/sessel-nah.webp', breite: 1774, hoehe: 887 },
+    { id: 'tisch_nah',  istNah: true, name: 'Couchtisch',      bild: 'bilder/tisch-nah.webp',  breite: 1774, hoehe: 887 }
   ];
 
   // Gegenstände im Inventar. nah = ID der Nahansicht, die ein Klick darauf öffnet.
@@ -357,6 +358,7 @@
       schaltet: 'lampe_an', nurWenn: 'lampe_bereit', fehlt: 'Tote Lampe. Da müssen Batterien rein.' },
     { id: 'batterien',  symbol: '🔋', name: 'Batterien', text: 'Zwei Batterien. Sehen noch brauchbar aus.' },
     { id: 'feuerzeug',  symbol: '🔥', name: 'Feuerzeug', text: 'Ein abgegriffenes Feuerzeug. Tut es noch.' },
+    { id: 'sicherung',  symbol: '🧯', name: 'Sicherung', text: 'Eine Schraubsicherung aus Porzellan. Sieht unverbraucht aus.' },
     { id: 'hammer',     symbol: '🔨', name: 'Hammer',    text: 'Anfisas Hammer. Schwer, der Stiel ist speckig vom vielen Anfassen.' }
   ];
 
@@ -393,12 +395,13 @@
     // --- Garage (Koordinaten im Bild 1774 x 887) ---
     // typ 'ausschnitt': Antippen blendet diesen Bereich aus bildOffen ein. nah = Bild der Nahaufnahme (später).
     { id: 'g_akten',   ansicht: 'garage1', x: 88,   y: 428, w: 165, h: 85,  typ: 'ausschnitt', zustand: 'akten_offen',  label: 'Aktenschrank-Schublade', nah: '' },
-    { id: 'g_tuer',    ansicht: 'garage1', x: 318,  y: 588, w: 135, h: 255, typ: 'ausschnitt', zustand: 'tuer_offen',   label: 'Grüner Unterschrank',    nah: '' },
     { id: 'g_blau',    ansicht: 'garage1', x: 536,  y: 586, w: 170, h: 70,  typ: 'ausschnitt', zustand: 'blau_offen',   label: 'Blauer Rollcontainer',   nah: '' },
     { id: 'g_steck',   ansicht: 'garage1', x: 1096, y: 668, w: 215, h: 85,  typ: 'ausschnitt', zustand: 'steck_offen',  label: 'Steckschlüssel-Schublade', nah: '' },
     { id: 'g_wagen',   ansicht: 'garage1', x: 1330, y: 584, w: 318, h: 258, typ: 'ausschnitt', zustand: 'wagen_offen',  label: 'Roter Werkstattwagen',   nah: '' },
     { id: 'g_batterien', ansicht: 'garage1', x: 1110, y: 676, w: 80, h: 62, typ: 'nehmen', zustand: 'batterien_weg',
       gibt: 'batterien', sichtbarWenn: 'steck_offen', label: 'Batterien' },
+    { id: 'g_sicherung', ansicht: 'garage1', x: 1480, y: 650, w: 88, h: 64, typ: 'nehmen', zustand: 'sicherung_genommen',
+      gibt: 'sicherung', sichtbarWenn: 'wagen_offen', label: 'Sicherung' },
     { id: 'g_zettel',  ansicht: 'garage1', x: 1055, y: 12,  w: 180, h: 112, typ: 'info', label: 'Zeichnung an der Wand',
       titel: 'Notiz am Rand der Zeichnung', text: '[PLATZHALTER — Text kommt, sobald klar ist, wozu der Code gehört] „Vier Ziffern. Wenn du sie nicht weisst, hast du nicht zugehört." — Anfisa' },
     // --- Garage, Ansicht 2: Türseite (Koordinaten im Bild 1774 x 887) ---
@@ -413,6 +416,10 @@
     { id: 'ki_feuerzeug', ansicht: 'kiste_nah', x: 478, y: 558, w: 410, h: 219, typ: 'nehmen', zustand: 'feuerzeug_weg',
       gibt: 'feuerzeug', label: 'Feuerzeug',
       patch: 'bilder/kiste-feuerzeug.webp', patchNicht: true, patchX: 483, patchY: 563, patchW: 400, patchH: 209 },
+    // Hinter der geschlossenen Tür ist es dunkel, solange im Treppenhaus kein Licht brennt
+    { id: 'g2_fenster', ansicht: 'garage2', x: 1162, y: 242, w: 130, h: 186, typ: 'overlay',
+      nichtWenn: 'th_licht,g2_tuer_offen', label: 'Türfenster',
+      patch: 'bilder/g2-fenster-dunkel.webp', patchNicht: true, patchX: 1162, patchY: 242, patchW: 130, patchH: 186 },
     { id: 'g2_tuer',  ansicht: 'garage2', x: 1045, y: 110, w: 390, h: 720, klang: 'metall', typ: 'ausschnitt', zustand: 'g2_tuer_offen',  label: 'Tür zum Treppenhaus',
       hellWenn: 'th_licht',
       patch: 'bilder/g2-tuer-dunkel.webp', patchX: 1039, patchY: 104, patchW: 402, patchH: 732,
@@ -454,8 +461,11 @@
     // Jeder Klick geht eine Phase weiter, nach der letzten wieder zurück auf schlafend.
     // Sessel ohne Anfisa. Liegt vor dem Bild an der Wand, damit ein abgehängtes Bild
     // nicht wieder auftaucht, wenn sie weg ist.
-    { id: 'w_sessel_leer', ansicht: 'wohnzimmer', x: 177, y: 124, w: 823, h: 712, typ: 'overlay', zustand: 'anfisa_weg',
-      patch: 'bilder/wz-sessel-leer.webp', patchX: 177, patchY: 124, patchW: 823, patchH: 712, label: 'Sessel' },
+    // Eng freigestellt: nur Anfisa selbst. Ein grosszuegigerer Rand nimmt Wand
+    // mit, und die ist im Leer-Bild deutlich anders gezeichnet (Abweichung 19
+    // gegenueber 6 beim Rest des Raums) — das sieht man dann als Fleck.
+    { id: 'w_sessel_leer', ansicht: 'wohnzimmer', x: 239, y: 133, w: 749, h: 649, typ: 'overlay', zustand: 'anfisa_weg',
+      patch: 'bilder/wz-sessel-leer.webp', patchX: 239, patchY: 133, patchW: 749, patchH: 649, label: 'Sessel' },
     { id: 'w_gemaelde', ansicht: 'wohnzimmer', x: 415, y: 0, w: 275, h: 188, typ: 'nehmen', zustand: 'bild_ab', gibt: 'gemaelde',
       patch: 'bilder/wz-bild-ab.webp', patchX: 405, patchY: 0, patchW: 292, patchH: 195, label: 'Bild an der Wand' },
     // Der leere Nagel: nimmt das Bild wieder entgegen. Nur da, solange es fehlt.
@@ -464,6 +474,10 @@
     // Erst wenn Anfisa weg ist, kommt man an den Sessel heran
     { id: 'w_sessel', ansicht: 'wohnzimmer', x: 250, y: 430, w: 520, h: 250, typ: 'naehe', nah: 'sessel_nah',
       sichtbarWenn: 'anfisa_weg', label: 'Sessel' },
+    { id: 'w_tisch', ansicht: 'wohnzimmer', x: 970, y: 505, w: 240, h: 65, typ: 'naehe', nah: 'tisch_nah', label: 'Couchtisch' },
+    // Der Tassenrand liegt über den Eiern, damit das Ei wirklich in der Tasse steckt
+    { id: 'ti_rand', ansicht: 'tisch_nah', x: 139, y: 224, w: 452, h: 132, typ: 'overlay', vorn: true, label: 'Tassenrand',
+      patch: 'bilder/tisch-tassenrand.webp', patchX: 139, patchY: 224, patchW: 452, patchH: 132 },
     { id: 'w_tv', ansicht: 'wohnzimmer', x: 1408, y: 148, w: 217, h: 200, klang: 'metall', typ: 'ausschnitt', zustand: 'tv_aus',
       patch: 'bilder/wz-tv-aus.webp', patchX: 1402, patchY: 142, patchW: 229, patchH: 206, label: 'Fernseher',
       // Achtung: der Zustand heisst tv_aus. Gesetzt = Fernseher ist AUS.
@@ -535,8 +549,11 @@
       patchHell: 'bilder/kue-sicherung-hell.webp', patchHellX: 238, patchHellY: 205, patchHellW: 181, patchHellH: 200 },
     // Die Sicherung selbst, erst sichtbar wenn das Schränkchen offen ist.
     // VORLÄUFIG schaltet ein Klick direkt das Licht. Die Nahaufnahme kommt später.
-    { id: 'k_licht', ansicht: 'kueche', x: 330, y: 238, w: 78, h: 155, typ: 'toggle', zustand: 'kueche_licht',
-      sichtbarWenn: 'sicherung_offen', neuzeichnen: true, label: 'Sicherung' },
+    // Der leere Sicherungssockel. Erst mit der Sicherung aus der Garage gibt es Licht.
+    { id: 'k_licht', ansicht: 'kueche', x: 330, y: 238, w: 78, h: 155, typ: 'ziel', zustand: 'kueche_licht',
+      sichtbarWenn: 'sicherung_offen', label: 'Sicherungssockel',
+      nimmt: 'sicherung', setzt: 'kueche_licht', verbraucht: true,
+      antwort: 'Die Sicherung sitzt. Irgendwo in der Küche klackt es, dann geht das Licht an.' },
     // Zwei Gruppen statt sieben Einzeltüren: Die Türen schwingen über die
     // Feldgrenzen hinweg. Bei einer feineren Teilung steht an der Trennlinie
     // eine offene Tür ohne ihren Schrank.
@@ -575,9 +592,9 @@
   const EIER = [
     // --- Ebene 1: sichtbar, getarnt ---
     { id: 'e01', ansicht: 'garage1',     x: 1452, y: 243, r: 7,  farbe: '#6f4d37', muster: 'punkte',   ebene: 1, sichtbarWenn: null },  // Regal oben zwischen den Dosen
-    { id: 'e02', ansicht: 'spind_nah',   x: 355,  y: 540, r: 14, farbe: '#4e4337', muster: 'streifen', ebene: 2, sichtbarWenn: 'dose_verschoben' },  // hinter der Spraydose im Spind
+    { id: 'e02', ansicht: 'spind_nah',   x: 352,  y: 608, r: 22, farbe: '#4e4337', muster: 'streifen', ebene: 2, sichtbarWenn: 'dose_verschoben' },  // hinter der Spraydose im Spind, steht auf dem Boden
     { id: 'e05', ansicht: 'garage1',     x: 1395, y: 432, r: 6,  farbe: '#27282c', muster: 'zickzack', ebene: 1, sichtbarWenn: null },  // im Schubladenkasten
-    { id: 'e08', ansicht: 'kiste_nah',   x: 1010, y: 620, r: 17, farbe: '#7a7a52', muster: 'punkte',   ebene: 2, sichtbarWenn: null },  // in der Blechkiste
+    { id: 'e08', ansicht: 'kiste_nah',   x: 1010, y: 600, r: 30, farbe: '#7a7a52', muster: 'punkte',   ebene: 2, sichtbarWenn: null },  // in der Blechkiste
     { id: 'e04', ansicht: 'wohnzimmer', x: 1332, y: 712, r: 9,  farbe: '#8a4a3a', muster: 'punkte', ebene: 1, sichtbarWenn: null },  // auf dem Teppich
     { id: 'e03', ansicht: 'kueche',     x: 1318, y: 419, r: 9,  farbe: '#c8703a', muster: 'streifen', ebene: 1, sichtbarWenn: ['kueche_licht'] },  // in der Obstschale
     { id: 'e06', ansicht: 'garten',     x: 1044, y: 846, r: 8,  farbe: '#4e7a3e', muster: 'punkte', ebene: 1, sichtbarWenn: null },
@@ -591,7 +608,7 @@
     { id: 'e14', ansicht: 'kueche',     x: 1497, y: 272, r: 8,  farbe: '#e8d8bc', muster: 'punkte', ebene: 2, sichtbarWenn: ['k_kuehl_offen', 'kueche_licht'] },  // in der Eierablage im Kühlschrank
     { id: 'e15', ansicht: 'garten',     x: 1310, y: 250, r: 11, farbe: '#d08a5a', muster: 'zickzack', ebene: 2, sichtbarWenn: 'vogelhaus_offen' },
     // --- Ebene 3: nur nach Rätsel sichtbar ---
-    { id: 'e16', ansicht: 'wohnzimmer', x: 1150, y: 600, r: 8,  farbe: '#cfc0a4', muster: 'streifen', ebene: 1, sichtbarWenn: null },  // bei den Heften unter dem Couchtisch
+    { id: 'e16', ansicht: 'tisch_nah',  x: 330,  y: 265, r: 30, farbe: '#c9b48a', muster: 'punkte',   ebene: 1, sichtbarWenn: null },  // in der Tasse auf dem Couchtisch
     { id: 'e17', ansicht: 'kueche',     x: 955,  y: 602, r: 9,  farbe: '#5a4a38', muster: 'punkte', ebene: 2, sichtbarWenn: ['k_ofen_offen', 'kueche_licht'] },  // auf dem Rost im Backofen
     { id: 'e18', ansicht: 'garten',     x: 270,  y: 600, r: 12, farbe: '#5a4030', muster: 'zickzack', ebene: 2, sichtbarWenn: 'busch_geteilt' },
     { id: 'e19', ansicht: 'dachboden',  x: 330,  y: 650, r: 12, farbe: '#3a342c', muster: 'streifen', ebene: 2, sichtbarWenn: 'dach_kiste_offen' },
@@ -888,9 +905,7 @@
       // Ausschnitt, Overlay und aufgenommener Gegenstand: Bereich aus einem zweiten Bild einblenden
       const quelle = t.typ === 'nehmen' ? t.bildAus : (t.bildAus || ans.bildOffen);
       // Frei gezeichnetes Teil (SVG), unabhängig vom Grundbild
-      if (t.zeichnung) {
-        return `<g data-offen="${t.zustand || ''}">${t.zeichnung}</g>`;
-      }
+      if (t.zeichnung) return t.zeichnung;
       // Freigestellter Flicken mit Alphakanal: wird an seiner eigenen Stelle
       // eingeblendet, nicht aus einem Vollbild ausgeschnitten. Keine Rechteckkante.
       if (t.patch) {
@@ -939,6 +954,11 @@
     html += `<g id="durchgaenge">${durchgaenge.map(w => durchgangForm(w)).join('')}</g>`;
     // Eier ganz oben, damit sie jeden Klick bekommen
     html += `<g id="eier-vorne">${eierVorne.map(eiForm).join('')}</g>`;
+    // Vordergrund-Flicken liegen ÜBER den Eiern, damit ein Ei in einer Tasse
+    // vom Rand verdeckt wird, statt daraufgemalt zu wirken
+    html += `<g id="vordergrund-teile">${teile.filter(t => t.vorn && t.patch).map(t =>
+      `<image href="${t.patch}" xlink:href="${t.patch}" x="${t.patchX}" y="${t.patchY}" width="${t.patchW}" height="${t.patchH}" style="pointer-events:none"/>`
+    ).join('')}</g>`;
     html += `</svg>`;
     welt.innerHTML = html;
     warteAufBilder();
@@ -1405,6 +1425,29 @@
   // =====================================================================
   // SPIELLOGIK
   // =====================================================================
+  // Nächstes sichtbares, noch nicht gefundenes Ei im Umkreis des Tippens
+  function eiInDerNaehe(cx, cy) {
+    const sv = welt.querySelector('svg');
+    if (!sv) return null;
+    const kasten = sv.getBoundingClientRect();
+    const a = aktuelleAnsicht();
+    const bx = (cx - kasten.left) / kasten.width * (a.breite || 1600);
+    const by = (cy - kasten.top) / kasten.height * (a.hoehe || 900);
+    const schirmZuBild = (a.breite || 1600) / kasten.width;   // Bildpixel je Bildschirmpixel
+    let beste = null, kleinster = Infinity;
+    welt.querySelectorAll('.ei').forEach(el => {
+      if (el.classList.contains('versteckt') || el.classList.contains('gefunden')) return;
+      const ei = EIER.find(e => e.id === el.dataset.ei);
+      if (!ei) return;
+      const rx = ei.r * EI_GROESSE;
+      const grenze = Math.max(rx * 2.2, 26 * schirmZuBild);   // mindestens 26 Bildschirmpixel
+      const dx = bx - ei.x, dy = (by - ei.y) / 1.32;
+      const d = Math.hypot(dx, dy);
+      if (d <= grenze && d < kleinster) { kleinster = d; beste = ei.id; }
+    });
+    return beste;
+  }
+
   function tippe(cx, cy) {
     if (!zustand.laeuft && !EDITOR) return;
     const ziel = document.elementFromPoint(cx, cy);
@@ -1412,6 +1455,10 @@
     if (EDITOR) zeigeKoordinaten(cx, cy, ziel);
     const eiEl = ziel.closest && ziel.closest('.ei');
     if (eiEl) { eiGefunden(eiEl.dataset.ei, cx, cy); return; }
+    // Fangbereich: ein sichtbares Ei in der Nähe zählt auch dann, wenn etwas
+    // anderes darüber liegt oder das Ei beim Herauszoomen winzig ist
+    const nah = eiInDerNaehe(cx, cy);
+    if (nah) { eiGefunden(nah, cx, cy); return; }
     const wegEl = ziel.closest && ziel.closest('.durchgang');
     if (wegEl) { geheZu(wegEl.dataset.weg); return; }
     const teilEl = ziel.closest && ziel.closest('.teil');
