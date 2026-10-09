@@ -77,7 +77,7 @@ in Bildpixeln. **So werden Eier, Hotspots und Durchgänge platziert.**
 | Raum | Ansicht | Bild | Eier | Status |
 |---|---|---|---|---|
 | Garage | `garage1` Werkbank | **JA** (1774×887) | 7 | Fertig verdrahtet, 5 Ausschnitte |
-| Garage | `garage2` Tür | **JA** (1774×887) | 0 | Nur Navigation, noch keine Teile und Eier |
+| Garage | `garage2` Tür | **JA** (1774×887) | 0 | 4 Ausschnitte verdrahtet, noch keine Eier |
 | Wohnzimmer | `wohnzimmer` | nein | 4 | Platzhalter-Geometrie |
 | Küche | `kueche` | nein | 3 | Platzhalter-Geometrie |
 | Garten | `garten` | nein | 4 | Platzhalter-Geometrie |
@@ -86,10 +86,21 @@ in Bildpixeln. **So werden Eier, Hotspots und Durchgänge platziert.**
 ### Navigation (Stand jetzt)
 - `garage1` → Pfeil rechts → `garage2`
 - `garage2` → Pfeil links → `garage1`
-- `garage2` → Tür (1090,140 305×680) → `wohnzimmer` — **Ziel provisorisch**,
+- `garage2` → Treppe (1200,200 190×600) → `wohnzimmer` — erst begehbar, wenn
+  `g2_tuer_offen` gesetzt ist, also die Tür geöffnet wurde. **Ziel provisorisch**,
   gedacht ist dort das Treppenhaus
 - `wohnzimmer` → Knopf unten → `garage2`
 - Küche, Garten und Keller hängen noch an keinem Weg, nur an den Raum-Knöpfen oben
+
+### garage2 im Detail
+Vier Ausschnitte, alle mit `nah: ''` — **Nahaufnahmen fehlen noch**:
+- `g2_oben` Grosser Schrank, oben (470,150 350×396)
+- `g2_unten` Grosser Schrank, unten (470,548 380×265)
+- `g2_tuer` Tür zum Treppenhaus (1045,110 390×720) — schaltet den Weg zur Treppe frei
+- `g2_spind` Spind rechts (1560,150 214×680)
+
+Noch keine Eier in dieser Ansicht. Wenn welche dazukommen, muss anderswo
+eines weg — die Gesamtzahl 20 ist fix.
 
 ### garage1 im Detail (fertig)
 Fünf Ausschnitte, alle mit `nah: ''` — **Nahaufnahmen fehlen noch**:
@@ -133,10 +144,8 @@ Eier in einer Nahaufnahme bekommen `inNah: '<teil-id>'`.
    - e_tresor: Scherzrätsel → schlüssel/kamm/zahnrad
    - r_tuer (Kellertür): Code **2412**, Hinweis liegt auf der Garagen-Zeichnung
 2. **Bilder für Wohnzimmer, Küche, Garten, Keller** fehlen
-3. **garage2 ist leer** — keine Ausschnitte, keine Eier. Die beiden Bilder
-   (`garage2-zu.png` / `garage2-offen.png`) sind separat erzeugt und unterscheiden
-   sich auch im Rauschen, ein Differenzbild bringt dort also nichts. Die Ausschnitte
-   müssen von Hand im Ausrichtemodus gesetzt werden.
+3. **In garage2 fehlen die Eier** — die vier Ausschnitte sind verdrahtet, aber
+   es liegt noch kein Ei in dieser Ansicht.
 4. **Nahaufnahmen** aller Garage-Schränke fehlen
 5. **„Zurück"-Knopf** am Spielende zeigt auf `index.html`, die im games-Repo nicht
    existiert → Ziel noch festzulegen (Forum? Übersichtsseite? weg?)
