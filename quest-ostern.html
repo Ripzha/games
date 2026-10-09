@@ -337,7 +337,9 @@
     // Nahansichten von Gegenständen, die man in die Hand nimmt.
     // istNah: true = gehört zu keinem Raum, wird über das Inventar geöffnet.
     { id: 'bild_vorn',   istNah: true, name: 'Landschaftsbild — Vorderseite', bild: 'bilder/bild-vorn.webp',      breite: 1402, hoehe: 912 },
-    { id: 'bild_hinten', istNah: true, name: 'Landschaftsbild — Rückseite',   bild: 'bilder/bild-hinten-zu.webp', breite: 1402, hoehe: 912 }
+    { id: 'bild_hinten', istNah: true, name: 'Landschaftsbild — Rückseite',   bild: 'bilder/bild-hinten-zu.webp', breite: 1402, hoehe: 912 },
+    // Nahaufnahme eines Schranks: wird über `nah` am Teil geöffnet
+    { id: 'spind_nah', istNah: true, name: 'Spind rechts — von nahem', bild: 'bilder/spind-nah.webp', breite: 1024, hoehe: 1536 }
   ];
 
   // Gegenstände im Inventar. nah = ID der Nahansicht, die ein Klick darauf öffnet.
@@ -404,7 +406,10 @@
       hellWenn: 'th_licht',
       patch: 'bilder/g2-tuer-dunkel.webp', patchX: 1039, patchY: 104, patchW: 402, patchH: 732,
       patchHell: 'bilder/g2-tuer-hell.webp', patchHellX: 1039, patchHellY: 104, patchHellW: 402, patchHellH: 732 },
-    { id: 'g2_spind', ansicht: 'garage2', x: 1560, y: 150, w: 214, h: 680, typ: 'ausschnitt', zustand: 'g2_spind_offen', label: 'Spind rechts',          nah: '' },
+    { id: 'g2_spind', ansicht: 'garage2', x: 1560, y: 150, w: 214, h: 680, typ: 'ausschnitt', zustand: 'g2_spind_offen', label: 'Spind rechts', nah: 'spind_nah' },
+    // In der Nahaufnahme: die mittlere Dose lässt sich zur Seite schieben
+    { id: 'sp_dose', ansicht: 'spind_nah', x: 245, y: 350, w: 165, h: 320, typ: 'ausschnitt', zustand: 'dose_verschoben', label: 'Spraydose',
+      patch: 'bilder/spind-dose.webp', patchX: 159, patchY: 344, patchW: 387, patchH: 347 },
     // --- Treppenhaus (Koordinaten im Bild 1774 x 887) ---
     { id: 'th_schalter', ansicht: 'treppenhaus', x: 386, y: 334, w: 58, h: 92, typ: 'toggle', zustand: 'th_licht',
       setztAuch: 'th_geladen', neuzeichnen: true, label: 'Lichtschalter' },
@@ -539,7 +544,7 @@
   const EIER = [
     // --- Ebene 1: sichtbar, getarnt ---
     { id: 'e01', ansicht: 'garage1',     x: 1452, y: 243, r: 7,  farbe: '#6f4d37', muster: 'punkte',   ebene: 1, sichtbarWenn: null },  // Regal oben zwischen den Dosen
-    { id: 'e02', ansicht: 'garage1',     x: 760,  y: 780, r: 7,  farbe: '#8b460b', muster: 'streifen', ebene: 1, sichtbarWenn: null },  // auf der Holzkiste
+    { id: 'e02', ansicht: 'spind_nah',   x: 355,  y: 540, r: 14, farbe: '#4e4337', muster: 'streifen', ebene: 2, sichtbarWenn: 'dose_verschoben' },  // hinter der Spraydose im Spind
     { id: 'e05', ansicht: 'garage1',     x: 1395, y: 432, r: 6,  farbe: '#27282c', muster: 'zickzack', ebene: 1, sichtbarWenn: null },  // im Schubladenkasten
     { id: 'e08', ansicht: 'garage1',     x: 600,  y: 860, r: 7,  farbe: '#8b613b', muster: 'punkte',   ebene: 1, sichtbarWenn: null },  // Boden vor dem blauen Container
     { id: 'e04', ansicht: 'wohnzimmer', x: 1332, y: 712, r: 9,  farbe: '#8a4a3a', muster: 'punkte', ebene: 1, sichtbarWenn: null },  // auf dem Teppich

@@ -204,7 +204,9 @@ Vier Ausschnitte, alle mit `nah: ''` — **Nahaufnahmen fehlen noch**:
 - `g2_tuer` Tür zum Treppenhaus (1045,110 390×720) — schaltet den Weg zur Treppe frei.
   Zeigt das Treppenhaus dahinter, hängt also über ein eigenes `hellWenn: 'th_licht'`
   am Licht des Nachbarraums, nicht am eigenen.
-- `g2_spind` Spind rechts (1560,150 214×680)
+- `g2_spind` Spind rechts (1560,150 214×680). Zweites Antippen öffnet die
+  Nahaufnahme `spind_nah` (1024×1536). Dort lässt sich die mittlere Spraydose
+  zur Seite schieben (245,350 165×320), dahinter liegt Ei e02.
 
 ### Wohnzimmer im Detail
 - `w_regal` Schrank unter dem Bücherregal (862,336 236×146), Flicken mit Aussparung für die Tasse → Ei e12
