@@ -54,6 +54,9 @@ Alles Inhaltliche steht oben im `<script>` unter **„DATEN"**:
   `bildOffen` (alles offen), `breite`/`hoehe` in Bildpixeln.
   `hellWenn` + `bildHell`: zweites Grundbild, das gilt, sobald der Zustand gesetzt
   ist (Küche: dunkel bis die Sicherung sitzt). Teile brauchen dann zwei Flicken.
+  `lampeWenn` + `lampeRadius`: die Ansicht ist stockdunkel. Ist der Zustand gesetzt,
+  wandert ein Lichtkegel mit dem Zeiger mit. Der Radius ist in Bildpixeln, der Kegel
+  beleuchtet beim Zoomen also immer dieselbe Fläche.
   `istNah: true` = Nahansicht eines Gegenstands, gehört zu keinem Raum und wird
   über das Inventar oder über `nah` an einem Teil geöffnet.
   Ein Raum kann mehrere Ansichten haben (Garage: `garage1` Werkbank, `garage2` Tür).
@@ -70,7 +73,9 @@ Alles Inhaltliche steht oben im `<script>` unter **„DATEN"**:
   `typ`, `zustand`, `label`
 - **EIER** — `ansicht`, x, y, r, farbe, muster, `ebene` (1/2/3), `sichtbarWenn`
 - **GEGENSTAENDE** — Inventar: id, `symbol` (Emoji fürs Rucksack-Fach), name,
-  `nah` (ID einer Nahansicht), `text`
+  `nah` (ID einer Nahansicht), `text`.
+  Zusammensetzen: `nimmt` (andere Gegenstand-ID), `setzt`, `verbraucht`, `antwort`.
+  Als Schalter: `schaltet` (Zustand), `nurWenn` (Bedingung), `fehlt` (Text wenn nicht erfüllt).
 - **DUNKEL** — dunkle Bereiche, die erst nach einem Lichtschalter sichtbar werden (derzeit leer)
 
 Wichtig: TEILE und EIER hängen an einer **Ansicht**, nicht am Raum (`ansicht: 'garage1'`).
@@ -198,6 +203,16 @@ der Küche nichts zu finden.
 
 **Vorläufig:** Ein Klick auf die offene Sicherung schaltet direkt das Licht.
 Sobald die Nahaufnahme des Sicherungskastens da ist, wird daraus das Auswechseln.
+
+### Taschenlampe und Dachboden
+Der Dachboden hat `lampeWenn: 'lampe_an'`. Ohne Lampe sieht man nichts.
+Kette: Taschenlampe im linken Unterschrank der Küche (nur bei Licht sichtbar) →
+Batterien im Steckschlüsselkasten der Garage → Batterien im Rucksack auf die
+Lampe anwenden → Lampe antippen schaltet sie an und aus.
+
+Beide Fundorte haben noch kein eigenes Bild, darum zeigt das Spiel dort eine
+goldene Marke. Position ändern heisst: x/y/w/h bei `k_lampe` beziehungsweise
+`g_batterien` anpassen.
 
 ### Treppenhaus im Detail
 - `th_tuer` Holztür oben an der Treppe (960,20 230×395) — schaltet den Weg in den Flur frei

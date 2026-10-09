@@ -66,7 +66,7 @@
   .ei.gefunden .ei-treffer { cursor: default; }
   .ei.versteckt { display: none; }
   .zoom-hinweis { position: absolute; right: 10px; top: 10px; font-size: 11px; color: var(--himmel-text); background: rgba(10,18,12,0.7); padding: 4px 8px; border-radius: 6px; pointer-events: none; z-index: 5; }
-  .zoom-knoepfe { position: absolute; left: 10px; bottom: 10px; display: flex; gap: 6px; z-index: 5; }
+  .zoom-knoepfe { position: absolute; left: 10px; bottom: 10px; display: flex; gap: 6px; z-index: 9; }
   .zoom-knoepfe button { width: 36px; height: 36px; border-radius: 8px; border: 1px solid var(--panel-rand); background: rgba(10,18,12,0.85); color: var(--cream); font-size: 18px; cursor: pointer; }
 
   /* ---------- Aci-Dialog ---------- */
@@ -115,6 +115,18 @@
   .rang-zeile.top1 { color: var(--gold-hell); }
   .rang-zeile.eigener { background: rgba(200,146,72,0.18); }
   .rang-laedt { color: var(--himmel-text); font-size: 13px; }
+
+  /* ---------- Taschenlampe: Dunkelheit mit wanderndem Lichtkegel ---------- */
+  .lampe { position: absolute; inset: 0; z-index: 6; pointer-events: none; display: none; }
+  .lampe.an { display: block; }
+  /* ohne Lampe: stockdunkel, man ahnt nur Umrisse */
+  .lampe.blind { background: rgba(4,6,5,0.95); }
+  /* mit Lampe: ein warmer Kegel dort, wo der Zeiger ist */
+  .lampe.kegel {
+    background: radial-gradient(circle var(--r, 170px) at var(--x, 50%) var(--y, 50%),
+      rgba(4,6,5,0) 0%, rgba(4,6,5,0.08) 40%, rgba(4,6,5,0.55) 72%,
+      rgba(4,6,5,0.88) 88%, rgba(4,6,5,0.96) 100%);
+  }
 
   /* ---------- Rucksack ---------- */
   .rucksack { position: absolute; right: 10px; bottom: 10px; width: 54px; height: 54px; border-radius: 12px; border: 1px solid var(--gold); background: rgba(10,18,12,0.88); color: var(--gold-hell); font-size: 26px; line-height: 1; cursor: pointer; z-index: 11; display: flex; align-items: center; justify-content: center; }
@@ -173,6 +185,7 @@
     <div class="editor-kreuz" id="editor-kreuz"></div>
     <div class="ansicht-name" id="ansicht-name"></div>
     <div id="wege"></div>
+    <div class="lampe" id="lampe"></div>
     <div class="beutel" id="beutel">
       <div class="titel">Rucksack</div>
       <div class="gitter" id="gitter"></div>
@@ -295,7 +308,8 @@
     { id: 'kueche', raum: 'kueche', name: 'Küche', bild: 'bilder/kueche-dunkel.png',
       hellWenn: 'kueche_licht', bildHell: 'bilder/kueche-hell.png', breite: 1774, hoehe: 887 },
     { id: 'garten',     raum: 'garten',     name: 'Garten',     bild: '' },
-    { id: 'dachboden', raum: 'dachboden', name: 'Dachboden', bild: '' },
+    { id: 'dachboden', raum: 'dachboden', name: 'Dachboden', bild: '',
+      lampeWenn: 'lampe_an', lampeRadius: 160 },
     // Nahansichten von Gegenständen, die man in die Hand nimmt.
     // istNah: true = gehört zu keinem Raum, wird über das Inventar geöffnet.
     { id: 'bild_vorn',   istNah: true, name: 'Landschaftsbild — Vorderseite', bild: 'bilder/bild-vorn.png',      breite: 1402, hoehe: 912 },
@@ -306,7 +320,13 @@
   const GEGENSTAENDE = [
     { id: 'gemaelde',   symbol: '🖼', name: 'Bild',      nah: 'bild_vorn', text: 'Ein Landschaftsbild in einem alten Holzrahmen.' },
     { id: 'schluessel', symbol: '🗝', name: 'Schlüssel', text: 'Ein alter Messingschlüssel. Wozu er passt, weiss ich noch nicht.' },
-    { id: 'kippen',     symbol: '🚬', name: 'Schachtel', text: 'Eine angebrochene Schachtel Zigaretten.' }
+    { id: 'kippen',     symbol: '🚬', name: 'Schachtel', text: 'Eine angebrochene Schachtel Zigaretten.' },
+    // Die Taschenlampe nimmt die Batterien entgegen und wird danach zum Schalter.
+    { id: 'lampe',      symbol: '🔦', name: 'Lampe',     text: 'Eine Taschenlampe. Ohne Batterien nutzlos.',
+      nimmt: 'batterien', setzt: 'lampe_bereit', verbraucht: true,
+      antwort: 'Batterien drin. Jetzt tut sie wieder.',
+      schaltet: 'lampe_an', nurWenn: 'lampe_bereit', fehlt: 'Tote Lampe. Da müssen Batterien rein.' },
+    { id: 'batterien',  symbol: '🔋', name: 'Batterien', text: 'Zwei Batterien. Sehen noch brauchbar aus.' }
   ];
 
   const WEGE = [
@@ -337,6 +357,8 @@
     { id: 'g_blau',    ansicht: 'garage1', x: 536,  y: 586, w: 170, h: 70,  typ: 'ausschnitt', zustand: 'blau_offen',   label: 'Blauer Rollcontainer',   nah: '' },
     { id: 'g_steck',   ansicht: 'garage1', x: 1096, y: 668, w: 215, h: 85,  typ: 'ausschnitt', zustand: 'steck_offen',  label: 'Steckschlüssel-Schublade', nah: '' },
     { id: 'g_wagen',   ansicht: 'garage1', x: 1330, y: 584, w: 318, h: 258, typ: 'ausschnitt', zustand: 'wagen_offen',  label: 'Roter Werkstattwagen',   nah: '' },
+    { id: 'g_batterien', ansicht: 'garage1', x: 1110, y: 676, w: 80, h: 62, typ: 'nehmen', zustand: 'batterien_weg',
+      gibt: 'batterien', sichtbarWenn: 'steck_offen', label: 'Batterien' },
     { id: 'g_zettel',  ansicht: 'garage1', x: 1055, y: 12,  w: 180, h: 112, typ: 'info', label: 'Zeichnung an der Wand',
       titel: 'Notiz am Rand der Zeichnung', text: '[PLATZHALTER — Text kommt, sobald klar ist, wozu der Code gehört] „Vier Ziffern. Wenn du sie nicht weisst, hast du nicht zugehört." — Anfisa' },
     // --- Garage, Ansicht 2: Türseite (Koordinaten im Bild 1774 x 887) ---
@@ -404,6 +426,8 @@
     { id: 'k_unten_links', ansicht: 'kueche', x: 370, y: 492, w: 378, h: 210, typ: 'ausschnitt', zustand: 'k_unten_links_offen', label: 'Unterschrank links',
       patch: 'bilder/kue-unten-links-dunkel.png', patchX: 363, patchY: 485, patchW: 392, patchH: 224,
       patchHell: 'bilder/kue-unten-links-hell.png', patchHellX: 363, patchHellY: 485, patchHellW: 392, patchHellH: 224 },
+    { id: 'k_lampe', ansicht: 'kueche', x: 400, y: 530, w: 110, h: 80, typ: 'nehmen', zustand: 'lampe_weg',
+      gibt: 'lampe', sichtbarWenn: ['k_unten_links_offen', 'kueche_licht'], label: 'Taschenlampe' },
     { id: 'k_ofen', ansicht: 'kueche', x: 848, y: 488, w: 200, h: 212, typ: 'ausschnitt', zustand: 'k_ofen_offen', label: 'Backofen',
       patch: 'bilder/kue-ofen-dunkel.png', patchX: 841, patchY: 481, patchW: 214, patchH: 226,
       patchHell: 'bilder/kue-ofen-hell.png', patchHellX: 841, patchHellY: 481, patchHellW: 214, patchHellH: 226 },
@@ -676,7 +700,7 @@
     // Offen-Zustände der Teile
     // Bedingungs-Hülle: data-wenn muss gesetzt sein, data-nicht darf nicht gesetzt sein
     const huelle = (t, inhalt) => (!inhalt || (!t.sichtbarWenn && !t.nichtWenn)) ? inhalt
-      : `<g data-wenn="${t.sichtbarWenn || ''}" data-nicht="${t.nichtWenn || ''}">${inhalt}</g>`;
+      : `<g data-wenn="${(Array.isArray(t.sichtbarWenn) ? t.sichtbarWenn : [t.sichtbarWenn]).filter(Boolean).join(',')}" data-nicht="${t.nichtWenn || ''}">${inhalt}</g>`;
     html += `<g id="teile-offen">${teile.map(t => huelle(t, (() => {
       // Figur mit mehreren Frames: jede Phase ein eigener Ausschnitt aus ihrem Bild
       if (t.typ === 'phasen') {
@@ -719,11 +743,12 @@
     // Trefferflächen der Teile — durchsichtig, liegen unter Durchgängen und Eiern,
     // sonst liesse sich ein Ei in einer offenen Schublade nicht mehr antippen
     html += `<g id="teile">${teile.filter(t => t.typ !== 'overlay').map(t => {
+      const ja = (Array.isArray(t.sichtbarWenn) ? t.sichtbarWenn : [t.sichtbarWenn]).filter(Boolean).join(',');
       const nicht = [t.nichtWenn, t.typ === 'nehmen' ? t.zustand : ''].filter(Boolean).join(',');
       // treffer: eigene Klickfläche, falls der Bildausschnitt grösser ist als das,
       // was angeklickt werden soll (Anfisas Frames reichen bis hinter das Bild an der Wand)
       const r = t.treffer || t;
-      return `<rect class="teil" data-teil="${t.id}" data-wenn="${t.sichtbarWenn || ''}" data-nicht="${nicht}" x="${r.x}" y="${r.y}" width="${r.w}" height="${r.h}" fill="transparent"><title>${t.label}</title></rect>`;
+      return `<rect class="teil" data-teil="${t.id}" data-wenn="${ja}" data-nicht="${nicht}" x="${r.x}" y="${r.y}" width="${r.w}" height="${r.h}" fill="transparent"><title>${t.label}</title></rect>`;
     }).join('')}</g>`;
     // Durchgänge im Bild (Tür, Treppe) — mit sichtbarer Marke
     html += `<g id="durchgaenge">${durchgaenge.map(w => durchgangForm(w)).join('')}</g>`;
@@ -733,6 +758,34 @@
     welt.innerHTML = html;
     aktualisiereSichtbarkeit();
     renderRaumKnoepfe();
+    setzeLampe(ans);
+  }
+
+  // =====================================================================
+  // TASCHENLAMPE
+  // Eine Ansicht mit `lampeWenn` ist dunkel. Ist der Zustand gesetzt, wandert
+  // ein Lichtkegel mit dem Zeiger mit; sonst sieht man so gut wie nichts.
+  // =====================================================================
+  let lampeRadius = 170;
+  function setzeLampe(ans) {
+    const el = document.getElementById('lampe');
+    const a = ans || aktuelleAnsicht();
+    if (!a.lampeWenn) { el.className = 'lampe'; return; }
+    const an = !!zustand.offen[a.lampeWenn];
+    el.className = 'lampe an ' + (an ? 'kegel' : 'blind');
+    lampeRadius = a.lampeRadius || 170;
+    lampeGroesse();
+  }
+  function lampeGroesse() {
+    // Radius in Bildpixeln, damit der Kegel beim Zoomen dieselbe Fläche beleuchtet
+    document.getElementById('lampe').style.setProperty('--r', Math.round(lampeRadius * basis * zoom) + 'px');
+  }
+  function lampeNach(cx, cy) {
+    const el = document.getElementById('lampe');
+    if (!el.classList.contains('kegel')) return;
+    const r = buehne.getBoundingClientRect();
+    el.style.setProperty('--x', Math.round(cx - r.left) + 'px');
+    el.style.setProperty('--y', Math.round(cy - r.top) + 'px');
   }
 
   // Marke auf einem Durchgang im Bild: Kreis mit Pfeil.
@@ -856,7 +909,19 @@
         b.draggable = true;
         b.ondragstart = (e) => { waehle(id, true); beutelZu(); try { e.dataTransfer.setData('text/plain', id); } catch (err) {} };
         b.ondragend = () => buehne.classList.remove('zielt');
-        b.onclick = () => { const an = zustand.gewaehlt !== id; waehle(an ? id : null); if (an) beutelZu(); };
+        b.onclick = () => {
+          // Ein gewählter Gegenstand wird auf diesen hier angewendet
+          if (zustand.gewaehlt && zustand.gewaehlt !== id) { kombiniere(zustand.gewaehlt, g); return; }
+          // Gegenstand, der etwas schaltet (Taschenlampe)
+          if (g.schaltet) {
+            if (g.nurWenn && !zustand.offen[g.nurWenn]) { sag(g.fehlt || 'Geht so noch nicht.'); return; }
+            zustand.offen[g.schaltet] = !zustand.offen[g.schaltet];
+            ton([zustand.offen[g.schaltet] ? 760 : 380]);
+            speichern(); renderRaum();
+            return;
+          }
+          const an = zustand.gewaehlt !== id; waehle(an ? id : null); if (an) beutelZu();
+        };
         fach.appendChild(b);
         if (g.nah) {
           const l = document.createElement('button');
@@ -884,6 +949,18 @@
       const g = GEGENSTAENDE.find(x => x.id === id);
       sag((g ? g.name : 'Gegenstand') + ' in der Hand. Tipp jetzt an, wohin damit.');
     }
+  }
+
+  // Zwei Gegenstände zusammensetzen (Batterien in die Lampe)
+  function kombiniere(gegenstandId, ziel) {
+    if (ziel.nimmt !== gegenstandId) { sag('Das passt nicht zusammen.'); return false; }
+    if (ziel.setzt) zustand.offen[ziel.setzt] = true;
+    if (ziel.verbraucht) zustand.inventar = zustand.inventar.filter(x => x !== gegenstandId);
+    waehle(null, true);
+    ton([660, 880, 1100]);
+    renderRaum(); speichern();
+    if (ziel.antwort) sag(ziel.antwort);
+    return true;
   }
 
   // Gewählten Gegenstand auf ein Teil anwenden
@@ -936,6 +1013,7 @@
     if (ww <= bw) tx = (bw - ww) / 2; else tx = Math.min(0, Math.max(bw - ww, tx));
     if (wh <= bh) ty = (bh - wh) / 2; else ty = Math.min(0, Math.max(bh - wh, ty));
     welt.style.transform = `translate(${tx}px, ${ty}px) scale(${s})`;
+    lampeGroesse();
   }
   function zoomReset() { passeEin(); zoom = 1; tx = 0; ty = 0; wendeTransformAn(); }
   function zoomUm(faktor, px, py) {
@@ -962,6 +1040,7 @@
   const zeiger = new Map();
   let zugStart = null, pinchStart = null, bewegt = false;
   buehne.addEventListener('pointerdown', (e) => {
+    lampeNach(e.clientX, e.clientY);
     // Knöpfe auf der Bühne (Zoom, Wege) nicht als Ziehen oder Tippen ins Bild werten
     if (e.target.closest && (e.target.closest('button') || e.target.closest('.beutel'))) return;
     beutelZu();
@@ -977,6 +1056,7 @@
     }
   });
   buehne.addEventListener('pointermove', (e) => {
+    lampeNach(e.clientX, e.clientY);
     if (!zeiger.has(e.pointerId)) return;
     zeiger.set(e.pointerId, { x: e.clientX, y: e.clientY });
     if (zeiger.size === 2 && pinchStart) {
