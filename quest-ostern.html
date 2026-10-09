@@ -412,8 +412,8 @@
       strafeWenn: 'bild_ab', strafeSetzt: 'anfisa_sauer',
       strafeAntwort: '[STRAFE — sie sieht die leere Wand und rührt sich nicht. Text folgt]', phasen: [
         { bild: '' },
-        { bild: 'bilder/wohnzimmer-frau-wach.png',    text: '[TEXT 1 — aufgeschreckt, folgt noch]' },
-        { bild: 'bilder/wohnzimmer-frau-spricht.png', text: '[TEXT 2 — was sie sagt, folgt noch]' }
+        { bild: 'bilder/wz-frau-wach.png',    x: 200, y: 93, w: 520, h: 377, text: '[TEXT 1 — aufgeschreckt, folgt noch]' },
+        { bild: 'bilder/wz-frau-spricht.png', x: 200, y: 93, w: 520, h: 377, text: '[TEXT 2 — was sie sagt, folgt noch]' }
       ] },
     // --- Küche ---
     // --- Küche. Grundbild ist dunkel; erst die Sicherung macht Licht.
@@ -715,10 +715,17 @@
     html += `<g id="teile-offen">${teile.map(t => huelle(t, (() => {
       // Figur mit mehreren Frames: jede Phase ein eigener Ausschnitt aus ihrem Bild
       if (t.typ === 'phasen') {
-        return (t.phasen || []).map((p, i) => !p.bild ? '' : `<g data-phase="${t.zustand}:${i}">
-          <clipPath id="clip_${t.id}_${i}"><rect x="${t.x}" y="${t.y}" width="${t.w}" height="${t.h}"/></clipPath>
-          <image href="${p.bild}" xlink:href="${p.bild}" x="0" y="0" width="${RW}" height="${RH}" clip-path="url(#clip_${t.id}_${i})"/>
-        </g>`).join('');
+        return (t.phasen || []).map((p, i) => {
+          if (!p.bild) return '';
+          // Freigestellter Flicken mit eigener Position, sonst Ausschnitt aus dem Vollbild
+          if (p.w) {
+            return `<g data-phase="${t.zustand}:${i}"><image href="${p.bild}" xlink:href="${p.bild}" x="${p.x}" y="${p.y}" width="${p.w}" height="${p.h}"/></g>`;
+          }
+          return `<g data-phase="${t.zustand}:${i}">
+            <clipPath id="clip_${t.id}_${i}"><rect x="${t.x}" y="${t.y}" width="${t.w}" height="${t.h}"/></clipPath>
+            <image href="${p.bild}" xlink:href="${p.bild}" x="0" y="0" width="${RW}" height="${RH}" clip-path="url(#clip_${t.id}_${i})"/>
+          </g>`;
+        }).join('');
       }
       // Ausschnitt, Overlay und aufgenommener Gegenstand: Bereich aus einem zweiten Bild einblenden
       const quelle = t.typ === 'nehmen' ? t.bildAus : (t.bildAus || ans.bildOffen);

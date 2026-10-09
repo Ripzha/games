@@ -91,7 +91,7 @@ Wichtig: TEILE und EIER hängen an einer **Ansicht**, nicht am Raum (`ansicht: '
 | `nehmen` | Gegenstand aufnehmen. `gibt` = ID aus GEGENSTAENDE, `zustand` wird gesetzt, `bildAus` blendet den Bereich ohne den Gegenstand ein. Danach nicht mehr anklickbar. |
 | `ziel` | Nimmt nur Gegenstände entgegen, ein blosser Klick tut nichts. Für Stellen, an denen etwas hingehört (leerer Nagel). |
 | `overlay` | Nur ein eingeblendeter Bereich, nicht anklickbar. Für Zustände, die von woanders geschaltet werden. |
-| `phasen` | Figur mit mehreren Frames. Jeder Klick geht eine Phase weiter, nach der letzten zurück auf 0. Phase 0 = Grundbild. Jede Phase: `{ bild, text }`, der Text erscheint in der Sprechblase mit `sprecher` als Namen. |
+| `phasen` | Figur mit mehreren Frames. Jeder Klick geht eine Phase weiter, nach der letzten zurück auf 0. Phase 0 = Grundbild. Jede Phase: `{ bild, x, y, w, h, text }` — mit x/y/w/h ein freigestellter Flicken, ohne sie ein Rechteckausschnitt aus dem Vollbild. Freigestellt ist richtig, sobald sich hinter der Figur etwas ändern kann. |
 | `schalter` | Licht an/aus für DUNKEL-Bereiche |
 
 Zusatzfelder für jedes Teil: `patch` (freigestelltes PNG mit Transparenz, dazu
@@ -167,7 +167,7 @@ Vier Ausschnitte, alle mit `nah: ''` — **Nahaufnahmen fehlen noch**:
   zurückhängen.. Der Rahmen reicht bis y=190, ein kürzerer Ausschnitt lässt die Rahmenunterkante stehen.
 - `w_tv` Fernseher (1400,145 240×200) — an und aus
 - `w_sessel_leer` Overlay ohne Anfisa (150,80 850×770), schaltet auf `anfisa_weg`
-- `w_frau` Anfisa im Sessel (240,95 430×330, Klickfläche 240,160 430×265),
+- `w_frau` Anfisa im Sessel (Flicken 200,93 520×377, Klickfläche 240,192 430×233),
   typ `phasen`, nimmt `kippen` entgegen und setzt damit `anfisa_weg`:
   0 schlafend (Grundbild) · 1 aufgeschreckt · 2 spricht · danach wieder 0.
   **Beide Texte sind Platzhalter.**
