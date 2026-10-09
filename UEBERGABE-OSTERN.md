@@ -210,7 +210,10 @@ Vier Ausschnitte, alle mit `nah: ''` — **Nahaufnahmen fehlen noch**:
 - `w_frau` Anfisa im Sessel (Flicken 237,97 543×402, Klickfläche 240,192 430×233),
   typ `phasen`, nimmt `kippen` entgegen und setzt damit `anfisa_weg`:
   0 schlafend (Grundbild) · 1 aufgeschreckt · 2 spricht · danach wieder 0.
-  Vier Sprüche beim Aufschrecken, sechs beim Reden, der Reihe nach.
+  Vier Sprüche beim Aufschrecken, sieben beim Reden, der Reihe nach. Einer davon
+  deutet an, dass ihre Schachtel leer ist — ein Hinweis, ohne die Lösung zu verraten.
+  Keiner ihrer Texte erwähnt den Sessel: Was der Spieler davon hat, dass sie
+  aufsteht, soll er selbst merken.
   Dazu drei Einzeltexte: wenn ihr etwas fehlt, wenn sie beides bekommt, und
   wenn das Bild nicht an der Wand hängt. Sie spricht mit russischem Akzent.
 - Eier e04 (Teppich, 1332,712) und e16 (Hefte unter dem Couchtisch, 1150,600) liegen getarnt offen

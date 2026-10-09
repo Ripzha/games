@@ -462,13 +462,13 @@
       // Sie will beides: Schachtel und Feuerzeug. Und solange das Bild nicht
       // an der Wand hängt, nimmt sie gar nichts an.
       nimmt: ['kippen', 'feuerzeug'], setzt: 'anfisa_weg', verbraucht: true,
-      antwort: '„Papirossy. Und Feuer dazu." Sie stemmt sich hoch, langsam wie ein Schrank. „Nu gut. Ich gehe rauchen. Sessel ist frei — aber mach keine Unordnung."',
+      antwort: '„Papirossy. Und Feuer." Sie steckt beides ein und stemmt sich hoch, langsam wie ein Schrank. „Dann setze ich Wasser auf. Ohne Tee schmeckt das nicht."',
       fehlt: '„Halbe Sachen." Sie streckt die Hand aus und lässt sie wieder sinken. „Bring mir beides. Dann reden wir."',
       strafen: [
         { wenn: 'bild_ab', setzt: 'anfisa_sauer',
-          antwort: '„Stoj." Sie deutet mit dem Kinn zur Wand. „Da ist Loch. Wo ist mein Bild? Erst hängst du zurück, dann kriegst du Sessel."' },
+          antwort: '„Stoj." Sie deutet mit dem Kinn zur Wand. „Da ist Loch. Mein Bild hing da. Solange das so aussieht, rühre ich mich nicht."' },
         { wenn: 'tv_aus',
-          antwort: '„Erst Fernseher wieder an." Sie verschränkt die Arme. „Ich gehe nicht raus, solange hier Totenstille ist."' }
+          antwort: '„Erst Fernseher wieder an." Sie verschränkt die Arme. „Bei Totenstille bleibe ich sitzen."' }
       ],
       phasen: [
         { bild: '' },
@@ -484,7 +484,8 @@
           '„Ich sitze, du gehst. So ist Ordnung in diesem Haus."',
           '„Suchst du Eier? Anfisa versteckt gut. Anfisa versteckt sehr gut."',
           '„Frag nicht mich. Frag deine Augen."',
-          '„Geh raus. Draussen ist Luft, hier ist nur ich."'
+          '„Geh raus. Draussen ist Luft, hier ist nur ich."',
+          '„Schachtel ist leer seit gestern. Niemand denkt an alte Frau."'
         ] }
       ] },
     // --- Küche ---
