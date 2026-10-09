@@ -481,9 +481,11 @@
     { id: 'k_unten_rechts', ansicht: 'kueche', x: 1070, y: 500, w: 278, h: 192, typ: 'ausschnitt', zustand: 'k_unten_rechts_offen', label: 'Unterschrank unter der Spüle',
       patch: 'bilder/kue-unten-rechts-dunkel.png', patchX: 1063, patchY: 493, patchW: 292, patchH: 206,
       patchHell: 'bilder/kue-unten-rechts-hell.png', patchHellX: 1063, patchHellY: 493, patchHellW: 292, patchHellH: 206 },
-    { id: 'k_kuehl', ansicht: 'kueche', x: 1374, y: 150, w: 316, h: 535, typ: 'ausschnitt', zustand: 'k_kuehl_offen', label: 'Kühlschrank',
-      patch: 'bilder/kue-kuehl-dunkel.png', patchX: 1361, patchY: 143, patchW: 336, patchH: 549,
-      patchHell: 'bilder/kue-kuehl-hell.png', patchHellX: 1361, patchHellY: 143, patchHellW: 336, patchHellH: 549 },
+    // Schnittkante unter der Oberseite: die Emailledose dort steht nur im
+    // geöffneten Bild, sonst taucht sie beim Öffnen aus dem Nichts auf.
+    { id: 'k_kuehl', ansicht: 'kueche', x: 1374, y: 186, w: 316, h: 500, typ: 'ausschnitt', zustand: 'k_kuehl_offen', label: 'Kühlschrank',
+      patch: 'bilder/kue-kuehl-dunkel.png', patchX: 1361, patchY: 179, patchW: 336, patchH: 513,
+      patchHell: 'bilder/kue-kuehl-hell.png', patchHellX: 1361, patchHellY: 179, patchHellW: 336, patchHellH: 513 },
     // --- Garten ---
     { id: 'r_busch',    ansicht: 'garten', x: 120,  y: 480, w: 300, h: 240, typ: 'toggle', form: 'busch', zustand: 'busch_geteilt', label: 'Busch' },
     { id: 'r_vogel',    ansicht: 'garten', x: 1250, y: 180, w: 120, h: 130, typ: 'toggle', form: 'klappe', zustand: 'vogelhaus_offen', label: 'Vogelhaus' },

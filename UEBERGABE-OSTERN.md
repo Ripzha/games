@@ -219,7 +219,7 @@ Dunkeln öffnen.
 | `k_unten_links` | 370,492 378×210 | `k_unten_links_offen` |
 | `k_ofen` Backofen | 848,488 200×212 | `k_ofen_offen` → Ei e17 |
 | `k_unten_rechts` Spüle | 1070,500 278×192 | `k_unten_rechts_offen` |
-| `k_kuehl` Kühlschrank | 1374,150 316×535 | `k_kuehl_offen` → Ei e14 |
+| `k_kuehl` Kühlschrank | 1374,186 316×500 | `k_kuehl_offen` → Ei e14. Kante unter der Oberseite, die Dose dort gibt es nur im geöffneten Bild |
 
 Das Wandschränkchen ist im geschlossenen Zustand nur ein feiner Umriss auf der
 Tapete, praktisch unsichtbar. Das ist Absicht.
