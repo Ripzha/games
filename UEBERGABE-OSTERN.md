@@ -175,7 +175,7 @@ Vier Ausschnitte, alle mit `nah: ''` — **Nahaufnahmen fehlen noch**:
 
 ### Wohnzimmer im Detail
 - `w_regal` Schrank unter dem Bücherregal (862,336 236×146), Flicken mit Aussparung für die Tasse → Ei e12
-- `w_tvmoebel` Fernsehmöbel (1215,400 559×108) → Ei e13. Flicken, Kante unter den Porzellanfiguren — die stehen in den beiden Bildern versetzt.
+- `w_tvmoebel` Fernsehmöbel (1215,398 205×118) → Ei e13. Nur die linke Tür geht auf; mittleres Fach und Couchtisch sind ausgespart, die sind in den beiden Bildern unterschiedlich gefüllt.
 - `w_gemaelde` Bild an der Wand (415,0 275×188), typ `nehmen` → Gegenstand `gemaelde`
 - `w_nagel` derselbe Fleck, typ `ziel`, nur sichtbar wenn `bild_ab`. Nimmt das
   Bild wieder entgegen und hebt `bild_ab` auf. Damit lässt sich das Bild

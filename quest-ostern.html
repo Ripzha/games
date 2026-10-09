@@ -410,10 +410,11 @@
     // --- Wohnzimmer (Koordinaten im Bild 1774 x 887) ---
     { id: 'w_regal',    ansicht: 'wohnzimmer', x: 862,  y: 336, w: 236, h: 146, typ: 'ausschnitt', zustand: 'wz_regal_offen', label: 'Schrank unter dem Bücherregal',
       patch: 'bilder/wz-regal-auf.png', patchX: 856, patchY: 330, patchW: 248, patchH: 158 },
-    // Schnittkante liegt unter den Porzellanfiguren — die stehen in beiden Bildern
-    // leicht versetzt, ein höherer Schnitt zerschneidet sie.
-    { id: 'w_tvmoebel', ansicht: 'wohnzimmer', x: 1215, y: 398, w: 559, h: 112, typ: 'ausschnitt', zustand: 'wz_tv_offen',    label: 'Fernsehmöbel',
-      patch: 'bilder/wz-tvmoebel-auf.png', patchX: 1209, patchY: 392, patchW: 565, patchH: 124 },
+    // Nur die linke Tür geht auf. Das mittlere Fach und der Couchtisch sind in
+    // beiden Bildern unterschiedlich gefüllt und bleiben darum aus dem Flicken
+    // ausgespart, sonst verändert sich beim Öffnen das halbe Möbel.
+    { id: 'w_tvmoebel', ansicht: 'wohnzimmer', x: 1215, y: 398, w: 205, h: 118, typ: 'ausschnitt', zustand: 'wz_tv_offen', label: 'Fernsehmöbel',
+      patch: 'bilder/wz-tvmoebel-auf.png', patchX: 1209, patchY: 390, patchW: 542, patchH: 132 },
     // Die Frau im Sessel: drei Frames. 0 = schlafend (Grundbild), 1 = aufgeschreckt, 2 = spricht.
     // Jeder Klick geht eine Phase weiter, nach der letzten wieder zurück auf schlafend.
     // Sessel ohne Anfisa. Liegt vor dem Bild an der Wand, damit ein abgehängtes Bild
