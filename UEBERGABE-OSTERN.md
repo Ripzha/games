@@ -52,6 +52,8 @@ Alles Inhaltliche steht oben im `<script>` unter **„DATEN"**:
   `imMenu: false` für Durchgangsräume, die nicht in der Kopfzeile stehen sollen
 - **ANSICHTEN** — ein Blickwinkel eines Raums: id, raum, name, `bild` (geschlossen),
   `bildOffen` (alles offen), `breite`/`hoehe` in Bildpixeln.
+  `hellWenn` + `bildHell`: zweites Grundbild, das gilt, sobald der Zustand gesetzt
+  ist (Küche: dunkel bis die Sicherung sitzt). Teile brauchen dann zwei Flicken.
   `istNah: true` = Nahansicht eines Gegenstands, gehört zu keinem Raum und wird
   über das Inventar oder über `nah` an einem Teil geöffnet.
   Ein Raum kann mehrere Ansichten haben (Garage: `garage1` Werkbank, `garage2` Tür).
@@ -121,7 +123,7 @@ in Bildpixeln. **So werden Eier, Hotspots und Durchgänge platziert.**
 | Garage | `garage2` Tür | **JA** | 0 | 4 Ausschnitte, noch keine Eier |
 | Treppenhaus | `treppenhaus` | **JA** | 0 | 2 Ausschnitte, noch keine Eier, nicht in der Kopfzeile |
 | Wohnzimmer | `wohnzimmer` | **JA** | 4 | 2 Ausschnitte, 1 Rätsel, Frau mit 3 Frames |
-| Küche | `kueche` | nein | 3 | Platzhalter-Geometrie |
+| Küche | `kueche` | **JA**, dunkel + hell | 3 | 8 Ausschnitte, Licht über die Sicherung |
 | Garten | `garten` | nein | 4 | Platzhalter-Geometrie |
 | Keller | `keller` | nein | 2 | Platzhalter, gesperrt bis Code 2412 |
 
@@ -169,6 +171,33 @@ Wozu der Schlüssel passt, ist noch offen.
 den Spielstand testbar. Sobald klar ist, wo die Schachtel liegt, kommt sie
 als `nehmen`-Teil dazu und ein Klick auf Anfisa mit der Schachtel im Inventar
 setzt `anfisa_weg`. Danach lässt sich der Sessel untersuchen.
+
+### Küche im Detail
+Grundbild dunkel, zweites Grundbild hell über `kueche_licht`. Jeder Ausschnitt
+hat zwei Flicken (`patch` dunkel, `patchHell` hell), alles lässt sich auch im
+Dunkeln öffnen.
+
+| Teil | Klickfläche | Zustand |
+|---|---|---|
+| `k_tuer` Tür zum Flur | 0,0 222×800 | `k_tuer_offen` |
+| `k_sicherung` Wandschränkchen | 245,212 167×186 | `sicherung_offen` |
+| `k_licht` Sicherung | 330,238 78×155 | `kueche_licht`, nur sichtbar wenn offen |
+| `k_ober_links` | 425,50 590×252 | `k_ober_links_offen` |
+| `k_ober_rechts` | 1015,50 357×252 | `k_ober_rechts_offen` |
+| `k_unten_links` | 370,492 378×210 | `k_unten_links_offen` |
+| `k_ofen` Backofen | 848,488 200×212 | `k_ofen_offen` → Ei e17 |
+| `k_unten_rechts` Spüle | 1070,500 278×192 | `k_unten_rechts_offen` |
+| `k_kuehl` Kühlschrank | 1374,150 316×535 | `k_kuehl_offen` → Ei e14 |
+
+Das Wandschränkchen ist im geschlossenen Zustand nur ein feiner Umriss auf der
+Tapete, praktisch unsichtbar. Das ist Absicht.
+
+Alle drei Küchen-Eier brauchen `kueche_licht`: e03 in der Obstschale, e14 in der
+Eierablage im Kühlschrank, e17 auf dem Rost im Backofen. Ohne Sicherung ist in
+der Küche nichts zu finden.
+
+**Vorläufig:** Ein Klick auf die offene Sicherung schaltet direkt das Licht.
+Sobald die Nahaufnahme des Sicherungskastens da ist, wird daraus das Auswechseln.
 
 ### Treppenhaus im Detail
 - `th_tuer` Holztür oben an der Treppe (960,20 230×395) — schaltet den Weg in den Flur frei

@@ -290,7 +290,8 @@
     { id: 'garage2', raum: 'garage', name: 'Garage — Tür',      bild: 'bilder/garage2-zu.png', bildOffen: 'bilder/garage2-offen.png', breite: 1774, hoehe: 887 },
     { id: 'treppenhaus', raum: 'treppenhaus', name: 'Treppenhaus', bild: 'bilder/treppenhaus-zu.png', bildOffen: 'bilder/treppenhaus-offen.png', breite: 1774, hoehe: 887 },
     { id: 'wohnzimmer', raum: 'wohnzimmer', name: 'Wohnzimmer', bild: 'bilder/wohnzimmer-zu.png', bildOffen: 'bilder/wohnzimmer-offen.png', breite: 1774, hoehe: 887 },
-    { id: 'kueche',     raum: 'kueche',     name: 'Küche',      bild: '' },
+    { id: 'kueche', raum: 'kueche', name: 'Küche', bild: 'bilder/kueche-dunkel.png',
+      hellWenn: 'kueche_licht', bildHell: 'bilder/kueche-hell.png', breite: 1774, hoehe: 887 },
     { id: 'garten',     raum: 'garten',     name: 'Garten',     bild: '' },
     { id: 'keller',     raum: 'keller',     name: 'Keller',     bild: '' },
     // Nahansichten von Gegenständen, die man in die Hand nimmt.
@@ -371,7 +372,7 @@
     { id: 'bi_schluessel', ansicht: 'bild_hinten', x: 575, y: 645, w: 240, h: 110, typ: 'nehmen', zustand: 'schluessel_weg',
       gibt: 'schluessel', bildAus: 'bilder/bild-hinten-leer.png', sichtbarWenn: 'fach_offen', label: 'Schlüssel im Fach' },
     { id: 'w_frau', ansicht: 'wohnzimmer', x: 240, y: 95, w: 430, h: 330, typ: 'phasen', zustand: 'frau_phase',
-      treffer: { x: 240, y: 160, w: 430, h: 265 },
+      treffer: { x: 240, y: 192, w: 430, h: 233 },
       nichtWenn: 'anfisa_weg', label: 'Die Frau im Sessel', sprecher: 'Anfisa',
       nimmt: 'kippen', setzt: 'anfisa_weg', verbraucht: true,
       antwort: '[TEXT 3 — Anfisa nimmt die Schachtel und steht auf, folgt noch]', phasen: [
@@ -380,9 +381,36 @@
         { bild: 'bilder/wohnzimmer-frau-spricht.png', text: '[TEXT 2 — was sie sagt, folgt noch]' }
       ] },
     // --- Küche ---
-    { id: 'k_kuehl',    ansicht: 'kueche', x: 1180, y: 220, w: 220, h: 470, typ: 'toggle', form: 'tuer', zustand: 'kuehl_offen',  label: 'Kühlschrank' },
-    { id: 'k_ofen',     ansicht: 'kueche', x: 560,  y: 520, w: 260, h: 160, typ: 'toggle', form: 'klappe', zustand: 'ofen_offen',   label: 'Backofen' },
-    { id: 'k_ober',     ansicht: 'kueche', x: 200,  y: 150, w: 480, h: 170, typ: 'toggle', form: 'tuer', zustand: 'ober_offen',   label: 'Oberschrank' },
+    // --- Küche. Grundbild ist dunkel; erst die Sicherung macht Licht.
+    //     Jeder Schrank hat zwei Flicken: einen für dunkel, einen für hell. ---
+    { id: 'k_tuer', ansicht: 'kueche', x: 0, y: 0, w: 222, h: 800, typ: 'ausschnitt', zustand: 'k_tuer_offen', label: 'Tür zum Flur',
+      patch: 'bilder/kue-tuer-dunkel.png', patchX: 0, patchY: 0, patchW: 229, patchH: 807,
+      patchHell: 'bilder/kue-tuer-hell.png', patchHellX: 0, patchHellY: 0, patchHellW: 229, patchHellH: 807 },
+    { id: 'k_sicherung', ansicht: 'kueche', x: 245, y: 212, w: 167, h: 186, typ: 'ausschnitt', zustand: 'sicherung_offen', label: 'Wandschränkchen',
+      patch: 'bilder/kue-sicherung-dunkel.png', patchX: 238, patchY: 205, patchW: 181, patchH: 200,
+      patchHell: 'bilder/kue-sicherung-hell.png', patchHellX: 238, patchHellY: 205, patchHellW: 181, patchHellH: 200 },
+    // Die Sicherung selbst, erst sichtbar wenn das Schränkchen offen ist.
+    // VORLÄUFIG schaltet ein Klick direkt das Licht. Die Nahaufnahme kommt später.
+    { id: 'k_licht', ansicht: 'kueche', x: 330, y: 238, w: 78, h: 155, typ: 'toggle', zustand: 'kueche_licht',
+      sichtbarWenn: 'sicherung_offen', neuzeichnen: true, label: 'Sicherung' },
+    { id: 'k_ober_links', ansicht: 'kueche', x: 425, y: 50, w: 590, h: 252, typ: 'ausschnitt', zustand: 'k_ober_links_offen', label: 'Oberschränke links',
+      patch: 'bilder/kue-ober-links-dunkel.png', patchX: 418, patchY: 43, patchW: 604, patchH: 266,
+      patchHell: 'bilder/kue-ober-links-hell.png', patchHellX: 418, patchHellY: 43, patchHellW: 604, patchHellH: 266 },
+    { id: 'k_ober_rechts', ansicht: 'kueche', x: 1015, y: 50, w: 357, h: 252, typ: 'ausschnitt', zustand: 'k_ober_rechts_offen', label: 'Oberschränke rechts',
+      patch: 'bilder/kue-ober-rechts-dunkel.png', patchX: 1008, patchY: 43, patchW: 371, patchH: 266,
+      patchHell: 'bilder/kue-ober-rechts-hell.png', patchHellX: 1008, patchHellY: 43, patchHellW: 371, patchHellH: 266 },
+    { id: 'k_unten_links', ansicht: 'kueche', x: 370, y: 492, w: 378, h: 210, typ: 'ausschnitt', zustand: 'k_unten_links_offen', label: 'Unterschrank links',
+      patch: 'bilder/kue-unten-links-dunkel.png', patchX: 363, patchY: 485, patchW: 392, patchH: 224,
+      patchHell: 'bilder/kue-unten-links-hell.png', patchHellX: 363, patchHellY: 485, patchHellW: 392, patchHellH: 224 },
+    { id: 'k_ofen', ansicht: 'kueche', x: 848, y: 488, w: 200, h: 212, typ: 'ausschnitt', zustand: 'k_ofen_offen', label: 'Backofen',
+      patch: 'bilder/kue-ofen-dunkel.png', patchX: 841, patchY: 481, patchW: 214, patchH: 226,
+      patchHell: 'bilder/kue-ofen-hell.png', patchHellX: 841, patchHellY: 481, patchHellW: 214, patchHellH: 226 },
+    { id: 'k_unten_rechts', ansicht: 'kueche', x: 1070, y: 500, w: 278, h: 192, typ: 'ausschnitt', zustand: 'k_unten_rechts_offen', label: 'Unterschrank unter der Spüle',
+      patch: 'bilder/kue-unten-rechts-dunkel.png', patchX: 1063, patchY: 493, patchW: 292, patchH: 206,
+      patchHell: 'bilder/kue-unten-rechts-hell.png', patchHellX: 1063, patchHellY: 493, patchHellW: 292, patchHellH: 206 },
+    { id: 'k_kuehl', ansicht: 'kueche', x: 1374, y: 150, w: 316, h: 535, typ: 'ausschnitt', zustand: 'k_kuehl_offen', label: 'Kühlschrank',
+      patch: 'bilder/kue-kuehl-dunkel.png', patchX: 1361, patchY: 143, patchW: 336, patchH: 549,
+      patchHell: 'bilder/kue-kuehl-hell.png', patchHellX: 1361, patchHellY: 143, patchHellW: 336, patchHellH: 549 },
     // --- Garten ---
     { id: 'r_busch',    ansicht: 'garten', x: 120,  y: 480, w: 300, h: 240, typ: 'toggle', form: 'busch', zustand: 'busch_geteilt', label: 'Busch' },
     { id: 'r_vogel',    ansicht: 'garten', x: 1250, y: 180, w: 120, h: 130, typ: 'toggle', form: 'klappe', zustand: 'vogelhaus_offen', label: 'Vogelhaus' },
@@ -402,7 +430,7 @@
     { id: 'e05', ansicht: 'garage1',     x: 1395, y: 432, r: 6,  farbe: '#27282c', muster: 'zickzack', ebene: 1, sichtbarWenn: null },  // im Schubladenkasten
     { id: 'e08', ansicht: 'garage1',     x: 600,  y: 860, r: 7,  farbe: '#8b613b', muster: 'punkte',   ebene: 1, sichtbarWenn: null },  // Boden vor dem blauen Container
     { id: 'e04', ansicht: 'wohnzimmer', x: 1332, y: 712, r: 9,  farbe: '#8a4a3a', muster: 'punkte', ebene: 1, sichtbarWenn: null },  // auf dem Teppich
-    { id: 'e03', ansicht: 'kueche',     x: 1560, y: 846, r: 9,  farbe: '#9a9a90', muster: 'streifen', ebene: 1, sichtbarWenn: null },
+    { id: 'e03', ansicht: 'kueche',     x: 1318, y: 419, r: 9,  farbe: '#c8703a', muster: 'streifen', ebene: 1, sichtbarWenn: ['kueche_licht'] },  // in der Obstschale
     { id: 'e06', ansicht: 'garten',     x: 1044, y: 846, r: 8,  farbe: '#4e7a3e', muster: 'punkte', ebene: 1, sichtbarWenn: null },
     { id: 'e07', ansicht: 'garten',     x: 24,   y: 212, r: 7,  farbe: '#8fb9d9', muster: 'zickzack', ebene: 1, sichtbarWenn: null },
     // --- Ebene 2: nur nach Öffnen sichtbar ---
@@ -411,11 +439,11 @@
     { id: 'e11', ansicht: 'garage1',     x: 1195, y: 708, r: 8,  farbe: '#493e36', muster: 'zickzack', ebene: 2, sichtbarWenn: 'steck_offen' },  // zwischen den Steckschlüsseln
     { id: 'e12', ansicht: 'wohnzimmer', x: 1000, y: 440, r: 9,  farbe: '#6a4a30', muster: 'punkte', ebene: 2, sichtbarWenn: 'wz_regal_offen' },  // im Schrank unter dem Regal
     { id: 'e13', ansicht: 'wohnzimmer', x: 1398, y: 452, r: 9,  farbe: '#5a4232', muster: 'streifen', ebene: 2, sichtbarWenn: 'wz_tv_offen' },  // im Fernsehmöbel
-    { id: 'e14', ansicht: 'kueche',     x: 1290, y: 420, r: 12, farbe: '#f0f0e0', muster: 'punkte', ebene: 2, sichtbarWenn: 'kuehl_offen' },
+    { id: 'e14', ansicht: 'kueche',     x: 1497, y: 272, r: 8,  farbe: '#e8d8bc', muster: 'punkte', ebene: 2, sichtbarWenn: ['k_kuehl_offen', 'kueche_licht'] },  // in der Eierablage im Kühlschrank
     { id: 'e15', ansicht: 'garten',     x: 1310, y: 250, r: 11, farbe: '#d08a5a', muster: 'zickzack', ebene: 2, sichtbarWenn: 'vogelhaus_offen' },
     // --- Ebene 3: nur nach Rätsel sichtbar ---
     { id: 'e16', ansicht: 'wohnzimmer', x: 1150, y: 600, r: 8,  farbe: '#cfc0a4', muster: 'streifen', ebene: 1, sichtbarWenn: null },  // bei den Heften unter dem Couchtisch
-    { id: 'e17', ansicht: 'kueche',     x: 690,  y: 600, r: 12, farbe: '#4a4a4a', muster: 'punkte', ebene: 2, sichtbarWenn: 'ofen_offen' },
+    { id: 'e17', ansicht: 'kueche',     x: 955,  y: 602, r: 9,  farbe: '#a8702e', muster: 'punkte', ebene: 2, sichtbarWenn: ['k_ofen_offen', 'kueche_licht'] },  // auf dem Rost im Backofen
     { id: 'e18', ansicht: 'garten',     x: 270,  y: 600, r: 12, farbe: '#5a4030', muster: 'zickzack', ebene: 2, sichtbarWenn: 'busch_geteilt' },
     { id: 'e19', ansicht: 'keller',     x: 330,  y: 650, r: 12, farbe: '#3a342c', muster: 'streifen', ebene: 2, sichtbarWenn: 'kiste_offen' },
     { id: 'e20', ansicht: 'keller',     x: 860,  y: 490, r: 12, farbe: '#55556a', muster: 'punkte', ebene: 1, sichtbarWenn: null }
@@ -635,13 +663,16 @@
     document.getElementById('nah-zurueck').style.display = zustand.nah ? '' : 'none';
     document.getElementById('ansicht-name').textContent = ans.name || '';
 
+    // Grundbild kann vom Licht abhängen (Küche: dunkel bis die Sicherung sitzt)
+    const istHell = !!(ans.hellWenn && zustand.offen[ans.hellWenn]);
+    const grundbild = (istHell && ans.bildHell) ? ans.bildHell : ans.bild;
     let html = '';
-    if (ans.bild) html += `<img class="bild" src="${ans.bild}" alt="">`;
+    if (grundbild) html += `<img class="bild" src="${grundbild}" alt="">`;
     html += `<svg viewBox="0 0 ${RW} ${RH}" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">`;
-    if (!ans.bild) html += raumHintergrund(ans.raum);
+    if (!grundbild) html += raumHintergrund(ans.raum);
     // Eier hinter Möbeln: zwischen Hintergrund und Möbel-Vordergrund (bei Bildern: gleich wie vorne)
     html += `<g id="eier-hinten">${eierHinten.map(eiForm).join('')}</g>`;
-    if (!ans.bild) html += vordergrund(ans.raum);
+    if (!grundbild) html += vordergrund(ans.raum);
     // Offen-Zustände der Teile
     // Bedingungs-Hülle: data-wenn muss gesetzt sein, data-nicht darf nicht gesetzt sein
     const huelle = (t, inhalt) => (!inhalt || (!t.sichtbarWenn && !t.nichtWenn)) ? inhalt
@@ -659,7 +690,11 @@
       // Freigestellter Flicken mit Alphakanal: wird an seiner eigenen Stelle
       // eingeblendet, nicht aus einem Vollbild ausgeschnitten. Keine Rechteckkante.
       if (t.patch) {
-        return `<g data-offen="${t.zustand}"><image href="${t.patch}" xlink:href="${t.patch}" x="${t.patchX}" y="${t.patchY}" width="${t.patchW}" height="${t.patchH}"/></g>`;
+        const bild = (p, x, y, w, h) => `<g data-offen="${t.zustand}"><image href="${p}" xlink:href="${p}" x="${x}" y="${y}" width="${w}" height="${h}"/></g>`;
+        if (!t.patchHell || !ans.hellWenn) return bild(t.patch, t.patchX, t.patchY, t.patchW, t.patchH);
+        // Zwei Fassungen: eine für dunkel, eine für hell
+        return `<g data-nicht="${ans.hellWenn}">${bild(t.patch, t.patchX, t.patchY, t.patchW, t.patchH)}</g>`
+             + `<g data-wenn="${ans.hellWenn}">${bild(t.patchHell, t.patchHellX, t.patchHellY, t.patchHellW, t.patchHellH)}</g>`;
       }
       // Aufnehmbares ohne eigenes Bild: goldene Marke, damit man es überhaupt sieht
       if (t.typ === 'nehmen' && !quelle && !t.patch) {
@@ -675,10 +710,10 @@
         </g>`;
       }
       // Gezeichnete Platzhalter-Zustände nur in Ansichten ohne echtes Bild
-      if (ans.bild) return '';
+      if (grundbild) return '';
       return `<g data-offen="${t.zustand || ''}">${teilOffenForm(t)}</g>`;
     })())).join('')}</g>`;
-    if (!ans.bild) html += `<g id="beschriftungen">${teile.map(teilBeschriftung).join('')}</g>`;
+    if (!grundbild) html += `<g id="beschriftungen">${teile.map(teilBeschriftung).join('')}</g>`;
     // Dunkel-Bereiche
     html += `<g id="dunkel">${dunkel.map(d => `<rect data-hell="${d.hellWenn}" x="${d.x}" y="${d.y}" width="${d.w}" height="${d.h}" fill="#05070a" opacity="0.93"/>`).join('')}</g>`;
     // Trefferflächen der Teile — durchsichtig, liegen unter Durchgängen und Eiern,
@@ -759,7 +794,8 @@
   function aktualisiereSichtbarkeit() {
     welt.querySelectorAll('.ei').forEach(el => {
       const ei = EIER.find(e => e.id === el.dataset.ei);
-      const sichtbar = !ei.sichtbarWenn || zustand.offen[ei.sichtbarWenn];
+      const noetig = !ei.sichtbarWenn ? [] : (Array.isArray(ei.sichtbarWenn) ? ei.sichtbarWenn : [ei.sichtbarWenn]);
+      const sichtbar = noetig.every(k => zustand.offen[k]);
       el.classList.toggle('versteckt', !sichtbar && !EDITOR);
       el.classList.toggle('gefunden', zustand.gefunden.includes(ei.id));
     });
@@ -1062,7 +1098,8 @@
       case 'schalter':
         zustand.offen[t.zustand] = !zustand.offen[t.zustand];
         ton([zustand.offen[t.zustand] ? 520 : 380]);
-        aktualisiereSichtbarkeit(); speichern();
+        speichern();
+        if (t.neuzeichnen) renderRaum(); else aktualisiereSichtbarkeit();
         break;
       case 'info':
         document.getElementById('info-titel').textContent = t.titel || t.label;
