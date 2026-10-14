@@ -50,17 +50,33 @@
     font-size: 11px; color: #9a927e; pointer-events: none; }
 
   /* Nahansicht */
-  #nah { position: absolute; inset: 0; background: #0b0b0a center/cover no-repeat; display: none; }
+  #nah { position: absolute; inset: 0; background: #0b0b0a center/cover no-repeat;
+         display: none; z-index: 2; }
   #nah img.portrait { position: absolute; object-fit: cover; }
   #nahzu { position: absolute; right: 12px; top: 12px; padding: 8px 16px;
     background: #17160f; color: #e8e4da; border: 1px solid #5a5238;
-    border-radius: 6px; font-size: 14px; cursor: pointer; z-index: 2; }
+    border-radius: 6px; font-size: 14px; cursor: pointer; z-index: 3; }
+
+  /* Schloss */
+  #schloss { display: none; position: absolute; left: 50%; top: 50%;
+    transform: translate(-50%, -50%); z-index: 4; width: 340px; max-width: calc(100% - 32px);
+    padding: 20px; background: rgba(14,13,10,0.96); border: 1px solid #5a4a1c;
+    border-radius: 10px; text-align: center; }
+  #schloss .schlosszeile { font-size: 13px; color: #8a857a; margin-bottom: 12px; }
+  #schloss input { width: 200px; padding: 12px; background: #131210; color: #f0c173;
+    border: 1px solid #332f24; border-radius: 6px; font-size: 24px;
+    letter-spacing: 8px; text-align: center; }
+  #schloss .reihe { margin-top: 12px; display: flex; gap: 8px; justify-content: center; }
+  #schloss button { padding: 10px 18px; background: #3a2f12; color: #f0c173;
+    border: 1px solid #5a4a1c; border-radius: 6px; font-size: 15px; cursor: pointer; }
+  #schloss button.weg { background: none; color: #8a857a; border-color: #332f24; }
+  #schlossmeldung { margin-top: 12px; font-size: 14px; color: #c9644f; min-height: 20px; }
 
   /* Textfenster */
   #fenster { position: absolute; left: 50%; bottom: 16px; transform: translateX(-50%);
     max-width: 620px; width: calc(100% - 32px); background: #16150f;
     border: 1px solid #4a4230; border-radius: 8px; padding: 14px 18px;
-    font-size: 15px; line-height: 1.55; display: none; z-index: 3; }
+    font-size: 15px; line-height: 1.55; display: none; z-index: 4; }
   #fenster .fragment { display: inline-block; margin-top: 10px; padding: 8px 18px;
     background: #3a2f12; color: #f0c173; border-radius: 6px; font-size: 22px; letter-spacing: 3px; }
   #fenster button { float: right; background: none; border: none; color: #8a857a;
@@ -75,12 +91,15 @@
     border: 1px solid #5a4a1c; border-radius: 6px; font-size: 15px; cursor: pointer; }
   #tuertext { font-size: 14px; color: #8a857a; }
 
-  #tasche { display: none; margin-top: 16px; padding: 14px 18px;
-    background: #16150f; border: 1px solid #5a4a1c; border-radius: 8px; max-width: 420px; }
-  .taschenzeile { font-size: 13px; color: #8a857a; }
-  .taschenname { font-size: 19px; color: #e8e4da; margin: 4px 0 8px; }
-  .taschenzahl { display: inline-block; margin-bottom: 8px; padding: 6px 18px;
-    background: #3a2f12; color: #f0c173; border-radius: 6px; font-size: 24px; letter-spacing: 3px; }
+  #tasche { display: none; position: absolute; left: 14px; bottom: 14px; z-index: 4;
+    padding: 10px 14px; background: rgba(14,13,10,0.92); border: 1px solid #5a4a1c;
+    border-radius: 8px; cursor: pointer; max-width: 260px; }
+  #tasche:hover { border-color: #c88a2a; }
+  .taschenzeile { font-size: 11px; color: #8a857a; }
+  .taschenname { font-size: 15px; color: #e8e4da; margin: 2px 0 0; }
+  .taschenzahl { display: inline-block; margin-left: 10px; padding: 2px 12px;
+    background: #3a2f12; color: #f0c173; border-radius: 5px; font-size: 20px; letter-spacing: 2px; }
+  .taschenunten { display: flex; align-items: center; justify-content: space-between; }
 
   #funde { margin-top: 16px; font-size: 14px; color: #8a857a; line-height: 1.7; }
   #funde b { color: #e8e4da; font-weight: 500; }
@@ -90,7 +109,7 @@
     border: 1px solid #332f24; border-radius: 6px; padding: 10px;
     font-family: ui-monospace, Menlo, monospace; font-size: 13px; }
   #ziehrahmen { position: absolute; border: 1px dashed #f0c173;
-    background: rgba(240,193,115,0.12); display: none; z-index: 4; }
+    background: rgba(240,193,115,0.12); display: none; z-index: 5; }
   #editor-an .stelle { outline: 1px dashed rgba(240,193,115,0.45); }
 </style>
 </head>
@@ -115,9 +134,10 @@
     <div id="buehne">
       <div id="ziehrahmen"></div>
       <div id="nah"><button id="nahzu">Zurück</button></div>
+      <div id="tasche"></div>
+      <div id="schloss"></div>
       <div id="fenster"></div>
     </div>
-    <div id="tasche"></div>
     <div id="tuer"></div>
     <div id="funde"></div>
     <div id="editor"><textarea id="editorfeld" readonly></textarea></div>
@@ -217,7 +237,7 @@ const RAEUME = [
       { id: "schild",    x: 24, y: 5,  w: 14, h: 14, text: "Ein verblichenes Schild. Der Name darauf ist nicht mehr zu entziffern." },
       { id: "vorhang",   x: 24, y: 25, w: 8,  h: 26, text: "Der Vorhang bewegt sich. Die Fenster dahinter sind vernagelt." },
       { id: "saeule",    x: 15, y: 15, w: 7,  h: 45, text: "Die Säule ist bis in Schulterhöhe zerkratzt. Von innen." },
-      { id: "tuerblatt", x: 55, y: 38, w: 7,  h: 28, text: "Die Tür ist verschlossen. Im Schloss sitzen sechs kleine Walzen." },
+      { id: "tuerblatt", x: 55, y: 38, w: 7,  h: 28, schloss: true, text: "Die Tür ist verschlossen. Im Schloss sitzen sechs kleine Walzen." },
       { id: "flasche",   x: 71, y: 62, w: 4,  h: 7,  text: "Eine umgekippte Flasche. Der Inhalt ist längst eingetrocknet." },
       { id: "feuer",     x: 80, y: 55, w: 7,  h: 12, text: "Das Feuer brennt. Niemand hat es angezündet." },
       { id: "spiegel",   x: 91, y: 28, w: 8,  h: 38, text: "Du siehst dich darin. Eine Sekunde zu spät." },
@@ -353,6 +373,7 @@ function raumWechseln(id) {
   raumId = id;
   const raum = RAEUME.find((r) => r.id === id);
   el("buehne").style.backgroundImage = raum.bild ? `url("${raum.bild}")` : "none";
+  schlossZu();
   nahZu();
   fensterZu();
   anwesenheit(id);
@@ -413,28 +434,23 @@ function zeichnen() {
   if (raum.loesung) {
     const t = document.createElement("div");
     t.id = "tuertext";
-    t.textContent = raumStatus[raum.naechster] ? "Die Tür steht offen." : raum.tuertext;
+    t.textContent = raumStatus[raum.naechster]
+      ? "Die Tür steht offen."
+      : "Die Tür ist verschlossen. Klick sie an, um am Schloss zu drehen.";
     tuer.appendChild(t);
-    if (!raumStatus[raum.naechster]) {
-      const feld = document.createElement("input");
-      feld.placeholder = "······";
-      feld.maxLength = raum.loesung.length;
-      const knopf = document.createElement("button");
-      knopf.textContent = "Drehen";
-      knopf.onclick = () => tuerVersuchen(raum, feld.value);
-      feld.onkeydown = (e) => { if (e.key === "Enter") tuerVersuchen(raum, feld.value); };
-      tuer.appendChild(feld);
-      tuer.appendChild(knopf);
-    }
   }
 
   const tasche = el("tasche");
   if (meinFund) {
-    const s = raum.stellen.find((st) => st.id === meinFund.stelle);
-    tasche.innerHTML = `<div class="taschenzeile">Du trägst bei dir</div>` +
-      `<div class="taschenname">${s && s.name ? s.name : "Etwas"}</div>` +
-      `<div class="taschenzahl">${meinFund.fragment}</div>` +
-      `<div class="taschenzeile">Nur du siehst das. Erzähl es den anderen.</div>`;
+    const st = raum.stellen.find((x) => x.id === meinFund.stelle);
+    tasche.innerHTML = `<div class="taschenzeile">Du trägst bei dir — nur du siehst das</div>` +
+      `<div class="taschenunten">` +
+        `<span class="taschenname">${st && st.name ? st.name : "Etwas"}</span>` +
+        `<span class="taschenzahl">${meinFund.fragment}</span>` +
+      `</div>`;
+    tasche.onclick = () => {
+      if (st) fensterZeigen(st.text, meinFund.fragment);
+    };
     tasche.style.display = "block";
   } else {
     tasche.style.display = "none";
@@ -450,6 +466,7 @@ function zeichnen() {
 
 // --- Klick -------------------------------------------------------------
 async function stelleAnklicken(stelle, meinFund) {
+  if (stelle.schloss) { schlossZeigen(); return; }
   if (stelle.nahansicht) { nahZeigen(stelle.nahansicht); return; }
   if (!stelle.ziffer) { fensterZeigen(stelle.text, null); return; }
   if (meinFund) {
@@ -471,18 +488,52 @@ async function stelleAnklicken(stelle, meinFund) {
   fensterZeigen(stelle.text, stelle.ziffer);
 }
 
-// --- Tür ---------------------------------------------------------------
-async function tuerVersuchen(raum, eingabe) {
-  const code = (eingabe || "").trim();
-  if (!code) { meldung("Erst die Walzen stellen."); return; }
-  if (code !== raum.loesung) { meldung("Die Walzen rasten nicht ein."); return; }
+// --- Schloss -----------------------------------------------------------
+function schlossZeigen() {
+  const raum = RAEUME.find((r) => r.id === raumId);
+  const k = el("schloss");
+  if (!raum.loesung) { fensterZeigen("Diese Tür hat kein Schloss.", null); return; }
+  if (raumStatus[raum.naechster]) {
+    fensterZeigen("Die Tür steht offen. Dahinter wartet der nächste Raum.", null);
+    return;
+  }
+  k.innerHTML =
+    `<div class="schlosszeile">${raum.tuertext}</div>` +
+    `<input id="schlossfeld" maxlength="${raum.loesung.length}" placeholder="······" autocomplete="off">` +
+    `<div class="reihe">` +
+      `<button id="schlossdrehen">Drehen</button>` +
+      `<button id="schlossweg" class="weg">Zurück</button>` +
+    `</div>` +
+    `<div id="schlossmeldung"></div>`;
+  k.style.display = "block";
+  const feld = el("schlossfeld");
+  feld.focus();
+  feld.onkeydown = (e) => { if (e.key === "Enter") schlossVersuchen(); };
+  el("schlossdrehen").onclick = schlossVersuchen;
+  el("schlossweg").onclick = schlossZu;
+}
+function schlossZu() { el("schloss").style.display = "none"; }
+
+async function schlossVersuchen() {
+  const raum = RAEUME.find((r) => r.id === raumId);
+  const feld = el("schlossfeld");
+  const meldungsfeld = el("schlossmeldung");
+  const code = (feld.value || "").trim();
+  if (!code) { meldungsfeld.textContent = "Erst die Walzen stellen."; return; }
+  if (code !== raum.loesung) {
+    meldungsfeld.textContent = "Die Walzen rasten nicht ein.";
+    feld.value = "";
+    feld.focus();
+    return;
+  }
   const { error } = await db.from("raeume")
     .update({ offen: true, geoeffnet_von: ich, zeit: new Date().toISOString() })
     .eq("raum", raum.naechster);
-  if (error) { meldung("Fehler: " + error.message); return; }
+  if (error) { meldungsfeld.textContent = "Fehler: " + error.message; return; }
   raumStatus[raum.naechster] = true;
+  schlossZu();
   zeichnen();
-  meldung("Das Schloss gibt nach. Die Tür schwingt auf.");
+  fensterZeigen("Das Schloss gibt nach. Die Tür schwingt auf — für alle.", null);
 }
 
 // --- Nahansicht --------------------------------------------------------
