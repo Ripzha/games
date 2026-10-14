@@ -263,24 +263,24 @@ const RAHMEN = [
 // ======================================================================
 const RAETSEL = {
   gitter: {
-    titel: "Die Namen im Gitter",
-    aufgabe: "Fünf Namen aus der Geschichte des Hauses sind im Gitter versteckt — waagrecht, senkrecht, schräg, vorwärts wie rückwärts. Klick den ersten und den letzten Buchstaben eines Namens an, um ihn anzustreichen.",
+    titel: "Die Worte im Gitter",
+    aufgabe: "Fünf Wörter sind im Gitter versteckt — waagrecht, senkrecht, schräg, vorwärts wie rückwärts. Streich sie an: erster Buchstabe, letzter Buchstabe. Zusammen ergeben sie einen Satz.",
     zeilen: [
-      "NUVSHHUALKEHT",
-      "RNZSEVERINENA",
-      "BBRWBZMODISUY",
-      "RABWRYWDEKSCA",
-      "RMMOUABREAYAH",
-      "CBXMPDNRDEHIG",
-      "CRFFAEABHXSNU",
-      "YOZVOTRSIVDRV",
-      "OSKTIKHPGAURC",
-      "BEAZEACIXDSGX",
-      "COFDXNKPLRTYN",
-      "GWOESIOLEDIKC",
-      "SLLGIMZXRZAWS"
+      "PFEKCMMLWVA",
+      "WYGZMCULNLS",
+      "WZEMVFSSSZF",
+      "EBRDIESESKA",
+      "RNEOLAUPNOV",
+      "DAIRLBZFWHD",
+      "EINRANTNTKR",
+      "NDIVNLBPCHM",
+      "TWGNEMKZUCL",
+      "YMTLFCXEZLS",
+      "FBCWUOBIWNK"
     ],
-    namen: ["ELOISE", "AMBROSE", "THEKLA", "SEVERIN", "MATHILDA"]
+    namen: ["DIESE", "VILLA", "MUSS", "GEREINIGT", "WERDEN"],
+    satzfrage: "Alle fünf gefunden. In welcher Reihenfolge ergeben sie einen Satz?",
+    loesung: "DIESE VILLA MUSS GEREINIGT WERDEN"
   },
   unterschiede: {
     titel: "Zweimal dasselbe Bild",
@@ -382,7 +382,7 @@ const RAEUME = [
       // --- Rätsel -----------------------------------------------------
       { id: "gemaelde", x: 25.5, y: 15, w: 9.5, h: 19, raetsel: "gitter", nr: "1",
         name: "Perlenschmuck", bild: "bilder/items/perlenschmuck.png",
-        text: "Hinter dem Gemälde klemmt ein vergilbtes Blatt. Fünf Namen, dicht an dicht geschrieben, damit niemand sie liest." },
+        text: "Hinter dem Gemälde klemmt ein vergilbtes Blatt. Jemand hat einen Satz in Buchstaben vergraben, damit ihn niemand findet." },
       { id: "oval", x: 20.3, y: 20.5, w: 4.4, h: 12, raetsel: "unterschiede", nr: "2",
         name: "Brosche", bild: "bilder/items/brosche.png",
         text: "Das kleine Porträt hängt doppelt an der Wand. Zweimal dasselbe Bild, oder doch nicht." },
@@ -878,19 +878,39 @@ function bastleGitter(koerper, stelle, d) {
           const rueckwaerts = [...weg.wort].reverse().join("");
           const treffer = d.namen.find((n) => !gefunden.has(n) && (n === weg.wort || n === rueckwaerts));
           if (!treffer) {
-            el("raetselmeldung").textContent = "Das ist keiner der Namen.";
+            el("raetselmeldung").textContent = "Das ist keines der Wörter.";
             malen(); return;
           }
           gefunden.add(treffer);
           weg.wege.forEach((f) => markiert.add(f));
           el("raetselmeldung").textContent = "";
           malen(); namenMalen();
-          if (gefunden.size === d.namen.length) raetselGeloest(stelle);
+          if (gefunden.size === d.namen.length) satzFragen();
         };
         feld.appendChild(z);
       });
     });
   }
+  function satzFragen() {
+    const kasten = document.createElement("div");
+    kasten.innerHTML =
+      `<div class="aufgabe" style="margin-top:14px">${d.satzfrage}</div>` +
+      `<div class="antwort">` +
+        `<input id="satzfeld" autocomplete="off" placeholder="Der Satz" style="width:340px">` +
+        `<button id="satzpruefen">Prüfen</button>` +
+      `</div>`;
+    koerper.appendChild(kasten);
+    const sf = el("satzfeld");
+    sf.focus();
+    const ohne = (t) => t.toUpperCase().replace(/[^A-ZÄÖÜ]/g, "");
+    const pruefen = () => {
+      if (ohne(sf.value || "") === ohne(d.loesung)) { raetselGeloest(stelle); return; }
+      el("raetselmeldung").textContent = "So ergibt das keinen Satz.";
+    };
+    el("satzpruefen").onclick = pruefen;
+    sf.onkeydown = (e) => { if (e.key === "Enter") pruefen(); };
+  }
+
   malen(); namenMalen();
 }
 
