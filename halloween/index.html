@@ -13,6 +13,19 @@
   h1 { font-size: 22px; font-weight: 500; margin: 0 0 4px; }
   p.unter { color: #8a857a; font-size: 14px; margin: 0 0 24px; }
 
+  /* Aussenansicht */
+  #aussen { position: relative; width: 100%; aspect-ratio: 16 / 9;
+    background: #0b0b0a center/cover no-repeat; border: 1px solid #2a2720;
+    border-radius: 10px; overflow: hidden; }
+  #eingang { position: absolute; left: 40%; top: 62%; width: 14%; height: 30%;
+    border-radius: 10px; cursor: pointer; display: flex; align-items: flex-end;
+    justify-content: center; padding-bottom: 6px;
+    border: 1px solid rgba(240,193,115,0.35); background: rgba(240,193,115,0.06);
+    animation: pochen 2.2s ease-in-out infinite; }
+  #eingang:hover { border-color: #f0c173; background: rgba(240,193,115,0.16); }
+  #eingang span { font-size: 13px; color: #f0c173; background: rgba(14,13,10,0.8);
+    padding: 3px 10px; border-radius: 10px; }
+
   /* Brief */
   #brief { position: relative; width: 100%; aspect-ratio: 16 / 9;
            background: #1b1710 center/cover no-repeat;
@@ -190,7 +203,13 @@
 <body>
 <div id="huelle">
 
-  <div id="briefseite">
+  <div id="aussenseite" style="display:none">
+    <div id="aussen">
+      <div id="eingang"><span>Eintreten</span></div>
+    </div>
+  </div>
+
+  <div id="briefseite" style="display:none">
     <div id="brief">
       <div id="brieftext"></div>
       <button id="briefknopf">Die Tür steht offen</button>
@@ -508,8 +527,19 @@ let gelaeutet = [];
 
 const el = (id) => document.getElementById(id);
 
+// --- Aussenansicht -----------------------------------------------------
+function aussenZeigen() {
+  el("aussenseite").style.display = "block";
+  el("aussen").style.backgroundImage = `url("bilder/villa.jpg")`;
+  el("eingang").onclick = () => {
+    el("aussenseite").style.display = "none";
+    briefZeigen();
+  };
+}
+
 // --- Brief -------------------------------------------------------------
 function briefZeigen() {
+  el("briefseite").style.display = "block";
   const b = el("brief");
   if (BRIEF.bild) { b.style.backgroundImage = `url("${BRIEF.bild}")`; }
   else { b.classList.add("ohnebild"); }
@@ -518,7 +548,7 @@ function briefZeigen() {
     (BRIEF.nachsatz ? `<div id="briefnachsatz">${BRIEF.nachsatz}</div>` : "");
   el("briefknopf").onclick = () => {
     el("briefseite").style.display = "none";
-    if (ich && SPIELER.includes(ich)) starten(); else namenswahlZeigen();
+    starten();
   };
 }
 
@@ -535,7 +565,8 @@ function namenswahlZeigen() {
       if (!confirm("Du spielst als " + name + ". Das lässt sich danach nicht mehr ändern.")) return;
       ich = name;
       localStorage.setItem("spukhaus_spieler", name);
-      starten();
+      el("namenswahl").style.display = "none";
+      aussenZeigen();
     };
     liste.appendChild(k);
   });
@@ -1315,7 +1346,16 @@ if (bearbeiten) {
 }
 
 // --- Los ---------------------------------------------------------------
-briefZeigen();
+// Reihenfolge: Namenswahl, Aussenansicht, Brief, erster Raum.
+// Mit ?admin geht es direkt ins Haus, damit du beim Testen nicht jedes Mal
+// durch den Vorspann klicken musst.
+if (!ich || !SPIELER.includes(ich)) {
+  namenswahlZeigen();
+} else if (admin) {
+  starten();
+} else {
+  aussenZeigen();
+}
 </script>
 </body>
 </html>
