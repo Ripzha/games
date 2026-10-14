@@ -58,7 +58,9 @@
   #brief.ohnebild { background: #1b1710; }
   #brieftext { position: absolute; left: 39.5%; top: 14%; width: 20%; max-height: 64%;
                overflow: hidden; font-family: "Palatino", Georgia, serif; font-style: italic;
-               font-weight: 600; font-size: clamp(13px, 1.9cqw, 32px); line-height: 1.45;
+               font-weight: 600; line-height: 1.45;
+               font-size: 17px;          /* Ersatz fuer alte Browser */
+               font-size: 1.45cqw;       /* waechst genau mit dem Papier mit */
                color: #140d05; text-shadow: 0 1px 0 rgba(255,246,222,0.5); }
   #brieftext p { margin: 0 0 0.75em; }
   #brief.ohnebild #brieftext { color: #ded6c2; left: 12%; top: 14%; width: 60%;
@@ -648,6 +650,7 @@ async function starten() {
   await ladeReservierungen();
   await ladeGlocken();
   horchen();
+  abgleichStarten();
   // Dort weitermachen, wo man zuletzt war — sofern der Raum noch offen ist
   const gemerkt = ich ? localStorage.getItem("spukhaus_raum_" + ich) : null;
   const passt = gemerkt && RAEUME.some((r) => r.id === gemerkt) && raumStatus[gemerkt];
@@ -726,6 +729,21 @@ function horchen() {
       }
     })
     .subscribe();
+}
+
+// Alle 20 Sekunden nachladen. Fällt die Echtzeitverbindung kurz aus,
+// holt der Abgleich den Stand nach, ohne dass jemand neu laden muss.
+function abgleichStarten() {
+  setInterval(async () => {
+    if (document.hidden) return;
+    const vorherFunde = funde.length, vorherGlocken = gelaeutet.length;
+    await ladeRaeume();
+    await ladeFunde();
+    await ladeReservierungen();
+    await ladeGlocken();
+    if (funde.length !== vorherFunde || gelaeutet.length !== vorherGlocken) zeichnen();
+    else zeichnen();
+  }, 20000);
 }
 
 function anwesenheit(raum) {
@@ -1002,8 +1020,10 @@ async function raetselStarten(stelle, meinFund) {
   }
   // eigene alte Reservierung in diesem Raum freigeben
   await db.from("reservierungen").delete().eq("raum", raumId).eq("spieler", ich);
-  // abgelaufene Reservierung dieser Stelle entfernen
-  await db.from("reservierungen").delete().eq("raum", raumId).eq("stelle", stelle.id);
+  // nur abgelaufene Reservierungen dieser Stelle entfernen, keine frischen
+  const grenze = new Date(Date.now() - 5 * 60 * 1000).toISOString();
+  await db.from("reservierungen").delete()
+    .eq("raum", raumId).eq("stelle", stelle.id).lt("zeit", grenze);
   const { error } = await db.from("reservierungen")
     .insert({ raum: raumId, stelle: stelle.id, spieler: ich });
   if (error) {
