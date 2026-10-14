@@ -605,6 +605,7 @@ function briefZeigen() {
     (BRIEF.nachsatz ? `<div id="briefnachsatz">${BRIEF.nachsatz}</div>` : "");
   el("briefknopf").onclick = () => {
     el("briefseite").style.display = "none";
+    localStorage.setItem("spukhaus_eingetreten", "1");
     starten();
   };
 }
@@ -633,6 +634,7 @@ function spielerWechseln() {
   if (kanalRaum) { db.removeChannel(kanalRaum); kanalRaum = null; }
   ich = "";
   localStorage.removeItem("spukhaus_spieler");
+  localStorage.removeItem("spukhaus_eingetreten");
   el("spiel").style.display = "none";
   namenswahlZeigen();
 }
@@ -646,8 +648,11 @@ async function starten() {
   await ladeReservierungen();
   await ladeGlocken();
   horchen();
+  // Dort weitermachen, wo man zuletzt war — sofern der Raum noch offen ist
+  const gemerkt = ich ? localStorage.getItem("spukhaus_raum_" + ich) : null;
+  const passt = gemerkt && RAEUME.some((r) => r.id === gemerkt) && raumStatus[gemerkt];
   const offener = RAEUME.find((r) => raumStatus[r.id]);
-  raumWechseln(offener ? offener.id : RAEUME[0].id);
+  raumWechseln(passt ? gemerkt : (offener ? offener.id : RAEUME[0].id));
 }
 
 // --- Daten -------------------------------------------------------------
@@ -749,6 +754,7 @@ function raumWechseln(id) {
 
 function raumAufbauen(id) {
   raumId = id;
+  if (ich) localStorage.setItem("spukhaus_raum_" + ich, id);
   const raum = RAEUME.find((r) => r.id === id);
   el("buehne").style.backgroundImage = raum.bild ? `url("${raum.bild}")` : "none";
   schlossZu();
@@ -1419,7 +1425,9 @@ if (bearbeiten) {
 // durch den Vorspann klicken musst.
 if (!ich || !SPIELER.includes(ich)) {
   namenswahlZeigen();
-} else if (admin) {
+} else if (admin || localStorage.getItem("spukhaus_eingetreten")) {
+  // Wer schon einmal eingetreten ist, landet beim Neuladen direkt im Haus,
+  // und zwar in dem Raum, in dem er zuletzt war.
   starten();
 } else {
   aussenZeigen();
