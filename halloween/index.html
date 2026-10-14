@@ -60,14 +60,15 @@
     background: #17160f; color: #e8e4da; border: 1px solid #5a5238;
     border-radius: 6px; font-size: 14px; cursor: pointer; z-index: 3; }
 
-  .stelle.glocke { border: 1px solid #5a4a1c; border-radius: 10px;
-    background: rgba(14,13,10,0.72); display: flex; flex-direction: column;
-    align-items: center; justify-content: center; gap: 6px; cursor: pointer; }
-  .stelle.glocke:hover { border-color: #c88a2a; background: rgba(40,32,14,0.8); }
-  .stelle.glocke .glockenname { font-size: 14px; color: #ded6c2; text-align: center; padding: 0 6px; }
-  .stelle.glocke.erklungen { background: rgba(58,47,18,0.85); border-color: #c88a2a; cursor: default; }
-  .stelle.glocke .glockennr { font-size: 20px; color: #f0c173; }
-  .stelle.glocke .glockenbild { width: 46%; max-height: 46%; object-fit: contain; }
+  .stelle.kreisfeld { border: 1px dashed rgba(240,193,115,0.45); border-radius: 50%;
+    background: rgba(230,222,200,0.06); display: flex; flex-direction: column;
+    align-items: center; justify-content: center; gap: 4px; cursor: pointer; }
+  .stelle.kreisfeld:hover { border-color: #f0c173; background: rgba(240,193,115,0.14); }
+  .stelle.kreisfeld .kreisleer { font-size: 15px; color: rgba(240,193,115,0.5); }
+  .stelle.kreisfeld.belegt { border-style: solid; border-color: #c88a2a;
+    background: rgba(58,47,18,0.72); cursor: default; }
+  .stelle.kreisfeld .kreisbild { width: 56%; max-height: 56%; object-fit: contain; }
+  .stelle.kreisfeld .kreisname { font-size: 12px; color: #f0c173; }
 
   .stelle .pfeil { position: absolute; left: 50%; top: 50%;
     transform: translate(-50%, -50%); width: 46px; height: 46px; border-radius: 50%;
@@ -455,18 +456,18 @@ const RAEUME = [
     naechster: "",
     tuertext: "",
     stellen: [
-      { id: "platz1", x: 19.5, y: 76, w: 9.5, h: 19, glocke: "Kreuz",
-        bild: "bilder/items/kreuz.png" },
-      { id: "platz2", x: 30.5, y: 76, w: 9.5, h: 19, glocke: "Medaillon",
-        bild: "bilder/items/medaillon.png" },
-      { id: "platz3", x: 41.5, y: 76, w: 9.5, h: 19, glocke: "Fächer",
-        bild: "bilder/items/faecher.png" },
-      { id: "platz4", x: 52.5, y: 76, w: 9.5, h: 19, glocke: "Perlenschmuck",
-        bild: "bilder/items/perlenschmuck.png" },
-      { id: "platz5", x: 63.5, y: 76, w: 9.5, h: 19, glocke: "Spielkarte",
-        bild: "bilder/items/spielkarte.png" },
-      { id: "platz6", x: 74.5, y: 76, w: 9.5, h: 19, glocke: "Brosche",
-        bild: "bilder/items/brosche.png" }
+      { id: "kreis1", x: 42.0, y: 62.8, w: 6, h: 10.5, kreisplatz: true },
+      { id: "kreis2", x: 59.3, y: 68.8, w: 6, h: 10.5, kreisplatz: true },
+      { id: "kreis3", x: 59.3, y: 80.8, w: 6, h: 10.5, kreisplatz: true },
+      { id: "kreis4", x: 42.0, y: 86.8, w: 6, h: 10.5, kreisplatz: true },
+      { id: "kreis5", x: 24.7, y: 80.8, w: 6, h: 10.5, kreisplatz: true },
+      { id: "kreis6", x: 24.7, y: 68.8, w: 6, h: 10.5, kreisplatz: true },
+
+      { id: "kugel",   x: 50, y: 44, w: 8,  h: 14, text: "Die Kugel auf dem Tisch ist trüb. Etwas bewegt sich darin, wenn man wegschaut." },
+      { id: "schaedel",x: 12, y: 46, w: 7,  h: 12, text: "Ein Schädel neben dem Globus. Jemand hat ihn poliert." },
+      { id: "regal",   x: 2,  y: 5,  w: 17, h: 40, text: "Die Bücher sind nach Jahren geordnet. Das letzte endet in dem Jahr, in dem die Villa leer wurde." },
+      { id: "bilder_b",x: 84, y: 8,  w: 15, h: 35, text: "Landschaften, alle vom selben Haus aus gemalt, alle bei Nacht." },
+      { id: "mond_b",  x: 52, y: 20, w: 8,  h: 14, text: "Der Mond steht still im Fenster. Er ist seit Stunden nicht gewandert." }
     ]
   }
 ];
@@ -566,12 +567,17 @@ async function ladeGlocken() {
 }
 
 // Welches Fundstück trage ich aus dem Vorzimmer?
-function meinStueck() {
+function meineStelleVorzimmer() {
   const f = funde.find((x) => x.raum === "vorzimmer" && x.spieler === ich);
   if (!f) return null;
   const raum = RAEUME.find((r) => r.id === "vorzimmer");
   const st = raum.stellen.find((x) => x.id === f.stelle);
-  return st ? st.name : null;
+  return st ? { stelle: st, fund: f } : null;
+}
+
+function meinStueck() {
+  const m = meineStelleVorzimmer();
+  return m ? m.stelle.name : null;
 }
 
 async function ladeReservierungen() {
@@ -692,17 +698,21 @@ function zeichnen() {
     d.className = "stelle" + (belegt ? " genommen" : "");
     d.style.left = s.x + "%"; d.style.top = s.y + "%";
     d.style.width = s.w + "%"; d.style.height = s.h + "%";
-    if (s.glocke) {
-      const schon = gelaeutet.find((x) => x.stueck === s.glocke);
+    if (s.kreisplatz) {
+      const nummer = parseInt(s.id.replace("kreis", ""), 10);
+      const belegtMit = gelaeutet[nummer - 1];
       const d2 = document.createElement("div");
-      d2.className = "stelle glocke" + (schon ? " erklungen" : "");
+      d2.className = "stelle kreisfeld" + (belegtMit ? " belegt" : "");
       d2.style.left = s.x + "%"; d2.style.top = s.y + "%";
       d2.style.width = s.w + "%"; d2.style.height = s.h + "%";
-      d2.innerHTML =
-        (schon && s.bild ? `<img class="glockenbild" src="${s.bild}" alt="">` : "") +
-        `<span class="glockenname">${s.glocke}</span>` +
-        (schon ? `<span class="glockennr">${gelaeutet.indexOf(schon) + 1}</span>` : "");
-      if (!schon) d2.onclick = () => stelleAnklicken(s, meinFund);
+      if (belegtMit) {
+        const bild = bildFuerStueck(belegtMit.stueck);
+        d2.innerHTML = (bild ? `<img class="kreisbild" src="${bild}" alt="">` : "") +
+          `<span class="kreisname">${belegtMit.stueck}</span>`;
+      } else {
+        d2.innerHTML = `<span class="kreisleer">${nummer}</span>`;
+        d2.onclick = () => stelleAnklicken(s, meinFund);
+      }
       buehne.appendChild(d2);
       return;
     }
@@ -756,6 +766,18 @@ function zeichnen() {
       if (st) fensterZeigen(st.text, meinFund.fragment, st.bild);
     };
     tasche.style.display = "block";
+  } else if (raumId === "buero" && meineStelleVorzimmer()) {
+    const m = meineStelleVorzimmer();
+    tasche.innerHTML = `<div class="taschenzeile">Du trägst aus dem Vorzimmer — nur du siehst es</div>` +
+      `<div class="taschenunten">` +
+        (m.stelle.bild ? `<img class="taschenbild" src="${m.stelle.bild}" alt="">` : "") +
+        `<span class="taschenname">${m.stelle.name}</span>` +
+        `<span class="taschenzahl">${m.fund.fragment}</span>` +
+      `</div>`;
+    tasche.onclick = () => fensterZeigen(
+      "Du trägst: <b>" + m.stelle.name + "</b>. Nur dieses Stück kannst du ablegen.",
+      m.fund.fragment, m.stelle.bild);
+    tasche.style.display = "block";
   } else {
     tasche.style.display = "none";
   }
@@ -765,10 +787,12 @@ function zeichnen() {
     const hinweis = meins ? GLOCKEN.hinweise[meins] : null;
     const t = document.createElement("div");
     t.id = "tuertext";
-    t.innerHTML = (hinweis
+    t.innerHTML = "Auf den Dielen liegt ein Kreis aus Salz, sechs Felder darin sind frei geblieben. " +
+      "Wer an der Reihe ist, legt sein Stück hinein.<br>" +
+      (hinweis
       ? `Dein Hinweis, und nur deiner: <b style="color:#f0c173">${hinweis}</b>`
       : "Du trägst kein Stück aus dem Vorzimmer. Du kannst nichts ablegen.") +
-      `<br>Auf dem Tisch: ` + (gelaeutet.length
+      `<br>Im Kreis: ` + (gelaeutet.length
         ? gelaeutet.map((g) => g.stueck).join(" — ")
         : "noch nichts");
     tuer.appendChild(t);
@@ -783,19 +807,27 @@ function zeichnen() {
 }
 
 // --- Klick -------------------------------------------------------------
-async function glockeLaeuten(stelle) {
+function bildFuerStueck(name) {
+  const raum = RAEUME.find((r) => r.id === "vorzimmer");
+  const st = raum.stellen.find((x) => x.name === name);
+  return st ? st.bild : null;
+}
+
+async function ablegen() {
   const meins = meinStueck();
-  if (!admin && stelle.glocke !== meins) {
-    fensterZeigen(meins
-      ? "Das ist nicht dein Platz. Du trägst den " + meins + "."
-      : "Du hast im Vorzimmer nichts gefunden. Du hast nichts abzulegen.", null);
+  if (!meins) {
+    fensterZeigen("Du trägst kein Stück aus dem Vorzimmer. Du hast nichts abzulegen.", null);
+    return;
+  }
+  if (gelaeutet.some((g) => g.spieler === ich && !admin)) {
+    fensterZeigen("Dein Stück liegt schon im Kreis.", null);
     return;
   }
   if (gelaeutet.length >= GLOCKEN.reihenfolge.length) return;
   const erwartet = GLOCKEN.reihenfolge[gelaeutet.length];
-  if (stelle.glocke === erwartet) {
+  if (meins === erwartet) {
     const { error } = await db.from("glocken")
-      .insert({ nr: gelaeutet.length + 1, stueck: stelle.glocke, spieler: ich });
+      .insert({ nr: gelaeutet.length + 1, stueck: meins, spieler: ich });
     if (error && error.code !== "23505") { fensterZeigen("Fehler: " + error.message, null); return; }
   } else {
     await db.from("glocken").delete().gte("nr", 1);
@@ -804,13 +836,13 @@ async function glockeLaeuten(stelle) {
   zeichnen();
   if (gelaeutet.length === GLOCKEN.reihenfolge.length) {
     fensterZeigen(GLOCKEN.abschluss, null);
-  } else if (stelle.glocke !== erwartet) {
-    fensterZeigen("Das Stück passt nicht an diese Stelle. Der Tisch ist wieder leer.", null);
+  } else if (meins !== erwartet) {
+    fensterZeigen("Das Salz wird schwarz, wo dein Stück liegt. Der Kreis ist wieder leer.", null);
   }
 }
 
 async function stelleAnklicken(stelle, meinFund) {
-  if (stelle.glocke) { glockeLaeuten(stelle); return; }
+  if (stelle.kreisplatz) { ablegen(); return; }
   if (stelle.schloss) {
     const raum = RAEUME.find((r) => r.id === raumId);
     if (raum.naechster && raumStatus[raum.naechster]) { raumWechseln(raum.naechster); return; }
