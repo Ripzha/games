@@ -81,8 +81,18 @@
   #raetsel .antwort button { padding: 10px 18px; background: #3a2f12; color: #f0c173;
     border: 1px solid #5a4a1c; border-radius: 6px; font-size: 15px; cursor: pointer; }
   #raetselmeldung { margin-top: 10px; font-size: 14px; color: #c9644f; min-height: 20px; }
-  .gitter { font-family: ui-monospace, Menlo, monospace; font-size: clamp(11px, 1.5vw, 19px);
-    line-height: 1.5; letter-spacing: clamp(3px, 0.7vw, 9px); color: #ded6c2; margin: 14px 0 0; }
+  .gitter { display: grid; gap: 2px; margin: 14px 0 10px; width: min(560px, 70vh);
+    font-family: ui-monospace, Menlo, monospace; }
+  .gitter span { aspect-ratio: 1; display: flex; align-items: center; justify-content: center;
+    font-size: clamp(10px, 1.3vw, 17px); color: #ded6c2; border-radius: 4px;
+    background: #16150f; border: 1px solid #262218; cursor: pointer; user-select: none; }
+  .gitter span:hover { border-color: #5a5238; }
+  .gitter span.start { border-color: #f0c173; color: #f0c173; }
+  .gitter span.gefunden { background: #3a2f12; border-color: #5a4a1c; color: #f0c173; }
+  .namensliste2 { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 4px; }
+  .namensliste2 span { padding: 4px 10px; border: 1px solid #332f24; border-radius: 5px;
+    font-size: 14px; color: #ded6c2; }
+  .namensliste2 span.weg { color: #6e685c; text-decoration: line-through; border-color: #262218; }
   .chiffre { font-size: clamp(16px, 2.2vw, 28px); letter-spacing: 6px; color: #f0c173; margin: 14px 0 10px; }
   .tabelle { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 6px; }
   .tabelle span { padding: 4px 8px; border: 1px solid #332f24; border-radius: 5px;
@@ -254,23 +264,24 @@ const RAHMEN = [
 // ======================================================================
 const RAETSEL = {
   gitter: {
-    titel: "Das Buchstabengitter",
-    aufgabe: "Vier Namen stehen im Gitter: DELSYN, VIKTOR, MARYAMA, LOGAN. Ein fünfter steht ebenfalls darin. Wie heisst er?",
+    titel: "Die Namen im Gitter",
+    aufgabe: "Fünf Namen aus der Geschichte des Hauses sind im Gitter versteckt — waagrecht, senkrecht, schräg, vorwärts wie rückwärts. Klick den ersten und den letzten Buchstaben eines Namens an, um ihn anzustreichen.",
     zeilen: [
-      "XTBBFMVIKTOR",
-      "EGENACZSPWGG",
-      "ODELSYNZMGLW",
-      "HRBILKLUNRWL",
-      "WLGZDKFTVTXO",
-      "KCFGAVMYDXNG",
-      "KKWGDPGLPLNA",
-      "BMARYAMATUYN",
-      "DIDWDGGLFCYE",
-      "RBRVSIMVRIWU",
-      "BDREZVYRAAIR",
-      "RMHADNUKPFBE"
+      "NUVSHHUALKEHT",
+      "RNZSEVERINENA",
+      "BBRWBZMODISUY",
+      "RABWRYWDEKSCA",
+      "RMMOUABREAYAH",
+      "CBXMPDNRDEHIG",
+      "CRFFAEABHXSNU",
+      "YOZVOTRSIVDRV",
+      "OSKTIKHPGAURC",
+      "BEAZEACIXDSGX",
+      "COFDXNKPLRTYN",
+      "GWOESIOLEDIKC",
+      "SLLGIMZXRZAWS"
     ],
-    loesung: "LUCIA"
+    namen: ["ELOISE", "AMBROSE", "THEKLA", "SEVERIN", "MATHILDA"]
   },
   unterschiede: {
     titel: "Zweimal dasselbe Bild",
@@ -370,7 +381,7 @@ const RAEUME = [
       // --- Rätsel -----------------------------------------------------
       { id: "gemaelde", x: 25.5, y: 15, w: 9.5, h: 19, raetsel: "gitter", nr: "1",
         name: "Perlenschmuck", bild: "bilder/items/perlenschmuck.png",
-        text: "Hinter dem Gemälde klemmt ein vergilbtes Blatt mit einem Buchstabengitter." },
+        text: "Hinter dem Gemälde klemmt ein vergilbtes Blatt. Fünf Namen, dicht an dicht geschrieben, damit niemand sie liest." },
       { id: "oval", x: 20.3, y: 20.5, w: 4.4, h: 12, raetsel: "unterschiede", nr: "2",
         name: "Brosche", bild: "bilder/items/brosche.png",
         text: "Das kleine Porträt hängt doppelt an der Wand. Zweimal dasselbe Bild, oder doch nicht." },
@@ -776,11 +787,9 @@ function raetselZeigen(stelle) {
 
   if (stelle.raetsel === "puzzle") { bastlePuzzle(koerper, stelle, d); return; }
   if (stelle.raetsel === "unterschiede") { bastleUnterschiede(koerper, stelle, d); return; }
+  if (stelle.raetsel === "gitter") { bastleGitter(koerper, stelle, d); return; }
 
   let vorbau = "";
-  if (stelle.raetsel === "gitter") {
-    vorbau = `<div class="gitter">` + d.zeilen.join("<br>") + `</div>`;
-  }
   if (stelle.raetsel === "anagramm") {
     vorbau = `<div class="anagramm">${d.gemischt}</div>`;
   }
@@ -814,6 +823,74 @@ function raetselZeigen(stelle) {
   };
   el("raetselpruefen").onclick = pruefen;
   feld.onkeydown = (e) => { if (e.key === "Enter") pruefen(); };
+}
+
+// --- Buchstabengitter --------------------------------------------------
+function bastleGitter(koerper, stelle, d) {
+  const zeilen = d.zeilen, N = zeilen[0].length;
+  const gefunden = new Set();        // gefundene Namen
+  const markiert = new Set();        // Felder "r,c"
+  let start = null;
+
+  koerper.innerHTML = `<div class="gitter" id="gitterfeld"></div>` +
+    `<div class="namensliste2" id="gitternamen"></div>`;
+  const feld = el("gitterfeld");
+  feld.style.gridTemplateColumns = `repeat(${N}, 1fr)`;
+
+  function namenMalen() {
+    el("gitternamen").innerHTML = d.namen
+      .map((n) => `<span class="${gefunden.has(n) ? "weg" : ""}">${n}</span>`).join("");
+  }
+
+  function wegLesen(r1, c1, r2, c2) {
+    const dr = Math.sign(r2 - r1), dc = Math.sign(c2 - c1);
+    const schritte = Math.max(Math.abs(r2 - r1), Math.abs(c2 - c1));
+    // nur gerade Linien: waagrecht, senkrecht oder diagonal
+    if (!(r1 === r2 || c1 === c2 || Math.abs(r2 - r1) === Math.abs(c2 - c1))) return null;
+    const wege = [];
+    let wort = "";
+    for (let i = 0; i <= schritte; i++) {
+      const r = r1 + dr * i, c = c1 + dc * i;
+      wort += zeilen[r][c];
+      wege.push(r + "," + c);
+    }
+    return { wort, wege };
+  }
+
+  function malen() {
+    feld.innerHTML = "";
+    zeilen.forEach((zeile, r) => {
+      [...zeile].forEach((buchstabe, c) => {
+        const z = document.createElement("span");
+        z.textContent = buchstabe;
+        if (markiert.has(r + "," + c)) z.classList.add("gefunden");
+        if (start && start.r === r && start.c === c) z.classList.add("start");
+        z.onclick = () => {
+          if (!start) { start = { r, c }; malen(); return; }
+          if (start.r === r && start.c === c) { start = null; malen(); return; }
+          const weg = wegLesen(start.r, start.c, r, c);
+          start = null;
+          if (!weg) {
+            el("raetselmeldung").textContent = "Nur gerade Linien.";
+            malen(); return;
+          }
+          const rueckwaerts = [...weg.wort].reverse().join("");
+          const treffer = d.namen.find((n) => !gefunden.has(n) && (n === weg.wort || n === rueckwaerts));
+          if (!treffer) {
+            el("raetselmeldung").textContent = "Das ist keiner der Namen.";
+            malen(); return;
+          }
+          gefunden.add(treffer);
+          weg.wege.forEach((f) => markiert.add(f));
+          el("raetselmeldung").textContent = "";
+          malen(); namenMalen();
+          if (gefunden.size === d.namen.length) raetselGeloest(stelle);
+        };
+        feld.appendChild(z);
+      });
+    });
+  }
+  malen(); namenMalen();
 }
 
 // --- Puzzle (Schiebespiel) ---------------------------------------------
