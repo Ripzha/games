@@ -80,6 +80,10 @@
     max-width: 620px; width: calc(100% - 32px); background: #16150f;
     border: 1px solid #4a4230; border-radius: 8px; padding: 14px 18px;
     font-size: 15px; line-height: 1.55; display: none; z-index: 4; }
+  #fenster .fundzeile { display: flex; gap: 14px; align-items: center; }
+  #fenster .fundbild { width: 84px; height: 84px; object-fit: contain; flex: none; }
+  #tasche .taschenbild { width: 42px; height: 42px; object-fit: contain; flex: none; }
+  #tasche .taschenunten { gap: 10px; }
   #fenster .fragment { display: inline-block; margin-top: 10px; padding: 8px 18px;
     background: #3a2f12; color: #f0c173; border-radius: 6px; font-size: 22px; letter-spacing: 3px; }
   #fenster button { float: right; background: none; border: none; color: #8a857a;
@@ -96,7 +100,7 @@
 
   #tasche { display: none; position: absolute; left: 14px; bottom: 14px; z-index: 4;
     padding: 10px 14px; background: rgba(14,13,10,0.92); border: 1px solid #5a4a1c;
-    border-radius: 8px; cursor: pointer; max-width: 260px; }
+    border-radius: 8px; cursor: pointer; max-width: 320px; }
   #tasche:hover { border-color: #c88a2a; }
   .taschenzeile { font-size: 11px; color: #8a857a; }
   .taschenname { font-size: 15px; color: #e8e4da; margin: 2px 0 0; }
@@ -219,17 +223,17 @@ const RAEUME = [
     tuertext: "Im Schloss der Tür sitzen sechs Walzen. Sie wollen Zahlen.",
     stellen: [
       // --- Fundstücke -------------------------------------------------
-      { id: "wachs", x: 12, y: 67, w: 7, h: 11, ziffer: "6", gehoert: "Delsyn", name: "Hundemarke",
+      { id: "wachs", x: 12, y: 67, w: 7, h: 11, ziffer: "6", gehoert: "Delsyn", name: "Hundemarke", bild: "bilder/items/hundemarke.png",
         text: "Halb im erkalteten Wachs liegt eine Hundemarke an einer Kette. Die Prägung ist noch zu lesen. Am Kettenglied hängt ein Papierschild mit einer Zahl." },
-      { id: "truhe", x: 18, y: 58, w: 7, h: 10, ziffer: "1", gehoert: "Maryama", name: "Getrocknetes Blatt",
+      { id: "truhe", x: 18, y: 58, w: 7, h: 10, ziffer: "1", gehoert: "Maryama", name: "Getrocknetes Blatt", bild: "bilder/items/blatt.png",
         text: "In der offenen Truhe liegt ein getrocknetes Blatt zwischen zwei Glasscheiben. Mit Faden umwickelt, daran ein Papierschild mit einer Zahl." },
-      { id: "leinwaende", x: 34, y: 43, w: 8, h: 13, ziffer: "8", gehoert: "Logan", name: "Plektrum",
+      { id: "leinwaende", x: 34, y: 43, w: 8, h: 13, ziffer: "8", gehoert: "Logan", name: "Plektrum", bild: "bilder/items/plektrum.png",
         text: "Zwischen den angelehnten Leinwänden klemmt ein abgegriffenes Plektrum. Jemand hat ein Papierschild daran geklebt, darauf eine Zahl." },
-      { id: "sofa", x: 41, y: 59, w: 11, h: 7, ziffer: "9", gehoert: "Jack", name: "Haarbürste",
-        text: "Unter dem Kissen steckt eine Haarbürste. In den Borsten hängen noch Haare. Am Griff ein Papierschild mit einer Zahl." },
-      { id: "sims", x: 73, y: 42, w: 17, h: 6, ziffer: "3", gehoert: "Viktor", name: "Katzenspielzeug",
+      { id: "sofa", x: 41, y: 59, w: 11, h: 7, ziffer: "9", gehoert: "Jack", name: "Autoschlüssel", bild: "bilder/items/autoschluessel.png",
+        text: "Unter dem Kissen steckt ein Autoschlüssel. Der Lack am Anhänger ist abgegriffen, als hätte ihn jemand lange in der Hand gehalten. Am Ring ein Papierschild mit einer Zahl." },
+      { id: "sims", x: 73, y: 42, w: 17, h: 6, ziffer: "3", gehoert: "Viktor", name: "Katzenspielzeug", bild: "bilder/items/katzenspielzeug.png",
         text: "Auf dem Kaminsims liegt ein Katzenspielzeug, die Feder daran ist zerzaust. An der Schnur hängt ein Papierschild mit einer Zahl." },
-      { id: "spiegelfuss", x: 90, y: 70, w: 8, h: 11, ziffer: "4", gehoert: "Lucia", name: "Phiole",
+      { id: "spiegelfuss", x: 90, y: 70, w: 8, h: 11, ziffer: "4", gehoert: "Lucia", name: "Phiole", bild: "bilder/items/phiole.png",
         text: "Am Fuss des Spiegels steht eine kleine Phiole, der Verschluss aus Wachs. Was darin ist, ist dunkel und noch nicht eingetrocknet. Am Hals ein Papierschild mit einer Zahl." },
 
       // --- Porträtwand ------------------------------------------------
@@ -448,11 +452,12 @@ function zeichnen() {
     const st = raum.stellen.find((x) => x.id === meinFund.stelle);
     tasche.innerHTML = `<div class="taschenzeile">Du trägst bei dir — nur du siehst das</div>` +
       `<div class="taschenunten">` +
+        (st && st.bild ? `<img class="taschenbild" src="${st.bild}" alt="">` : "") +
         `<span class="taschenname">${st && st.name ? st.name : "Etwas"}</span>` +
         `<span class="taschenzahl">${meinFund.fragment}</span>` +
       `</div>`;
     tasche.onclick = () => {
-      if (st) fensterZeigen(st.text, meinFund.fragment);
+      if (st) fensterZeigen(st.text, meinFund.fragment, st.bild);
     };
     tasche.style.display = "block";
   } else {
@@ -488,7 +493,7 @@ async function stelleAnklicken(stelle, meinFund) {
     }
     return;
   }
-  fensterZeigen(stelle.text, stelle.ziffer);
+  fensterZeigen(stelle.text, stelle.ziffer, stelle.bild);
 }
 
 // --- Schloss -----------------------------------------------------------
@@ -564,10 +569,12 @@ function nahZu() { el("nah").style.display = "none"; }
 el("nahzu").onclick = (e) => { e.stopPropagation(); nahZu(); };
 
 // --- Textfenster -------------------------------------------------------
-function fensterZeigen(text, ziffer) {
+function fensterZeigen(text, ziffer, bild) {
   const f = el("fenster");
-  f.innerHTML = "<button onclick='fensterZu()'>×</button>" + text +
-    (ziffer ? `<br><span class="fragment">${ziffer}</span>` : "");
+  const inhalt = text + (ziffer ? `<br><span class="fragment">${ziffer}</span>` : "");
+  f.innerHTML = "<button onclick='fensterZu()'>×</button>" +
+    (bild ? `<div class="fundzeile"><img class="fundbild" src="${bild}" alt=""><div>${inhalt}</div></div>`
+          : inhalt);
   f.style.display = "block";
 }
 function fensterZu() { el("fenster").style.display = "none"; }
