@@ -99,9 +99,11 @@
     font-size: 14px; color: #ded6c2; }
   .tabelle span.leer { color: #6e685c; }
   .anagramm { font-size: clamp(22px, 3vw, 40px); letter-spacing: 12px; color: #f0c173; margin: 16px 0; }
-  .kacheln { display: grid; grid-template-columns: repeat(4, 1fr); gap: 3px;
-    width: min(380px, 60vh); margin: 14px 0; }
-  .kacheln div { aspect-ratio: 900 / 854; background-size: 400% 400%;
+  .puzzlereihe { display: flex; gap: 18px; align-items: flex-start; flex-wrap: wrap; margin: 14px 0; }
+  .puzzlereihe .vorlage { width: min(160px, 26vh); opacity: .5; border: 1px solid #2a2720;
+    border-radius: 6px; padding: 6px; background: #121109; }
+  .kacheln { display: grid; gap: 3px; width: min(360px, 56vh); }
+  .kacheln div { aspect-ratio: 900 / 854;
     background-color: #17160f; border: 1px solid #2a2720; cursor: pointer; }
   .kacheln div.leerfeld { background: #0d0c0a; border-color: #1c1a16; cursor: default; }
   .unterschiede { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 12px; }
@@ -301,8 +303,10 @@ const RAETSEL = {
   },
   puzzle: {
     titel: "Die Scherben",
-    aufgabe: "Setz das Stück wieder zusammen. Klick zwei Kacheln an, um sie zu tauschen.",
-    bild: "bilder/items/faecher.png"
+    aufgabe: "Setz das Stück wieder zusammen. Klick eine Kachel neben der Lücke an, dann rutscht sie hinein. Rechts siehst du, wie es aussehen muss.",
+    bild: "bilder/items/faecher.png",
+    raster: 3,   // 3 = neun Felder, 4 = sechzehn Felder
+    zuege: 35    // je höher, desto stärker gemischt
   },
   zaehlen: {
     titel: "Der Zettel auf der Kommode",
@@ -895,7 +899,7 @@ function bastleGitter(koerper, stelle, d) {
 
 // --- Puzzle (Schiebespiel) ---------------------------------------------
 function bastlePuzzle(koerper, stelle, d) {
-  const N = 4, anzahl = N * N, leer = anzahl - 1;
+  const N = d.raster || 3, anzahl = N * N, leer = anzahl - 1;
   let felder = [...Array(anzahl).keys()];   // felder[platz] = kachel, leer = leeres Feld
 
   function nachbarn(platz) {
@@ -908,7 +912,7 @@ function bastlePuzzle(koerper, stelle, d) {
   }
   // Durch zufällige, erlaubte Züge mischen — so bleibt es immer lösbar
   let leerPlatz = felder.indexOf(leer);
-  for (let i = 0; i < 300; i++) {
+  for (let i = 0; i < (d.zuege || 35); i++) {
     const m = nachbarn(leerPlatz);
     const ziel = m[Math.floor(Math.random() * m.length)];
     felder[leerPlatz] = felder[ziel];
@@ -916,9 +920,18 @@ function bastlePuzzle(koerper, stelle, d) {
     leerPlatz = ziel;
   }
 
+  const reihe = document.createElement("div");
+  reihe.className = "puzzlereihe";
   const raster = document.createElement("div");
   raster.className = "kacheln";
-  koerper.appendChild(raster);
+  raster.style.gridTemplateColumns = `repeat(${N}, 1fr)`;
+  const vorlage = document.createElement("img");
+  vorlage.className = "vorlage";
+  vorlage.src = d.bild;
+  vorlage.alt = "";
+  reihe.appendChild(raster);
+  reihe.appendChild(vorlage);
+  koerper.appendChild(reihe);
 
   function fertig() { return felder.every((v, i) => v === i); }
 
@@ -931,6 +944,7 @@ function bastlePuzzle(koerper, stelle, d) {
       } else {
         const sp = kachel % N, ze = Math.floor(kachel / N);
         z.style.backgroundImage = `url("${d.bild}")`;
+        z.style.backgroundSize = `${N * 100}% ${N * 100}%`;
         z.style.backgroundPosition = `${(sp * 100) / (N - 1)}% ${(ze * 100) / (N - 1)}%`;
         z.onclick = () => {
           const lp = felder.indexOf(leer);
