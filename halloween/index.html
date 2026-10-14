@@ -60,6 +60,13 @@
     background: #17160f; color: #e8e4da; border: 1px solid #5a5238;
     border-radius: 6px; font-size: 14px; cursor: pointer; z-index: 3; }
 
+  .stelle .pfeil { position: absolute; left: 50%; top: 50%;
+    transform: translate(-50%, -50%); width: 46px; height: 46px; border-radius: 50%;
+    background: rgba(58,47,18,0.88); border: 1px solid #c88a2a; color: #f0c173;
+    font-size: 22px; line-height: 44px; text-align: center; pointer-events: none;
+    animation: pochen 1.8s ease-in-out infinite; }
+  @keyframes pochen { 0%,100% { opacity: .75; } 50% { opacity: 1; } }
+
   /* Raetsel */
   #raetsel { display: none; position: absolute; inset: 0; z-index: 4;
     background: rgba(10,10,9,0.96); padding: 18px 20px; overflow: auto; }
@@ -615,6 +622,12 @@ function zeichnen() {
       d.appendChild(m);
       d.classList.add("genommen");
     } else {
+      if (s.schloss && raum.naechster && raumStatus[raum.naechster]) {
+        const pf = document.createElement("div");
+        pf.className = "pfeil";
+        pf.textContent = "→";
+        d.appendChild(pf);
+      }
       d.onclick = () => stelleAnklicken(s, meinFund);
     }
     buehne.appendChild(d);
@@ -626,7 +639,7 @@ function zeichnen() {
     const t = document.createElement("div");
     t.id = "tuertext";
     t.textContent = raumStatus[raum.naechster]
-      ? "Die Tür steht offen."
+      ? "Die Tür steht offen. Klick sie an, um hindurchzugehen."
       : "Die Tür ist verschlossen. Klick sie an, um am Schloss zu drehen.";
     tuer.appendChild(t);
   }
@@ -658,7 +671,12 @@ function zeichnen() {
 
 // --- Klick -------------------------------------------------------------
 async function stelleAnklicken(stelle, meinFund) {
-  if (stelle.schloss) { schlossZeigen(); return; }
+  if (stelle.schloss) {
+    const raum = RAEUME.find((r) => r.id === raumId);
+    if (raum.naechster && raumStatus[raum.naechster]) { raumWechseln(raum.naechster); return; }
+    schlossZeigen();
+    return;
+  }
   if (stelle.raetsel) { raetselStarten(stelle, meinFund); return; }
   if (stelle.nahansicht) { nahZeigen(stelle.nahansicht); return; }
   if (!stelle.ziffer) { fensterZeigen(stelle.text, null); return; }
