@@ -1,0 +1,470 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Das Spukhaus</title>
+<style>
+  :root { color-scheme: dark; }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: #0b0b0a;
+    color: #e8e4da;
+    font-family: -apple-system, BlinkMacSystemFont, "Helvetica Neue", sans-serif;
+  }
+  #huelle { max-width: 1200px; margin: 0 auto; padding: 16px; }
+
+  h1 { font-size: 22px; font-weight: 500; margin: 0 0 4px; }
+  p.unter { color: #8a857a; font-size: 14px; margin: 0 0 24px; }
+
+  /* Namenswahl */
+  #namenswahl { padding: 40px 0; }
+  .namensknopf {
+    display: block; width: 100%; max-width: 360px; margin: 0 0 8px;
+    padding: 14px 18px; text-align: left;
+    background: #17160f; color: #e8e4da;
+    border: 1px solid #332f24; border-radius: 8px;
+    font-size: 16px; cursor: pointer;
+  }
+  .namensknopf:hover { background: #221f16; border-color: #5a5238; }
+  .namensknopf small { color: #8a857a; float: right; font-size: 13px; }
+
+  /* Kopfzeile im Spiel */
+  #kopf { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; margin-bottom: 12px; }
+  .raumknopf {
+    padding: 8px 14px; border-radius: 6px; cursor: pointer; font-size: 14px;
+    background: #17160f; color: #e8e4da; border: 1px solid #332f24;
+  }
+  .raumknopf.aktiv { border-color: #c88a2a; color: #f0c173; }
+  .raumknopf:disabled { opacity: .35; cursor: not-allowed; }
+  #wer { margin-left: auto; font-size: 13px; color: #8a857a; }
+
+  /* Raumbild */
+  #buehne {
+    position: relative; width: 100%; aspect-ratio: 16 / 9;
+    background: #131210 center/cover no-repeat;
+    border: 1px solid #2a2720; border-radius: 10px; overflow: hidden;
+    user-select: none;
+  }
+  .stelle {
+    position: absolute; border-radius: 4px; cursor: pointer;
+    border: 1px solid rgba(255,255,255,0.06); background: rgba(255,255,255,0.02);
+  }
+  .stelle:hover { background: rgba(240,193,115,0.14); border-color: rgba(240,193,115,0.5); }
+  .stelle.leer { cursor: default; background: rgba(0,0,0,0.35); border-color: rgba(255,255,255,0.05); }
+  .stelle.leer:hover { background: rgba(0,0,0,0.35); border-color: rgba(255,255,255,0.05); }
+  .stelle .marke {
+    position: absolute; left: 0; right: 0; bottom: 2px; text-align: center;
+    font-size: 11px; color: #9a9race; pointer-events: none;
+  }
+  .stelle .marke { color: #9a927e; }
+
+  /* Textfenster */
+  #fenster {
+    position: absolute; left: 50%; bottom: 16px; transform: translateX(-50%);
+    max-width: 560px; width: calc(100% - 32px);
+    background: #16150f; border: 1px solid #4a4230; border-radius: 8px;
+    padding: 14px 16px; font-size: 15px; line-height: 1.5; display: none;
+  }
+  #fenster .fragment {
+    display: inline-block; margin-top: 8px; padding: 6px 14px;
+    background: #3a2f12; color: #f0c173; border-radius: 6px;
+    font-size: 20px; letter-spacing: 2px;
+  }
+  #fenster button {
+    float: right; background: none; border: none; color: #8a857a;
+    font-size: 18px; cursor: pointer; line-height: 1;
+  }
+
+  /* Tür */
+  #tuer { margin-top: 16px; display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+  #tuer input {
+    padding: 10px 12px; background: #131210; color: #e8e4da;
+    border: 1px solid #332f24; border-radius: 6px; font-size: 15px; min-width: 220px;
+  }
+  #tuer button {
+    padding: 10px 18px; background: #3a2f12; color: #f0c173;
+    border: 1px solid #5a4a1c; border-radius: 6px; font-size: 15px; cursor: pointer;
+  }
+  #tuertext { font-size: 14px; color: #8a857a; }
+
+  /* Fundliste */
+  #funde { margin-top: 16px; font-size: 14px; color: #8a857a; line-height: 1.7; }
+  #funde b { color: #e8e4da; font-weight: 500; }
+
+  /* Bearbeitungsmodus */
+  #editor { margin-top: 16px; display: none; }
+  #editor textarea {
+    width: 100%; height: 160px; background: #0f0e0c; color: #a9d6a0;
+    border: 1px solid #332f24; border-radius: 6px; padding: 10px;
+    font-family: ui-monospace, Menlo, monospace; font-size: 13px;
+  }
+  #ziehrahmen { position: absolute; border: 1px dashed #f0c173; background: rgba(240,193,115,0.12); display: none; }
+</style>
+</head>
+<body>
+<div id="huelle">
+
+  <div id="namenswahl">
+    <h1>Das Spukhaus</h1>
+    <p class="unter">Wer bist du?</p>
+    <div id="namensliste"></div>
+  </div>
+
+  <div id="spiel" style="display:none">
+    <div id="kopf"></div>
+    <div id="buehne">
+      <div id="ziehrahmen"></div>
+      <div id="fenster"></div>
+    </div>
+    <div id="tuer"></div>
+    <div id="funde"></div>
+    <div id="editor">
+      <textarea id="editorfeld" readonly></textarea>
+    </div>
+  </div>
+
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
+<script>
+// ----------------------------------------------------------------------
+// 1. Zugangsdaten
+// ----------------------------------------------------------------------
+const SUPABASE_URL = "https://toftpnzarrnkvrytmhlq.supabase.co";
+const SUPABASE_KEY = "sb_publishable_7SKB2Xl8oDxmhq-ZAV8K0g_RHrjFNgM";
+
+// ----------------------------------------------------------------------
+// 2. Mitspieler
+// ----------------------------------------------------------------------
+const SPIELER = ["bin.sen", "cat", "murloc", "riva", "tsag", "spatz", "Knox"];
+
+// ----------------------------------------------------------------------
+// 3. Räume
+//    x, y, w, h sind Prozentwerte im Bild (links, oben, Breite, Höhe).
+//    Eine Stelle mit "fragment" ist ein Fundstück, eine ohne nur Stimmung.
+//    "loesung" ist das Wort, das die Tür zum nächsten Raum öffnet.
+// ----------------------------------------------------------------------
+const RAEUME = [
+  {
+    id: "eingangshalle",
+    name: "Eingangshalle",
+    bild: "",
+    loesung: "MOND",
+    naechster: "bibliothek",
+    tuertext: "Die Kellertür trägt vier Kerben. Vier Zeichen, vier Finder.",
+    stellen: [
+      { id: "garderobe",   x: 6,  y: 30, w: 12, h: 26, fragment: "M", text: "Ein Mantel hängt noch da. In der Tasche steckt ein Zettel." },
+      { id: "spiegel",     x: 24, y: 18, w: 14, h: 22, fragment: "O", text: "Dein Spiegelbild braucht eine Sekunde zu lang, bis es sich mitbewegt." },
+      { id: "uhr",         x: 44, y: 14, w: 10, h: 34, fragment: "N", text: "Die Standuhr steht still. Hinter dem Pendel klemmt etwas." },
+      { id: "treppe",      x: 60, y: 24, w: 18, h: 40, fragment: "D", text: "Unter der dritten Stufe ist das Holz lose." },
+      { id: "schirm",      x: 84, y: 48, w: 10, h: 24, text: "Ein Schirmständer, leer bis auf Staub." },
+      { id: "bild",        x: 24, y: 52, w: 12, h: 18, text: "Ein Familienporträt. Die Gesichter sind übermalt." },
+      { id: "laeufer",     x: 42, y: 64, w: 22, h: 14, text: "Der Teppichläufer ist an einer Stelle dunkel verfärbt." },
+      { id: "kerzen",      x: 6,  y: 66, w: 12, h: 16, text: "Drei heruntergebrannte Kerzen. Eine ist noch warm." }
+    ]
+  },
+  {
+    id: "bibliothek",
+    name: "Bibliothek",
+    bild: "",
+    loesung: "RABE",
+    naechster: "keller",
+    tuertext: "Zwischen den Regalen klemmt eine Tür. Sie will vier Zeichen.",
+    stellen: [
+      { id: "regal_links",  x: 8,  y: 20, w: 16, h: 40, fragment: "R", text: "Ein Buchrücken ohne Titel. Dahinter ein Hohlraum." },
+      { id: "lesepult",     x: 32, y: 40, w: 16, h: 24, fragment: "A", text: "Auf dem Pult liegt ein aufgeschlagenes Buch, eine Zeile unterstrichen." },
+      { id: "kamin",        x: 56, y: 36, w: 18, h: 28, fragment: "B", text: "In der Asche liegt etwas, das nicht verbrannt ist." },
+      { id: "globus",       x: 80, y: 44, w: 12, h: 22, fragment: "E", text: "Der Globus lässt sich aufklappen." },
+      { id: "sessel",       x: 30, y: 68, w: 18, h: 18, text: "Der Sessel ist warm. Niemand sitzt darin." },
+      { id: "leiter",       x: 10, y: 62, w: 10, h: 24, text: "Eine Rollleiter, eine Sprosse fehlt." },
+      { id: "fenster_bib",  x: 58, y: 10, w: 20, h: 20, text: "Draussen bewegt sich nichts, aber der Vorhang weht." },
+      { id: "schaedel",     x: 82, y: 20, w: 10, h: 14, text: "Ein Tierschädel als Buchstütze. Er ist neu." }
+    ]
+  },
+  {
+    id: "keller",
+    name: "Keller",
+    bild: "",
+    loesung: "",
+    naechster: "",
+    tuertext: "Ihr seid durch.",
+    stellen: [
+      { id: "kiste",  x: 20, y: 40, w: 18, h: 26, text: "Eine Kiste voller Kerzenstummel." },
+      { id: "tuer_k", x: 60, y: 30, w: 16, h: 40, text: "Die Tür nach draussen. Sie steht offen." }
+    ]
+  }
+];
+
+// ----------------------------------------------------------------------
+// Ab hier Technik
+// ----------------------------------------------------------------------
+const db = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+const bearbeiten = new URLSearchParams(location.search).has("edit");
+
+let ich = localStorage.getItem("spukhaus_spieler") || "";
+let raumId = "";
+let funde = [];        // alle Funde aus der Datenbank
+let raumStatus = {};   // raum -> offen
+let anwesend = [];     // Namen im aktuellen Raum
+let kanalRaum = null;
+
+const el = (id) => document.getElementById(id);
+
+// --- Start -------------------------------------------------------------
+function namenswahlZeigen() {
+  const liste = el("namensliste");
+  liste.innerHTML = "";
+  SPIELER.forEach((name) => {
+    const k = document.createElement("button");
+    k.className = "namensknopf";
+    k.textContent = name;
+    k.onclick = () => { ich = name; localStorage.setItem("spukhaus_spieler", name); starten(); };
+    liste.appendChild(k);
+  });
+}
+
+async function starten() {
+  el("namenswahl").style.display = "none";
+  el("spiel").style.display = "block";
+  if (bearbeiten) el("editor").style.display = "block";
+
+  await ladeRaeume();
+  await ladeFunde();
+  horchen();
+
+  const ersterOffener = RAEUME.find((r) => raumStatus[r.id]);
+  raumWechseln(ersterOffener ? ersterOffener.id : RAEUME[0].id);
+}
+
+// --- Daten laden -------------------------------------------------------
+async function ladeRaeume() {
+  const { data, error } = await db.from("raeume").select("raum, offen");
+  if (error) { meldung("Räume konnten nicht geladen werden: " + error.message); return; }
+  raumStatus = {};
+  data.forEach((z) => { raumStatus[z.raum] = z.offen; });
+}
+
+async function ladeFunde() {
+  const { data, error } = await db.from("funde").select("raum, stelle, spieler, fragment");
+  if (error) { meldung("Funde konnten nicht geladen werden: " + error.message); return; }
+  funde = data;
+}
+
+// --- Echtzeit ----------------------------------------------------------
+function horchen() {
+  db.channel("spukhaus-daten")
+    .on("postgres_changes", { event: "*", schema: "public", table: "funde" }, (nachricht) => {
+      if (nachricht.eventType === "INSERT") funde.push(nachricht.new);
+      if (nachricht.eventType === "DELETE") funde = funde.filter((f) => f.id !== nachricht.old.id);
+      zeichnen();
+    })
+    .on("postgres_changes", { event: "*", schema: "public", table: "raeume" }, (nachricht) => {
+      raumStatus[nachricht.new.raum] = nachricht.new.offen;
+      zeichnen();
+    })
+    .subscribe();
+}
+
+function anwesenheit(raum) {
+  if (kanalRaum) db.removeChannel(kanalRaum);
+  kanalRaum = db.channel("raum-" + raum, { config: { presence: { key: ich } } });
+  kanalRaum
+    .on("presence", { event: "sync" }, () => {
+      anwesend = Object.keys(kanalRaum.presenceState());
+      zeichnen();
+    })
+    .subscribe(async (status) => {
+      if (status === "SUBSCRIBED") await kanalRaum.track({ name: ich });
+    });
+}
+
+// --- Raumwechsel -------------------------------------------------------
+function raumWechseln(id) {
+  raumId = id;
+  const raum = RAEUME.find((r) => r.id === id);
+  el("buehne").style.backgroundImage = raum.bild ? `url("${raum.bild}")` : "none";
+  fensterZu();
+  anwesenheit(id);
+  zeichnen();
+}
+
+// --- Zeichnen ----------------------------------------------------------
+function zeichnen() {
+  const raum = RAEUME.find((r) => r.id === raumId);
+  if (!raum) return;
+
+  // Kopfzeile
+  const kopf = el("kopf");
+  kopf.innerHTML = "";
+  RAEUME.forEach((r) => {
+    const k = document.createElement("button");
+    k.className = "raumknopf" + (r.id === raumId ? " aktiv" : "");
+    k.textContent = r.name;
+    k.disabled = !raumStatus[r.id];
+    k.onclick = () => raumWechseln(r.id);
+    kopf.appendChild(k);
+  });
+  const wer = document.createElement("div");
+  wer.id = "wer";
+  wer.textContent = anwesend.length
+    ? "Im Raum: " + anwesend.join(", ")
+    : "Im Raum: nur du";
+  kopf.appendChild(wer);
+
+  // Stellen
+  const buehne = el("buehne");
+  buehne.querySelectorAll(".stelle").forEach((n) => n.remove());
+
+  const funde_hier = funde.filter((f) => f.raum === raumId);
+  const meinFund = funde_hier.find((f) => f.spieler === ich);
+
+  raum.stellen.forEach((s) => {
+    const belegt = funde_hier.find((f) => f.stelle === s.id);
+    const d = document.createElement("div");
+    d.className = "stelle" + (belegt ? " leer" : "");
+    d.style.left = s.x + "%";
+    d.style.top = s.y + "%";
+    d.style.width = s.w + "%";
+    d.style.height = s.h + "%";
+    if (belegt) {
+      const m = document.createElement("div");
+      m.className = "marke";
+      m.textContent = belegt.spieler;
+      d.appendChild(m);
+    } else {
+      d.onclick = () => stelleAnklicken(s, meinFund);
+    }
+    buehne.appendChild(d);
+  });
+
+  // Tür
+  const tuer = el("tuer");
+  tuer.innerHTML = "";
+  if (raum.loesung) {
+    const t = document.createElement("div");
+    t.id = "tuertext";
+    t.textContent = raumStatus[raum.naechster]
+      ? "Die Tür steht offen."
+      : raum.tuertext;
+    tuer.appendChild(t);
+    if (!raumStatus[raum.naechster]) {
+      const feld = document.createElement("input");
+      feld.placeholder = "Wort eingeben";
+      feld.id = "tuerfeld";
+      const knopf = document.createElement("button");
+      knopf.textContent = "Tür öffnen";
+      knopf.onclick = () => tuerVersuchen(raum, feld.value);
+      feld.onkeydown = (e) => { if (e.key === "Enter") tuerVersuchen(raum, feld.value); };
+      tuer.appendChild(feld);
+      tuer.appendChild(knopf);
+    }
+  }
+
+  // Fundliste
+  const liste = el("funde");
+  if (funde_hier.length === 0) {
+    liste.innerHTML = "Noch hat niemand etwas gefunden.";
+  } else {
+    liste.innerHTML = funde_hier
+      .map((f) => `<b>${f.spieler}</b> hat etwas gefunden`)
+      .join("<br>");
+  }
+  if (meinFund) {
+    liste.innerHTML += `<br><br>Dein Zeichen in diesem Raum: <b>${meinFund.fragment}</b> — zeig es im Chat.`;
+  }
+}
+
+// --- Klick auf eine Stelle --------------------------------------------
+async function stelleAnklicken(stelle, meinFund) {
+  if (!stelle.fragment) { fensterZeigen(stelle.text, null); return; }
+  if (meinFund) {
+    fensterZeigen("Du trägst schon ein Zeichen aus diesem Raum. Lass den anderen den Rest.", null);
+    return;
+  }
+  const { error } = await db.from("funde").insert({
+    raum: raumId, stelle: stelle.id, spieler: ich, fragment: stelle.fragment
+  });
+  if (error) {
+    if (error.code === "23505") {
+      fensterZeigen("Zu spät. Jemand war schneller.", null);
+      await ladeFunde();
+      zeichnen();
+    } else {
+      fensterZeigen("Fehler: " + error.message, null);
+    }
+    return;
+  }
+  fensterZeigen(stelle.text, stelle.fragment);
+}
+
+// --- Tür öffnen --------------------------------------------------------
+async function tuerVersuchen(raum, eingabe) {
+  const wort = (eingabe || "").trim().toUpperCase();
+  if (!wort) { meldung("Erst ein Wort eingeben."); return; }
+  if (wort !== raum.loesung.toUpperCase()) { meldung("Nichts passiert."); return; }
+  const { error } = await db.from("raeume")
+    .update({ offen: true, geoeffnet_von: ich, zeit: new Date().toISOString() })
+    .eq("raum", raum.naechster);
+  if (error) { meldung("Fehler: " + error.message); return; }
+  raumStatus[raum.naechster] = true;
+  zeichnen();
+  meldung("Die Tür öffnet sich.");
+}
+
+// --- Textfenster -------------------------------------------------------
+function fensterZeigen(text, fragment) {
+  const f = el("fenster");
+  f.innerHTML = "<button onclick='fensterZu()'>×</button>" + text +
+    (fragment ? `<br><span class="fragment">${fragment}</span>` : "");
+  f.style.display = "block";
+}
+function fensterZu() { el("fenster").style.display = "none"; }
+function meldung(t) { fensterZeigen(t, null); }
+
+// --- Bearbeitungsmodus -------------------------------------------------
+if (bearbeiten) {
+  const buehne = () => el("buehne");
+  let start = null;
+  document.addEventListener("mousedown", (e) => {
+    if (!el("buehne").contains(e.target)) return;
+    const r = el("buehne").getBoundingClientRect();
+    start = { x: e.clientX - r.left, y: e.clientY - r.top, r };
+    const z = el("ziehrahmen");
+    z.style.display = "block";
+    z.style.left = start.x + "px"; z.style.top = start.y + "px";
+    z.style.width = "0px"; z.style.height = "0px";
+    e.preventDefault();
+  });
+  document.addEventListener("mousemove", (e) => {
+    if (!start) return;
+    const z = el("ziehrahmen");
+    const x = e.clientX - start.r.left, y = e.clientY - start.r.top;
+    z.style.left = Math.min(x, start.x) + "px";
+    z.style.top = Math.min(y, start.y) + "px";
+    z.style.width = Math.abs(x - start.x) + "px";
+    z.style.height = Math.abs(y - start.y) + "px";
+  });
+  document.addEventListener("mouseup", (e) => {
+    if (!start) return;
+    const r = start.r;
+    const x = e.clientX - r.left, y = e.clientY - r.top;
+    const links = Math.min(x, start.x), oben = Math.min(y, start.y);
+    const breit = Math.abs(x - start.x), hoch = Math.abs(y - start.y);
+    start = null;
+    el("ziehrahmen").style.display = "none";
+    if (breit < 10 || hoch < 10) return;
+    const p = (v, ganz) => Math.round((v / ganz) * 1000) / 10;
+    const zeile = `{ id: "neu", x: ${p(links, r.width)}, y: ${p(oben, r.height)}, w: ${p(breit, r.width)}, h: ${p(hoch, r.height)}, text: "" },`;
+    const feld = el("editorfeld");
+    feld.value += (feld.value ? "\n" : "") + zeile;
+    feld.scrollTop = feld.scrollHeight;
+  });
+}
+
+// --- Los ---------------------------------------------------------------
+if (ich && SPIELER.includes(ich)) { starten(); } else { namenswahlZeigen(); }
+</script>
+</body>
+</html>
