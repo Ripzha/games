@@ -44,17 +44,22 @@
   #eingang:hover span { background: rgba(58,47,18,0.92); border-color: #f0c173; color: #fbe3b4; }
 
   /* Brief */
-  #brief { position: relative; width: 100%; aspect-ratio: 16 / 9;
-           background: #1b1710 center/cover no-repeat;
-           border: 1px solid #2a2720; border-radius: 10px; overflow: hidden; }
-  #brieftext { position: absolute; left: 12%; top: 12%; width: 52%; max-height: 74%;
+  #briefseite { display: flex; justify-content: center; }
+  #brief { position: relative; height: min(86vh, 980px); max-width: 100%;
+           aspect-ratio: 1131 / 1414;
+           background: #1b1710 center/contain no-repeat; }
+  #brief.ohnebild { background: #1b1710; border: 1px solid #2a2720; border-radius: 10px; }
+  #brieftext { position: absolute; left: 31%; top: 26%; width: 28%; max-height: 31%;
                overflow: auto; font-family: "Palatino", Georgia, serif; font-style: italic;
-               font-size: clamp(13px, 1.5vw, 19px); line-height: 1.75; color: #2a2118; }
-  #brief.ohnebild #brieftext { color: #ded6c2; }
-  #briefnachsatz { margin-top: 1.4em; font-size: 0.85em; opacity: .85; }
-  #briefknopf { position: absolute; right: 4%; bottom: 6%; padding: 12px 22px;
-                background: #221b10; color: #f0c173; border: 1px solid #5a4a1c;
-                border-radius: 6px; font-size: 16px; cursor: pointer; }
+               font-size: clamp(9px, 1.45vh, 17px); line-height: 1.5; color: #2e2317; }
+  #brieftext p { margin: 0 0 0.7em; }
+  #brief.ohnebild #brieftext { color: #ded6c2; left: 12%; top: 12%; width: 70%; max-height: 70%; }
+  #briefnachsatz { margin-top: 1em; font-size: 0.88em; opacity: .85; }
+  #briefknopf { position: absolute; left: 50%; bottom: 4%; transform: translateX(-50%);
+                padding: 10px 22px; background: rgba(14,13,10,0.85); color: #f0c173;
+                border: 1px solid rgba(240,193,115,0.55); border-radius: 20px;
+                font-size: 15px; cursor: pointer; white-space: nowrap; }
+  #briefknopf:hover { background: rgba(58,47,18,0.92); border-color: #f0c173; }
 
   /* Namenswahl */
   .namensknopf { display: block; width: 100%; max-width: 360px; margin: 0 0 8px;
@@ -280,11 +285,11 @@ const SPIELER = ["bin.sen", "cat", "murloc", "riva", "tsag", "spatz", "Knox"];
 //    bild: Pfad zum Briefbild. Leer lassen, dann erscheint dunkles Pergament.
 // ======================================================================
 const BRIEF = {
-  bild: "",
+  bild: "bilder/brief.jpg",
   absaetze: [
     "Es ist wieder soweit.",
     "Die Villa Victoria steht noch, auch wenn man das Gegenteil erzählt. Die Bretter vor den Fenstern sind nicht von mir.",
-    "Komm, sobald es dunkel ist. Du musst nichts mitbringen. Du warst damals nicht dabei — umso besser, dann weisst du nicht, worauf du dich einlässt.",
+    "Komm, sobald es dunkel ist. Du musst nichts mitbringen. Du warst damals nicht dabei — umso besser.",
     "Die Tür ist offen. Sie bleibt es nicht."
   ],
   nachsatz: "Es waren schon einmal welche hier. Sie sind nicht alle gegangen."
