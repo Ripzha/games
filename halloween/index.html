@@ -60,6 +60,13 @@
     background: #17160f; color: #e8e4da; border: 1px solid #5a5238;
     border-radius: 6px; font-size: 14px; cursor: pointer; z-index: 3; }
 
+  #ritual { display: none; position: absolute; left: 14px; top: 14px; z-index: 3;
+    max-width: min(420px, 46%); padding: 12px 14px; background: rgba(14,13,10,0.9);
+    border: 1px solid #5a4a1c; border-radius: 8px; font-size: 13px; line-height: 1.5;
+    color: #b4ae9f; }
+  #ritual .hinweis { display: block; margin-top: 8px; font-size: 15px; color: #f0c173; }
+  #ritual .stand { display: block; margin-top: 8px; color: #8a857a; }
+
   .stelle.kreisfeld { border: 1px dashed rgba(240,193,115,0.45); border-radius: 50%;
     background: rgba(230,222,200,0.06); display: flex; flex-direction: column;
     align-items: center; justify-content: center; gap: 4px; cursor: pointer; }
@@ -68,7 +75,8 @@
   .stelle.kreisfeld.belegt { border-style: solid; border-color: #c88a2a;
     background: rgba(58,47,18,0.72); cursor: default; }
   .stelle.kreisfeld .kreisbild { width: 56%; max-height: 56%; object-fit: contain; }
-  .stelle.kreisfeld .kreisname { font-size: 12px; color: #f0c173; }
+  .stelle.kreisfeld .kreisname { font-size: 11px; color: #f0c173; text-align: center;
+    line-height: 1.1; }
 
   .stelle .pfeil { position: absolute; left: 50%; top: 50%;
     transform: translate(-50%, -50%); width: 46px; height: 46px; border-radius: 50%;
@@ -201,6 +209,7 @@
       <div id="ziehrahmen"></div>
       <div id="nah"><button id="nahzu">Zurück</button></div>
       <div id="tasche"></div>
+      <div id="ritual"></div>
       <div id="raetsel"></div>
       <div id="schloss"></div>
       <div id="fenster"></div>
@@ -456,18 +465,18 @@ const RAEUME = [
     naechster: "",
     tuertext: "",
     stellen: [
-      { id: "kreis1", x: 42.0, y: 62.8, w: 6, h: 10.5, kreisplatz: true },
-      { id: "kreis2", x: 59.3, y: 68.8, w: 6, h: 10.5, kreisplatz: true },
-      { id: "kreis3", x: 59.3, y: 80.8, w: 6, h: 10.5, kreisplatz: true },
-      { id: "kreis4", x: 42.0, y: 86.8, w: 6, h: 10.5, kreisplatz: true },
-      { id: "kreis5", x: 24.7, y: 80.8, w: 6, h: 10.5, kreisplatz: true },
-      { id: "kreis6", x: 24.7, y: 68.8, w: 6, h: 10.5, kreisplatz: true },
+      { id: "kreis1", x: 51.8, y: 76.0, w: 5.5, h: 8, kreisplatz: true },
+      { id: "kreis2", x: 77.7, y: 80.0, w: 5.5, h: 8, kreisplatz: true },
+      { id: "kreis3", x: 77.7, y: 88.0, w: 5.5, h: 8, kreisplatz: true },
+      { id: "kreis4", x: 51.8, y: 92.0, w: 5.5, h: 8, kreisplatz: true },
+      { id: "kreis5", x: 25.8, y: 88.0, w: 5.5, h: 8, kreisplatz: true },
+      { id: "kreis6", x: 25.8, y: 80.0, w: 5.5, h: 8, kreisplatz: true },
 
-      { id: "kugel",   x: 50, y: 44, w: 8,  h: 14, text: "Die Kugel auf dem Tisch ist trüb. Etwas bewegt sich darin, wenn man wegschaut." },
-      { id: "schaedel",x: 12, y: 46, w: 7,  h: 12, text: "Ein Schädel neben dem Globus. Jemand hat ihn poliert." },
+      { id: "kugel",   x: 48.5, y: 43, w: 7,  h: 12, text: "Die Kugel auf dem Tisch ist trüb. Etwas bewegt sich darin, wenn man wegschaut." },
+      { id: "schaedel",x: 12.5, y: 48, w: 6,  h: 10, text: "Ein Schädel neben dem Globus. Jemand hat ihn poliert." },
       { id: "regal",   x: 2,  y: 5,  w: 17, h: 40, text: "Die Bücher sind nach Jahren geordnet. Das letzte endet in dem Jahr, in dem die Villa leer wurde." },
       { id: "bilder_b",x: 84, y: 8,  w: 15, h: 35, text: "Landschaften, alle vom selben Haus aus gemalt, alle bei Nacht." },
-      { id: "mond_b",  x: 52, y: 20, w: 8,  h: 14, text: "Der Mond steht still im Fenster. Er ist seit Stunden nicht gewandert." }
+      { id: "mond_b",  x: 50.5, y: 23, w: 7,  h: 12, text: "Der Mond steht still im Fenster. Er ist seit Stunden nicht gewandert." }
     ]
   }
 ];
@@ -782,20 +791,22 @@ function zeichnen() {
     tasche.style.display = "none";
   }
 
+  const ritual = el("ritual");
   if (raumId === "buero") {
     const meins = meinStueck();
     const hinweis = meins ? GLOCKEN.hinweise[meins] : null;
-    const t = document.createElement("div");
-    t.id = "tuertext";
-    t.innerHTML = "Auf den Dielen liegt ein Kreis aus Salz, sechs Felder darin sind frei geblieben. " +
-      "Wer an der Reihe ist, legt sein Stück hinein.<br>" +
+    ritual.innerHTML =
+      "Auf den Dielen liegt ein Kreis aus Salz, sechs Felder darin sind frei geblieben. " +
+      "Wer an der Reihe ist, legt sein Stück hinein." +
       (hinweis
-      ? `Dein Hinweis, und nur deiner: <b style="color:#f0c173">${hinweis}</b>`
-      : "Du trägst kein Stück aus dem Vorzimmer. Du kannst nichts ablegen.") +
-      `<br>Im Kreis: ` + (gelaeutet.length
-        ? gelaeutet.map((g) => g.stueck).join(" — ")
-        : "noch nichts");
-    tuer.appendChild(t);
+        ? `<span class="hinweis">Dein Hinweis, und nur deiner: ${hinweis}</span>`
+        : `<span class="hinweis">Du trägst kein Stück aus dem Vorzimmer. Du kannst nichts ablegen.</span>`) +
+      `<span class="stand">Im Kreis: ` +
+        (gelaeutet.length ? gelaeutet.map((g) => g.stueck).join(" — ") : "noch nichts") +
+      `</span>`;
+    ritual.style.display = "block";
+  } else {
+    ritual.style.display = "none";
   }
 
   const liste = el("funde");
