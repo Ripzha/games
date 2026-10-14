@@ -18,13 +18,12 @@
     background: #0b0b0a center/cover no-repeat; border: 1px solid #2a2720;
     border-radius: 10px; overflow: hidden; }
   #eingang { position: absolute; left: 40%; top: 62%; width: 14%; height: 30%;
-    border-radius: 10px; cursor: pointer; display: flex; align-items: flex-end;
-    justify-content: center; padding-bottom: 6px;
-    border: 1px solid rgba(240,193,115,0.35); background: rgba(240,193,115,0.06);
-    animation: pochen 2.2s ease-in-out infinite; }
-  #eingang:hover { border-color: #f0c173; background: rgba(240,193,115,0.16); }
-  #eingang span { font-size: 13px; color: #f0c173; background: rgba(14,13,10,0.8);
-    padding: 3px 10px; border-radius: 10px; }
+    cursor: pointer; display: flex; align-items: flex-end; justify-content: center;
+    padding-bottom: 4%; }
+  #eingang span { font-size: 14px; color: #f0c173; background: rgba(14,13,10,0.82);
+    border: 1px solid rgba(240,193,115,0.55); padding: 6px 16px; border-radius: 20px;
+    animation: pochen 2.4s ease-in-out infinite; white-space: nowrap; }
+  #eingang:hover span { background: rgba(58,47,18,0.92); border-color: #f0c173; color: #fbe3b4; }
 
   /* Brief */
   #brief { position: relative; width: 100%; aspect-ratio: 16 / 9;
@@ -80,13 +79,16 @@
   #ritual .hinweis { display: block; margin-top: 8px; font-size: 15px; color: #f0c173; }
   #ritual .stand { display: block; margin-top: 8px; color: #8a857a; }
 
-  .stelle.kreisfeld { border: 1px dashed rgba(240,193,115,0.45); border-radius: 50%;
-    background: rgba(230,222,200,0.06); display: flex; flex-direction: column;
-    align-items: center; justify-content: center; gap: 4px; cursor: pointer; }
-  .stelle.kreisfeld:hover { border-color: #f0c173; background: rgba(240,193,115,0.14); }
-  .stelle.kreisfeld .kreisleer { font-size: 15px; color: rgba(240,193,115,0.5); }
-  .stelle.kreisfeld.belegt { border-style: solid; border-color: #c88a2a;
-    background: rgba(58,47,18,0.72); cursor: default; }
+  .stelle.kreisfeld { border: 2px solid rgba(240,193,115,0.85); border-radius: 50%;
+    background: rgba(10,9,7,0.55); box-shadow: 0 0 14px rgba(240,193,115,0.45),
+    inset 0 0 10px rgba(240,193,115,0.25); display: flex; flex-direction: column;
+    align-items: center; justify-content: center; gap: 4px; cursor: pointer;
+    animation: pochen 2.4s ease-in-out infinite; }
+  .stelle.kreisfeld:hover { border-color: #fbe3b4; background: rgba(58,47,18,0.72);
+    box-shadow: 0 0 20px rgba(240,193,115,0.8); }
+  .stelle.kreisfeld .kreisleer { font-size: 17px; color: #f0c173; }
+  .stelle.kreisfeld.belegt { border-color: #c88a2a; background: rgba(58,47,18,0.85);
+    cursor: default; animation: none; box-shadow: 0 0 10px rgba(200,138,42,0.45); }
   .stelle.kreisfeld .kreisbild { width: 56%; max-height: 56%; object-fit: contain; }
   .stelle.kreisfeld .kreisname { font-size: 11px; color: #f0c173; text-align: center;
     line-height: 1.1; }
