@@ -99,10 +99,7 @@
     font-size: 14px; color: #ded6c2; }
   .tabelle span.leer { color: #6e685c; }
   .anagramm { font-size: clamp(22px, 3vw, 40px); letter-spacing: 12px; color: #f0c173; margin: 16px 0; }
-  .puzzlereihe { display: flex; gap: 18px; align-items: flex-start; flex-wrap: wrap; margin: 14px 0; }
-  .puzzlereihe .vorlage { width: min(160px, 26vh); opacity: .5; border: 1px solid #2a2720;
-    border-radius: 6px; padding: 6px; background: #121109; }
-  .kacheln { display: grid; gap: 3px; width: min(360px, 56vh); }
+  .kacheln { display: grid; gap: 3px; width: min(360px, 56vh); margin: 14px 0; }
   .kacheln div { aspect-ratio: 900 / 854;
     background-color: #17160f; border: 1px solid #2a2720; cursor: pointer; }
   .kacheln div.leerfeld { background: #0d0c0a; border-color: #1c1a16; cursor: default; }
@@ -303,7 +300,7 @@ const RAETSEL = {
   },
   puzzle: {
     titel: "Die Scherben",
-    aufgabe: "Setz das Stück wieder zusammen. Klick eine Kachel neben der Lücke an, dann rutscht sie hinein. Rechts siehst du, wie es aussehen muss.",
+    aufgabe: "Setz das Stück wieder zusammen. Klick eine Kachel neben der Lücke an, dann rutscht sie hinein.",
     bild: "bilder/items/faecher.png",
     raster: 3,   // 3 = neun Felder, 4 = sechzehn Felder
     zuege: 35    // je höher, desto stärker gemischt
@@ -920,18 +917,10 @@ function bastlePuzzle(koerper, stelle, d) {
     leerPlatz = ziel;
   }
 
-  const reihe = document.createElement("div");
-  reihe.className = "puzzlereihe";
   const raster = document.createElement("div");
   raster.className = "kacheln";
   raster.style.gridTemplateColumns = `repeat(${N}, 1fr)`;
-  const vorlage = document.createElement("img");
-  vorlage.className = "vorlage";
-  vorlage.src = d.bild;
-  vorlage.alt = "";
-  reihe.appendChild(raster);
-  reihe.appendChild(vorlage);
-  koerper.appendChild(reihe);
+  koerper.appendChild(raster);
 
   function fertig() { return felder.every((v, i) => v === i); }
 
