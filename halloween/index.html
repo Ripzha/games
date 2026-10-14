@@ -75,6 +75,13 @@
     border: 1px solid #5a4a1c; border-radius: 6px; font-size: 15px; cursor: pointer; }
   #tuertext { font-size: 14px; color: #8a857a; }
 
+  #tasche { display: none; margin-top: 16px; padding: 14px 18px;
+    background: #16150f; border: 1px solid #5a4a1c; border-radius: 8px; max-width: 420px; }
+  .taschenzeile { font-size: 13px; color: #8a857a; }
+  .taschenname { font-size: 19px; color: #e8e4da; margin: 4px 0 8px; }
+  .taschenzahl { display: inline-block; margin-bottom: 8px; padding: 6px 18px;
+    background: #3a2f12; color: #f0c173; border-radius: 6px; font-size: 24px; letter-spacing: 3px; }
+
   #funde { margin-top: 16px; font-size: 14px; color: #8a857a; line-height: 1.7; }
   #funde b { color: #e8e4da; font-weight: 500; }
 
@@ -110,6 +117,7 @@
       <div id="nah"><button id="nahzu">Zurück</button></div>
       <div id="fenster"></div>
     </div>
+    <div id="tasche"></div>
     <div id="tuer"></div>
     <div id="funde"></div>
     <div id="editor"><textarea id="editorfeld" readonly></textarea></div>
@@ -188,17 +196,17 @@ const RAEUME = [
     tuertext: "Im Schloss der Tür sitzen sechs Walzen. Sie wollen Zahlen.",
     stellen: [
       // --- Fundstücke -------------------------------------------------
-      { id: "wachs", x: 12, y: 67, w: 7, h: 11, ziffer: "6", gehoert: "Delsyn",
+      { id: "wachs", x: 12, y: 67, w: 7, h: 11, ziffer: "6", gehoert: "Delsyn", name: "Hundemarke",
         text: "Halb im erkalteten Wachs liegt eine Hundemarke an einer Kette. Die Prägung ist noch zu lesen. Am Kettenglied hängt ein Papierschild mit einer Zahl." },
-      { id: "truhe", x: 18, y: 58, w: 7, h: 10, ziffer: "1", gehoert: "Maryama",
+      { id: "truhe", x: 18, y: 58, w: 7, h: 10, ziffer: "1", gehoert: "Maryama", name: "Getrocknetes Blatt",
         text: "In der offenen Truhe liegt ein getrocknetes Blatt zwischen zwei Glasscheiben. Mit Faden umwickelt, daran ein Papierschild mit einer Zahl." },
-      { id: "leinwaende", x: 34, y: 43, w: 8, h: 13, ziffer: "8", gehoert: "Logan",
+      { id: "leinwaende", x: 34, y: 43, w: 8, h: 13, ziffer: "8", gehoert: "Logan", name: "Plektrum",
         text: "Zwischen den angelehnten Leinwänden klemmt ein abgegriffenes Plektrum. Jemand hat ein Papierschild daran geklebt, darauf eine Zahl." },
-      { id: "sofa", x: 41, y: 59, w: 11, h: 7, ziffer: "9", gehoert: "Jack",
+      { id: "sofa", x: 41, y: 59, w: 11, h: 7, ziffer: "9", gehoert: "Jack", name: "Haarbürste",
         text: "Unter dem Kissen steckt eine Haarbürste. In den Borsten hängen noch Haare. Am Griff ein Papierschild mit einer Zahl." },
-      { id: "sims", x: 73, y: 42, w: 17, h: 6, ziffer: "3", gehoert: "Viktor",
+      { id: "sims", x: 73, y: 42, w: 17, h: 6, ziffer: "3", gehoert: "Viktor", name: "Katzenspielzeug",
         text: "Auf dem Kaminsims liegt ein Katzenspielzeug, die Feder daran ist zerzaust. An der Schnur hängt ein Papierschild mit einer Zahl." },
-      { id: "spiegelfuss", x: 90, y: 70, w: 8, h: 11, ziffer: "4", gehoert: "Lucia",
+      { id: "spiegelfuss", x: 90, y: 70, w: 8, h: 11, ziffer: "4", gehoert: "Lucia", name: "Phiole",
         text: "Am Fuss des Spiegels steht eine kleine Phiole, der Verschluss aus Wachs. Was darin ist, ist dunkel und noch nicht eingetrocknet. Am Hals ein Papierschild mit einer Zahl." },
 
       // --- Porträtwand ------------------------------------------------
@@ -278,6 +286,14 @@ function namenswahlZeigen() {
     k.onclick = () => { ich = name; localStorage.setItem("spukhaus_spieler", name); starten(); };
     liste.appendChild(k);
   });
+}
+
+function spielerWechseln() {
+  if (kanalRaum) { db.removeChannel(kanalRaum); kanalRaum = null; }
+  ich = "";
+  localStorage.removeItem("spukhaus_spieler");
+  el("spiel").style.display = "none";
+  namenswahlZeigen();
 }
 
 async function starten() {
@@ -363,6 +379,12 @@ function zeichnen() {
   wer.textContent = "Im Raum: " + (anwesend.length ? anwesend.join(", ") : "nur du");
   kopf.appendChild(wer);
 
+  const wechseln = document.createElement("button");
+  wechseln.className = "raumknopf";
+  wechseln.textContent = ich + " — wechseln";
+  wechseln.onclick = spielerWechseln;
+  kopf.appendChild(wechseln);
+
   const buehne = el("buehne");
   buehne.querySelectorAll(".stelle").forEach((n) => n.remove());
 
@@ -406,13 +428,24 @@ function zeichnen() {
     }
   }
 
+  const tasche = el("tasche");
+  if (meinFund) {
+    const s = raum.stellen.find((st) => st.id === meinFund.stelle);
+    tasche.innerHTML = `<div class="taschenzeile">Du trägst bei dir</div>` +
+      `<div class="taschenname">${s && s.name ? s.name : "Etwas"}</div>` +
+      `<div class="taschenzahl">${meinFund.fragment}</div>` +
+      `<div class="taschenzeile">Nur du siehst das. Erzähl es den anderen.</div>`;
+    tasche.style.display = "block";
+  } else {
+    tasche.style.display = "none";
+  }
+
   const liste = el("funde");
   const offen = SPIELER.filter((p) => anwesend.includes(p) && !hier.some((f) => f.spieler === p));
   liste.innerHTML = hier.length
     ? hier.map((f) => `<b>${f.spieler}</b> hat etwas gefunden`).join("<br>")
     : "Noch hat niemand etwas gefunden.";
   if (offen.length) liste.innerHTML += `<br>Noch ohne Fund: ${offen.join(", ")}`;
-  if (meinFund) liste.innerHTML += `<br><br>Deine Zahl in diesem Raum: <b>${meinFund.fragment}</b>`;
 }
 
 // --- Klick -------------------------------------------------------------
