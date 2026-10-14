@@ -60,6 +60,39 @@
     background: #17160f; color: #e8e4da; border: 1px solid #5a5238;
     border-radius: 6px; font-size: 14px; cursor: pointer; z-index: 3; }
 
+  /* Raetsel */
+  #raetsel { display: none; position: absolute; inset: 0; z-index: 4;
+    background: rgba(10,10,9,0.96); padding: 18px 20px; overflow: auto; }
+  #raetsel h2 { margin: 0 0 4px; font-size: 18px; font-weight: 500; color: #f0c173; }
+  #raetsel .aufgabe { font-size: 14px; color: #b4ae9f; line-height: 1.5; max-width: 760px; }
+  #raetsel .zurueck { position: absolute; right: 16px; top: 14px; padding: 8px 16px;
+    background: #17160f; color: #e8e4da; border: 1px solid #5a5238;
+    border-radius: 6px; font-size: 14px; cursor: pointer; }
+  #raetsel .antwort { margin-top: 14px; display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+  #raetsel .antwort input { padding: 10px 14px; background: #131210; color: #e8e4da;
+    border: 1px solid #332f24; border-radius: 6px; font-size: 17px; width: 220px; }
+  #raetsel .antwort button { padding: 10px 18px; background: #3a2f12; color: #f0c173;
+    border: 1px solid #5a4a1c; border-radius: 6px; font-size: 15px; cursor: pointer; }
+  #raetselmeldung { margin-top: 10px; font-size: 14px; color: #c9644f; min-height: 20px; }
+  .gitter { font-family: ui-monospace, Menlo, monospace; font-size: clamp(11px, 1.5vw, 19px);
+    line-height: 1.5; letter-spacing: clamp(3px, 0.7vw, 9px); color: #ded6c2; margin: 14px 0 0; }
+  .chiffre { font-size: clamp(16px, 2.2vw, 28px); letter-spacing: 6px; color: #f0c173; margin: 14px 0 10px; }
+  .tabelle { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 6px; }
+  .tabelle span { padding: 4px 8px; border: 1px solid #332f24; border-radius: 5px;
+    font-size: 14px; color: #ded6c2; }
+  .tabelle span.leer { color: #6e685c; }
+  .anagramm { font-size: clamp(22px, 3vw, 40px); letter-spacing: 12px; color: #f0c173; margin: 16px 0; }
+  .kacheln { display: grid; grid-template-columns: repeat(4, 1fr); gap: 3px;
+    width: min(380px, 60vh); margin: 14px 0; }
+  .kacheln div { aspect-ratio: 900 / 854; background-size: 400% 400%;
+    background-color: #17160f; border: 1px solid #2a2720; cursor: pointer; }
+  .kacheln div.gewaehlt { outline: 2px solid #f0c173; }
+  .unterschiede { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 12px; }
+  .unterschiede .seite { position: relative; flex: 1 1 320px; max-width: 48%; }
+  .unterschiede img { width: 100%; display: block; border: 1px solid #2a2720; border-radius: 6px; }
+  .unterschiede .punkt { position: absolute; border: 2px solid #f0c173;
+    border-radius: 50%; pointer-events: none; }
+
   /* Schloss */
   #schloss { display: none; position: absolute; left: 50%; top: 50%;
     transform: translate(-50%, -50%); z-index: 4; width: 340px; max-width: calc(100% - 32px);
@@ -142,6 +175,7 @@
       <div id="ziehrahmen"></div>
       <div id="nah"><button id="nahzu">Zurück</button></div>
       <div id="tasche"></div>
+      <div id="raetsel"></div>
       <div id="schloss"></div>
       <div id="fenster"></div>
     </div>
@@ -208,7 +242,73 @@ const RAHMEN = [
 ];
 
 // ======================================================================
-// 5. Räume
+// 5. Die Rätsel im Vorzimmer
+//    Lösungen sind gross geschrieben; Eingaben werden gross verglichen.
+// ======================================================================
+const RAETSEL = {
+  gitter: {
+    titel: "Das Buchstabengitter",
+    aufgabe: "Vier Namen stehen im Gitter: DELSYN, VIKTOR, MARYAMA, LOGAN. Ein fünfter steht ebenfalls darin. Wie heisst er?",
+    zeilen: [
+      "XTBBFMVIKTOR",
+      "EGENACZSPWGG",
+      "ODELSYNZMGLW",
+      "HRBILKLUNRWL",
+      "WLGZDKFTVTXO",
+      "KCFGAVMYDXNG",
+      "KKWGDPGLPLNA",
+      "BMARYAMATUYN",
+      "DIDWDGGLFCYE",
+      "RBRVSIMVRIWU",
+      "BDREZVYRAAIR",
+      "RMHADNUKPFBE"
+    ],
+    loesung: "LUCIA"
+  },
+  unterschiede: {
+    titel: "Zweimal dasselbe Bild",
+    aufgabe: "Zwei Fassungen desselben Bildes, sieben Unterschiede. Klick sie im rechten Bild an.",
+    links: "bilder/unterschiede-a.jpg",
+    rechts: "bilder/unterschiede-b.jpg",
+    // x, y, r in Prozent der Bildbreite
+    punkte: [
+      { x: 10.0, y: 59.3, r: 4.0 },   // erloschene Kerze mit Rauch
+      { x:  8.0, y: 24.8, r: 3.5 },   // Mond im Fenster
+      { x: 58.3, y: 26.7, r: 4.0 },   // Frau im Gemälde
+      { x: 73.9, y: 16.7, r: 3.0 },   // Riss im Spiegel
+      { x: 94.3, y: 21.4, r: 3.0 },   // Rabe auf dem Geländer
+      { x: 92.6, y: 55.4, r: 3.0 },   // schwarze Katze
+      { x: 58.6, y: 91.9, r: 4.5 }    // weisse Rose
+    ]
+  },
+  puzzle: {
+    titel: "Die Scherben",
+    aufgabe: "Setz das Stück wieder zusammen. Klick zwei Kacheln an, um sie zu tauschen.",
+    bild: "bilder/items/faecher.png"
+  },
+  zaehlen: {
+    titel: "Der Zettel auf der Kommode",
+    aufgabe: "Ich habe sie gezählt, jede einzelne, in jedem Raum, den ich betreten durfte. Wie viele Kerzen brennen im Haus?",
+    loesung: "23"
+  },
+  anagramm: {
+    titel: "Die verrutschten Buchstaben",
+    aufgabe: "Ein Name, dessen Buchstaben durcheinandergeraten sind. Wie lautet er richtig?",
+    gemischt: "ROTIVACI",
+    loesung: "VICTORIA"
+  },
+  geheimschrift: {
+    titel: "Der Zettel aus der Manteltasche",
+    aufgabe: "Ein Wort in Zeichen. Die Tabelle daneben ist unvollständig — zwei Zeichen fehlen, die musst du erraten.",
+    chiffre: "◆ ▲ ✳ ◻ ◇",
+    tabelle: [["◆","A"],["▲","?"],["✳","C"],["◻","?"],["◇","E"],["●","T"],["■","R"],["◼","N"]],
+    hinweis: "Was vom Feuer übrig bleibt.",
+    loesung: "ASCHE"
+  }
+};
+
+// ======================================================================
+// 6. Räume
 //    x, y, w, h sind Prozentwerte im Bild (links, oben, Breite, Höhe).
 //    Eine Stelle mit "ziffer" ist ein Fundstück, eine ohne nur Stimmung.
 //    Die Raum-Kennungen müssen zu den Zeilen in der Tabelle raeume passen.
@@ -219,7 +319,7 @@ const RAEUME = [
     name: "Die Halle",
     bild: "bilder/halle.jpg",
     loesung: "316498",
-    naechster: "bibliothek",
+    naechster: "vorzimmer",
     tuertext: "Im Schloss der Tür sitzen sechs Walzen. Sie wollen Zahlen.",
     stellen: [
       // --- Fundstücke -------------------------------------------------
@@ -253,13 +353,48 @@ const RAEUME = [
     ]
   },
   {
-    id: "bibliothek",
-    name: "Die Bibliothek",
-    bild: "",
-    loesung: "",
+    id: "vorzimmer",
+    name: "Das Vorzimmer",
+    bild: "bilder/vorzimmer.jpg",
+    loesung: "KERZEN",
     naechster: "keller",
-    tuertext: "Noch leer.",
-    stellen: []
+    tuertext: "In die Tür ist ein Wort geschnitten, das fehlt. Sechs Zeichen.",
+    stellen: [
+      // --- Rätsel -----------------------------------------------------
+      { id: "gemaelde", x: 25.5, y: 15, w: 9.5, h: 19, raetsel: "gitter", nr: "1",
+        name: "Perlenschmuck", bild: "bilder/items/perlenschmuck.png",
+        text: "Hinter dem Gemälde klemmt ein vergilbtes Blatt mit einem Buchstabengitter." },
+      { id: "oval", x: 20.3, y: 20.5, w: 4.4, h: 12, raetsel: "unterschiede", nr: "2",
+        name: "Brosche", bild: "bilder/items/brosche.png",
+        text: "Das kleine Porträt hängt doppelt an der Wand. Zweimal dasselbe Bild, oder doch nicht." },
+      { id: "sessel", x: 75.5, y: 54, w: 13, h: 22, raetsel: "puzzle", nr: "3",
+        name: "Fächer", bild: "bilder/items/faecher.png",
+        text: "Auf dem Sessel liegen Scherben eines bemalten Stücks. Jemand hat es zerschlagen." },
+      { id: "kommode", x: 43.5, y: 41, w: 15, h: 17, raetsel: "zaehlen", nr: "4",
+        name: "Kreuz", bild: "bilder/items/kreuz.png",
+        text: "Auf der Kommode liegt ein Zettel. Eine Handschrift, hastig: ich habe sie gezählt." },
+      { id: "graffiti", x: 50, y: 15, w: 23, h: 29, raetsel: "anagramm", nr: "5",
+        name: "Spielkarte", bild: "bilder/items/spielkarte.png",
+        text: "Unter dem Graffiti steht in alter Schrift ein Wort, dessen Buchstaben verrutscht sind." },
+      { id: "garderobe", x: 77.5, y: 17, w: 8, h: 27, raetsel: "geheimschrift", nr: "6",
+        name: "Medaillon", bild: "bilder/items/medaillon.png",
+        text: "In der Manteltasche an der Garderobe steckt ein Zettel voller Zeichen." },
+
+      // --- Stimmung ---------------------------------------------------
+      { id: "fenster_vz", x: 2,  y: 2,  w: 16, h: 45, text: "Die Fenster gehen auf einen Garten, in dem nichts mehr wächst." },
+      { id: "pflanze",    x: 14, y: 30, w: 7,  h: 18, text: "Die Pflanze ist grün. Niemand giesst sie." },
+      { id: "sims_vz",    x: 23, y: 38, w: 6,  h: 10, text: "Eine einzelne Kerze auf dem Wandsims. Das Wachs ist frisch." },
+      { id: "kerzen_vl",  x: 19, y: 72, w: 11, h: 22, text: "Zwei Kerzen auf einem Buchstapel. Der oberste Band hat kein Titelblatt mehr." },
+      { id: "kerzen_vr",  x: 70, y: 62, w: 12, h: 22, text: "Zwei Kerzen auf Büchern, daneben ein Strauss, der zu Staub zerfällt." },
+      { id: "tischchen",  x: 82, y: 44, w: 7,  h: 12, text: "Auf dem Tischchen steht eine Kerze, die nicht brennt. Der Docht ist unberührt." },
+      { id: "teppich_vz", x: 36, y: 60, w: 22, h: 14, text: "Der Läufer ist in der Mitte durchgetreten. Hier ist jemand oft gegangen." },
+      { id: "truhe_vz",   x: 0,  y: 55, w: 13, h: 40, text: "Eine Kommode, alle Schubladen herausgezogen und leer." },
+      { id: "wand_vz",    x: 60, y: 45, w: 14, h: 10, text: "Unter der Farbe liegt die alte Tapete. Jemand hat darauf geschrieben und es übermalt." },
+
+      // --- Tür --------------------------------------------------------
+      { id: "tuer_vz", x: 33, y: 17, w: 9, h: 42, schloss: true,
+        text: "Die Tür zum Keller. In das Holz ist ein Wort geschnitten, aber die Buchstaben fehlen." }
+    ]
   },
   {
     id: "keller",
@@ -281,12 +416,20 @@ const bearbeiten = abfrage.has("edit");
 // Nur mit ?admin am Ende der Adresse erscheint der Knopf zum Spielerwechsel.
 const admin = abfrage.has("admin") || bearbeiten;
 
-let ich = localStorage.getItem("spukhaus_spieler") || "";
+// Name aus der Adresse, zum Beispiel ...index.html?spieler=cat
+// Gross- und Kleinschreibung spielt keine Rolle.
+const ausLink = (abfrage.get("spieler") || "").trim().toLowerCase();
+const trefferImLink = SPIELER.find((n) => n.toLowerCase() === ausLink);
+
+let ich = trefferImLink || localStorage.getItem("spukhaus_spieler") || "";
+if (trefferImLink) localStorage.setItem("spukhaus_spieler", trefferImLink);
 let raumId = "";
 let funde = [];
 let raumStatus = {};
 let anwesend = [];
 let kanalRaum = null;
+let reservierungen = [];
+let offenesRaetsel = null;
 
 const el = (id) => document.getElementById(id);
 
@@ -337,6 +480,7 @@ async function starten() {
   if (bearbeiten) { el("editor").style.display = "block"; el("huelle").id = "huelle"; document.body.id = "editor-an"; }
   await ladeRaeume();
   await ladeFunde();
+  await ladeReservierungen();
   horchen();
   const offener = RAEUME.find((r) => raumStatus[r.id]);
   raumWechseln(offener ? offener.id : RAEUME[0].id);
@@ -348,6 +492,16 @@ async function ladeRaeume() {
   if (error) { meldung("Räume konnten nicht geladen werden: " + error.message); return; }
   raumStatus = {};
   data.forEach((z) => { raumStatus[z.raum] = z.offen; });
+}
+
+async function ladeReservierungen() {
+  const { data, error } = await db.from("reservierungen").select("raum, stelle, spieler, zeit");
+  if (error) { reservierungen = []; return; }
+  reservierungen = data;
+}
+
+function frisch(r) {
+  return (Date.now() - new Date(r.zeit).getTime()) < 5 * 60 * 1000;
 }
 
 async function ladeFunde() {
@@ -365,6 +519,10 @@ function horchen() {
     })
     .on("postgres_changes", { event: "*", schema: "public", table: "raeume" }, (n) => {
       raumStatus[n.new.raum] = n.new.offen;
+      zeichnen();
+    })
+    .on("postgres_changes", { event: "*", schema: "public", table: "reservierungen" }, async () => {
+      await ladeReservierungen();
       zeichnen();
     })
     .subscribe();
@@ -390,6 +548,7 @@ function raumWechseln(id) {
   el("buehne").style.backgroundImage = raum.bild ? `url("${raum.bild}")` : "none";
   schlossZu();
   nahZu();
+  el("raetsel").style.display = "none";
   fensterZu();
   anwesenheit(id);
   zeichnen();
@@ -441,11 +600,20 @@ function zeichnen() {
     d.className = "stelle" + (belegt ? " genommen" : "");
     d.style.left = s.x + "%"; d.style.top = s.y + "%";
     d.style.width = s.w + "%"; d.style.height = s.h + "%";
+    const besetzt = reservierungen.find(
+      (r) => r.raum === raumId && r.stelle === s.id && r.spieler !== ich && frisch(r)
+    );
     if (belegt) {
       const m = document.createElement("div");
       m.className = "marke";
       m.textContent = belegt.spieler;
       d.appendChild(m);
+    } else if (besetzt) {
+      const m = document.createElement("div");
+      m.className = "marke";
+      m.textContent = besetzt.spieler + " rätselt";
+      d.appendChild(m);
+      d.classList.add("genommen");
     } else {
       d.onclick = () => stelleAnklicken(s, meinFund);
     }
@@ -491,6 +659,7 @@ function zeichnen() {
 // --- Klick -------------------------------------------------------------
 async function stelleAnklicken(stelle, meinFund) {
   if (stelle.schloss) { schlossZeigen(); return; }
+  if (stelle.raetsel) { raetselStarten(stelle, meinFund); return; }
   if (stelle.nahansicht) { nahZeigen(stelle.nahansicht); return; }
   if (!stelle.ziffer) { fensterZeigen(stelle.text, null); return; }
   if (meinFund) {
@@ -510,6 +679,200 @@ async function stelleAnklicken(stelle, meinFund) {
     return;
   }
   fensterZeigen(stelle.text, stelle.ziffer, stelle.bild);
+}
+
+// --- Rätsel ------------------------------------------------------------
+async function raetselStarten(stelle, meinFund) {
+  if (meinFund) {
+    fensterZeigen("Du trägst schon etwas aus diesem Raum. Lass den anderen den Rest.", null);
+    return;
+  }
+  const besetzt = reservierungen.find(
+    (r) => r.raum === raumId && r.stelle === stelle.id && r.spieler !== ich && frisch(r)
+  );
+  if (besetzt) {
+    fensterZeigen(besetzt.spieler + " sitzt gerade an dieser Aufgabe. Such dir eine andere.", null);
+    return;
+  }
+  // eigene alte Reservierung in diesem Raum freigeben
+  await db.from("reservierungen").delete().eq("raum", raumId).eq("spieler", ich);
+  // abgelaufene Reservierung dieser Stelle entfernen
+  await db.from("reservierungen").delete().eq("raum", raumId).eq("stelle", stelle.id);
+  const { error } = await db.from("reservierungen")
+    .insert({ raum: raumId, stelle: stelle.id, spieler: ich });
+  if (error) {
+    fensterZeigen("Jemand war schneller. Such dir eine andere Aufgabe.", null);
+    await ladeReservierungen(); zeichnen();
+    return;
+  }
+  await ladeReservierungen();
+  offenesRaetsel = stelle;
+  raetselZeigen(stelle);
+  zeichnen();
+}
+
+async function raetselSchliessen() {
+  if (offenesRaetsel) {
+    await db.from("reservierungen").delete().eq("raum", raumId).eq("spieler", ich);
+    offenesRaetsel = null;
+    await ladeReservierungen();
+  }
+  el("raetsel").style.display = "none";
+  zeichnen();
+}
+
+async function raetselGeloest(stelle) {
+  const { error } = await db.from("funde").insert({
+    raum: raumId, stelle: stelle.id, spieler: ich, fragment: stelle.nr
+  });
+  await db.from("reservierungen").delete().eq("raum", raumId).eq("spieler", ich);
+  offenesRaetsel = null;
+  await ladeReservierungen();
+  el("raetsel").style.display = "none";
+  if (error) {
+    fensterZeigen(error.code === "23505"
+      ? "Zu spät. Jemand war schneller."
+      : "Fehler: " + error.message, null);
+    await ladeFunde();
+  } else {
+    fensterZeigen(stelle.text, stelle.nr, stelle.bild);
+  }
+  zeichnen();
+}
+
+function raetselZeigen(stelle) {
+  const d = RAETSEL[stelle.raetsel];
+  const k = el("raetsel");
+  k.innerHTML =
+    `<button class="zurueck" id="raetselzu">Zurück</button>` +
+    `<h2>${d.titel}</h2>` +
+    `<div class="aufgabe">${d.aufgabe}</div>` +
+    `<div id="raetselkoerper"></div>` +
+    `<div id="raetselmeldung"></div>`;
+  k.style.display = "block";
+  el("raetselzu").onclick = raetselSchliessen;
+  const koerper = el("raetselkoerper");
+
+  if (stelle.raetsel === "puzzle") { bastlePuzzle(koerper, stelle, d); return; }
+  if (stelle.raetsel === "unterschiede") { bastleUnterschiede(koerper, stelle, d); return; }
+
+  let vorbau = "";
+  if (stelle.raetsel === "gitter") {
+    vorbau = `<div class="gitter">` + d.zeilen.join("<br>") + `</div>`;
+  }
+  if (stelle.raetsel === "anagramm") {
+    vorbau = `<div class="anagramm">${d.gemischt}</div>`;
+  }
+  if (stelle.raetsel === "geheimschrift") {
+    vorbau = `<div class="chiffre">${d.chiffre}</div>` +
+      `<div class="tabelle">` +
+      d.tabelle.map(([z, b]) => `<span class="${b === "?" ? "leer" : ""}">${z} = ${b}</span>`).join("") +
+      `</div><div class="aufgabe">${d.hinweis}</div>`;
+  }
+  koerper.innerHTML = vorbau +
+    `<div class="antwort">` +
+      `<input id="raetselfeld" autocomplete="off" placeholder="Antwort">` +
+      `<button id="raetselpruefen">Prüfen</button>` +
+    `</div>`;
+  const feld = el("raetselfeld");
+  feld.focus();
+  const pruefen = () => {
+    const ein = (feld.value || "").trim().toUpperCase();
+    if (!ein) return;
+    if (ein === d.loesung.toUpperCase()) { raetselGeloest(stelle); return; }
+    if (stelle.raetsel === "zaehlen") {
+      const zahl = parseInt(ein, 10);
+      if (!isNaN(zahl)) {
+        el("raetselmeldung").textContent =
+          zahl < parseInt(d.loesung, 10) ? "Es sind mehr." : "Es sind weniger.";
+        return;
+      }
+    }
+    el("raetselmeldung").textContent = "Das stimmt nicht.";
+  };
+  el("raetselpruefen").onclick = pruefen;
+  feld.onkeydown = (e) => { if (e.key === "Enter") pruefen(); };
+}
+
+// --- Puzzle ------------------------------------------------------------
+function bastlePuzzle(koerper, stelle, d) {
+  const N = 4, anzahl = N * N;
+  let reihenfolge = [...Array(anzahl).keys()];
+  do {
+    for (let i = reihenfolge.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [reihenfolge[i], reihenfolge[j]] = [reihenfolge[j], reihenfolge[i]];
+    }
+  } while (reihenfolge.every((v, i) => v === i));
+  let gewaehlt = null;
+
+  const raster = document.createElement("div");
+  raster.className = "kacheln";
+  koerper.appendChild(raster);
+
+  function malen() {
+    raster.innerHTML = "";
+    reihenfolge.forEach((kachel, platz) => {
+      const z = document.createElement("div");
+      const sp = kachel % N, ze = Math.floor(kachel / N);
+      z.style.backgroundImage = `url("${d.bild}")`;
+      z.style.backgroundPosition = `${(sp * 100) / (N - 1)}% ${(ze * 100) / (N - 1)}%`;
+      if (gewaehlt === platz) z.classList.add("gewaehlt");
+      z.onclick = () => {
+        if (gewaehlt === null) { gewaehlt = platz; malen(); return; }
+        if (gewaehlt === platz) { gewaehlt = null; malen(); return; }
+        [reihenfolge[gewaehlt], reihenfolge[platz]] = [reihenfolge[platz], reihenfolge[gewaehlt]];
+        gewaehlt = null;
+        malen();
+        if (reihenfolge.every((v, i) => v === i)) raetselGeloest(stelle);
+      };
+      raster.appendChild(z);
+    });
+  }
+  malen();
+}
+
+// --- Unterschiede ------------------------------------------------------
+function bastleUnterschiede(koerper, stelle, d) {
+  if (!d.punkte || d.punkte.length === 0) {
+    koerper.innerHTML = `<div class="aufgabe" style="margin-top:14px">` +
+      `Dieses Rätsel ist noch nicht fertig. Die beiden Bilder fehlen.</div>`;
+    return;
+  }
+  const gefunden = new Set();
+  koerper.innerHTML =
+    `<div class="unterschiede">` +
+      `<div class="seite"><img src="${d.links}" alt=""></div>` +
+      `<div class="seite" id="seiteRechts"><img src="${d.rechts}" alt=""></div>` +
+    `</div>` +
+    `<div class="aufgabe" id="standUnterschiede" style="margin-top:10px"></div>`;
+  const rechts = el("seiteRechts");
+  const stand = el("standUnterschiede");
+  const anzeigen = () => {
+    stand.textContent = gefunden.size + " von " + d.punkte.length + " gefunden.";
+  };
+  anzeigen();
+  rechts.onclick = (e) => {
+    const r = rechts.getBoundingClientRect();
+    const x = ((e.clientX - r.left) / r.width) * 100;
+    const y = ((e.clientY - r.top) / r.height) * 100;
+    d.punkte.forEach((pkt, i) => {
+      if (gefunden.has(i)) return;
+      const dx = x - pkt.x, dy = (y - pkt.y) * (r.height / r.width);
+      if (Math.sqrt(dx * dx + dy * dy) <= pkt.r) {
+        gefunden.add(i);
+        const marke = document.createElement("div");
+        marke.className = "punkt";
+        marke.style.left = (pkt.x - pkt.r) + "%";
+        marke.style.top = (pkt.y - pkt.r * (r.width / r.height)) + "%";
+        marke.style.width = (pkt.r * 2) + "%";
+        marke.style.height = (pkt.r * 2 * (r.width / r.height)) + "%";
+        rechts.appendChild(marke);
+        anzeigen();
+        if (gefunden.size === d.punkte.length) raetselGeloest(stelle);
+      }
+    });
+  };
 }
 
 // --- Schloss -----------------------------------------------------------
