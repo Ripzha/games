@@ -306,11 +306,11 @@ const RAETSEL = {
   },
   geheimschrift: {
     titel: "Der Zettel aus der Manteltasche",
-    aufgabe: "Ein Wort in Zeichen. Die Tabelle daneben ist unvollständig — zwei Zeichen fehlen, die musst du erraten.",
-    chiffre: "◆ ▲ ✳ ◻ ◇",
-    tabelle: [["◆","A"],["▲","?"],["✳","C"],["◻","?"],["◇","E"],["●","T"],["■","R"],["◼","N"]],
-    hinweis: "Was vom Feuer übrig bleibt.",
-    loesung: "ASCHE"
+    aufgabe: "Drei Wörter in Zeichen. Jedes Zeichen steht immer für denselben Buchstaben. Die Tabelle ist unvollständig — drei Zeichen fehlen, die musst du aus dem Rest erschliessen.",
+    chiffre: "▼ ◆ ❖ &nbsp;&nbsp; ✚ ◆ ◐ ❖ &nbsp;&nbsp; ◆ ✳ ◼ ◇ ✳",
+    tabelle: [["✳","T"],["❖","?"],["◆","A"],["◼","?"],["✚","H"],["◇","?"],["▼","D"],["◐","U"]],
+    hinweis: "Drei Wörter. Das Haus ist nicht leer, auch wenn niemand darin wohnt.",
+    loesung: "DAS HAUS ATMET"
   }
 };
 
@@ -800,7 +800,8 @@ function raetselZeigen(stelle) {
   const pruefen = () => {
     const ein = (feld.value || "").trim().toUpperCase();
     if (!ein) return;
-    if (ein === d.loesung.toUpperCase()) { raetselGeloest(stelle); return; }
+    const ohneLeer = (t) => t.replace(/\s+/g, "");
+    if (ohneLeer(ein) === ohneLeer(d.loesung.toUpperCase())) { raetselGeloest(stelle); return; }
     if (stelle.raetsel === "zaehlen") {
       const zahl = parseInt(ein, 10);
       if (!isNaN(zahl)) {
