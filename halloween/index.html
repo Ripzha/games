@@ -1046,7 +1046,7 @@ async function schlossVersuchen() {
   const meldungsfeld = el("schlossmeldung");
   const code = (feld.value || "").trim();
   if (!code) { meldungsfeld.textContent = "Erst die Walzen stellen."; return; }
-  if (code !== raum.loesung) {
+  if (code.toUpperCase() !== raum.loesung.toUpperCase()) {
     meldungsfeld.textContent = "Die Walzen rasten nicht ein.";
     feld.value = "";
     feld.focus();
