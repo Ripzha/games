@@ -1443,6 +1443,13 @@ if (bearbeiten) {
 // Reihenfolge: Namenswahl, Aussenansicht, Brief, erster Raum.
 // Mit ?admin geht es direkt ins Haus, damit du beim Testen nicht jedes Mal
 // durch den Vorspann klicken musst.
+// Mit ?neu am Ende der Adresse wird der gespeicherte Stand im Browser geloescht
+// und es geht wieder bei der Namenswahl los.
+if (abfrage.has("neu")) {
+  try { localStorage.clear(); } catch (e) {}
+  ich = "";
+}
+
 if (!ich || !SPIELER.includes(ich)) {
   namenswahlZeigen();
 } else if (admin || localStorage.getItem("spukhaus_eingetreten")) {
