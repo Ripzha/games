@@ -47,24 +47,27 @@
   #eingang:hover span { background: rgba(58,47,18,0.92); border-color: #f0c173; color: #fbe3b4; }
 
   /* Brief */
-  #briefseite { display: flex; justify-content: center; animation: einblenden .8s ease both; }
-  #brief { position: relative; width: 100%; aspect-ratio: 16 / 9;
-           background: #1b1710 center/cover no-repeat;
+  #briefseite { display: flex; flex-direction: column; align-items: center; gap: 14px;
+                animation: einblenden .8s ease both; }
+  /* Das Papier liegt im Bild bei x 42-56%, y 26-61%. Zoom 200% rueckt es heran,
+     danach liegt es bei x 36-64%, y 15-85%. Textfeld entsprechend umgerechnet. */
+  #brief { position: relative; width: 100%; aspect-ratio: 16 / 9; container-type: inline-size;
+           background: #1b1710 no-repeat; background-size: 200%;
+           background-position: 48.6% 36.2%;
            border: 1px solid #2a2720; border-radius: 10px; overflow: hidden; }
   #brief.ohnebild { background: #1b1710; }
-  #brieftext { position: absolute; left: 42.4%; top: 23%; width: 13%; max-height: 37%;
+  #brieftext { position: absolute; left: 39.5%; top: 14%; width: 20%; max-height: 64%;
                overflow: hidden; font-family: "Palatino", Georgia, serif; font-style: italic;
-               font-weight: 600; font-size: clamp(9px, 1.55vh, 19px); line-height: 1.45;
-               color: #140d05; text-shadow: 0 1px 0 rgba(255,246,222,0.45); }
+               font-weight: 600; font-size: clamp(13px, 1.9cqw, 32px); line-height: 1.45;
+               color: #140d05; text-shadow: 0 1px 0 rgba(255,246,222,0.5); }
   #brieftext p { margin: 0 0 0.75em; }
   #brief.ohnebild #brieftext { color: #ded6c2; left: 12%; top: 14%; width: 60%;
                max-height: 64%; font-size: clamp(12px, 1.6vh, 18px); }
-  #briefnachsatz { margin-top: 0.8em; font-size: 0.9em; opacity: .85; }
-  #briefknopf { position: absolute; left: 50%; bottom: 5%; transform: translateX(-50%);
-                padding: 10px 22px; background: rgba(14,13,10,0.85); color: #f0c173;
-                border: 1px solid rgba(240,193,115,0.55); border-radius: 20px;
-                font-size: 15px; cursor: pointer; white-space: nowrap; }
-  #briefknopf:hover { background: rgba(58,47,18,0.92); border-color: #f0c173; }
+  #briefnachsatz { margin-top: 0.9em; font-size: 0.9em; opacity: .85; }
+  #briefknopf { padding: 12px 24px; background: #221b10; color: #f0c173;
+                border: 1px solid #5a4a1c; border-radius: 20px; font-size: 16px;
+                cursor: pointer; white-space: nowrap; }
+  #briefknopf:hover { background: #3a2f12; border-color: #f0c173; }
 
   /* Namenswahl */
   #namenswahl { animation: einblenden .8s ease both; }
@@ -249,8 +252,8 @@
   <div id="briefseite" style="display:none">
     <div id="brief">
       <div id="brieftext"></div>
-      <button id="briefknopf">Die Tür steht offen</button>
     </div>
+    <button id="briefknopf">Die Tür steht offen</button>
   </div>
 
   <div id="namenswahl" style="display:none">
