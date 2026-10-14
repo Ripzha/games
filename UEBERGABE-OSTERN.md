@@ -184,7 +184,7 @@ in Bildpixeln. **So werden Eier, Hotspots und Durchgänge platziert.**
 | Garage | `garage2` Tür | **JA** | 0 | 4 Ausschnitte, noch keine Eier |
 | Treppenhaus | `treppenhaus` | **JA**, dunkel + hell | 0 | 2 Ausschnitte, Lichtschalter, nicht in der Kopfzeile |
 | Wohnzimmer | `wohnzimmer` | **JA** | 4 | 2 Ausschnitte, 1 Rätsel, Frau mit 3 Frames |
-| Küche | `kueche` | **JA**, dunkel + hell | 3 | 11 Ausschnitte, Licht über die Sicherung |
+| Küche | `kueche` | **JA**, dunkel + hell | 3 | Licht nur mit der Sicherung aus dem Werkstattwagen |
 | Flur | `flur` | nein | 0 | Platzhalter. Verbindet Küche und Dachboden |
 | Garten | `garten` | nein | 4 | Platzhalter-Geometrie |
 | Keller | `keller` | nein | 2 | Platzhalter, gesperrt bis Code 2412 |
@@ -301,6 +301,17 @@ antippen (`w_sessel`, typ `naehe`) und führt in `sessel_nah` (1774×887).
 
 Der Zettel ist kein Bild, sondern über das Feld `zeichnung` direkt als SVG im
 Teil hinterlegt. So lassen sich kleine Dinge ergänzen, ohne ein Bild zu brauchen.
+
+### Vordergrund-Flicken
+Ein Teil mit `vorn: true` wird **über** den Eiern gezeichnet. Damit lässt sich
+ein Ei hinter etwas legen, das davor steht — in `tisch_nah` verdeckt der
+Tassenrand die untere Hälfte des Eis, sodass es wirklich in der Tasse liegt.
+
+### Eier treffen
+Neben der eigenen Trefferfläche gibt es einen Fangbereich: Wird daneben getippt,
+zählt das nächste sichtbare Ei im Umkreis von mindestens 26 Bildschirmpixeln.
+Sonst wären kleine Eier in herausgezoomten Räumen kaum zu treffen, und ein Ei
+unter einem Flicken gar nicht.
 
 ### Klang
 Statt Sinustönen klingt jetzt gefiltertes Rauschen mit schnellem Abfall, je
