@@ -93,7 +93,7 @@
     width: min(380px, 60vh); margin: 14px 0; }
   .kacheln div { aspect-ratio: 900 / 854; background-size: 400% 400%;
     background-color: #17160f; border: 1px solid #2a2720; cursor: pointer; }
-  .kacheln div.gewaehlt { outline: 2px solid #f0c173; }
+  .kacheln div.leerfeld { background: #0d0c0a; border-color: #1c1a16; cursor: default; }
   .unterschiede { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 12px; }
   .unterschiede .seite { position: relative; flex: 1 1 320px; max-width: 48%; }
   .unterschiede img { width: 100%; display: block; border: 1px solid #2a2720; border-radius: 6px; }
@@ -647,7 +647,7 @@ function zeichnen() {
   const tasche = el("tasche");
   if (meinFund) {
     const st = raum.stellen.find((x) => x.id === meinFund.stelle);
-    tasche.innerHTML = `<div class="taschenzeile">Du trägst bei dir — nur du siehst das</div>` +
+    tasche.innerHTML = `<div class="taschenzeile">Dein Inventar in diesem Raum — nur du siehst es</div>` +
       `<div class="taschenunten">` +
         (st && st.bild ? `<img class="taschenbild" src="${st.bild}" alt="">` : "") +
         `<span class="taschenname">${st && st.name ? st.name : "Etwas"}</span>` +
@@ -753,7 +753,10 @@ async function raetselGeloest(stelle) {
       : "Fehler: " + error.message, null);
     await ladeFunde();
   } else {
-    fensterZeigen(stelle.text, stelle.nr, stelle.bild);
+    fensterZeigen(
+      "Gelöst. " + stelle.text +
+      `<br><br>Du nimmst an dich: <b>${stelle.name}</b>`,
+      stelle.nr, stelle.bild);
   }
   zeichnen();
 }
@@ -812,38 +815,54 @@ function raetselZeigen(stelle) {
   feld.onkeydown = (e) => { if (e.key === "Enter") pruefen(); };
 }
 
-// --- Puzzle ------------------------------------------------------------
+// --- Puzzle (Schiebespiel) ---------------------------------------------
 function bastlePuzzle(koerper, stelle, d) {
-  const N = 4, anzahl = N * N;
-  let reihenfolge = [...Array(anzahl).keys()];
-  do {
-    for (let i = reihenfolge.length - 1; i > 0; i--) {
-      const j = Math.floor(Math.random() * (i + 1));
-      [reihenfolge[i], reihenfolge[j]] = [reihenfolge[j], reihenfolge[i]];
-    }
-  } while (reihenfolge.every((v, i) => v === i));
-  let gewaehlt = null;
+  const N = 4, anzahl = N * N, leer = anzahl - 1;
+  let felder = [...Array(anzahl).keys()];   // felder[platz] = kachel, leer = leeres Feld
+
+  function nachbarn(platz) {
+    const r = Math.floor(platz / N), c = platz % N, raus = [];
+    if (r > 0) raus.push(platz - N);
+    if (r < N - 1) raus.push(platz + N);
+    if (c > 0) raus.push(platz - 1);
+    if (c < N - 1) raus.push(platz + 1);
+    return raus;
+  }
+  // Durch zufällige, erlaubte Züge mischen — so bleibt es immer lösbar
+  let leerPlatz = felder.indexOf(leer);
+  for (let i = 0; i < 300; i++) {
+    const m = nachbarn(leerPlatz);
+    const ziel = m[Math.floor(Math.random() * m.length)];
+    felder[leerPlatz] = felder[ziel];
+    felder[ziel] = leer;
+    leerPlatz = ziel;
+  }
 
   const raster = document.createElement("div");
   raster.className = "kacheln";
   koerper.appendChild(raster);
 
+  function fertig() { return felder.every((v, i) => v === i); }
+
   function malen() {
     raster.innerHTML = "";
-    reihenfolge.forEach((kachel, platz) => {
+    felder.forEach((kachel, platz) => {
       const z = document.createElement("div");
-      const sp = kachel % N, ze = Math.floor(kachel / N);
-      z.style.backgroundImage = `url("${d.bild}")`;
-      z.style.backgroundPosition = `${(sp * 100) / (N - 1)}% ${(ze * 100) / (N - 1)}%`;
-      if (gewaehlt === platz) z.classList.add("gewaehlt");
-      z.onclick = () => {
-        if (gewaehlt === null) { gewaehlt = platz; malen(); return; }
-        if (gewaehlt === platz) { gewaehlt = null; malen(); return; }
-        [reihenfolge[gewaehlt], reihenfolge[platz]] = [reihenfolge[platz], reihenfolge[gewaehlt]];
-        gewaehlt = null;
-        malen();
-        if (reihenfolge.every((v, i) => v === i)) raetselGeloest(stelle);
-      };
+      if (kachel === leer) {
+        z.className = "leerfeld";
+      } else {
+        const sp = kachel % N, ze = Math.floor(kachel / N);
+        z.style.backgroundImage = `url("${d.bild}")`;
+        z.style.backgroundPosition = `${(sp * 100) / (N - 1)}% ${(ze * 100) / (N - 1)}%`;
+        z.onclick = () => {
+          const lp = felder.indexOf(leer);
+          if (!nachbarn(platz).includes(lp)) return;
+          felder[lp] = felder[platz];
+          felder[platz] = leer;
+          malen();
+          if (fertig()) raetselGeloest(stelle);
+        };
+      }
       raster.appendChild(z);
     });
   }
