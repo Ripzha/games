@@ -45,9 +45,12 @@
     background: #131210 center/cover no-repeat; border: 1px solid #2a2720;
     border-radius: 10px; overflow: hidden; user-select: none; }
   .stelle { position: absolute; cursor: pointer; }
-  .stelle.genommen { cursor: default; background: rgba(0,0,0,0.5); border-radius: 4px; }
-  .stelle .marke { position: absolute; left: 0; right: 0; bottom: 2px; text-align: center;
-    font-size: 11px; color: #9a927e; pointer-events: none; }
+  .stelle.genommen { cursor: default; }
+  .stelle .marke { position: absolute; left: 50%; top: 50%;
+    transform: translate(-50%, -50%); white-space: nowrap;
+    padding: 2px 8px; border-radius: 10px; font-size: 11px;
+    background: rgba(14,13,10,0.75); border: 1px solid rgba(200,138,42,0.45);
+    color: #d8c9a6; pointer-events: none; }
 
   /* Nahansicht */
   #nah { position: absolute; inset: 0; background: #0b0b0a center/cover no-repeat;
