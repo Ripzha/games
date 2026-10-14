@@ -276,7 +276,10 @@ const RAEUME = [
 // Ab hier Technik
 // ======================================================================
 const db = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-const bearbeiten = new URLSearchParams(location.search).has("edit");
+const abfrage = new URLSearchParams(location.search);
+const bearbeiten = abfrage.has("edit");
+// Nur mit ?admin am Ende der Adresse erscheint der Knopf zum Spielerwechsel.
+const admin = abfrage.has("admin") || bearbeiten;
 
 let ich = localStorage.getItem("spukhaus_spieler") || "";
 let raumId = "";
@@ -310,7 +313,12 @@ function namenswahlZeigen() {
     const k = document.createElement("button");
     k.className = "namensknopf";
     k.textContent = name;
-    k.onclick = () => { ich = name; localStorage.setItem("spukhaus_spieler", name); starten(); };
+    k.onclick = () => {
+      if (!confirm("Du spielst als " + name + ". Das lässt sich danach nicht mehr ändern.")) return;
+      ich = name;
+      localStorage.setItem("spukhaus_spieler", name);
+      starten();
+    };
     liste.appendChild(k);
   });
 }
@@ -407,11 +415,19 @@ function zeichnen() {
   wer.textContent = "Im Raum: " + (anwesend.length ? anwesend.join(", ") : "nur du");
   kopf.appendChild(wer);
 
-  const wechseln = document.createElement("button");
-  wechseln.className = "raumknopf";
-  wechseln.textContent = ich + " — wechseln";
-  wechseln.onclick = spielerWechseln;
-  kopf.appendChild(wechseln);
+  if (admin) {
+    const wechseln = document.createElement("button");
+    wechseln.className = "raumknopf";
+    wechseln.textContent = ich + " — wechseln";
+    wechseln.onclick = spielerWechseln;
+    kopf.appendChild(wechseln);
+  } else {
+    const name = document.createElement("div");
+    name.id = "wer";
+    name.style.marginLeft = "0";
+    name.textContent = "Du bist " + ich;
+    kopf.appendChild(name);
+  }
 
   const buehne = el("buehne");
   buehne.querySelectorAll(".stelle").forEach((n) => n.remove());
