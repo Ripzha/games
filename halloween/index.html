@@ -48,18 +48,19 @@
 
   /* Brief */
   #briefseite { display: flex; justify-content: center; animation: einblenden .8s ease both; }
-  #brief { position: relative; height: min(86vh, 980px); max-width: 100%;
-           aspect-ratio: 1131 / 1414;
-           background: #1b1710 center/contain no-repeat; }
-  #brief.ohnebild { background: #1b1710; border: 1px solid #2a2720; border-radius: 10px; }
-  #brieftext { position: absolute; left: 32.5%; top: 26%; width: 25.5%; max-height: 30%;
+  #brief { position: relative; width: 100%; aspect-ratio: 16 / 9;
+           background: #1b1710 center/cover no-repeat;
+           border: 1px solid #2a2720; border-radius: 10px; overflow: hidden; }
+  #brief.ohnebild { background: #1b1710; }
+  #brieftext { position: absolute; left: 42.8%; top: 24.5%; width: 10.4%; max-height: 31%;
                overflow: hidden; font-family: "Palatino", Georgia, serif; font-style: italic;
-               font-weight: 600; font-size: clamp(8px, 1.15vh, 14px); line-height: 1.45;
+               font-weight: 600; font-size: clamp(7px, 1.0vh, 12px); line-height: 1.35;
                color: #140d05; text-shadow: 0 1px 0 rgba(255,246,222,0.45); }
-  #brieftext p { margin: 0 0 0.7em; }
-  #brief.ohnebild #brieftext { color: #ded6c2; left: 12%; top: 12%; width: 70%; max-height: 70%; }
-  #briefnachsatz { margin-top: 1em; font-size: 0.88em; opacity: .85; }
-  #briefknopf { position: absolute; left: 50%; bottom: 4%; transform: translateX(-50%);
+  #brieftext p { margin: 0 0 0.6em; }
+  #brief.ohnebild #brieftext { color: #ded6c2; left: 12%; top: 14%; width: 60%;
+               max-height: 64%; font-size: clamp(12px, 1.6vh, 18px); }
+  #briefnachsatz { margin-top: 0.8em; font-size: 0.9em; opacity: .85; }
+  #briefknopf { position: absolute; left: 50%; bottom: 5%; transform: translateX(-50%);
                 padding: 10px 22px; background: rgba(14,13,10,0.85); color: #f0c173;
                 border: 1px solid rgba(240,193,115,0.55); border-radius: 20px;
                 font-size: 15px; cursor: pointer; white-space: nowrap; }
@@ -297,9 +298,8 @@ const BRIEF = {
   bild: "bilder/brief.jpg",
   absaetze: [
     "Es ist wieder soweit.",
-    "Die Villa Victoria steht noch, auch wenn man das Gegenteil erzählt. Die Bretter vor den Fenstern sind nicht von mir.",
-    "Komm, sobald es dunkel ist. Du musst nichts mitbringen. Du warst damals nicht dabei — umso besser.",
-    "Die Tür ist offen. Sie bleibt es nicht."
+    "Die Villa Victoria steht noch. Die Bretter vor den Fenstern sind nicht von mir.",
+    "Komm, sobald es dunkel ist. Die Tür ist offen. Sie bleibt es nicht."
   ],
   nachsatz: "Es waren schon einmal welche hier. Sie sind nicht alle gegangen."
 };
