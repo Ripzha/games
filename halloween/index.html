@@ -66,7 +66,8 @@
   .stelle.glocke:hover { border-color: #c88a2a; background: rgba(40,32,14,0.8); }
   .stelle.glocke .glockenname { font-size: 14px; color: #ded6c2; text-align: center; padding: 0 6px; }
   .stelle.glocke.erklungen { background: rgba(58,47,18,0.85); border-color: #c88a2a; cursor: default; }
-  .stelle.glocke .glockennr { font-size: 22px; color: #f0c173; }
+  .stelle.glocke .glockennr { font-size: 20px; color: #f0c173; }
+  .stelle.glocke .glockenbild { width: 46%; max-height: 46%; object-fit: contain; }
 
   .stelle .pfeil { position: absolute; left: 50%; top: 50%;
     transform: translate(-50%, -50%); width: 46px; height: 46px; border-radius: 50%;
@@ -344,16 +345,17 @@ const RAETSEL = {
 const GLOCKEN = {
   reihenfolge: ["Kreuz", "Medaillon", "Fächer", "Perlenschmuck", "Spielkarte", "Brosche"],
   hinweise: {
-    "Perlenschmuck": "Die Glocke der Brosche schweigt bis zuletzt.",
-    "Brosche":       "Das Kreuz läutet als erstes.",
-    "Fächer":        "Zwischen dem Kreuz und dem Fächer liegt genau eine Glocke.",
-    "Kreuz":         "Der Perlenschmuck läutet unmittelbar vor der Spielkarte.",
-    "Spielkarte":    "Das Medaillon läutet früher als der Fächer.",
-    "Medaillon":     "Der Fächer läutet vor dem Perlenschmuck."
+    "Perlenschmuck": "Die Brosche kommt als Letztes auf den Tisch.",
+    "Brosche":       "Das Kreuz kommt als Erstes.",
+    "Fächer":        "Zwischen dem Kreuz und dem Fächer liegt genau ein Stück.",
+    "Kreuz":         "Der Perlenschmuck kommt unmittelbar vor der Spielkarte.",
+    "Spielkarte":    "Das Medaillon kommt vor dem Fächer.",
+    "Medaillon":     "Der Fächer kommt vor dem Perlenschmuck."
   },
-  abschluss: "Der letzte Ton verklingt. Irgendwo im Haus springt ein Riegel zurück, " +
-             "Luft zieht durch die Räume, kalt und nach draussen riechend. Die Haustür steht offen. " +
-             "Hinter euch bleibt das Haus still — zum ersten Mal seit jenem Abend."
+  abschluss: "Das letzte Stück liegt. Die Kugel auf dem Tisch wird klar wie Wasser und " +
+             "dann dunkel. Irgendwo im Haus springt ein Riegel zurück, Luft zieht durch die " +
+             "Räume, kalt und nach draussen riechend. Die Haustür steht offen. Hinter euch " +
+             "bleibt das Haus still — zum ersten Mal seit jenem Abend."
 };
 
 // ======================================================================
@@ -453,12 +455,18 @@ const RAEUME = [
     naechster: "",
     tuertext: "",
     stellen: [
-      { id: "glocke1", x:  6, y: 26, w: 12, h: 26, glocke: "Kreuz" },
-      { id: "glocke2", x: 20, y: 26, w: 12, h: 26, glocke: "Medaillon" },
-      { id: "glocke3", x: 34, y: 26, w: 12, h: 26, glocke: "Fächer" },
-      { id: "glocke4", x: 48, y: 26, w: 12, h: 26, glocke: "Perlenschmuck" },
-      { id: "glocke5", x: 62, y: 26, w: 12, h: 26, glocke: "Spielkarte" },
-      { id: "glocke6", x: 76, y: 26, w: 12, h: 26, glocke: "Brosche" }
+      { id: "platz1", x: 19.5, y: 76, w: 9.5, h: 19, glocke: "Kreuz",
+        bild: "bilder/items/kreuz.png" },
+      { id: "platz2", x: 30.5, y: 76, w: 9.5, h: 19, glocke: "Medaillon",
+        bild: "bilder/items/medaillon.png" },
+      { id: "platz3", x: 41.5, y: 76, w: 9.5, h: 19, glocke: "Fächer",
+        bild: "bilder/items/faecher.png" },
+      { id: "platz4", x: 52.5, y: 76, w: 9.5, h: 19, glocke: "Perlenschmuck",
+        bild: "bilder/items/perlenschmuck.png" },
+      { id: "platz5", x: 63.5, y: 76, w: 9.5, h: 19, glocke: "Spielkarte",
+        bild: "bilder/items/spielkarte.png" },
+      { id: "platz6", x: 74.5, y: 76, w: 9.5, h: 19, glocke: "Brosche",
+        bild: "bilder/items/brosche.png" }
     ]
   }
 ];
@@ -605,7 +613,7 @@ function horchen() {
         if (gelaeutet.length === GLOCKEN.reihenfolge.length) {
           fensterZeigen(GLOCKEN.abschluss, null);
         } else if (gelaeutet.length === 0 && vorher > 0) {
-          fensterZeigen("Ein falscher Ton. Die Glocken verstummen, alles beginnt von vorn.", null);
+          fensterZeigen("Jemand hat falsch gelegt. Der Tisch ist wieder leer.", null);
         }
       }
     })
@@ -690,7 +698,9 @@ function zeichnen() {
       d2.className = "stelle glocke" + (schon ? " erklungen" : "");
       d2.style.left = s.x + "%"; d2.style.top = s.y + "%";
       d2.style.width = s.w + "%"; d2.style.height = s.h + "%";
-      d2.innerHTML = `<span class="glockenname">${s.glocke}</span>` +
+      d2.innerHTML =
+        (schon && s.bild ? `<img class="glockenbild" src="${s.bild}" alt="">` : "") +
+        `<span class="glockenname">${s.glocke}</span>` +
         (schon ? `<span class="glockennr">${gelaeutet.indexOf(schon) + 1}</span>` : "");
       if (!schon) d2.onclick = () => stelleAnklicken(s, meinFund);
       buehne.appendChild(d2);
@@ -757,8 +767,8 @@ function zeichnen() {
     t.id = "tuertext";
     t.innerHTML = (hinweis
       ? `Dein Hinweis, und nur deiner: <b style="color:#f0c173">${hinweis}</b>`
-      : "Du trägst kein Stück aus dem Vorzimmer. Du kannst keine Glocke läuten.") +
-      `<br>Geläutet: ` + (gelaeutet.length
+      : "Du trägst kein Stück aus dem Vorzimmer. Du kannst nichts ablegen.") +
+      `<br>Auf dem Tisch: ` + (gelaeutet.length
         ? gelaeutet.map((g) => g.stueck).join(" — ")
         : "noch nichts");
     tuer.appendChild(t);
@@ -777,8 +787,8 @@ async function glockeLaeuten(stelle) {
   const meins = meinStueck();
   if (!admin && stelle.glocke !== meins) {
     fensterZeigen(meins
-      ? "Das ist nicht deine Glocke. Du trägst den " + meins + "."
-      : "Du hast im Vorzimmer nichts gefunden. Diese Glocken gehören dir nicht.", null);
+      ? "Das ist nicht dein Platz. Du trägst den " + meins + "."
+      : "Du hast im Vorzimmer nichts gefunden. Du hast nichts abzulegen.", null);
     return;
   }
   if (gelaeutet.length >= GLOCKEN.reihenfolge.length) return;
@@ -795,7 +805,7 @@ async function glockeLaeuten(stelle) {
   if (gelaeutet.length === GLOCKEN.reihenfolge.length) {
     fensterZeigen(GLOCKEN.abschluss, null);
   } else if (stelle.glocke !== erwartet) {
-    fensterZeigen("Ein falscher Ton. Die Glocken verstummen, alles beginnt von vorn.", null);
+    fensterZeigen("Das Stück passt nicht an diese Stelle. Der Tisch ist wieder leer.", null);
   }
 }
 
