@@ -331,7 +331,7 @@
     { id: 'kueche', raum: 'kueche', name: 'Küche', bild: 'bilder/kueche-dunkel.webp',
       hellWenn: 'kueche_licht', bildHell: 'bilder/kueche-hell.webp', breite: 1774, hoehe: 887 },
     { id: 'garten',     raum: 'garten',     name: 'Garten',     bild: '' },
-    { id: 'flur', raum: 'flur', name: 'Flur', bild: '' },
+    { id: 'flur', raum: 'flur', name: 'Flur', bild: 'bilder/flur.webp', breite: 1774, hoehe: 887 },
     { id: 'dachboden', raum: 'dachboden', name: 'Dachboden', bild: '',
       lampeWenn: 'lampe_an', lampeRadius: 160 },
     // Nahansichten von Gegenständen, die man in die Hand nimmt.
@@ -382,9 +382,10 @@
     { von: 'kueche', nach: 'flur', art: 'rein', pfeil: 'links', x: 100, y: 100, w: 95, h: 560,
       wennOffen: 'k_tuer_offen', label: 'in den Flur' },
     { von: 'flur',   nach: 'kueche',    art: 'rechts', label: 'zurück in die Küche' },
-    // VORLÄUFIG ein Pfeil nach oben. Sobald das Flurbild da ist, wird daraus
-    // eine Luke oder Klapptreppe als Stelle im Bild.
-    { von: 'flur',      nach: 'dachboden', art: 'oben',  label: 'hinauf auf den Dachboden' },
+    // Die Luke in der Decke. Der Hotspot liegt auf der Leiter, nicht auf dem
+    // Schloss — sonst würde ein Klick die Code-Eingabe wieder öffnen.
+    { von: 'flur', nach: 'dachboden', art: 'rein', pfeil: 'hoch', x: 700, y: 180, w: 260, h: 420,
+      wennOffen: 'luke_offen', label: 'die Leiter hinauf' },
     { von: 'dachboden', nach: 'flur',      art: 'unten', label: 'hinunter in den Flur' },
     // Bild in der Hand wenden
     { von: 'bild_vorn',   nach: 'bild_hinten', art: 'wenden', label: '↻ Umdrehen' },
@@ -403,7 +404,7 @@
     { id: 'g_sicherung', ansicht: 'garage1', x: 1480, y: 650, w: 88, h: 64, typ: 'nehmen', zustand: 'sicherung_genommen',
       gibt: 'sicherung', sichtbarWenn: 'wagen_offen', label: 'Sicherung' },
     { id: 'g_zettel',  ansicht: 'garage1', x: 1055, y: 12,  w: 180, h: 112, typ: 'info', label: 'Zeichnung an der Wand',
-      titel: 'Notiz am Rand der Zeichnung', text: '[PLATZHALTER — Text kommt, sobald klar ist, wozu der Code gehört] „Vier Ziffern. Wenn du sie nicht weisst, hast du nicht zugehört." — Anfisa' },
+      titel: 'Notiz am Rand der Zeichnung', text: '„Aci — den Code für die Luke hab ich an die Wand geschrieben. Mit der Farbe, die im Dunkeln leuchtet. Du weisst schon, wo." — Anfisa' },
     // --- Garage, Ansicht 2: Türseite (Koordinaten im Bild 1774 x 887) ---
     { id: 'g2_oben',  ansicht: 'garage2', x: 470,  y: 150, w: 350, h: 396, typ: 'ausschnitt', zustand: 'g2_oben_offen',  label: 'Grosser Schrank, oben',  nah: '' },
     { id: 'g2_unten', ansicht: 'garage2', x: 470,  y: 548, w: 380, h: 265, typ: 'ausschnitt', zustand: 'g2_unten_offen', label: 'Grosser Schrank, unten', nah: 'gruen_nah' },
@@ -583,6 +584,15 @@
     { id: 'r_busch',    ansicht: 'garten', x: 120,  y: 480, w: 300, h: 240, typ: 'toggle', form: 'busch', zustand: 'busch_geteilt', label: 'Busch' },
     { id: 'r_vogel',    ansicht: 'garten', x: 1250, y: 180, w: 120, h: 130, typ: 'toggle', form: 'klappe', zustand: 'vogelhaus_offen', label: 'Vogelhaus' },
     { id: 'r_giess',    ansicht: 'garten', x: 760,  y: 620, w: 150, h: 110, typ: 'toggle', form: 'kippen', zustand: 'kanne_gekippt', label: 'Giesskanne' },
+    // --- Flur ---
+    // Zahlenschloss an der Dachbodenluke. Der Code steht als Leuchtschrift im
+    // Treppenhaus, drei der vier Ziffern auch auf dem Zettel unter dem Sitzkissen.
+    { id: 'fl_schloss', ansicht: 'flur', x: 716, y: 8, w: 96, h: 112, typ: 'code', zustand: 'luke_offen',
+      label: 'Zahlenschloss an der Luke', titel: 'Zahlenschloss',
+      frage: 'Vier Ziffern auf kleinen Rädchen. Verrostet, aber es dreht sich noch.', code: '7392' },
+    // Offene Luke mit heruntergeklappter Leiter
+    { id: 'fl_leiter', ansicht: 'flur', x: 648, y: 0, w: 374, h: 852, typ: 'overlay', zustand: 'luke_offen',
+      patch: 'bilder/flur-leiter.webp', patchX: 648, patchY: 0, patchW: 374, patchH: 852, label: 'Klapptreppe' },
     // --- Dachboden (noch Platzhalter-Geometrie) ---
     { id: 'd_kiste',    ansicht: 'dachboden', x: 200,  y: 560, w: 260, h: 180, typ: 'toggle', form: 'klappe', zustand: 'dach_kiste_offen', label: 'Holzkiste' },
     { id: 'd_schrank',  ansicht: 'dachboden', x: 1300, y: 160, w: 140, h: 200, typ: 'toggle', form: 'klappe', zustand: 'dach_schrank_offen', label: 'Alter Schrank' }
