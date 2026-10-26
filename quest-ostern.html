@@ -353,7 +353,8 @@
     { id: 'tisch_nah',  istNah: true, name: 'Couchtisch',      bild: 'bilder/tisch-nah.webp',  breite: 1774, hoehe: 887 },
     { id: 'becken_nah', istNah: true, name: 'Waschbecken',      bild: 'bilder/becken-nah.webp', breite: 1774, hoehe: 887 },
     { id: 'wanne_nah',  istNah: true, name: 'Badewanne',        bild: 'bilder/wanne-nah.webp',  breite: 1774, hoehe: 887 },
-    { id: 'ente_nah',   istNah: true, name: 'Gummiente — von unten', bild: 'bilder/ente-nah.webp', breite: 926, hoehe: 940 }
+    { id: 'ente_nah',   istNah: true, name: 'Gummiente — von unten', bild: 'bilder/ente-nah.webp', breite: 926, hoehe: 940 },
+    { id: 'koffer_nah', istNah: true, name: 'Anfisas Koffer', bild: 'bilder/koffer-nah.webp', breite: 1774, hoehe: 887 }
   ];
 
   // Gegenstände im Inventar. nah = ID der Nahansicht, die ein Klick darauf öffnet.
@@ -668,8 +669,15 @@
     // Koffer hervorziehen. Das zweite Antippen soll später in die Nahaufnahme
     // führen — dafür fehlt noch das Bild.
     { id: 'sz_koffer', ansicht: 'schlafzimmer', x: 348, y: 710, w: 340, h: 170, typ: 'ausschnitt',
-      zustand: 'sz_koffer_vor', klang: 'holz', label: 'Koffer unter dem Bett',
+      zustand: 'sz_koffer_vor', klang: 'holz', label: 'Koffer unter dem Bett', nah: 'koffer_nah',
       patch: 'bilder/sz-koffer.webp', patchX: 338, patchY: 698, patchW: 361, patchH: 189 },
+    // --- Koffer von nahem. Die Schlösser gehen nur mit dem Schlüssel aus dem Bild. ---
+    { id: 'kf_offen', ansicht: 'koffer_nah', x: 260, y: 0, w: 1235, h: 595, typ: 'overlay', zustand: 'koffer_offen',
+      patch: 'bilder/koffer-offen.webp', patchX: 252, patchY: 0, patchW: 1251, patchH: 603, label: 'Koffer' },
+    { id: 'kf_schloss', ansicht: 'koffer_nah', x: 300, y: 480, w: 1180, h: 280, typ: 'ziel',
+      nichtWenn: 'koffer_offen', label: 'Schlösser am Koffer',
+      nimmt: 'schluessel', setzt: 'koffer_offen',
+      antwort: 'Der Schlüssel passt. Beide Schlösser springen auf.' },
     // --- Dachboden (noch Platzhalter-Geometrie) ---
     { id: 'd_kiste',    ansicht: 'dachboden', x: 200,  y: 560, w: 260, h: 180, typ: 'toggle', form: 'klappe', zustand: 'dach_kiste_offen', label: 'Holzkiste' },
     { id: 'd_schrank',  ansicht: 'dachboden', x: 1300, y: 160, w: 140, h: 200, typ: 'toggle', form: 'klappe', zustand: 'dach_schrank_offen', label: 'Alter Schrank' }
@@ -707,7 +715,8 @@
     // --- Anfisas Schlafzimmer ---
     { id: 'e24', ansicht: 'schlafzimmer', x: 600,  y: 556, r: 11, farbe: '#3a1a10', muster: 'punkte',   ebene: 1, sichtbarWenn: null },  // auf der Tagesdecke
     { id: 'e25', ansicht: 'schlafzimmer', x: 1012, y: 702, r: 10, farbe: '#4c2213', muster: 'streifen', ebene: 1, sichtbarWenn: null },  // auf dem Teppich
-    { id: 'e26', ansicht: 'schlafzimmer', x: 1078, y: 652, r: 10, farbe: '#4e2c14', muster: 'zickzack', ebene: 1, sichtbarWenn: null }
+    { id: 'e26', ansicht: 'schlafzimmer', x: 1078, y: 652, r: 10, farbe: '#4e2c14', muster: 'zickzack', ebene: 1, sichtbarWenn: null },
+    { id: 'e27', ansicht: 'koffer_nah', x: 1245, y: 330, r: 22, farbe: '#c9b08a', muster: 'punkte', ebene: 2, sichtbarWenn: 'koffer_offen' }  // zwischen den Briefen im Koffer
   ];
 
   // Eier, die nach Öffnen eines Dunkel-Bereichs erst erkennbar sind: Garage-Ecke ist dunkel bis Licht an
