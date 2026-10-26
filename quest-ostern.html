@@ -505,6 +505,9 @@
     { id: 'w_tv', ansicht: 'wohnzimmer', x: 1408, y: 148, w: 217, h: 200, klang: 'metall', typ: 'ausschnitt', zustand: 'tv_aus',
       patch: 'bilder/wz-tv-aus.webp', patchX: 1402, patchY: 142, patchW: 229, patchH: 206, label: 'Fernseher',
       // Achtung: der Zustand heisst tv_aus. Gesetzt = Fernseher ist AUS.
+      // Sie sitzt dabei wirklich auf: der Schalter setzt Anfisas Phase mit.
+      // 1 = aufgeschreckt (wz-frau-wach.webp), 0 = schlafend (Grundbild).
+      setztPhase: { zustand: 'frau_phase', an: 1, aus: 0, nichtWenn: 'anfisa_weg' },
       sprecher: 'Anfisa', sagtNichtWenn: 'anfisa_weg',
       sagtAn:  '„Hey!" Sie richtet sich halb auf. „Das war mein Film. Mach wieder an."',
       sagtAus: '„Nu also." Sie sinkt zurück. „Geht doch."' },
@@ -516,6 +519,9 @@
     { id: 'w_frau', ansicht: 'wohnzimmer', x: 240, y: 95, w: 430, h: 330, typ: 'phasen', zustand: 'frau_phase',
       treffer: { x: 240, y: 192, w: 430, h: 233 },
       nichtWenn: 'anfisa_weg', label: 'Die Frau im Sessel', sprecher: 'Anfisa',
+      // Solange der Fernseher aus ist, sitzt sie auf. Weiterklicken darf sie
+      // dann nicht in die schlafende Phase 0 zurückfallen lassen.
+      mindestPhase: { wenn: 'tv_aus', phase: 1 },
       // Sie will beides: Schachtel und Feuerzeug. Und solange das Bild nicht
       // an der Wand hängt, nimmt sie gar nichts an.
       nimmt: ['kippen', 'feuerzeug'], setzt: 'anfisa_weg', verbraucht: true,
@@ -1636,6 +1642,12 @@
           geheZu(t.nah);
         } else {
           zustand.offen[t.zustand] = !zustand.offen[t.zustand];
+          // setztPhase: ein Schalter stellt nebenbei die Phase einer Figur.
+          // Der Fernseher weckt Anfisa beim Ausschalten auf und lässt sie beim
+          // Einschalten wieder zurücksinken.
+          if (t.setztPhase && !(t.setztPhase.nichtWenn && zustand.offen[t.setztPhase.nichtWenn])) {
+            zustand.offen[t.setztPhase.zustand] = zustand.offen[t.zustand] ? t.setztPhase.an : t.setztPhase.aus;
+          }
           klang(t.klang || 'holz');
           // zurueck: danach die Nahaufnahme verlassen, damit man die Wirkung
           // im Raum sieht (das Wasser läuft ab, während man zurücktritt)
@@ -1659,7 +1671,10 @@
         return;
       case 'phasen': {
         const anzahl = (t.phasen || []).length || 1;
-        const neu = ((Number(zustand.offen[t.zustand]) || 0) + 1) % anzahl;
+        let neu = ((Number(zustand.offen[t.zustand]) || 0) + 1) % anzahl;
+        // mindestPhase: solange die Bedingung gilt, werden die Phasen darunter
+        // übersprungen. Anfisa bleibt bei ausgeschaltetem Fernseher aufrecht.
+        if (t.mindestPhase && zustand.offen[t.mindestPhase.wenn] && neu < t.mindestPhase.phase) neu = t.mindestPhase.phase;
         zustand.offen[t.zustand] = neu;
         klang('stoff');
         aktualisiereSichtbarkeit(); speichern();
