@@ -398,7 +398,7 @@
     { von: 'flur',   nach: 'kueche',    art: 'rechts', label: 'zurück in die Küche' },
     // Die Luke in der Decke. Der Hotspot liegt auf der Leiter, nicht auf dem
     // Schloss — sonst würde ein Klick die Code-Eingabe wieder öffnen.
-    { von: 'flur', nach: 'dachboden', art: 'rein', pfeil: 'hoch', x: 700, y: 235, w: 260, h: 380,
+    { von: 'flur', nach: 'dachboden', art: 'rein', pfeil: 'hoch', x: 700, y: 230, w: 260, h: 260,
       wennOffen: 'luke_offen', label: 'die Leiter hinauf' },
     // Die drei Zimmer. Durch die hintere Tür kommt man nicht, solange die Leiter
     // davorsteht — dann muss man die Luke erst wieder zuklappen.
@@ -406,7 +406,9 @@
       wennOffen: 'fl_links_offen', label: 'in die Kammer' },
     { von: 'flur', nach: 'bad', art: 'rein', pfeil: 'rechts', x: 1340, y: 120, w: 130, h: 620,
       wennOffen: 'fl_rechts_offen', label: 'ins Bad' },
-    { von: 'flur', nach: 'schlafzimmer', art: 'rein', pfeil: 'hoch', x: 760, y: 300, w: 110, h: 380,
+    // Der Durchgang liegt unten auf der Schwelle, nicht mitten auf dem Türblatt —
+    // sonst deckt er die Tür zu und sie lässt sich nicht mehr schliessen.
+    { von: 'flur', nach: 'schlafzimmer', art: 'rein', pfeil: 'hoch', x: 770, y: 600, w: 90, h: 95,
       wennOffen: 'fl_ende_offen', wennZu: 'luke_offen', label: 'in Anfisas Zimmer' },
     { von: 'schlafzimmer', nach: 'flur', art: 'unten', label: 'zurück in den Flur' },
     { von: 'bad',          nach: 'flur', art: 'unten', label: 'zurück in den Flur' },
@@ -629,7 +631,8 @@
     { id: 'fl_tuer_links', ansicht: 'flur', x: 258, y: 40, w: 200, h: 760, typ: 'ausschnitt',
       zustand: 'fl_links_offen', klang: 'holz', label: 'Tür zur Kammer',
       patch: 'bilder/flur-tuer-links.webp', patchX: 253, patchY: 13, patchW: 216, patchH: 816 },
-    { id: 'fl_tuer_ende', ansicht: 'flur', x: 740, y: 265, w: 160, h: 430, typ: 'ausschnitt',
+    // Nur das Türblatt bis oberhalb der Schwelle: darunter sitzt der Durchgang.
+    { id: 'fl_tuer_ende', ansicht: 'flur', x: 740, y: 265, w: 160, h: 330, typ: 'ausschnitt',
       zustand: 'fl_ende_offen', klang: 'holz', label: 'Tür zu Anfisas Zimmer',
       patch: 'bilder/flur-tuer-ende.webp', patchX: 723, patchY: 248, patchW: 249, patchH: 471 },
     { id: 'fl_tuer_rechts', ansicht: 'flur', x: 1310, y: 40, w: 250, h: 800, typ: 'ausschnitt',
