@@ -593,10 +593,25 @@
       zustand: 'luke_offen', setztAuch: 'luke_geknackt', nichtWenn: 'luke_geknackt',
       label: 'Zahlenschloss an der Luke', titel: 'Zahlenschloss',
       frage: 'Vier Ziffern auf kleinen Rädchen. Verrostet, aber es dreht sich noch.', code: '7392' },
-    // Danach klappt die Luke auf und zu, ohne dass der Code nochmal gebraucht wird
+    // Die drei Türen im Flur. Wohin sie führen, ist noch offen — vorerst gehen
+    // sie nur auf und zu und geben den Blick in die Zimmer frei.
+    { id: 'fl_tuer_links', ansicht: 'flur', x: 258, y: 40, w: 200, h: 760, typ: 'ausschnitt',
+      zustand: 'fl_links_offen', klang: 'holz', label: 'Tür zum Schlafzimmer',
+      patch: 'bilder/flur-tuer-links.webp', patchX: 253, patchY: 13, patchW: 216, patchH: 816 },
+    { id: 'fl_tuer_ende', ansicht: 'flur', x: 740, y: 265, w: 160, h: 430, typ: 'ausschnitt',
+      zustand: 'fl_ende_offen', klang: 'holz', label: 'Tür am Ende des Gangs',
+      patch: 'bilder/flur-tuer-ende.webp', patchX: 723, patchY: 248, patchW: 249, patchH: 471 },
+    { id: 'fl_tuer_rechts', ansicht: 'flur', x: 1310, y: 40, w: 250, h: 800, typ: 'ausschnitt',
+      zustand: 'fl_rechts_offen', klang: 'holz', label: 'Tür zum Bad',
+      patch: 'bilder/flur-tuer-rechts.webp', patchX: 1293, patchY: 13, patchW: 296, patchH: 866 },
+    // Danach klappt die Luke auf und zu, ohne dass der Code nochmal gebraucht wird.
+    // Zwei Fassungen der Leiter: eine mit geschlossener, eine mit offener Tür am
+    // Ende des Gangs — sonst überdeckt die Leiter die offene Tür wieder.
     { id: 'fl_luke', ansicht: 'flur', x: 630, y: 0, w: 400, h: 215, typ: 'ausschnitt',
       zustand: 'luke_offen', sichtbarWenn: 'luke_geknackt', klang: 'holz', label: 'Dachbodenluke',
-      patch: 'bilder/flur-leiter.webp', patchX: 648, patchY: 0, patchW: 374, patchH: 852 },
+      hellWenn: 'fl_ende_offen',
+      patch: 'bilder/flur-leiter.webp', patchX: 648, patchY: 0, patchW: 374, patchH: 852,
+      patchHell: 'bilder/flur-leiter-tuer.webp', patchHellX: 648, patchHellY: 0, patchHellW: 374, patchHellH: 852 },
     // --- Dachboden (noch Platzhalter-Geometrie) ---
     { id: 'd_kiste',    ansicht: 'dachboden', x: 200,  y: 560, w: 260, h: 180, typ: 'toggle', form: 'klappe', zustand: 'dach_kiste_offen', label: 'Holzkiste' },
     { id: 'd_schrank',  ansicht: 'dachboden', x: 1300, y: 160, w: 140, h: 200, typ: 'toggle', form: 'klappe', zustand: 'dach_schrank_offen', label: 'Alter Schrank' }
