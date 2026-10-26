@@ -634,9 +634,14 @@
     // --- Bad ---
     { id: 'ba_becken', ansicht: 'bad', x: 245, y: 430, w: 355, h: 195, typ: 'naehe', nah: 'becken_nah',
       label: 'Waschbecken' },
-    { id: 'ba_deckel', ansicht: 'bad', x: 800, y: 500, w: 200, h: 150, typ: 'ausschnitt', zustand: 'klodeckel_auf',
+    // Grundbild zeigt den Deckel OFFEN. Der Flicken liegt darauf, solange er zu ist.
+    { id: 'ba_deckel', ansicht: 'bad', x: 800, y: 480, w: 200, h: 175, typ: 'ausschnitt', zustand: 'klodeckel_auf',
       klang: 'holz', label: 'Klodeckel',
-      patch: 'bilder/bad-deckel.webp', patchX: 809, patchY: 419, patchW: 177, patchH: 232 },
+      patch: 'bilder/bad-deckel-zu.webp', patchNicht: true, patchX: 809, patchY: 419, patchW: 182, patchH: 237 },
+    // Stöpsel ziehen: das Wasser läuft ab und gibt den Boden der Wanne frei
+    { id: 'ba_wanne', ansicht: 'bad', x: 1090, y: 525, w: 380, h: 340, typ: 'ausschnitt', zustand: 'wanne_leer',
+      klang: 'stoff', label: 'Badewanne',
+      patch: 'bilder/bad-wanne-leer.webp', patchX: 1078, patchY: 513, patchW: 399, patchH: 374 },
     // --- Dachboden (noch Platzhalter-Geometrie) ---
     { id: 'd_kiste',    ansicht: 'dachboden', x: 200,  y: 560, w: 260, h: 180, typ: 'toggle', form: 'klappe', zustand: 'dach_kiste_offen', label: 'Holzkiste' },
     { id: 'd_schrank',  ansicht: 'dachboden', x: 1300, y: 160, w: 140, h: 200, typ: 'toggle', form: 'klappe', zustand: 'dach_schrank_offen', label: 'Alter Schrank' }
@@ -652,7 +657,7 @@
     { id: 'e04', ansicht: 'wohnzimmer', x: 1332, y: 712, r: 9,  farbe: '#8a4a3a', muster: 'punkte', ebene: 1, sichtbarWenn: null },  // auf dem Teppich
     { id: 'e03', ansicht: 'kueche',     x: 1318, y: 419, r: 9,  farbe: '#c8703a', muster: 'streifen', ebene: 1, sichtbarWenn: ['kueche_licht'] },  // in der Obstschale
     { id: 'e06', ansicht: 'garten',     x: 1044, y: 846, r: 8,  farbe: '#4e7a3e', muster: 'punkte', ebene: 1, sichtbarWenn: null },
-    { id: 'e07', ansicht: 'becken_nah', x: 545,  y: 560, r: 18, farbe: '#d6c3a2', muster: 'zickzack', ebene: 2, sichtbarWenn: null },  // im Waschbecken
+    { id: 'e07', ansicht: 'bad',        x: 1322, y: 752, r: 13, farbe: '#cfc3ad', muster: 'zickzack', ebene: 2, sichtbarWenn: 'wanne_leer' },  // am Boden der Badewanne
     // --- Ebene 2: nur nach Öffnen sichtbar ---
     { id: 'e09', ansicht: 'garage1',     x: 170,  y: 470, r: 8,  farbe: '#5a5337', muster: 'streifen', ebene: 2, sichtbarWenn: 'akten_offen' },  // in der Aktenschrank-Schublade
     { id: 'e10', ansicht: 'garage1',     x: 618,  y: 618, r: 8,  farbe: '#2a1a12', muster: 'punkte',   ebene: 2, sichtbarWenn: 'blau_offen' },   // in der blauen Schublade
