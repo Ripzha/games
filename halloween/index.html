@@ -192,7 +192,8 @@
   #schloss button { padding: 10px 18px; background: #3a2f12; color: #f0c173;
     border: 1px solid #5a4a1c; border-radius: 6px; font-size: 15px; cursor: pointer; }
   #schloss button.weg { background: none; color: #8a857a; border-color: #332f24; }
-  #schlossmeldung { margin-top: 12px; font-size: 14px; color: #c9644f; min-height: 20px; }
+  #schlossmeldung { margin-top: 12px; font-size: 14px; line-height: 1.45;
+    color: #c9644f; min-height: 20px; }
 
   /* Textfenster */
   #fenster { animation: einblenden .35s ease both;
@@ -879,9 +880,12 @@ function zeichnen() {
   if (raum.loesung) {
     const t = document.createElement("div");
     t.id = "tuertext";
+    const stand = stueckeImRaum(raum);
     t.textContent = raumStatus[raum.naechster]
       ? "Die Tür steht offen. Klick sie an, um hindurchzugehen."
-      : "Die Tür ist verschlossen. Klick sie an, um am Schloss zu drehen.";
+      : (stand.fehlt > 0
+          ? `Die Tür ist verschlossen. In diesem Raum ${stand.fehlt === 1 ? "liegt noch ein Ding" : "liegen noch " + stand.fehlt + " Dinge"}, ${stand.fehlt === 1 ? "das niemand" : "die niemand"} genommen hat.`
+          : "Die Tür ist verschlossen. Klick sie an, um am Schloss zu drehen.");
     tuer.appendChild(t);
   }
 
@@ -1310,6 +1314,14 @@ function bastleUnterschiede(koerper, stelle, d) {
 }
 
 // --- Schloss -----------------------------------------------------------
+// Wie viele Fundstuecke hat dieser Raum, und wie viele sind schon vergeben?
+function stueckeImRaum(raum) {
+  const noetig = raum.stellen.filter((s) => s.ziffer || s.nr).length;
+  const vergeben = funde.filter((f) => f.raum === raum.id).length;
+  return { noetig, vergeben, fehlt: Math.max(0, noetig - vergeben) };
+}
+
+
 function schlossZeigen() {
   const raum = RAEUME.find((r) => r.id === raumId);
   const k = el("schloss");
@@ -1345,6 +1357,15 @@ async function schlossVersuchen() {
     meldungsfeld.textContent = "Die Walzen rasten nicht ein.";
     feld.value = "";
     feld.focus();
+    return;
+  }
+  // Richtig geraten reicht nicht: solange ein Fundstueck herrenlos im Raum liegt,
+  // laesst sich die Tuer nicht oeffnen.
+  const stand = stueckeImRaum(raum);
+  if (stand.fehlt > 0 && !admin) {
+    meldungsfeld.textContent = stand.fehlt === 1
+      ? "Die Walzen rasten ein — und die Tür rührt sich trotzdem nicht. Etwas in diesem Raum liegt noch herrenlos herum."
+      : `Die Walzen rasten ein — und die Tür rührt sich trotzdem nicht. ${stand.fehlt} Dinge in diesem Raum hat noch niemand genommen.`;
     return;
   }
   const { error } = await db.from("raeume")
