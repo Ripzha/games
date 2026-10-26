@@ -398,8 +398,10 @@
     { von: 'flur',   nach: 'kueche',    art: 'rechts', label: 'zurück in die Küche' },
     // Die Luke in der Decke. Der Hotspot liegt auf der Leiter, nicht auf dem
     // Schloss — sonst würde ein Klick die Code-Eingabe wieder öffnen.
+    // Beide Zustände nötig: ohne luke_geknackt wird die Leiter gar nicht gezeichnet,
+    // dann darf auch kein Pfeil ins Nichts führen.
     { von: 'flur', nach: 'dachboden', art: 'rein', pfeil: 'hoch', x: 700, y: 230, w: 260, h: 260,
-      wennOffen: 'luke_offen', label: 'die Leiter hinauf' },
+      wennOffen: ['luke_geknackt', 'luke_offen'], label: 'die Leiter hinauf' },
     // Die drei Zimmer. Durch die hintere Tür kommt man nicht, solange die Leiter
     // davorsteht — dann muss man die Luke erst wieder zuklappen.
     { von: 'flur', nach: 'kammer', art: 'rein', pfeil: 'links', x: 262, y: 120, w: 110, h: 600,
@@ -630,14 +632,14 @@
     // sie nur auf und zu und geben den Blick in die Zimmer frei.
     { id: 'fl_tuer_links', ansicht: 'flur', x: 258, y: 40, w: 200, h: 760, typ: 'ausschnitt',
       zustand: 'fl_links_offen', klang: 'holz', label: 'Tür zur Kammer',
-      patch: 'bilder/flur-tuer-links.webp', patchX: 253, patchY: 13, patchW: 216, patchH: 816 },
+      patch: 'bilder/flur-tuer-links.webp', patchX: 253, patchY: 13, patchW: 216, patchH: 874 },
     // Nur das Türblatt bis oberhalb der Schwelle: darunter sitzt der Durchgang.
     { id: 'fl_tuer_ende', ansicht: 'flur', x: 740, y: 265, w: 160, h: 330, typ: 'ausschnitt',
       zustand: 'fl_ende_offen', klang: 'holz', label: 'Tür zu Anfisas Zimmer',
       patch: 'bilder/flur-tuer-ende.webp', patchX: 723, patchY: 248, patchW: 249, patchH: 471 },
     { id: 'fl_tuer_rechts', ansicht: 'flur', x: 1310, y: 40, w: 250, h: 800, typ: 'ausschnitt',
       zustand: 'fl_rechts_offen', klang: 'holz', label: 'Tür zum Bad',
-      patch: 'bilder/flur-tuer-rechts.webp', patchX: 1293, patchY: 13, patchW: 296, patchH: 866 },
+      patch: 'bilder/flur-tuer-rechts.webp', patchX: 1293, patchY: 13, patchW: 296, patchH: 874 },
     // Danach klappt die Luke auf und zu, ohne dass der Code nochmal gebraucht wird.
     // Zwei Fassungen der Leiter: eine mit geschlossener, eine mit offener Tür am
     // Ende des Gangs — sonst überdeckt die Leiter die offene Tür wieder.
@@ -788,6 +790,10 @@
     if (!s) return false;
     zustand.gefunden = Array.isArray(s.gefunden) ? s.gefunden : [];
     zustand.offen = s.offen || {};
+    // Altstand: luke_offen gesetzt, luke_geknackt noch nicht. Dann fehlt die
+    // Leiter im Bild, der Dachbodenpfeil steht trotzdem da und der Durchgang
+    // in Anfisas Zimmer bleibt gesperrt. Die beiden gehören zusammen.
+    if (zustand.offen.luke_offen) zustand.offen.luke_geknackt = true;
     zustand.hinweise = typeof s.hinweise === 'number' ? s.hinweise : HINWEISE_GESAMT;
     zustand.zeit = s.zeit || 0;
     // Altstand: dort stand noch eine Raum-ID. Auf die Startansicht des Raums umbiegen.
@@ -1234,7 +1240,9 @@
   function durchgangForm(w) {
     const mx = w.x + w.w / 2, my = w.y + w.h / 2;
     const winkel = PFEIL_WINKEL[w.pfeil] || 0;
-    return `<g class="durchgang" data-weg="${w.nach}" data-wenn="${w.wennOffen || ''}" data-nicht="${w.wennZu || ''}" transform="translate(${mx},${my})">
+    // wennOffen und wennZu dürfen Listen sein — alle müssen erfüllt sein
+    const liste = (v) => (Array.isArray(v) ? v : [v]).filter(Boolean).join(',');
+    return `<g class="durchgang" data-weg="${w.nach}" data-wenn="${liste(w.wennOffen)}" data-nicht="${liste(w.wennZu)}" transform="translate(${mx},${my})">
       <rect x="${-w.w / 2}" y="${-w.h / 2}" width="${w.w}" height="${w.h}" fill="transparent"><title>${w.label || 'weiter'}</title></rect>
       <g class="marke">
         <circle r="30" fill="rgba(10,18,12,0.6)" stroke="#f4d484" stroke-width="2"/>
