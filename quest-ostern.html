@@ -316,7 +316,11 @@
     // Flur und Dachboden sind Durchgangsräume: nur über Wege erreichbar,
     // nicht über die Knöpfe oben. Beide warten noch auf ihre Bilder.
     { id: 'flur',      name: 'Flur',      start: 'flur',      gesperrtBis: null, imMenu: false },
-    { id: 'dachboden', name: 'Dachboden', start: 'dachboden', gesperrtBis: null, imMenu: false }
+    { id: 'dachboden',   name: 'Dachboden',   start: 'dachboden',   gesperrtBis: null, imMenu: false },
+    // Die drei Zimmer am Flur. Bilder fehlen noch, darum Platzhalter-Geometrie.
+    { id: 'schlafzimmer', name: 'Schlafzimmer', start: 'schlafzimmer', gesperrtBis: null, imMenu: false },
+    { id: 'bad',          name: 'Bad',          start: 'bad',          gesperrtBis: null, imMenu: false },
+    { id: 'kammer',       name: 'Kammer',       start: 'kammer',       gesperrtBis: null, imMenu: false }
   ];
 
   const ANSICHTEN = [
@@ -334,6 +338,9 @@
     { id: 'flur', raum: 'flur', name: 'Flur', bild: 'bilder/flur.webp', breite: 1774, hoehe: 887 },
     { id: 'dachboden', raum: 'dachboden', name: 'Dachboden', bild: '',
       lampeWenn: 'lampe_an', lampeRadius: 160 },
+    { id: 'schlafzimmer', raum: 'schlafzimmer', name: 'Schlafzimmer', bild: '' },
+    { id: 'bad',          raum: 'bad',          name: 'Bad',          bild: '' },
+    { id: 'kammer',       raum: 'kammer',       name: 'Kammer',       bild: '' },
     // Nahansichten von Gegenständen, die man in die Hand nimmt.
     // istNah: true = gehört zu keinem Raum, wird über das Inventar geöffnet.
     { id: 'bild_vorn',   istNah: true, name: 'Landschaftsbild — Vorderseite', bild: 'bilder/bild-vorn.webp',      breite: 1402, hoehe: 912 },
@@ -386,6 +393,17 @@
     // Schloss — sonst würde ein Klick die Code-Eingabe wieder öffnen.
     { von: 'flur', nach: 'dachboden', art: 'rein', pfeil: 'hoch', x: 700, y: 235, w: 260, h: 380,
       wennOffen: 'luke_offen', label: 'die Leiter hinauf' },
+    // Die drei Zimmer. Durch die hintere Tür kommt man nicht, solange die Leiter
+    // davorsteht — dann muss man die Luke erst wieder zuklappen.
+    { von: 'flur', nach: 'schlafzimmer', art: 'rein', pfeil: 'links', x: 262, y: 120, w: 110, h: 600,
+      wennOffen: 'fl_links_offen', label: 'ins Schlafzimmer' },
+    { von: 'flur', nach: 'bad', art: 'rein', pfeil: 'rechts', x: 1340, y: 120, w: 130, h: 620,
+      wennOffen: 'fl_rechts_offen', label: 'ins Bad' },
+    { von: 'flur', nach: 'kammer', art: 'rein', pfeil: 'hoch', x: 760, y: 300, w: 110, h: 380,
+      wennOffen: 'fl_ende_offen', wennZu: 'luke_offen', label: 'in die Kammer' },
+    { von: 'schlafzimmer', nach: 'flur', art: 'unten', label: 'zurück in den Flur' },
+    { von: 'bad',          nach: 'flur', art: 'unten', label: 'zurück in den Flur' },
+    { von: 'kammer',       nach: 'flur', art: 'unten', label: 'zurück in den Flur' },
     { von: 'dachboden', nach: 'flur',      art: 'unten', label: 'hinunter in den Flur' },
     // Bild in der Hand wenden
     { von: 'bild_vorn',   nach: 'bild_hinten', art: 'wenden', label: '↻ Umdrehen' },
@@ -760,6 +778,25 @@
         <rect x="640" y="60" width="320" height="40" fill="#7a6a52"/>
         <rect x="660" y="100" width="280" height="30" fill="#5a4a38"/>
         <text x="800" y="90" font-size="22" fill="#e8d8b8" text-anchor="middle" font-family="sans-serif">Luke zum Dachboden</text>`;
+      case 'schlafzimmer': return `
+        <rect width="1600" height="900" fill="#7a6a58"/>
+        <rect y="700" width="1600" height="200" fill="#5a4030"/>
+        <rect x="300" y="380" width="700" height="320" rx="12" fill="#8a4a4a"/>
+        <rect x="320" y="300" width="300" height="120" rx="14" fill="#d8cdb0"/>
+        <rect x="1100" y="420" width="220" height="280" fill="#5a4a38"/>
+        <text x="800" y="150" font-size="26" fill="#e8d8b8" text-anchor="middle" font-family="sans-serif">Schlafzimmer — Bild fehlt noch</text>`;
+      case 'bad': return `
+        <rect width="1600" height="900" fill="#cfd8d2"/>
+        <rect y="700" width="1600" height="200" fill="#9aa39c"/>
+        <rect x="260" y="420" width="320" height="200" rx="18" fill="#f0f0ea"/>
+        <rect x="900" y="300" width="420" height="400" rx="20" fill="#e4e8e4"/>
+        <text x="800" y="150" font-size="26" fill="#3a4a42" text-anchor="middle" font-family="sans-serif">Bad — Bild fehlt noch</text>`;
+      case 'kammer': return `
+        <rect width="1600" height="900" fill="#6a5a46"/>
+        <rect y="700" width="1600" height="200" fill="#4a3826"/>
+        <rect x="420" y="360" width="560" height="340" fill="#7a5a3a"/>
+        <rect x="1080" y="300" width="240" height="400" fill="#5a4a38"/>
+        <text x="800" y="150" font-size="26" fill="#e8d8b8" text-anchor="middle" font-family="sans-serif">Kammer — Bild fehlt noch</text>`;
       case 'dachboden': return `
         <rect width="1600" height="900" fill="#1e2024"/>
         <rect y="700" width="1600" height="200" fill="#2a2c30"/>
@@ -1117,7 +1154,7 @@
   function durchgangForm(w) {
     const mx = w.x + w.w / 2, my = w.y + w.h / 2;
     const winkel = PFEIL_WINKEL[w.pfeil] || 0;
-    return `<g class="durchgang" data-weg="${w.nach}" data-wenn="${w.wennOffen || ''}" transform="translate(${mx},${my})">
+    return `<g class="durchgang" data-weg="${w.nach}" data-wenn="${w.wennOffen || ''}" data-nicht="${w.wennZu || ''}" transform="translate(${mx},${my})">
       <rect x="${-w.w / 2}" y="${-w.h / 2}" width="${w.w}" height="${w.h}" fill="transparent"><title>${w.label || 'weiter'}</title></rect>
       <g class="marke">
         <circle r="30" fill="rgba(10,18,12,0.6)" stroke="#f4d484" stroke-width="2"/>
@@ -1131,7 +1168,8 @@
     box.innerHTML = '';
     const hier = zustand.nah || zustand.ansicht;
     WEGE.filter(w => w.von === hier && w.art !== 'rein'
-                     && (!w.wennOffen || zustand.offen[w.wennOffen])).forEach(w => {
+                     && (!w.wennOffen || zustand.offen[w.wennOffen])
+                     && (!w.wennZu || !zustand.offen[w.wennZu])).forEach(w => {
       const b = document.createElement('button');
       const seite = w.art === 'links' || w.art === 'rechts';
       const mitte = w.art === 'unten' || w.art === 'oben';
