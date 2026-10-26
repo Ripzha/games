@@ -355,6 +355,8 @@
     { id: 'tisch_nah',  istNah: true, name: 'Couchtisch',      bild: 'bilder/tisch-nah.webp',  breite: 1774, hoehe: 887 },
     { id: 'becken_nah', istNah: true, name: 'Waschbecken',      bild: 'bilder/becken-nah.webp', breite: 1774, hoehe: 887 },
     { id: 'wanne_nah',  istNah: true, name: 'Badewanne',        bild: 'bilder/wanne-nah.webp',  breite: 1774, hoehe: 887 },
+    // Die Ente wird wie das Bild gewendet: erst in der Hand, dann der Bauch.
+    { id: 'ente_vorn',  istNah: true, name: 'Gummiente', bild: 'bilder/ente-vorn.webp', breite: 925, hoehe: 940 },
     { id: 'ente_nah',   istNah: true, name: 'Gummiente — von unten', bild: 'bilder/ente-nah.webp', breite: 926, hoehe: 940 },
     { id: 'koffer_nah', istNah: true, name: 'Anfisas Koffer', bild: 'bilder/koffer-nah.webp', breite: 1774, hoehe: 887 }
   ];
@@ -373,7 +375,7 @@
     { id: 'feuerzeug',  symbol: '🔥', name: 'Feuerzeug', text: 'Ein abgegriffenes Feuerzeug. Tut es noch.' },
     { id: 'sicherung',  symbol: '🧯', name: 'Sicherung', text: 'Eine Schraubsicherung aus Porzellan. Sieht unverbraucht aus.' },
     { id: 'hammer',     symbol: '🔨', name: 'Hammer',    text: 'Anfisas Hammer. Schwer, der Stiel ist speckig vom vielen Anfassen.' },
-    { id: 'ente',       symbol: '🦆', name: 'Ente',      nah: 'ente_nah', text: 'Eine Gummiente mit Fellmütze und rotem Stern. Sie quietscht, wenn man sie drückt.' }
+    { id: 'ente',       symbol: '🦆', name: 'Ente',      nah: 'ente_vorn', text: 'Eine Gummiente mit Fellmütze und rotem Stern. Sie quietscht, wenn man sie drückt.' }
   ];
 
   const WEGE = [
@@ -418,7 +420,10 @@
     { von: 'dachboden', nach: 'flur',      art: 'unten', label: 'hinunter in den Flur' },
     // Bild in der Hand wenden
     { von: 'bild_vorn',   nach: 'bild_hinten', art: 'wenden', label: '↻ Umdrehen' },
-    { von: 'bild_hinten', nach: 'bild_vorn',   art: 'wenden', label: '↻ Umdrehen' }
+    { von: 'bild_hinten', nach: 'bild_vorn',   art: 'wenden', label: '↻ Umdrehen' },
+    // Ente in der Hand wenden
+    { von: 'ente_vorn', nach: 'ente_nah',  art: 'wenden', label: '↻ Umdrehen' },
+    { von: 'ente_nah',  nach: 'ente_vorn', art: 'wenden', label: '↻ Umdrehen' }
   ];
 
   const TEILE = [
