@@ -684,22 +684,39 @@
     { id: 'e17', ansicht: 'kueche',     x: 955,  y: 602, r: 9,  farbe: '#5a4a38', muster: 'punkte', ebene: 2, sichtbarWenn: ['k_ofen_offen', 'kueche_licht'] },  // auf dem Rost im Backofen
     { id: 'e18', ansicht: 'garten',     x: 270,  y: 600, r: 12, farbe: '#5a4030', muster: 'zickzack', ebene: 2, sichtbarWenn: 'busch_geteilt' },
     { id: 'e19', ansicht: 'dachboden',  x: 330,  y: 650, r: 12, farbe: '#3a342c', muster: 'streifen', ebene: 2, sichtbarWenn: 'dach_kiste_offen' },
-    { id: 'e20', ansicht: 'dachboden',  x: 860,  y: 490, r: 12, farbe: '#55556a', muster: 'punkte', ebene: 1, sichtbarWenn: null }
+    { id: 'e20', ansicht: 'dachboden',  x: 860,  y: 490, r: 12, farbe: '#55556a', muster: 'punkte', ebene: 1, sichtbarWenn: null },
+    // --- Bad: getarnt, offen sichtbar ---
+    { id: 'e21', ansicht: 'bad', x: 503,  y: 316, r: 10, farbe: '#6d3c12', muster: 'streifen', ebene: 1, sichtbarWenn: null },  // Ablage neben der Seife
+    { id: 'e22', ansicht: 'bad', x: 938,  y: 412, r: 9,  farbe: '#4d3513', muster: 'punkte',   ebene: 1, sichtbarWenn: null },  // auf dem Spülkasten
+    { id: 'e23', ansicht: 'bad', x: 1035, y: 828, r: 11, farbe: '#6a4222', muster: 'zickzack', ebene: 1, sichtbarWenn: null }
   ];
 
   // Eier, die nach Öffnen eines Dunkel-Bereichs erst erkennbar sind: Garage-Ecke ist dunkel bis Licht an
   const DUNKEL = [];   // Beispiel: { ansicht: 'dachboden', x: 0, y: 0, w: 800, h: 900, hellWenn: 'dach_licht' }
 
   // Aci-Sprüche bei Meilensteinen
-  const SPRUECHE = {
-    1:  'Eins. Nur noch neunzehn. Ich hol mir einen Kaffee.',
-    5:  'Fünf. Die leichten sind jetzt durch, nehm ich an.',
-    10: 'Halbzeit. Anfisa hat gesagt, ab hier wird es gemein.',
-    15: 'Fünfzehn. Hast du schon mal was geöffnet? Nur so eine Idee.',
-    19: 'Neunzehn. Das letzte ist das, auf das sie am stolzesten ist.',
-    20: 'Zwanzig. Alle. Anfisa wird sauer sein — sie hatte auf dich gewettet.'
-  };
+  // Meilensteine. Die Schlüssel werden beim Start auf die tatsächliche Eierzahl
+  // umgerechnet, damit sie nicht bei jeder neuen Ansicht von Hand nachgezogen
+  // werden müssen. Angaben in Prozent des Gesamtbestands.
+  const MEILENSTEINE = [
+    [0.04, 'Eins. Nur noch der Rest. Ich hol mir einen Kaffee.'],
+    [0.22, 'Die leichten sind jetzt durch, nehm ich an.'],
+    [0.50, 'Halbzeit. Anfisa hat gesagt, ab hier wird es gemein.'],
+    [0.70, 'Hast du schon mal was geöffnet? Nur so eine Idee.'],
+    [0.95, 'Fast. Das letzte ist das, auf das sie am stolzesten ist.'],
+    [1.00, 'Alle. Anfisa wird sauer sein — sie hatte auf dich gewettet.']
+  ];
   const ENDE_TEXT = 'Aci sammelt die Eier in einem Korb ein, den er irgendwo vom Dachboden geholt hat. „Weisst du, was das Beste ist? Sie hat Fotos von jedem Versteck gemacht. Falls du eins nicht findest. Die zeig ich ihr jetzt. Alle zwanzig abgehakt."';
+
+  // Aus den Prozentwerten feste Zahlen machen
+  const SPRUECHE = (() => {
+    const o = {};
+    MEILENSTEINE.forEach(([anteil, text]) => {
+      const n = Math.max(1, Math.round(anteil * EIER.length));
+      if (!o[n]) o[n] = text;
+    });
+    return o;
+  })();
 
   // =====================================================================
   // ZUSTAND
