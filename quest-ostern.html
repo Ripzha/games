@@ -384,7 +384,7 @@
     { von: 'flur',   nach: 'kueche',    art: 'rechts', label: 'zurück in die Küche' },
     // Die Luke in der Decke. Der Hotspot liegt auf der Leiter, nicht auf dem
     // Schloss — sonst würde ein Klick die Code-Eingabe wieder öffnen.
-    { von: 'flur', nach: 'dachboden', art: 'rein', pfeil: 'hoch', x: 700, y: 180, w: 260, h: 420,
+    { von: 'flur', nach: 'dachboden', art: 'rein', pfeil: 'hoch', x: 700, y: 235, w: 260, h: 380,
       wennOffen: 'luke_offen', label: 'die Leiter hinauf' },
     { von: 'dachboden', nach: 'flur',      art: 'unten', label: 'hinunter in den Flur' },
     // Bild in der Hand wenden
@@ -587,12 +587,16 @@
     // --- Flur ---
     // Zahlenschloss an der Dachbodenluke. Der Code steht als Leuchtschrift im
     // Treppenhaus, drei der vier Ziffern auch auf dem Zettel unter dem Sitzkissen.
-    { id: 'fl_schloss', ansicht: 'flur', x: 716, y: 8, w: 96, h: 112, typ: 'code', zustand: 'luke_offen',
+    // Solange das Schloss hängt: die ganze Luke ist die Trefferfläche, nicht nur
+    // das kleine Schloss. Der Code setzt zusätzlich luke_geknackt, dauerhaft.
+    { id: 'fl_schloss', ansicht: 'flur', x: 630, y: 0, w: 400, h: 215, typ: 'code',
+      zustand: 'luke_offen', setztAuch: 'luke_geknackt', nichtWenn: 'luke_geknackt',
       label: 'Zahlenschloss an der Luke', titel: 'Zahlenschloss',
       frage: 'Vier Ziffern auf kleinen Rädchen. Verrostet, aber es dreht sich noch.', code: '7392' },
-    // Offene Luke mit heruntergeklappter Leiter
-    { id: 'fl_leiter', ansicht: 'flur', x: 648, y: 0, w: 374, h: 852, typ: 'overlay', zustand: 'luke_offen',
-      patch: 'bilder/flur-leiter.webp', patchX: 648, patchY: 0, patchW: 374, patchH: 852, label: 'Klapptreppe' },
+    // Danach klappt die Luke auf und zu, ohne dass der Code nochmal gebraucht wird
+    { id: 'fl_luke', ansicht: 'flur', x: 630, y: 0, w: 400, h: 215, typ: 'ausschnitt',
+      zustand: 'luke_offen', sichtbarWenn: 'luke_geknackt', klang: 'holz', label: 'Dachbodenluke',
+      patch: 'bilder/flur-leiter.webp', patchX: 648, patchY: 0, patchW: 374, patchH: 852 },
     // --- Dachboden (noch Platzhalter-Geometrie) ---
     { id: 'd_kiste',    ansicht: 'dachboden', x: 200,  y: 560, w: 260, h: 180, typ: 'toggle', form: 'klappe', zustand: 'dach_kiste_offen', label: 'Holzkiste' },
     { id: 'd_schrank',  ansicht: 'dachboden', x: 1300, y: 160, w: 140, h: 200, typ: 'toggle', form: 'klappe', zustand: 'dach_schrank_offen', label: 'Alter Schrank' }
@@ -1599,6 +1603,9 @@
       : (t.antworten || []).some(a => normalisiere(a) === eingabe);
     if (richtig) {
       zustand.offen[t.zustand] = true;
+      // setztAuch merkt sich dauerhaft, dass das Schloss geknackt ist —
+      // danach lässt sich die Luke auf- und zumachen, ohne den Code erneut einzugeben
+      if (t.setztAuch) zustand.offen[t.setztAuch] = true;
       document.getElementById('raetsel-modal').classList.remove('show');
       klang('nehmen');
       aktualisiereSichtbarkeit(); renderRaumKnoepfe(); speichern();
