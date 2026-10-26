@@ -352,7 +352,8 @@
     { id: 'sessel_nah', istNah: true, name: 'Anfisas Sessel', bild: 'bilder/sessel-nah.webp', breite: 1774, hoehe: 887 },
     { id: 'tisch_nah',  istNah: true, name: 'Couchtisch',      bild: 'bilder/tisch-nah.webp',  breite: 1774, hoehe: 887 },
     { id: 'becken_nah', istNah: true, name: 'Waschbecken',      bild: 'bilder/becken-nah.webp', breite: 1774, hoehe: 887 },
-    { id: 'wanne_nah',  istNah: true, name: 'Badewanne',        bild: 'bilder/wanne-nah.webp',  breite: 1774, hoehe: 887 }
+    { id: 'wanne_nah',  istNah: true, name: 'Badewanne',        bild: 'bilder/wanne-nah.webp',  breite: 1774, hoehe: 887 },
+    { id: 'ente_nah',   istNah: true, name: 'Gummiente — von unten', bild: 'bilder/ente-nah.webp', breite: 926, hoehe: 940 }
   ];
 
   // Gegenstände im Inventar. nah = ID der Nahansicht, die ein Klick darauf öffnet.
@@ -369,7 +370,7 @@
     { id: 'feuerzeug',  symbol: '🔥', name: 'Feuerzeug', text: 'Ein abgegriffenes Feuerzeug. Tut es noch.' },
     { id: 'sicherung',  symbol: '🧯', name: 'Sicherung', text: 'Eine Schraubsicherung aus Porzellan. Sieht unverbraucht aus.' },
     { id: 'hammer',     symbol: '🔨', name: 'Hammer',    text: 'Anfisas Hammer. Schwer, der Stiel ist speckig vom vielen Anfassen.' },
-    { id: 'ente',       symbol: '🦆', name: 'Ente',      text: 'Eine Gummiente mit Fellmütze und rotem Stern. Sie quietscht, wenn man sie drückt.' }
+    { id: 'ente',       symbol: '🦆', name: 'Ente',      nah: 'ente_nah', text: 'Eine Gummiente mit Fellmütze und rotem Stern. Sie quietscht, wenn man sie drückt.' }
   ];
 
   const WEGE = [
@@ -647,11 +648,11 @@
     { id: 'ba_wanne', ansicht: 'bad', x: 1090, y: 525, w: 380, h: 340, typ: 'naehe', nah: 'wanne_nah',
       nichtWenn: 'wanne_leer', label: 'Badewanne' },
     // --- Badewanne von nahem ---
-    { id: 'wn_ente', ansicht: 'wanne_nah', x: 740, y: 310, w: 180, h: 180, typ: 'nehmen', zustand: 'ente_weg',
+    { id: 'wn_ente', ansicht: 'wanne_nah', x: 820, y: 330, w: 240, h: 230, typ: 'nehmen', zustand: 'ente_weg',
       gibt: 'ente', label: 'Gummiente',
       // Grundbild zeigt die Ente. Der Flicken ist das Wasser OHNE sie und kommt
       // erst, wenn man sie genommen hat — also kein patchNicht.
-      patch: 'bilder/wanne-ohne-ente.webp', patchX: 679, patchY: 294, patchW: 377, patchH: 252 },
+      patch: 'bilder/wanne-ohne-ente.webp', patchX: 762, patchY: 322, patchW: 356, patchH: 256 },
     { id: 'wn_stoepsel', ansicht: 'wanne_nah', x: 150, y: 360, w: 300, h: 200, typ: 'ausschnitt', zustand: 'wanne_leer',
       klang: 'stoff', zurueck: true, label: 'Stöpsel' },
     // --- Dachboden (noch Platzhalter-Geometrie) ---
