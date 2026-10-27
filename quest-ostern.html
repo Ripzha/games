@@ -491,6 +491,12 @@
     { id: 'th_kippen', ansicht: 'treppenhaus', x: 1420, y: 520, w: 140, h: 65, typ: 'nehmen', zustand: 'kippen_weg',
       gibt: 'kippen', sichtbarWenn: 'th_kiste_offen', label: 'Zigarettenschachtel' },
     // --- Wohnzimmer (Koordinaten im Bild 1774 x 887) ---
+    // Ist der Hammer genommen, wird das ganze Raumbild getauscht statt nur ein
+    // Stück davon. Das Bild ohne Hammer ist neu gerendert und weicht überall
+    // leicht ab, ein Ausschnitt daraus wäre als Rechteck zu sehen. Dieses Teil
+    // steht als erstes im Raum, damit offene Schränke und Flicken darüber liegen.
+    { id: 'w_ohne_hammer', ansicht: 'wohnzimmer', x: 0, y: 0, w: 1774, h: 887, typ: 'overlay', zustand: 'hammer_weg',
+      bildAus: 'bilder/wohnzimmer-ohne-hammer.webp', label: 'Wohnzimmer' },
     { id: 'w_regal',    ansicht: 'wohnzimmer', x: 862,  y: 336, w: 236, h: 146, typ: 'ausschnitt', zustand: 'wz_regal_offen', label: 'Schrank unter dem Bücherregal',
       patch: 'bilder/wz-regal-auf.webp', patchX: 856, patchY: 330, patchW: 248, patchH: 158 },
     // Nur die linke Tür geht auf. Das mittlere Fach und der Couchtisch sind in
@@ -508,7 +514,10 @@
     // Eng freigestellt: nur Anfisa selbst. Ein grosszuegigerer Rand nimmt Wand
     // mit, und die ist im Leer-Bild deutlich anders gezeichnet (Abweichung 19
     // gegenueber 6 beim Rest des Raums) — das sieht man dann als Fleck.
+    // nichtWenn: Der Leer-Flicken zeigt den Hammer noch auf der Lehne. Sobald er
+    // genommen ist, übernimmt das ganze Bild ohne Hammer.
     { id: 'w_sessel_leer', ansicht: 'wohnzimmer', x: 239, y: 133, w: 749, h: 649, typ: 'overlay', zustand: 'anfisa_weg',
+      nichtWenn: 'hammer_weg',
       patch: 'bilder/wz-sessel-leer.webp', patchX: 239, patchY: 133, patchW: 749, patchH: 649, label: 'Sessel' },
     { id: 'w_gemaelde', ansicht: 'wohnzimmer', x: 415, y: 0, w: 275, h: 188, typ: 'nehmen', zustand: 'bild_ab', gibt: 'gemaelde',
       patch: 'bilder/wz-bild-ab.webp', patchX: 405, patchY: 0, patchW: 292, patchH: 195, label: 'Bild an der Wand' },
