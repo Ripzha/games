@@ -361,6 +361,13 @@
     // Grundbild ist der Topf mit den Batterien. Sind sie genommen, deckt der
     // Ausschnitt aus dem leeren Topf die Stelle ab.
     { id: 'topf_nah',   istNah: true, name: 'Emailletopf', bild: 'bilder/topf-batterien.webp', breite: 1536, hoehe: 1024 },
+    { id: 'wagen_nah', istNah: true, name: 'Werkstattwagen', bild: 'bilder/wagen-nah.webp', breite: 1774, hoehe: 887 },
+    // Umgedrehter Helm steckt in bildOffen, der leere Helm im bildAus der Lampe
+    { id: 'regalwand_nah', istNah: true, name: 'Regalwand', bild: 'bilder/regalwand-nah.webp',
+      bildOffen: 'bilder/regalwand-helm-um.webp', breite: 1774, hoehe: 887 },
+    // Grundbild ist die Kiste mit Sicherung. Ist sie genommen, deckt der
+    // Ausschnitt aus der leeren Kiste die Stelle ab.
+    { id: 'gruenkiste_nah', istNah: true, name: 'Grüne Werkzeugkiste', bild: 'bilder/kiste-gruen-voll.webp', breite: 1536, hoehe: 1024 },
     // Schrank und Schublade stecken im selben Offen-Bild, die Teile schneiden
     // sich ihren Bereich daraus.
     { id: 'schreibtisch_nah', istNah: true, name: 'Acis Schreibtisch', bild: 'bilder/schreibtisch.webp',
@@ -387,7 +394,7 @@
       antwort: 'Batterien drin. Jetzt tut sie wieder.',
       schaltet: 'lampe_an', nurWenn: 'lampe_bereit', fehlt: 'Tote Lampe. Da müssen Batterien rein.' },
     { id: 'batterien',  symbol: '🔋', name: 'Batterien', text: 'Vier Batterien. Sehen noch brauchbar aus.' },
-    { id: 'futter',     symbol: '🥫', name: 'Futter',   text: 'Eine Dose mit drei Kammern: grüne, rote und braune Flocken. Am Deckel sitzen drei Rädchen.' },
+    { id: 'futter',     symbol: '🥫', name: 'Futter',   text: 'Eine Dose mit drei Kammern: grüne, rote und braune Flocken.' },
     { id: 'feuerzeug',  symbol: '🔥', name: 'Feuerzeug', text: 'Ein abgegriffenes Feuerzeug. Tut es noch.' },
     { id: 'sicherung',  symbol: '🧯', name: 'Sicherung', text: 'Eine Schraubsicherung aus Porzellan. Sieht unverbraucht aus.' },
     { id: 'hammer',     symbol: '🔨', name: 'Hammer',    text: 'Anfisas Hammer. Schwer, der Stiel ist speckig vom vielen Anfassen.' },
@@ -448,13 +455,21 @@
     { id: 'g_akten',   ansicht: 'garage1', x: 88,   y: 428, w: 165, h: 85,  typ: 'ausschnitt', zustand: 'akten_offen',  label: 'Aktenschrank-Schublade', nah: '' },
     { id: 'g_blau',    ansicht: 'garage1', x: 536,  y: 586, w: 170, h: 70,  typ: 'ausschnitt', zustand: 'blau_offen',   label: 'Blauer Rollcontainer',   nah: '' },
     { id: 'g_steck',   ansicht: 'garage1', x: 1096, y: 668, w: 215, h: 85,  typ: 'ausschnitt', zustand: 'steck_offen',  label: 'Steckschlüssel-Schublade', nah: '' },
-    { id: 'g_wagen',   ansicht: 'garage1', x: 1330, y: 584, w: 318, h: 258, typ: 'ausschnitt', zustand: 'wagen_offen',  label: 'Roter Werkstattwagen',   nah: '' },
+    { id: 'g_wagen',   ansicht: 'garage1', x: 1330, y: 584, w: 318, h: 258, typ: 'ausschnitt', zustand: 'wagen_offen',  label: 'Roter Werkstattwagen',   nah: 'wagen_nah' },
 
-    { id: 'g_sicherung', ansicht: 'garage1', x: 1480, y: 650, w: 88, h: 64, typ: 'nehmen', zustand: 'sicherung_genommen',
-      gibt: 'sicherung', sichtbarWenn: 'wagen_offen', label: 'Sicherung' },
+    // --- Werkstattwagen von nahem ---
+    { id: 'wn_kiste', ansicht: 'wagen_nah', x: 925, y: 585, w: 350, h: 145, typ: 'naehe', nah: 'gruenkiste_nah', label: 'Grüne Werkzeugkiste' },
+    { id: 'gk_sicherung', ansicht: 'gruenkiste_nah', x: 600, y: 530, w: 320, h: 200, typ: 'nehmen', zustand: 'sicherung_genommen',
+      gibt: 'sicherung', bildAus: 'bilder/kiste-gruen-leer.webp', label: 'Sicherung' },
     { id: 'g_zettel',  ansicht: 'garage1', x: 1055, y: 12,  w: 180, h: 112, typ: 'info', label: 'Zeichnung an der Wand',
       titel: 'Notiz am Rand der Zeichnung', text: '„Aci — den Code für die Luke hab ich an die Wand geschrieben. Mit der Farbe, die im Dunkeln leuchtet. Du weisst schon, wo." — Anfisa' },
     // --- Garage, Ansicht 2: Türseite (Koordinaten im Bild 1774 x 887) ---
+    { id: 'g2_regalwand', ansicht: 'garage2', x: 60, y: 60, w: 300, h: 230, typ: 'naehe', nah: 'regalwand_nah', label: 'Regalwand mit dem Helm' },
+    // --- Regalwand von nahem ---
+    { id: 'rw_helm', ansicht: 'regalwand_nah', x: 1055, y: 65, w: 345, h: 240, typ: 'ausschnitt', zustand: 'helm_um',
+      klang: 'holz', label: 'Helm' },
+    { id: 'rw_lampe', ansicht: 'regalwand_nah', x: 1215, y: 65, w: 105, h: 130, typ: 'nehmen', zustand: 'lampe_weg',
+      gibt: 'lampe', sichtbarWenn: 'helm_um', bildAus: 'bilder/regalwand-helm-leer.webp', label: 'Taschenlampe' },
     { id: 'g2_oben',  ansicht: 'garage2', x: 470,  y: 150, w: 350, h: 396, typ: 'ausschnitt', zustand: 'g2_oben_offen',  label: 'Grosser Schrank, oben',  nah: '' },
     { id: 'g2_unten', ansicht: 'garage2', x: 470,  y: 548, w: 380, h: 265, typ: 'ausschnitt', zustand: 'g2_unten_offen', label: 'Grosser Schrank, unten', nah: 'gruen_nah' },
     // In der Nahaufnahme: die Blechkiste aufklappen, zweites Antippen geht hinein
@@ -466,10 +481,6 @@
     { id: 'ki_feuerzeug', ansicht: 'kiste_nah', x: 478, y: 558, w: 410, h: 219, typ: 'nehmen', zustand: 'feuerzeug_weg',
       gibt: 'feuerzeug', label: 'Feuerzeug',
       patch: 'bilder/kiste-feuerzeug.webp', patchNicht: true, patchX: 483, patchY: 563, patchW: 400, patchH: 209 },
-    // Die Taschenlampe liegt links daneben im Kistenboden. Noch als goldene
-    // Marke, ein Bild von ihr gibt es nicht.
-    { id: 'ki_lampe', ansicht: 'kiste_nah', x: 170, y: 560, w: 250, h: 190, typ: 'nehmen', zustand: 'lampe_weg',
-      gibt: 'lampe', label: 'Taschenlampe' },
     // Hinter der geschlossenen Tür ist es dunkel, solange im Treppenhaus kein Licht brennt
     { id: 'g2_fenster', ansicht: 'garage2', x: 1162, y: 242, w: 130, h: 186, typ: 'overlay',
       nichtWenn: 'th_licht,g2_tuer_offen', label: 'Türfenster',
@@ -677,8 +688,7 @@
     { id: 'ac_schrank', ansicht: 'acizimmer', x: 620, y: 80,  w: 290, h: 460, typ: 'ausschnitt', zustand: 'aci_schrank_offen', label: 'Kleiderschrank' },
     { id: 'ac_tisch',   ansicht: 'acizimmer', x: 260, y: 548, w: 195, h: 165, typ: 'ausschnitt', zustand: 'aci_tisch_offen',   label: 'Nachttischschublade' },
     { id: 'ac_aquarium', ansicht: 'acizimmer', x: 1255, y: 235, w: 200, h: 155, typ: 'naehe', nah: 'aquarium_nah', label: 'Aquarium' },
-    { id: 'ac_pc', ansicht: 'acizimmer', x: 1500, y: 262, w: 125, h: 142, typ: 'naehe', nah: 'pc_nah', label: 'Acis Rechner' },
-    { id: 'ac_schreibtisch', ansicht: 'acizimmer', x: 1430, y: 410, w: 344, h: 120, typ: 'naehe', nah: 'schreibtisch_nah', label: 'Schreibtisch' },
+    { id: 'ac_schreibtisch', ansicht: 'acizimmer', x: 1430, y: 250, w: 344, h: 290, typ: 'naehe', nah: 'schreibtisch_nah', label: 'Schreibtisch' },
     // --- Acis Schreibtisch von nahem ---
     { id: 'sb_monitor', ansicht: 'schreibtisch_nah', x: 590, y: 145, w: 495, h: 295, typ: 'naehe', nah: 'pc_nah', label: 'Bildschirm' },
     { id: 'sb_aquarium', ansicht: 'schreibtisch_nah', x: 0, y: 20, w: 250, h: 380, typ: 'naehe', nah: 'aquarium_nah', label: 'Aquarium' },
@@ -701,15 +711,19 @@
           + 'Rote Flocken: für die Guppys\n'
           + 'Braune Flocken: für die Neons\n\n'
           + 'Pro Fisch eine Prise. Keine mehr, sonst kippt das Wasser.\n'
-          + 'Die drei Rädchen am Dosierer der Reihe nach einstellen: grün, rot, braun.' },
+          + 'Beim Füttern die drei Zahlen in dieser Reihenfolge angeben: grün, rot, braun.' },
     { id: 'pc_fische', ansicht: 'pc_nah', x: 260, y: 80, w: 92, h: 110, typ: 'info',
       zeichnung: pcSymbol(260, 80, 'ordner', 'becken'),
       label: 'becken', titel: 'Ordner „becken"',
-      text: '47 Bilder vom Aquarium. Auf allen ist mindestens ein Fisch unscharf oder halb aus dem Bild geschwommen.\n\nKein einziges zeigt alle gleichzeitig.' },
+      text: '47 Bilder vom Aquarium. Auf jedem ist mindestens ein Fisch unscharf oder halb aus dem Bild geschwommen.' },
     { id: 'pc_tagebuch', ansicht: 'pc_nah', x: 90, y: 250, w: 92, h: 110, typ: 'info',
       zeichnung: pcSymbol(90, 250, 'datei', 'notizen.txt'),
       label: 'notizen.txt', titel: 'notizen.txt',
       text: 'Mama sagt, ich soll aufräumen. Ich sage, ich habe ein System.\n\nSie sagt, das System heisst Boden.' },
+    { id: 'pc_korb', ansicht: 'pc_nah', x: 90, y: 420, w: 92, h: 110, typ: 'info',
+      zeichnung: pcSymbol(90, 420, 'korb', 'Papierkorb'),
+      label: 'Papierkorb', titel: 'Papierkorb',
+      text: 'Drei gelöschte Dateien liegen noch drin.\n\nhausaufgaben_final.odt, hausaufgaben_final2.odt, hausaufgaben_wirklich_final.odt' },
     { id: 'pc_privat', ansicht: 'pc_nah', x: 260, y: 250, w: 92, h: 110, typ: 'info',
       zeichnung: pcSymbol(260, 250, 'ordner', 'privat'),
       label: 'privat', titel: 'Ordner „privat"',
@@ -720,8 +734,8 @@
       klang: 'metall', label: 'Aquarium', gelernt: 'aq_gelernt',
       klopf: 'Du klopfst ans Glas. Sie stieben auseinander und sammeln sich gleich wieder. Von Lärm rückt hier nichts raus — die wollen Futter.',
       nimmt: 'futter', zustand: 'aq_kies', verbraucht: true, scheucht: true,
-      titel: 'Dosierer', code: '236',
-      frage: 'Drei Rädchen am Deckel der Dose, für grün, rot und braun. Wie viele Prisen von jeder?',
+      titel: 'Füttern', code: '236',
+      frage: 'Wie viele Prisen grün, wie viele rot, wie viele braun? Drei Ziffern in dieser Reihenfolge.',
       fehlerText: 'Die Fische drehen ab. So stimmt die Mischung nicht.',
       antwort: 'Die Flocken sinken, die Fische schiessen hinterher und pflügen den Kies um. Zwischen den Steinen bleibt etwas liegen.' },
     // --- Flur ---
@@ -1055,11 +1069,17 @@
   // Beschriftung der Platzhalter — fällt weg, sobald echte Bilder da sind
   // Ein Symbol auf Acis Schreibtisch: Ordner oder Textdatei, mit Namen darunter.
   function pcSymbol(x, y, art, name) {
-    const koerper = art === 'ordner'
-      ? `<path d="M0 12 L26 12 L36 24 L92 24 L92 74 L0 74 Z" fill="#d9b863" stroke="#8a6f2e" stroke-width="2"/>
-         <path d="M0 34 L92 34" stroke="#b8974a" stroke-width="2"/>`
-      : `<rect x="14" y="8" width="64" height="68" rx="4" fill="#ece4d3" stroke="#8d8471" stroke-width="2"/>
-         <path d="M26 26 H66 M26 38 H66 M26 50 H58 M26 62 H48" stroke="#9a9280" stroke-width="3" stroke-linecap="round"/>`;
+    const formen = {
+      ordner: `<path d="M0 12 L26 12 L36 24 L92 24 L92 74 L0 74 Z" fill="#d9b863" stroke="#8a6f2e" stroke-width="2"/>
+               <path d="M0 34 L92 34" stroke="#b8974a" stroke-width="2"/>`,
+      datei:  `<rect x="14" y="8" width="64" height="68" rx="4" fill="#ece4d3" stroke="#8d8471" stroke-width="2"/>
+               <path d="M26 26 H66 M26 38 H66 M26 50 H58 M26 62 H48" stroke="#9a9280" stroke-width="3" stroke-linecap="round"/>`,
+      korb:   `<path d="M22 20 L70 20 L64 78 L28 78 Z" fill="#9aa6b2" stroke="#5d6975" stroke-width="2"/>
+               <path d="M18 14 H74" stroke="#5d6975" stroke-width="5" stroke-linecap="round"/>
+               <path d="M38 10 H54" stroke="#5d6975" stroke-width="5" stroke-linecap="round"/>
+               <path d="M36 32 V66 M46 32 V66 M56 32 V66" stroke="#6f7c89" stroke-width="3" stroke-linecap="round"/>`
+    };
+    const koerper = formen[art] || formen.datei;
     return `<g transform="translate(${x},${y})" style="pointer-events:none">${koerper}
       <text x="46" y="98" font-size="21" fill="#e8eef6" text-anchor="middle" font-family="sans-serif">${name}</text></g>`;
   }
