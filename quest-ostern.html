@@ -357,7 +357,8 @@
     { id: 'treppenhaus', raum: 'treppenhaus', name: 'Treppenhaus', bild: 'bilder/treppenhaus-dunkel.webp',
       hellWenn: 'th_licht', bildHell: 'bilder/treppenhaus-zu.webp', breite: 1774, hoehe: 887,
       verlassenSetzt: 'th_verlassen', verlassenWenn: 'th_geladen' },
-    { id: 'wohnzimmer', raum: 'wohnzimmer', name: 'Wohnzimmer', bild: 'bilder/wohnzimmer-zu.webp', breite: 1774, hoehe: 887 },
+    { id: 'wohnzimmer', raum: 'wohnzimmer', name: 'Wohnzimmer', bild: 'bilder/wohnzimmer-zu.webp', breite: 1774, hoehe: 887,
+      bildStatt: [{ wenn: 'hammer_weg', bild: 'bilder/wohnzimmer-ohne-hammer.webp' }] },
     { id: 'kueche', raum: 'kueche', name: 'Küche', bild: 'bilder/kueche-dunkel.webp',
       hellWenn: 'kueche_licht', bildHell: 'bilder/kueche-hell.webp', breite: 1774, hoehe: 887 },
     // Schrank und Nachttischschublade stecken beide im selben Offen-Bild, darum
@@ -565,8 +566,6 @@
     // Stück davon. Das Bild ohne Hammer ist neu gerendert und weicht überall
     // leicht ab, ein Ausschnitt daraus wäre als Rechteck zu sehen. Dieses Teil
     // steht als erstes im Raum, damit offene Schränke und Flicken darüber liegen.
-    { id: 'w_ohne_hammer', ansicht: 'wohnzimmer', x: 0, y: 0, w: 1774, h: 887, typ: 'overlay', zustand: 'hammer_weg',
-      bildAus: 'bilder/wohnzimmer-ohne-hammer.webp', label: 'Wohnzimmer' },
     { id: 'w_regal',    ansicht: 'wohnzimmer', x: 862,  y: 336, w: 236, h: 146, typ: 'ausschnitt', zustand: 'wz_regal_offen', label: 'Schrank unter dem Bücherregal',
       patch: 'bilder/wz-regal-auf.webp', patchX: 856, patchY: 330, patchW: 248, patchH: 158 },
     // Nur die linke Tür geht auf. Das mittlere Fach und der Couchtisch sind in
@@ -1521,7 +1520,11 @@
 
     // Grundbild kann vom Licht abhängen (Küche: dunkel bis die Sicherung sitzt)
     const istHell = !!(ans.hellWenn && zustand.offen[ans.hellWenn]);
-    const grundbild = (istHell && ans.bildHell) ? ans.bildHell : ans.bild;
+    // bildStatt: tauscht das Grundbild selbst, sobald ein Zustand gesetzt ist.
+    // Besser als ein Vollbild-Overlay, das sonst über den geöffneten Schränken läge.
+    const getauscht = (ans.bildStatt || []).find(w => zustand.offen[w.wenn]);
+    const grundbild = getauscht ? getauscht.bild
+      : ((istHell && ans.bildHell) ? ans.bildHell : ans.bild);
     let html = '';
     if (grundbild) html += `<img class="bild" src="${grundbild}" alt="">`;
     html += `<svg viewBox="0 0 ${RW} ${RH}" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">`;
@@ -1790,7 +1793,7 @@
   function bilderDerAnsicht(id) {
     const a = ansichtVon(id);
     if (!a) return [];
-    const u = [a.bild, a.bildHell, a.bildOffen];
+    const u = [a.bild, a.bildHell, a.bildOffen].concat((a.bildStatt || []).map(w => w.bild));
     TEILE.filter(t => t.ansicht === id).forEach(t => {
       u.push(t.patch, t.patchHell, t.bildAus);
       (t.phasen || []).forEach(p => u.push(p.bild));
