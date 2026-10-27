@@ -360,6 +360,7 @@
     // Ausschnitt aus dem leeren Topf die Stelle ab.
     { id: 'topf_nah',   istNah: true, name: 'Emailletopf', bild: 'bilder/topf-batterien.webp', breite: 1536, hoehe: 1024 },
     { id: 'wagen_nah', istNah: true, name: 'Werkstattwagen', bild: 'bilder/wagen-nah.webp', breite: 1774, hoehe: 887 },
+    { id: 'kue_ober_nah', istNah: true, name: 'Oberschrank rechts', bild: 'bilder/kue-ober-nah.webp', breite: 1774, hoehe: 887 },
     // Tücher beiseite = bildOffen, Schachtel genommen = bildAus am Schachtel-Teil
     { id: 'th_kiste_nah', istNah: true, name: 'Holzkiste', bild: 'bilder/th-kiste-nah.webp',
       bildOffen: 'bilder/th-kiste-tuecher-weg.webp', breite: 1774, hoehe: 887 },
@@ -391,7 +392,7 @@
     { id: 'kippen',     symbol: '🚬', name: 'Schachtel', text: 'Eine angebrochene Schachtel Zigaretten.' },
     // Die Taschenlampe nimmt die Batterien entgegen und wird danach zum Schalter.
     { id: 'lampe',      symbol: '🔦', name: 'Lampe',     text: 'Eine Taschenlampe. Ohne Batterien nutzlos.',
-      nimmt: 'batterien', setzt: 'lampe_bereit', verbraucht: true,
+      nimmt: 'batterien', setzt: 'lampe_bereit',
       antwort: 'Batterien drin. Jetzt tut sie wieder.',
       schaltet: 'lampe_an', nurWenn: 'lampe_bereit', fehlt: 'Tote Lampe. Da müssen Batterien rein.' },
     { id: 'batterien',  symbol: '🔋', name: 'Batterien', text: 'Vier Batterien. Sehen noch brauchbar aus.' },
@@ -555,7 +556,7 @@
       patch: 'bilder/wz-bild-ab.webp', patchX: 405, patchY: 0, patchW: 292, patchH: 195, label: 'Bild an der Wand' },
     // Der leere Nagel: nimmt das Bild wieder entgegen. Nur da, solange es fehlt.
     { id: 'w_nagel', ansicht: 'wohnzimmer', x: 415, y: 0, w: 275, h: 188, typ: 'ziel', sichtbarWenn: 'bild_ab',
-      nimmt: 'gemaelde', loescht: 'bild_ab', verbraucht: true, antwort: 'Hängt wieder gerade.', label: 'Nagel in der Wand' },
+      nimmt: 'gemaelde', loescht: 'bild_ab', antwort: 'Hängt wieder gerade.', label: 'Nagel in der Wand' },
     // Erst wenn Anfisa weg ist, kommt man an den Sessel heran
     { id: 'w_sessel', ansicht: 'wohnzimmer', x: 250, y: 430, w: 520, h: 250, typ: 'naehe', nah: 'sessel_nah',
       sichtbarWenn: 'anfisa_weg', label: 'Sessel' },
@@ -593,7 +594,7 @@
       ],
       // Sie will beides: Schachtel und Feuerzeug. Und solange das Bild nicht
       // an der Wand hängt, nimmt sie gar nichts an.
-      nimmt: ['kippen', 'feuerzeug'], setzt: 'anfisa_weg', verbraucht: true,
+      nimmt: ['kippen', 'feuerzeug'], setzt: 'anfisa_weg',
       // Sie nimmt jedes Stück für sich an und richtet sich dabei auf. Das
       // zeigt das Bild, es steht also nicht im Text. Welches Stück zuerst
       // kommt, ist egal — der Satz zum zweiten ist immer der letzte.
@@ -661,7 +662,7 @@
     // Der leere Sicherungssockel. Erst mit der Sicherung aus der Garage gibt es Licht.
     { id: 'k_licht', ansicht: 'kueche', x: 330, y: 238, w: 78, h: 155, typ: 'ziel', zustand: 'kueche_licht',
       sichtbarWenn: 'sicherung_offen', label: 'Sicherungssockel',
-      nimmt: 'sicherung', setzt: 'kueche_licht', verbraucht: true,
+      nimmt: 'sicherung', setzt: 'kueche_licht',
       antwort: 'Die Sicherung sitzt. Irgendwo in der Küche klackt es, dann geht das Licht an.' },
     // Zwei Gruppen statt sieben Einzeltüren: Die Türen schwingen über die
     // Feldgrenzen hinweg. Bei einer feineren Teilung steht an der Trennlinie
@@ -670,14 +671,19 @@
       patch: 'bilder/kue-ober-links-dunkel.webp', patchX: 418, patchY: 43, patchW: 604, patchH: 266,
       patchHell: 'bilder/kue-ober-links-hell.webp', patchHellX: 418, patchHellY: 43, patchHellW: 604, patchHellH: 266 },
     { id: 'k_ober_rechts', ansicht: 'kueche', x: 1015, y: 50, w: 357, h: 252, typ: 'ausschnitt', zustand: 'k_ober_rechts_offen', label: 'Oberschränke rechts',
+      nah: 'kue_ober_nah', nahWenn: 'kueche_licht',
+      nahFehlt: 'Im Schrank ist es stockdunkel. Solange kein Licht brennt, siehst du gar nichts.',
       patch: 'bilder/kue-ober-rechts-dunkel.webp', patchX: 1008, patchY: 43, patchW: 371, patchH: 266,
       patchHell: 'bilder/kue-ober-rechts-hell.webp', patchHellX: 1008, patchHellY: 43, patchHellW: 371, patchHellH: 266 },
     // Zweites Antippen geht in die Nahaufnahme — aber nur bei Licht, sonst
     // stünde man vor einem schwarzen Loch.
-    // Die Futterdose steht unten zwischen den Gewürzgläsern. Ohne Bild von ihr
-    // zeichnet das Spiel eine goldene Marke.
-    { id: 'k_futter', ansicht: 'kueche', x: 1030, y: 250, w: 120, h: 50, typ: 'nehmen', zustand: 'futter_weg',
-      gibt: 'futter', sichtbarWenn: ['k_ober_rechts_offen', 'kueche_licht'], label: 'Dose zwischen den Gewürzen' },
+    // Das Futter steht als Glas im Oberschrank. Hinein geht es nur bei Licht.
+    // Nach dem Nehmen wird das ganze Bild getauscht statt nur ein Ausschnitt:
+    // die beiden Aufnahmen sind unterschiedlich hell, ein Rechteck wäre sichtbar.
+    { id: 'k_ober_leer', ansicht: 'kue_ober_nah', x: 0, y: 0, w: 1774, h: 887, typ: 'overlay', zustand: 'futter_weg',
+      bildAus: 'bilder/kue-ober-ohne-glas.webp', label: 'Oberschrank' },
+    { id: 'k_futter', ansicht: 'kue_ober_nah', x: 1022, y: 680, w: 180, h: 190, typ: 'nehmen', zustand: 'futter_weg',
+      gibt: 'futter', ohneMarke: true, label: 'Glas mit Fischfutter' },
     { id: 'k_unten_links', ansicht: 'kueche', x: 370, y: 492, w: 378, h: 210, typ: 'ausschnitt', zustand: 'k_unten_links_offen', label: 'Unterschrank links',
       nah: 'kue_unten_nah', nahWenn: 'kueche_licht',
       nahFehlt: 'Da drin ist es stockdunkel. Solange kein Licht brennt, siehst du gar nichts.',
@@ -787,11 +793,28 @@
     { id: 'pc_d09', ansicht: 'pc_nah', x: 185, y: 101, w: 92, h: 110, typ: 'datei', ordner: 'kram', zustand: 'pc_d09_weg',
       nichtWenn: 'pc_d09_weg', zeichnung: pcSymbol(185, 101, 'datei', 'sexfragen.txt', null, -5),
       label: 'sexfragen.txt', titel: 'sexfragen.txt',
-      text: 'Eine Liste von Fragen über Sex und Körper. Sachlich aufgeschrieben und durchnummeriert. Hinter manchen steht eine Antwort, hinter den meisten nichts.' },
+      text: 'Warum mögen Menschen Küssen so sehr?\n'
+          + 'Warum ist Nacktheit beim Sex wichtig wenn man nicht den ganzen Körper braucht?\n'
+          + 'Wie merkt man ob jemand wirklich kommen kann oder nur so tut?\n'
+          + 'Warum mögen manche Menschen Schmerzen dabei?\n'
+          + 'Kann man beim Sex einschlafen?\n'
+          + 'Warum ist Sex im Auto interessant obwohl ein Bett bequemer ist?\n'
+          + 'Wie lange ist normal?\n'
+          + 'Warum ist „zu früh" schlecht wenn beide fertig sind?\n'
+          + 'Kann man jemanden attraktiv finden und trotzdem keinen Sex mit ihm wollen?\n'
+          + 'Warum reden Menschen nach Sex anders miteinander?' },
     { id: 'pc_d10', ansicht: 'pc_nah', x: 492, y: 321, w: 92, h: 110, typ: 'datei', ordner: 'kram', zustand: 'pc_d10_weg',
       nichtWenn: 'pc_d10_weg', zeichnung: pcSymbol(492, 321, 'datei', 'sachen_die_man_nicht_fragen_soll.doc', null, 5),
       label: 'sachen_die_man_nicht_fragen_soll.doc', titel: 'sachen_die_man_nicht_fragen_soll.doc',
-      text: 'Fragen, bei denen jemand gesagt hat, dass man sie Leuten nicht einfach stellt. Nach Datum sortiert. Bei einigen steht trotzdem eine Antwort dahinter.' },
+      text: 'Warum bist du noch Jungfrau?\n'
+          + 'Warum habt ihr keinen Sex mehr?\n'
+          + 'Wie oft habt ihr Sex?\n'
+          + 'Warum darf man fragen ob jemand einen Freund hat aber nicht wann er zuletzt Sex hatte?\n'
+          + 'Darf man fragen wie gross ein Penis ist wenn man nicht fragt ob man ihn sehen darf?\n'
+          + 'Warum ist „bist du schwanger?" unhöflich wenn jemand schwanger aussieht?\n'
+          + 'Nicht fragen ob jemand zugenommen hat.\n'
+          + 'Nicht fragen warum jemand keine Kinder will.\n'
+          + 'Mama sagt man soll generell weniger fragen.' },
     { id: 'pc_d11', ansicht: 'pc_nah', x: 646, y: 82, w: 92, h: 110, typ: 'datei', ordner: 'kram', zustand: 'pc_d11_weg',
       nichtWenn: 'pc_d11_weg', zeichnung: pcSymbol(646, 82, 'foto', 'pudel.jpg', 'bilder/pc-pudel.webp', -5),
       bildgross: 'bilder/pc-pudel.webp',
@@ -898,7 +921,7 @@
     { id: 'aq_scheibe', ansicht: 'aquarium_nah', x: 310, y: 210, w: 1160, h: 460, typ: 'klopfen',
       klang: 'metall', label: 'Aquarium', gelernt: 'aq_gelernt',
       klopf: 'Du klopfst ans Glas. Sie stieben auseinander und sammeln sich gleich wieder. Vom Klopfen passiert hier nichts. Die wollen Futter.',
-      nimmt: 'futter', zustand: 'aq_kies', verbraucht: true, scheucht: true,
+      nimmt: 'futter', zustand: 'aq_kies', scheucht: true,
       titel: 'Füttern', code: '11',
       frage: 'Wie viele Prisen streust du ins Becken?',
       fehlerText: 'Zu viel oder zu wenig. Die Fische drehen ab.',
@@ -973,7 +996,7 @@
       patch: 'bilder/koffer-offen.webp', patchX: 252, patchY: 0, patchW: 1251, patchH: 603, label: 'Koffer' },
     { id: 'kf_schloss', ansicht: 'koffer_nah', x: 300, y: 480, w: 1180, h: 280, typ: 'ziel',
       nichtWenn: 'koffer_offen', label: 'Schlösser am Koffer',
-      nimmt: 'schluessel', setzt: 'koffer_offen', verbraucht: true,
+      nimmt: 'schluessel', setzt: 'koffer_offen',
       antwort: 'Der Schlüssel passt. Beide Schlösser springen auf.' },
     // --- Dachboden (noch Platzhalter-Geometrie) ---
     { id: 'd_kiste',    ansicht: 'dachboden', x: 200,  y: 560, w: 260, h: 180, typ: 'toggle', form: 'klappe', zustand: 'dach_kiste_offen', label: 'Holzkiste' },
@@ -1887,7 +1910,7 @@
   function kombiniere(gegenstandId, ziel) {
     if (ziel.nimmt !== gegenstandId) { sag('Das passt nicht zusammen.'); return false; }
     if (ziel.setzt) zustand.offen[ziel.setzt] = true;
-    if (ziel.verbraucht) zustand.inventar = zustand.inventar.filter(x => x !== gegenstandId);
+    if (!ziel.behaelt) zustand.inventar = zustand.inventar.filter(x => x !== gegenstandId);
     waehle(null, true);
     klang('nehmen');
     renderRaum(); speichern();
@@ -1927,7 +1950,7 @@
     if (teil.einzeln && teil.einzeln[gegenstandId]) {
       const gabe = teil.einzeln[gegenstandId];
       zustand.offen[gabe.setzt] = true;
-      if (teil.verbraucht) zustand.inventar = zustand.inventar.filter(x => x !== gegenstandId);
+      if (!teil.behaelt) zustand.inventar = zustand.inventar.filter(x => x !== gegenstandId);
       if (teil.gabePhase != null && teil.zustand) zustand.offen[teil.zustand] = teil.gabePhase;
       const fehltNoch = noetig.some(id => teil.einzeln[id] && !zustand.offen[teil.einzeln[id].setzt]);
       if (!fehltNoch) {
@@ -1952,7 +1975,8 @@
 
     if (teil.setzt) zustand.offen[teil.setzt] = true;
     if (teil.loescht) zustand.offen[teil.loescht] = false;
-    if (teil.verbraucht) zustand.inventar = zustand.inventar.filter(x => !noetig.includes(x));
+    // Benutzte Gegenstände sind weg, ausser das Teil sagt ausdrücklich behaelt
+    if (!teil.behaelt) zustand.inventar = zustand.inventar.filter(x => !noetig.includes(x));
     waehle(null, true);
     klang('nehmen');
     renderRaum();
@@ -2393,7 +2417,7 @@
       // danach lässt sich die Luke auf- und zumachen, ohne den Code erneut einzugeben
       if (t.setztAuch) zustand.offen[t.setztAuch] = true;
       // Wurde das Rätsel mit einem Gegenstand geöffnet, ist der jetzt weg
-      if (t.verbraucht && t.nimmt) {
+      if (t.nimmt && !t.behaelt) {
         const futsch = Array.isArray(t.nimmt) ? t.nimmt : [t.nimmt];
         zustand.inventar = zustand.inventar.filter(x => !futsch.includes(x));
         renderInventar();
