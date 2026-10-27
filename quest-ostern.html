@@ -88,7 +88,7 @@
   /* ---------- Modale ---------- */
   .modal { position: absolute; inset: 0; background: rgba(5,10,7,0.78); display: none; align-items: center; justify-content: center; z-index: 30; padding: 20px; }
   .modal.show { display: flex; }
-  .modal-box { background: var(--cream); color: var(--tinte); border-radius: 14px; padding: 22px; max-width: 440px; width: 100%; max-height: 82vh; overflow-y: auto; box-shadow: 0 20px 60px rgba(0,0,0,0.6); }
+  .modal-box { background: var(--cream); color: var(--tinte); border-radius: 14px; padding: 22px; max-width: 440px; width: 100%; box-shadow: 0 20px 60px rgba(0,0,0,0.6); }
   .modal-box h3 { font-family: var(--serif); margin: 0 0 8px; font-weight: 500; font-size: 20px; }
   .modal-box p { margin: 0 0 12px; line-height: 1.55; font-size: 14.5px; }
   .modal-box .frage { font-family: var(--serif); font-style: italic; font-size: 16px; color: #2e3e28; background: #e8e0c8; padding: 12px 14px; border-radius: 8px; margin-bottom: 14px; }
@@ -109,24 +109,6 @@
   .intro-text em { font-family: var(--serif); font-style: italic; color: var(--gold-hell); }
   .regeln { max-width: 460px; font-size: 13px; color: var(--himmel-text); line-height: 1.6; text-align: left; margin: 0 0 22px; }
   .regeln b { color: var(--cream); }
-  .back-titel { font-family: var(--serif); font-size: 26px; margin: 0 0 6px; }
-  .back-dran { margin: 0 0 14px; font-size: 15px; color: var(--sand); }
-  .back-dran b { color: var(--gold); }
-  .back-tisch { position: relative; width: 100%; max-width: 900px; margin: 0 auto; aspect-ratio: 1774 / 887;
-                border-radius: 12px; overflow: hidden; box-shadow: 0 12px 34px rgba(0,0,0,0.5); }
-  .back-tisch > img.grund { width: 100%; height: 100%; object-fit: cover; display: block; }
-  .back-zutat { position: absolute; transform: translate(-50%, -50%); cursor: pointer;
-                transition: transform 0.18s, filter 0.18s; filter: drop-shadow(0 6px 10px rgba(0,0,0,0.5)); }
-  .back-zutat:hover { transform: translate(-50%, -50%) scale(1.08); }
-  .back-zutat.weg { opacity: 0; pointer-events: none; transition: opacity 0.4s, transform 0.4s;
-                    transform: translate(-50%, -50%) scale(0.3); }
-  .back-sagt { max-width: 700px; margin: 16px auto 0; font-size: 15px; line-height: 1.6; min-height: 3em; }
-  .info-liste { display: flex; flex-direction: column; gap: 6px; margin: 4px 0 14px; }
-  .info-liste button { background: #e8e0c8; border: 1px solid #c3b894; color: var(--tinte);
-    font: inherit; font-size: 14.5px; text-align: left; padding: 9px 12px; border-radius: 7px; cursor: pointer; }
-  .info-liste button:hover { background: #ddd3b4; }
-  .info-liste button.zurueck { background: transparent; border-style: dashed; }
-  .ende-bild { width: 100%; max-width: 560px; border-radius: 12px; margin: 0 auto 18px; display: block; box-shadow: 0 10px 30px rgba(0,0,0,0.45); }
   .ergebnis-zahl { font-family: var(--serif); font-size: 44px; color: var(--gold-hell); margin: 0; }
   .ergebnis-label { color: var(--himmel-text); font-size: 13px; margin: 0 0 18px; }
   .eintrag { display: flex; gap: 8px; flex-wrap: wrap; justify-content: center; margin: 0 0 14px; }
@@ -246,9 +228,7 @@
   <div class="modal" id="info-modal">
     <div class="modal-box">
       <h3 id="info-titel"></h3>
-      <img id="info-bild" alt="" style="display:none;width:100%;border-radius:8px;margin:0 0 10px"/>
       <p id="info-text"></p>
-      <div class="info-liste" id="info-liste"></div>
       <div class="knopf-reihe"><button class="knopf sekundaer" id="info-zu">Weglegen</button></div>
     </div>
   </div>
@@ -271,20 +251,9 @@
   </div>
 
   <!-- Ende -->
-  <div class="screen hidden" id="screen-backen">
-    <h2 class="back-titel">Acis Küchentisch</h2>
-    <p class="back-dran" id="back-dran"></p>
-    <div class="back-tisch" id="back-tisch"></div>
-    <p class="back-sagt" id="back-sagt"></p>
-    <div class="knopf-reihe">
-      <button class="knopf sekundaer" id="back-zurueck">Zurück zum Ergebnis</button>
-    </div>
-  </div>
-
   <div class="screen hidden" id="screen-ende">
-    <img class="ende-bild" id="ende-bild" src="bilder/aci-schluss.webp" alt="">
     <p class="ergebnis-zahl" id="ende-zeit">00:00</p>
-    <p class="ergebnis-label" id="ende-label">für alle Eier</p>
+    <p class="ergebnis-label">für alle zwanzig Eier</p>
     <p class="intro-text" id="ende-text"></p>
     <div class="eintrag" id="eintrag-bereich">
       <input type="text" id="name-input" maxlength="12" placeholder="Dein Name">
@@ -293,8 +262,7 @@
     <p class="eintrag-fehler" id="eintrag-fehler"></p>
     <div class="rangliste" id="rangliste"></div>
     <div class="knopf-reihe">
-      <button class="knopf" id="backen-knopf">Kuchen backen</button>
-      <a class="knopf sekundaer" href="index.html">Zurück</a>
+      <a class="knopf" href="index.html">Zurück</a>
       <button class="knopf sekundaer" id="reset-knopf">Nochmal von vorn</button>
     </div>
   </div>
@@ -344,15 +312,17 @@
     { id: 'treppenhaus', name: 'Treppenhaus', start: 'treppenhaus', gesperrtBis: null, imMenu: false },
     { id: 'wohnzimmer', name: 'Wohnzimmer', start: 'wohnzimmer', gesperrtBis: null },
     { id: 'kueche',     name: 'Küche',      start: 'kueche',     gesperrtBis: null },
-    // Acis Zimmer liegt hinter der linken Flurtür, wo vorher die Kammer war.
-    { id: 'acizimmer',  name: 'Acis Zimmer', start: 'acizimmer', gesperrtBis: null, imMenu: false },
+    // Acis Zimmer. Vorerst nur über den Knopf oben erreichbar — im Flur sind
+    // alle drei Türen schon vergeben.
+    { id: 'acizimmer',  name: 'Acis Zimmer', start: 'acizimmer', gesperrtBis: null },
     // Flur und Dachboden sind Durchgangsräume: nur über Wege erreichbar,
     // nicht über die Knöpfe oben. Beide warten noch auf ihre Bilder.
     { id: 'flur',      name: 'Flur',      start: 'flur',      gesperrtBis: null, imMenu: false },
     { id: 'dachboden',   name: 'Dachboden',   start: 'dachboden',   gesperrtBis: null, imMenu: false },
     // Die drei Zimmer am Flur. Bilder fehlen noch, darum Platzhalter-Geometrie.
     { id: 'schlafzimmer', name: 'Schlafzimmer', start: 'schlafzimmer', gesperrtBis: null, imMenu: false },
-    { id: 'bad',          name: 'Bad',          start: 'bad',          gesperrtBis: null, imMenu: false }
+    { id: 'bad',          name: 'Bad',          start: 'bad',          gesperrtBis: null, imMenu: false },
+    { id: 'kammer',       name: 'Kammer',       start: 'kammer',       gesperrtBis: null, imMenu: false }
   ];
 
   const ANSICHTEN = [
@@ -363,8 +333,7 @@
     { id: 'treppenhaus', raum: 'treppenhaus', name: 'Treppenhaus', bild: 'bilder/treppenhaus-dunkel.webp',
       hellWenn: 'th_licht', bildHell: 'bilder/treppenhaus-zu.webp', breite: 1774, hoehe: 887,
       verlassenSetzt: 'th_verlassen', verlassenWenn: 'th_geladen' },
-    { id: 'wohnzimmer', raum: 'wohnzimmer', name: 'Wohnzimmer', bild: 'bilder/wohnzimmer-zu.webp', breite: 1774, hoehe: 887,
-      bildStatt: [{ wenn: 'hammer_weg', bild: 'bilder/wohnzimmer-ohne-hammer.webp' }] },
+    { id: 'wohnzimmer', raum: 'wohnzimmer', name: 'Wohnzimmer', bild: 'bilder/wohnzimmer-zu.webp', breite: 1774, hoehe: 887 },
     { id: 'kueche', raum: 'kueche', name: 'Küche', bild: 'bilder/kueche-dunkel.webp',
       hellWenn: 'kueche_licht', bildHell: 'bilder/kueche-hell.webp', breite: 1774, hoehe: 887 },
     // Schrank und Nachttischschublade stecken beide im selben Offen-Bild, darum
@@ -372,11 +341,11 @@
     { id: 'acizimmer',  raum: 'acizimmer',  name: 'Acis Zimmer', bild: 'bilder/aci-zimmer.webp',
       bildOffen: 'bilder/aci-zimmer-offen.webp', breite: 1774, hoehe: 887 },
     { id: 'flur', raum: 'flur', name: 'Flur', bild: 'bilder/flur.webp', breite: 1774, hoehe: 887 },
-    { id: 'dachboden', raum: 'dachboden', name: 'Dachboden', bild: 'bilder/dachboden.webp',
-      bildOffen: 'bilder/dachboden-offen.webp', breite: 1774, hoehe: 887,
+    { id: 'dachboden', raum: 'dachboden', name: 'Dachboden', bild: '',
       lampeWenn: 'lampe_an', lampeRadius: 160 },
     { id: 'schlafzimmer', raum: 'schlafzimmer', name: 'Anfisas Schlafzimmer', bild: 'bilder/schlafzimmer.webp', breite: 1774, hoehe: 887 },
     { id: 'bad', raum: 'bad', name: 'Bad', bild: 'bilder/bad.webp', breite: 1774, hoehe: 887 },
+    { id: 'kammer',       raum: 'kammer',       name: 'Kammer',       bild: '' },
     // Nahansichten von Gegenständen, die man in die Hand nimmt.
     // istNah: true = gehört zu keinem Raum, wird über das Inventar geöffnet.
     { id: 'bild_vorn',   istNah: true, name: 'Landschaftsbild — Vorderseite', bild: 'bilder/bild-vorn.webp',      breite: 1402, hoehe: 912 },
@@ -393,10 +362,6 @@
     // Ausschnitt aus dem leeren Topf die Stelle ab.
     { id: 'topf_nah',   istNah: true, name: 'Emailletopf', bild: 'bilder/topf-batterien.webp', breite: 1536, hoehe: 1024 },
     { id: 'wagen_nah', istNah: true, name: 'Werkstattwagen', bild: 'bilder/wagen-nah.webp', breite: 1774, hoehe: 887 },
-    { id: 'kue_ober_nah', istNah: true, name: 'Oberschrank rechts', bild: 'bilder/kue-ober-nah.webp', breite: 1774, hoehe: 887 },
-    // Tücher beiseite = bildOffen, Schachtel genommen = bildAus am Schachtel-Teil
-    { id: 'th_kiste_nah', istNah: true, name: 'Holzkiste', bild: 'bilder/th-kiste-nah.webp',
-      bildOffen: 'bilder/th-kiste-tuecher-weg.webp', breite: 1774, hoehe: 887 },
     // Umgedrehter Helm steckt in bildOffen, der leere Helm im bildAus der Lampe
     { id: 'regalwand_nah', istNah: true, name: 'Regalwand', bild: 'bilder/regalwand-nah.webp',
       bildOffen: 'bilder/regalwand-helm-um.webp', breite: 1774, hoehe: 887 },
@@ -425,15 +390,11 @@
     { id: 'kippen',     symbol: '🚬', name: 'Schachtel', text: 'Eine angebrochene Schachtel Zigaretten.' },
     // Die Taschenlampe nimmt die Batterien entgegen und wird danach zum Schalter.
     { id: 'lampe',      symbol: '🔦', name: 'Lampe',     text: 'Eine Taschenlampe. Ohne Batterien nutzlos.',
-      nimmt: 'batterien', setzt: 'lampe_bereit',
+      nimmt: 'batterien', setzt: 'lampe_bereit', verbraucht: true,
       antwort: 'Batterien drin. Jetzt tut sie wieder.',
       schaltet: 'lampe_an', nurWenn: 'lampe_bereit', fehlt: 'Tote Lampe. Da müssen Batterien rein.' },
     { id: 'batterien',  symbol: '🔋', name: 'Batterien', text: 'Vier Batterien. Sehen noch brauchbar aus.' },
-    { id: 'futter',     symbol: '🥫', name: 'Futter',   text: 'Eine Dose Fischfutter, noch gut halb voll.' },
-    // blatt: Mit der Lupe im Rucksack lässt sich der Zettel nochmal lesen
-    { id: 'zettel',     symbol: '📄', name: 'Zettel',   text: 'Ein abgerissener Fetzen Papier.',
-      blatt: { titel: 'Ein Fetzen Papier',
-               text: 'Die linke Hälfte fehlt, da ist das Papier abgerissen.\n\nZu lesen ist noch: … 4 6' } },
+    { id: 'futter',     symbol: '🥫', name: 'Futter',   text: 'Eine Dose mit drei Kammern: grüne, rote und braune Flocken.' },
     { id: 'feuerzeug',  symbol: '🔥', name: 'Feuerzeug', text: 'Ein abgegriffenes Feuerzeug. Tut es noch.' },
     { id: 'sicherung',  symbol: '🧯', name: 'Sicherung', text: 'Eine Schraubsicherung aus Porzellan. Sieht unverbraucht aus.' },
     { id: 'hammer',     symbol: '🔨', name: 'Hammer',    text: 'Anfisas Hammer. Schwer, der Stiel ist speckig vom vielen Anfassen.' },
@@ -468,8 +429,8 @@
       wennOffen: ['luke_geknackt', 'luke_offen'], label: 'die Leiter hinauf' },
     // Die drei Zimmer. Durch die hintere Tür kommt man nicht, solange die Leiter
     // davorsteht — dann muss man die Luke erst wieder zuklappen.
-    { von: 'flur', nach: 'acizimmer', art: 'rein', pfeil: 'links', x: 262, y: 120, w: 110, h: 600,
-      wennOffen: 'fl_links_offen', label: 'in Acis Zimmer' },
+    { von: 'flur', nach: 'kammer', art: 'rein', pfeil: 'links', x: 262, y: 120, w: 110, h: 600,
+      wennOffen: 'fl_links_offen', label: 'in die Kammer' },
     { von: 'flur', nach: 'bad', art: 'rein', pfeil: 'rechts', x: 1340, y: 120, w: 130, h: 620,
       wennOffen: 'fl_rechts_offen', label: 'ins Bad' },
     // Der Durchgang liegt unten auf der Schwelle, nicht mitten auf dem Türblatt —
@@ -478,7 +439,7 @@
       wennOffen: 'fl_ende_offen', wennZu: 'luke_offen', label: 'in Anfisas Zimmer' },
     { von: 'schlafzimmer', nach: 'flur', art: 'unten', label: 'zurück in den Flur' },
     { von: 'bad',          nach: 'flur', art: 'unten', label: 'zurück in den Flur' },
-    { von: 'acizimmer',    nach: 'flur', art: 'unten', label: 'zurück in den Flur' },
+    { von: 'kammer',       nach: 'flur', art: 'unten', label: 'zurück in den Flur' },
     { von: 'dachboden', nach: 'flur',      art: 'unten', label: 'hinunter in den Flur' },
     // Bild in der Hand wenden
     { von: 'bild_vorn',   nach: 'bild_hinten', art: 'wenden', label: '↻ Umdrehen' },
@@ -487,17 +448,6 @@
     { von: 'ente_vorn', nach: 'ente_nah',  art: 'wenden', label: '↻ Umdrehen' },
     { von: 'ente_nah',  nach: 'ente_vorn', art: 'wenden', label: '↻ Umdrehen' }
   ];
-
-  // Ein kaputtes Bild fürs Fenster, gezeichnet statt geladen
-  const PC_KAPUTT = 'data:image/svg+xml;utf8,' + encodeURIComponent(
-    '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 260">'
-    + '<rect width="400" height="260" fill="#3a4150"/>'
-    + '<path d="M0 0 H206 L178 60 L216 104 L170 160 L206 260 H0 Z" fill="#434b5c"/>'
-    + '<path d="M206 0 L178 60 L216 104 L170 160 L206 260" fill="none" stroke="#242a35" stroke-width="10" stroke-linejoin="round"/>'
-    + '<path d="M40 210 L96 150 L132 188 L104 210 Z" fill="#59616f"/>'
-    + '<circle cx="300" cy="70" r="26" fill="#59616f"/>'
-    + '<path d="M240 210 L300 142 L352 196 L330 210 Z" fill="#59616f"/>'
-    + '</svg>');
 
   const TEILE = [
     // --- Garage (Koordinaten im Bild 1774 x 887) ---
@@ -558,20 +508,19 @@
       patch: 'bilder/th-tuer-dunkel.webp', patchX: 954, patchY: 14, patchW: 242, patchH: 407,
       patchHell: 'bilder/th-tuer-hell.webp', patchHellX: 954, patchHellY: 14, patchHellW: 242, patchHellH: 407 },
     { id: 'th_kiste', ansicht: 'treppenhaus', x: 1390, y: 440, w: 240, h: 175, typ: 'ausschnitt', zustand: 'th_kiste_offen', label: 'Holzkiste neben der Treppe',
-      nah: 'th_kiste_nah', nahWenn: 'th_licht',
-      nahFehlt: 'In der Kiste ist es finster. Ohne Licht siehst du da gar nichts.',
       patch: 'bilder/th-kiste-dunkel.webp', patchX: 1384, patchY: 434, patchW: 252, patchH: 187,
       patchHell: 'bilder/th-kiste-hell.webp', patchHellX: 1384, patchHellY: 434, patchHellW: 252, patchHellH: 187 },
-    // --- Holzkiste von nahem ---
-    { id: 'tk_tuecher', ansicht: 'th_kiste_nah', x: 550, y: 315, w: 840, h: 465, typ: 'ausschnitt', zustand: 'th_tuecher_weg',
-      klang: 'stoff', label: 'Tücher' },
-    { id: 'tk_kippen', ansicht: 'th_kiste_nah', x: 935, y: 625, w: 180, h: 115, typ: 'nehmen', zustand: 'kippen_weg',
-      gibt: 'kippen', sichtbarWenn: 'th_tuecher_weg', bildAus: 'bilder/th-kiste-ohne-kippen.webp', label: 'Zigarettenschachtel' },
+    // VORLÄUFIGER ORT der Zigarettenschachtel. Sobald klar ist, wo sie wirklich
+    // liegt, nur ansicht/x/y/w/h ändern. Ohne bildAus zeichnet das Spiel eine Marke.
+    { id: 'th_kippen', ansicht: 'treppenhaus', x: 1420, y: 520, w: 140, h: 65, typ: 'nehmen', zustand: 'kippen_weg',
+      gibt: 'kippen', sichtbarWenn: 'th_kiste_offen', label: 'Zigarettenschachtel' },
     // --- Wohnzimmer (Koordinaten im Bild 1774 x 887) ---
     // Ist der Hammer genommen, wird das ganze Raumbild getauscht statt nur ein
     // Stück davon. Das Bild ohne Hammer ist neu gerendert und weicht überall
     // leicht ab, ein Ausschnitt daraus wäre als Rechteck zu sehen. Dieses Teil
     // steht als erstes im Raum, damit offene Schränke und Flicken darüber liegen.
+    { id: 'w_ohne_hammer', ansicht: 'wohnzimmer', x: 0, y: 0, w: 1774, h: 887, typ: 'overlay', zustand: 'hammer_weg',
+      bildAus: 'bilder/wohnzimmer-ohne-hammer.webp', label: 'Wohnzimmer' },
     { id: 'w_regal',    ansicht: 'wohnzimmer', x: 862,  y: 336, w: 236, h: 146, typ: 'ausschnitt', zustand: 'wz_regal_offen', label: 'Schrank unter dem Bücherregal',
       patch: 'bilder/wz-regal-auf.webp', patchX: 856, patchY: 330, patchW: 248, patchH: 158 },
     // Nur die linke Tür geht auf. Das mittlere Fach und der Couchtisch sind in
@@ -598,7 +547,7 @@
       patch: 'bilder/wz-bild-ab.webp', patchX: 405, patchY: 0, patchW: 292, patchH: 195, label: 'Bild an der Wand' },
     // Der leere Nagel: nimmt das Bild wieder entgegen. Nur da, solange es fehlt.
     { id: 'w_nagel', ansicht: 'wohnzimmer', x: 415, y: 0, w: 275, h: 188, typ: 'ziel', sichtbarWenn: 'bild_ab',
-      nimmt: 'gemaelde', loescht: 'bild_ab', antwort: 'Hängt wieder gerade.', label: 'Nagel in der Wand' },
+      nimmt: 'gemaelde', loescht: 'bild_ab', verbraucht: true, antwort: 'Hängt wieder gerade.', label: 'Nagel in der Wand' },
     // Erst wenn Anfisa weg ist, kommt man an den Sessel heran
     { id: 'w_sessel', ansicht: 'wohnzimmer', x: 250, y: 430, w: 520, h: 250, typ: 'naehe', nah: 'sessel_nah',
       sichtbarWenn: 'anfisa_weg', label: 'Sessel' },
@@ -616,43 +565,37 @@
       // 1 = aufgeschreckt (wz-frau-wach.webp), 0 = schlafend (Grundbild).
       setztPhase: { zustand: 'frau_phase', an: 1, aus: 0, nichtWenn: 'anfisa_weg' },
       sprecher: 'Anfisa', sagtNichtWenn: 'anfisa_weg',
-      sagtAn:  '„Hey! Das war mein Film. Mach wieder an."',
-      sagtAus: '„Nu also. Geht doch."' },
+      sagtAn:  '„Hey!" Sie richtet sich halb auf. „Das war mein Film. Mach wieder an."',
+      sagtAus: '„Nu also." Sie sinkt zurück. „Geht doch."' },
     // --- Das Bild in der Hand, Rückseite ---
     { id: 'bi_fach', ansicht: 'bild_hinten', x: 510, y: 600, w: 570, h: 210, typ: 'ausschnitt', zustand: 'fach_offen',
       bildAus: 'bilder/bild-hinten-offen.webp', label: 'Fach in der Rückwand' },
     { id: 'bi_schluessel', ansicht: 'bild_hinten', x: 535, y: 622, w: 268, h: 136, typ: 'nehmen', zustand: 'schluessel_weg',
       gibt: 'schluessel', bildAus: 'bilder/bild-hinten-leer.webp', sichtbarWenn: 'fach_offen', label: 'Schlüssel im Fach' },
     { id: 'w_frau', ansicht: 'wohnzimmer', x: 240, y: 95, w: 430, h: 330, typ: 'phasen', zustand: 'frau_phase',
-      treffer: { x: 240, y: 192, w: 460, h: 250 },
+      treffer: { x: 240, y: 192, w: 430, h: 233 },
       nichtWenn: 'anfisa_weg', label: 'Die Frau im Sessel', sprecher: 'Anfisa',
       // Solange der Fernseher aus ist, sitzt sie auf. Weiterklicken darf sie
       // dann nicht in die schlafende Phase 0 zurückfallen lassen.
       mindestPhase: { wenn: ['tv_aus', 'anfisa_kippen', 'anfisa_feuer'], phase: 1 },
-      // Hat sie erst eins von beidem, sagt sie beim Antippen, was noch fehlt
-      sagtStatt: [
-        { wenn: ['anfisa_kippen'], nicht: ['anfisa_feuer'], text: '„Schachtel liegt hier. Feuer liegt nicht hier."' },
-        { wenn: ['anfisa_feuer'], nicht: ['anfisa_kippen'], text: '„Feuerzeug habe ich. Und was zünde ich damit an? Vorhang?"' }
-      ],
       // Sie will beides: Schachtel und Feuerzeug. Und solange das Bild nicht
       // an der Wand hängt, nimmt sie gar nichts an.
-      nimmt: ['kippen', 'feuerzeug'], setzt: 'anfisa_weg',
-      // Sie nimmt jedes Stück für sich an und richtet sich dabei auf. Das
-      // zeigt das Bild, es steht also nicht im Text. Welches Stück zuerst
-      // kommt, ist egal — der Satz zum zweiten ist immer der letzte.
+      nimmt: ['kippen', 'feuerzeug'], setzt: 'anfisa_weg', verbraucht: true,
+      // Sie nimmt jedes Stück für sich an und richtet sich dabei auf. Welches
+      // zuerst kommt, ist egal — der Satz zum zweiten ist immer der letzte.
       gabePhase: 1,
       einzeln: {
         kippen: { setzt: 'anfisa_kippen',
-          antwort: '„Papirossy. Und womit soll ich die anzünden? Mit Blick?"' },
+          antwort: '„Papirossy." Sie richtet sich auf und dreht die Schachtel zweimal in der Hand. „Und womit soll ich die anzünden? Mit Blick?"' },
         feuerzeug: { setzt: 'anfisa_feuer',
-          antwort: '„Feuer. Schön. Und was soll ich damit anzünden, Luft?"' }
+          antwort: '„Feuer." Sie setzt sich gerade hin und lässt es einmal klicken. „Schön. Jetzt fehlt nur noch, was man damit anzündet."' }
       },
-      antwort: '„Jetzt stimmt es. Dann setze ich Wasser auf. Ohne Tee schmeckt das nicht."',
+      antwort: '„Jetzt stimmt es." Sie steckt beides ein und stemmt sich hoch, langsam wie ein Schrank. „Dann setze ich Wasser auf. Ohne Tee schmeckt das nicht."',
       strafen: [
         { wenn: 'bild_ab', setzt: 'anfisa_sauer',
-          antwort: '„Pha! Du klaust Einrichtung? Mit dir rede ich nicht."' },
+          antwort: '„Stoj." Sie deutet mit dem Kinn zur Wand. „Da ist Loch. Mein Bild hing da. Solange das so aussieht, rühre ich mich nicht."' },
         { wenn: 'tv_aus',
-          antwort: '„Erst Fernseher wieder an. Bei Totenstille bleibe ich sitzen."' }
+          antwort: '„Erst Fernseher wieder an." Sie verschränkt die Arme. „Bei Totenstille bleibe ich sitzen."' }
       ],
       phasen: [
         { bild: '' },
@@ -679,14 +622,13 @@
     { id: 'se_kissen', ansicht: 'sessel_nah', x: 420, y: 200, w: 940, h: 480, klang: 'stoff', typ: 'ausschnitt', zustand: 'kissen_weg', label: 'Sitzkissen',
       patch: 'bilder/sessel-kissen.webp', patchX: 372, patchY: 132, patchW: 1036, patchH: 755 },
     // Abgerissener Zettel unter dem Kissen. Die erste Ziffer fehlt.
-    // Der Zettel wandert in den Rucksack. nichtWenn blendet die Zeichnung aus,
-    // sobald er genommen ist, sonst läge er weiter auf dem Sessel.
-    { id: 'se_zettel', ansicht: 'sessel_nah', x: 980, y: 300, w: 230, h: 150, typ: 'nehmen', zustand: 'zettel_weg',
-      gibt: 'zettel', sichtbarWenn: 'kissen_weg', nichtWenn: 'zettel_weg', label: 'Abgerissener Zettel',
+    { id: 'se_zettel', ansicht: 'sessel_nah', x: 980, y: 300, w: 230, h: 150, typ: 'info', zustand: 'zettel_gelesen',
+      sichtbarWenn: 'kissen_weg', label: 'Abgerissener Zettel',
+      titel: 'Ein Fetzen Papier', text: 'Die linke Hälfte fehlt, da ist das Papier abgerissen. Zu lesen ist noch: … 3 9 2',
       zeichnung: `<g transform="translate(1000,315) rotate(-7)">
         <path d="M0 6 L14 0 L190 4 L205 18 L198 112 L182 126 L22 120 L4 104 Z" fill="#cdc0a2" stroke="#7e7459" stroke-width="1.5"/>
         <path d="M0 6 L10 22 L0 38 L12 54 L2 70 L12 86 L4 104" fill="none" stroke="#8a7f66" stroke-width="2"/>
-        <text x="86" y="86" font-family="Georgia, serif" font-size="44" fill="#3a3326" letter-spacing="7">46</text>
+        <text x="62" y="86" font-family="Georgia, serif" font-size="44" fill="#3a3326" letter-spacing="7">392</text>
         <path d="M40 28 L172 30 M40 42 L148 44" stroke="#9a9078" stroke-width="2" opacity="0.7"/>
       </g>` },
 
@@ -704,7 +646,7 @@
     // Der leere Sicherungssockel. Erst mit der Sicherung aus der Garage gibt es Licht.
     { id: 'k_licht', ansicht: 'kueche', x: 330, y: 238, w: 78, h: 155, typ: 'ziel', zustand: 'kueche_licht',
       sichtbarWenn: 'sicherung_offen', label: 'Sicherungssockel',
-      nimmt: 'sicherung', setzt: 'kueche_licht',
+      nimmt: 'sicherung', setzt: 'kueche_licht', verbraucht: true,
       antwort: 'Die Sicherung sitzt. Irgendwo in der Küche klackt es, dann geht das Licht an.' },
     // Zwei Gruppen statt sieben Einzeltüren: Die Türen schwingen über die
     // Feldgrenzen hinweg. Bei einer feineren Teilung steht an der Trennlinie
@@ -713,22 +655,17 @@
       patch: 'bilder/kue-ober-links-dunkel.webp', patchX: 418, patchY: 43, patchW: 604, patchH: 266,
       patchHell: 'bilder/kue-ober-links-hell.webp', patchHellX: 418, patchHellY: 43, patchHellW: 604, patchHellH: 266 },
     { id: 'k_ober_rechts', ansicht: 'kueche', x: 1015, y: 50, w: 357, h: 252, typ: 'ausschnitt', zustand: 'k_ober_rechts_offen', label: 'Oberschränke rechts',
-      nah: 'kue_ober_nah', nahWenn: 'kueche_licht',
-      nahFehlt: 'Im Schrank ist es stockdunkel. Solange kein Licht brennt, siehst du gar nichts.',
       patch: 'bilder/kue-ober-rechts-dunkel.webp', patchX: 1008, patchY: 43, patchW: 371, patchH: 266,
       patchHell: 'bilder/kue-ober-rechts-hell.webp', patchHellX: 1008, patchHellY: 43, patchHellW: 371, patchHellH: 266 },
     // Zweites Antippen geht in die Nahaufnahme — aber nur bei Licht, sonst
     // stünde man vor einem schwarzen Loch.
-    // Das Futter steht als Glas im Oberschrank. Hinein geht es nur bei Licht.
-    // Nach dem Nehmen wird das ganze Bild getauscht statt nur ein Ausschnitt:
-    // die beiden Aufnahmen sind unterschiedlich hell, ein Rechteck wäre sichtbar.
-    { id: 'k_ober_leer', ansicht: 'kue_ober_nah', x: 0, y: 0, w: 1774, h: 887, typ: 'overlay', zustand: 'futter_weg',
-      bildAus: 'bilder/kue-ober-ohne-glas.webp', label: 'Oberschrank' },
-    { id: 'k_futter', ansicht: 'kue_ober_nah', x: 1022, y: 680, w: 180, h: 190, typ: 'nehmen', zustand: 'futter_weg',
-      gibt: 'futter', ohneMarke: true, label: 'Glas mit Fischfutter' },
+    // Die Futterdose steht unten zwischen den Gewürzgläsern. Ohne Bild von ihr
+    // zeichnet das Spiel eine goldene Marke.
+    { id: 'k_futter', ansicht: 'kueche', x: 1030, y: 250, w: 120, h: 50, typ: 'nehmen', zustand: 'futter_weg',
+      gibt: 'futter', sichtbarWenn: ['k_ober_rechts_offen', 'kueche_licht'], label: 'Dose zwischen den Gewürzen' },
     { id: 'k_unten_links', ansicht: 'kueche', x: 370, y: 492, w: 378, h: 210, typ: 'ausschnitt', zustand: 'k_unten_links_offen', label: 'Unterschrank links',
       nah: 'kue_unten_nah', nahWenn: 'kueche_licht',
-      nahFehlt: 'Da drin ist es stockdunkel. Solange kein Licht brennt, siehst du gar nichts.',
+      nahFehlt: 'Da drin ist es schwarz. Näher ranzugehen bringt nichts, solange kein Licht brennt.',
       patch: 'bilder/kue-unten-links-dunkel.webp', patchX: 363, patchY: 485, patchW: 392, patchH: 224,
       patchHell: 'bilder/kue-unten-links-hell.webp', patchHellX: 363, patchHellY: 485, patchHellW: 392, patchHellH: 224 },
     // Die Taschenlampe liegt jetzt in der Nahaufnahme, nicht mehr im Raumbild.
@@ -766,211 +703,40 @@
         <rect x="116" y="756" width="36" height="36" rx="6" fill="#6b7d55"/>
         <rect x="168" y="756" width="36" height="36" rx="6" fill="#8a5f3f"/>
         <text x="1700" y="782" font-size="22" fill="#cfd8e6" text-anchor="end" font-family="sans-serif">23:14</text></g>` },
-    // Der Papierkorb ist ein Ziel wie ein Ordner. Was schon drinliegt, steht in schon.
-    { id: 'pc_korb', ansicht: 'pc_nah', x: 1470, y: 230, w: 92, h: 110, typ: 'ordner', ordner: 'korb',
-      fertig: 'pc_sortiert', zeichnung: pcSymbol(1470, 230, 'korb', 'Papierkorb'), label: 'Papierkorb',
-      schon: [
-        { label: 'hausaufgaben_final.odt', text: 'Gelöscht. Lässt sich nicht öffnen.' },
-        { label: 'hausaufgaben_final2.odt', text: 'Gelöscht. Lässt sich nicht öffnen.' },
-        { label: 'hausaufgaben_wirklich_final.odt', text: 'Gelöscht. Lässt sich nicht öffnen.' }
-      ] },
-
-
-    // Siebenundzwanzig lose Dateien, kreuz und quer und leicht verdreht. Was
-    // oben liegt, fängt den Klick. Ziehen geht auch, dann braucht man die
-    // Datei gar nicht erst zu öffnen.
-
-    { id: 'pc_d01', ansicht: 'pc_nah', x: 221, y: 123, w: 92, h: 110, typ: 'datei', ordner: 'fische', zustand: 'pc_d01_weg',
-      nichtWenn: 'pc_d01_weg', zeichnung: pcSymbol(221, 123, 'datei', 'fische.doc', null, -11),
-      label: 'fische.doc', titel: 'fische.doc',
-      text: 'Eine lange Liste mit Fischarten. Daneben Notizen zu Verhalten und Fortpflanzung, und bei manchen Arten dasselbe nochmal, nur ausführlicher.' },
-    { id: 'pc_d02', ansicht: 'pc_nah', x: 368, y: 402, w: 92, h: 110, typ: 'datei', ordner: 'korb', zustand: 'pc_d02_weg',
-      nichtWenn: 'pc_d02_weg', zeichnung: pcSymbol(368, 402, 'datei', 'fische2.doc', null, 11),
-      label: 'fische2.doc', titel: 'fische2.doc',
-      text: 'Lässt sich nicht öffnen.' },
-    { id: 'pc_d03', ansicht: 'pc_nah', x: 757, y: 200, w: 92, h: 110, typ: 'datei', ordner: 'fische', zustand: 'pc_d03_weg',
-      nichtWenn: 'pc_d03_weg', zeichnung: pcSymbol(757, 200, 'datei', 'warum_fische_ihr_geschlecht_wechseln.doc', null, 11),
-      label: 'warum_fische_ihr_geschlecht_wechseln.doc', titel: 'warum_fische_ihr_geschlecht_wechseln.doc',
-      text: 'Bei manchen Fischarten kann sich das Geschlecht im Laufe des Lebens verändern.\n'
-          + 'Clownfische leben in einer Rangordnung. Das grösste Tier ist das Weibchen. Stirbt es, wird das grösste Männchen zum Weibchen.\n'
-          + 'Wenn Nemo echt wäre, würde sein Vater weiblich werden.\n'
-          + 'Bei vielen Lippfischen läuft es andersrum. Das grösste Weibchen kann männlich werden, wenn das dominante Männchen fehlt.\n'
-          + 'Sie wechseln also nicht weil sie sich plötzlich anders fühlen sondern weil es sich fürs Ficken mehr lohnt.\n'
-          + 'Bei manchen Grundeln ist der Wechsel sogar in beide Richtungen möglich.\n'
-          + 'Das ist besser.\n'
-          + 'Es gibt über 500 bekannte Fischarten, bei denen Geschlechtswechsel beobachtet wurde.\n'
-          + 'Warum können das so viele Fische und wir nicht.' },
-    { id: 'pc_d04', ansicht: 'pc_nah', x: 961, y: 358, w: 92, h: 110, typ: 'datei', ordner: 'fische', zustand: 'pc_d04_weg',
-      nichtWenn: 'pc_d04_weg', zeichnung: pcSymbol(961, 358, 'datei', 'tintenfische.doc', null, 11),
-      label: 'tintenfische.doc', titel: 'tintenfische.doc',
-      text: 'Tintenfische haben drei Herzen.\n\n'
-          + '- Beim Schwimmen hört eines davon fast auf zu schlagen.\n'
-          + '- Die Saugnäpfe können schmecken.\n'
-          + '- Ein grosser Teil ihrer Nervenzellen sitzt in den Armen.\n'
-          + '- Ein abgetrennter Arm kann noch eine Weile reagieren.\n'
-          + '- Kraken können Menschen unterscheiden.\n'
-          + '- Manche werfen Sachen nach Menschen, die sie nicht mögen.\n'
-          + '- Krakenmännchen haben einen speziellen Paarungsarm.\n'
-          + '- Bei manchen Arten kann der Paarungsarm abbrechen und im Weibchen bleiben.\n'
-          + '- Früher dachte man deshalb, der Arm wäre ein Parasit.\n'
-          + '- Manche Männchen bleiben beim Sex möglichst weit vom Weibchen weg, weil es sie sonst fressen kann.\n'
-          + '- Kleinere Männchen mancher Arten sehen absichtlich wie Weibchen aus, damit grössere Männchen sie in Ruhe lassen.\n'
-          + '- Weibchen können Sperma speichern.\n'
-          + '- Krakenweibchen hören beim Bewachen ihrer Eier oft auf zu fressen.\n'
-          + '- Nach der Fortpflanzung sterben viele Kraken.\n'
-          + '- Wenn der Schnabel durch ein Loch passt, passt meistens der ganze Krake durch.\n'
-          + '- Kraken träumen wahrscheinlich und wechseln dabei manchmal die Farbe.' },
-    { id: 'pc_d05', ansicht: 'pc_nah', x: 1063, y: 140, w: 92, h: 110, typ: 'datei', ordner: 'kram', zustand: 'pc_d05_weg',
-      nichtWenn: 'pc_d05_weg', zeichnung: pcSymbol(1063, 140, 'datei', 'passwoerter_alt.txt', null, -9),
-      label: 'passwoerter_alt.txt', titel: 'passwoerter_alt.txt',
-      text: 'schulkonto:\naci2004\nschulkonto neu:\naci2004!\n\nmail:\nrocheN8381!\n\nsteam:\ntintenfisch_1\n\nbibliothek:\naci2004bibliothek\n\nprivat:\nwand, licht aus' },
-    { id: 'pc_d06', ansicht: 'pc_nah', x: 1392, y: 364, w: 92, h: 110, typ: 'datei', ordner: 'korb', zustand: 'pc_d06_weg',
-      nichtWenn: 'pc_d06_weg', zeichnung: pcSymbol(1392, 364, 'kaputt', 'vaas_idiot.png', null, -11),
-      bildgross: PC_KAPUTT,
-      label: 'vaas_idiot.png', titel: 'vaas_idiot.png' },
-    { id: 'pc_d07', ansicht: 'pc_nah', x: 507, y: 474, w: 92, h: 110, typ: 'datei', ordner: 'korb', zustand: 'pc_d07_weg',
-      nichtWenn: 'pc_d07_weg', zeichnung: pcSymbol(507, 474, 'datei', 'neu_neu_richtig.doc', null, -11),
-      label: 'neu_neu_richtig.doc', titel: 'neu_neu_richtig.doc',
-      text: 'Lässt sich nicht öffnen.' },
-    { id: 'pc_d08', ansicht: 'pc_nah', x: 1075, y: 492, w: 92, h: 110, typ: 'datei', ordner: 'korb', zustand: 'pc_d08_weg',
-      nichtWenn: 'pc_d08_weg', zeichnung: pcSymbol(1075, 492, 'datei', 'neu_richtig2.doc', null, -3),
-      label: 'neu_richtig2.doc', titel: 'neu_richtig2.doc',
-      text: 'Lässt sich nicht öffnen.' },
-    { id: 'pc_d09', ansicht: 'pc_nah', x: 185, y: 101, w: 92, h: 110, typ: 'datei', ordner: 'kram', zustand: 'pc_d09_weg',
-      nichtWenn: 'pc_d09_weg', zeichnung: pcSymbol(185, 101, 'datei', 'sexfragen.txt', null, -5),
-      label: 'sexfragen.txt', titel: 'sexfragen.txt',
-      text: 'Warum mögen Menschen Küssen so sehr?\n'
-          + 'Warum ist Nacktheit beim Sex wichtig wenn man nicht den ganzen Körper braucht?\n'
-          + 'Wie merkt man ob jemand wirklich kommen kann oder nur so tut?\n'
-          + 'Warum mögen manche Menschen Schmerzen dabei?\n'
-          + 'Kann man beim Sex einschlafen?\n'
-          + 'Warum ist Sex im Auto interessant obwohl ein Bett bequemer ist?\n'
-          + 'Wie lange ist normal?\n'
-          + 'Warum ist „zu früh" schlecht wenn beide fertig sind?\n'
-          + 'Kann man jemanden attraktiv finden und trotzdem keinen Sex mit ihm wollen?\n'
-          + 'Warum reden Menschen nach Sex anders miteinander?' },
-    { id: 'pc_d10', ansicht: 'pc_nah', x: 492, y: 321, w: 92, h: 110, typ: 'datei', ordner: 'kram', zustand: 'pc_d10_weg',
-      nichtWenn: 'pc_d10_weg', zeichnung: pcSymbol(492, 321, 'datei', 'sachen_die_man_nicht_fragen_soll.doc', null, 5),
-      label: 'sachen_die_man_nicht_fragen_soll.doc', titel: 'sachen_die_man_nicht_fragen_soll.doc',
-      text: 'Warum bist du noch Jungfrau?\n'
-          + 'Warum habt ihr keinen Sex mehr?\n'
-          + 'Wie oft habt ihr Sex?\n'
-          + 'Warum darf man fragen ob jemand einen Freund hat aber nicht wann er zuletzt Sex hatte?\n'
-          + 'Darf man fragen wie gross ein Penis ist wenn man nicht fragt ob man ihn sehen darf?\n'
-          + 'Warum ist „bist du schwanger?" unhöflich wenn jemand schwanger aussieht?\n'
-          + 'Nicht fragen ob jemand zugenommen hat.\n'
-          + 'Nicht fragen warum jemand keine Kinder will.\n'
-          + 'Mama sagt man soll generell weniger fragen.' },
-    { id: 'pc_d11', ansicht: 'pc_nah', x: 646, y: 82, w: 92, h: 110, typ: 'datei', ordner: 'kram', zustand: 'pc_d11_weg',
-      nichtWenn: 'pc_d11_weg', zeichnung: pcSymbol(646, 82, 'foto', 'pudel.jpg', 'bilder/pc-pudel.webp', -5),
-      bildgross: 'bilder/pc-pudel.webp',
-      label: 'pudel.jpg', titel: 'pudel.jpg' },
-    { id: 'pc_d12', ansicht: 'pc_nah', x: 862, y: 313, w: 92, h: 110, typ: 'datei', ordner: 'korb', zustand: 'pc_d12_weg',
-      nichtWenn: 'pc_d12_weg', zeichnung: pcSymbol(862, 313, 'musik', 'musik.mp3', null, -3),
-      label: 'musik.mp3', titel: 'musik.mp3',
-      text: 'Lässt sich nicht öffnen. Falsches Programm.' },
-    { id: 'pc_d13', ansicht: 'pc_nah', x: 1114, y: 115, w: 92, h: 110, typ: 'datei', ordner: 'korb', zustand: 'pc_d13_weg',
-      nichtWenn: 'pc_d13_weg', zeichnung: pcSymbol(1114, 115, 'datei', 'nicht_loeschen.zip', null, -3),
-      label: 'nicht_loeschen.zip', titel: 'nicht_loeschen.zip',
-      text: 'Lässt sich nicht öffnen. Beschädigtes Archiv.' },
-    { id: 'pc_d14', ansicht: 'pc_nah', x: 1238, y: 438, w: 92, h: 110, typ: 'datei', ordner: 'kram', zustand: 'pc_d14_weg',
-      nichtWenn: 'pc_d14_weg', zeichnung: pcSymbol(1238, 438, 'foto', 'vaas_und_ich.jpg', 'bilder/pc-vaas-aci.webp', 5),
-      bildgross: 'bilder/pc-vaas-aci.webp',
-      label: 'vaas_und_ich.jpg', titel: 'vaas_und_ich.jpg' },
-    { id: 'pc_f01', ansicht: 'pc_nah', x: 580, y: 439, w: 92, h: 110, typ: 'datei', ordner: 'fische', zustand: 'pc_f01_weg',
-      nichtWenn: 'pc_f01_weg', zeichnung: pcSymbol(580, 439, 'foto', 'falterfische.jpg', 'bilder/pc-falterfische.webp', -11),
-      bildgross: 'bilder/pc-falterfische.webp',
-      label: 'falterfische.jpg', titel: 'falterfische.jpg' },
-    { id: 'pc_f02', ansicht: 'pc_nah', x: 998, y: 463, w: 92, h: 110, typ: 'datei', ordner: 'fische', zustand: 'pc_f02_weg',
-      nichtWenn: 'pc_f02_weg', zeichnung: pcSymbol(998, 463, 'foto', 'clownfisch.jpg', 'bilder/pc-clownfisch.webp', 3),
-      bildgross: 'bilder/pc-clownfisch.webp',
-      label: 'clownfisch.jpg', titel: 'clownfisch.jpg' },
-    { id: 'pc_f03', ansicht: 'pc_nah', x: 141, y: 239, w: 92, h: 110, typ: 'datei', ordner: 'fische', zustand: 'pc_f03_weg',
-      nichtWenn: 'pc_f03_weg', zeichnung: pcSymbol(141, 239, 'foto', 'kampffisch.jpg', 'bilder/pc-kampffisch.webp', -3),
-      bildgross: 'bilder/pc-kampffisch.webp',
-      label: 'kampffisch.jpg', titel: 'kampffisch.jpg' },
-    { id: 'pc_f04', ansicht: 'pc_nah', x: 327, y: 264, w: 92, h: 110, typ: 'datei', ordner: 'fische', zustand: 'pc_f04_weg',
-      nichtWenn: 'pc_f04_weg', zeichnung: pcSymbol(327, 264, 'foto', 'feenbarsch.jpg', 'bilder/pc-feenbarsch.webp', 9),
-      bildgross: 'bilder/pc-feenbarsch.webp',
-      label: 'feenbarsch.jpg', titel: 'feenbarsch.jpg' },
-    { id: 'pc_f05', ansicht: 'pc_nah', x: 571, y: 164, w: 92, h: 110, typ: 'datei', ordner: 'fische', zustand: 'pc_f05_weg',
-      nichtWenn: 'pc_f05_weg', zeichnung: pcSymbol(571, 164, 'foto', 'kofferfisch.jpg', 'bilder/pc-kofferfisch.webp', -9),
-      bildgross: 'bilder/pc-kofferfisch.webp',
-      label: 'kofferfisch.jpg', titel: 'kofferfisch.jpg' },
-    { id: 'pc_f06', ansicht: 'pc_nah', x: 996, y: 416, w: 92, h: 110, typ: 'datei', ordner: 'fische', zustand: 'pc_f06_weg',
-      nichtWenn: 'pc_f06_weg', zeichnung: pcSymbol(996, 416, 'foto', 'buntbarsche.jpg', 'bilder/pc-buntbarsche.webp', 5),
-      bildgross: 'bilder/pc-buntbarsche.webp',
-      label: 'buntbarsche.jpg', titel: 'buntbarsche.jpg' },
-    { id: 'pc_f07', ansicht: 'pc_nah', x: 1194, y: 171, w: 92, h: 110, typ: 'datei', ordner: 'fische', zustand: 'pc_f07_weg',
-      nichtWenn: 'pc_f07_weg', zeichnung: pcSymbol(1194, 171, 'foto', 'riff.jpg', 'bilder/pc-riff.webp', -9),
-      bildgross: 'bilder/pc-riff.webp',
-      label: 'riff.jpg', titel: 'riff.jpg' },
-    { id: 'pc_f08', ansicht: 'pc_nah', x: 1288, y: 449, w: 92, h: 110, typ: 'datei', ordner: 'fische', zustand: 'pc_f08_weg',
-      nichtWenn: 'pc_f08_weg', zeichnung: pcSymbol(1288, 449, 'foto', 'manta.jpg', 'bilder/pc-manta.webp', -9),
-      bildgross: 'bilder/pc-manta.webp',
-      label: 'manta.jpg', titel: 'manta.jpg' },
-    { id: 'pc_f09', ansicht: 'pc_nah', x: 663, y: 507, w: 92, h: 110, typ: 'datei', ordner: 'fische', zustand: 'pc_f09_weg',
-      nichtWenn: 'pc_f09_weg', zeichnung: pcSymbol(663, 507, 'foto', 'blauring.jpg', 'bilder/pc-blauring.webp', 11),
-      bildgross: 'bilder/pc-blauring.webp',
-      label: 'blauring.jpg', titel: 'blauring.jpg' },
-    { id: 'pc_f10', ansicht: 'pc_nah', x: 912, y: 411, w: 92, h: 110, typ: 'datei', ordner: 'fische', zustand: 'pc_f10_weg',
-      nichtWenn: 'pc_f10_weg', zeichnung: pcSymbol(912, 411, 'foto', 'qualle.jpg', 'bilder/pc-qualle.webp', 3),
-      bildgross: 'bilder/pc-qualle.webp',
-      label: 'qualle.jpg', titel: 'qualle.jpg' },
-    { id: 'pc_f11', ansicht: 'pc_nah', x: 97, y: 160, w: 92, h: 110, typ: 'datei', ordner: 'fische', zustand: 'pc_f11_weg',
-      nichtWenn: 'pc_f11_weg', zeichnung: pcSymbol(97, 160, 'foto', 'seegurke.jpg', 'bilder/pc-seegurke.webp', 3),
-      bildgross: 'bilder/pc-seegurke.webp',
-      label: 'seegurke.jpg', titel: 'seegurke.jpg' },
-    { id: 'pc_f12', ansicht: 'pc_nah', x: 411, y: 314, w: 92, h: 110, typ: 'datei', ordner: 'fische', zustand: 'pc_f12_weg',
-      nichtWenn: 'pc_f12_weg', zeichnung: pcSymbol(411, 314, 'foto', 'anglerfisch.jpg', 'bilder/pc-anglerfisch.webp', -11),
-      bildgross: 'bilder/pc-anglerfisch.webp',
-      label: 'anglerfisch.jpg', titel: 'anglerfisch.jpg' },
-    { id: 'pc_f13', ansicht: 'pc_nah', x: 668, y: 157, w: 92, h: 110, typ: 'datei', ordner: 'fische', zustand: 'pc_f13_weg',
-      nichtWenn: 'pc_f13_weg', zeichnung: pcSymbol(668, 157, 'foto', 'marlin.jpg', 'bilder/pc-marlin.webp', 7),
-      bildgross: 'bilder/pc-marlin.webp',
-      label: 'marlin.jpg', titel: 'marlin.jpg' },
-
-    // Zwei Zielordner. Was kein Fisch ist, ist Kram.
-    { id: 'pc_o_fische', ansicht: 'pc_nah', x: 110, y: 580, w: 92, h: 110, typ: 'ordner', ordner: 'fische',
-      fertig: 'pc_sortiert', zeichnung: pcSymbol(110, 580, 'ordner', 'fische'), label: 'fische' },
-    { id: 'pc_o_kram', ansicht: 'pc_nah', x: 330, y: 580, w: 92, h: 110, typ: 'ordner', ordner: 'kram',
-      fertig: 'pc_sortiert', zeichnung: pcSymbol(330, 580, 'ordner', 'kram'), label: 'kram' },
-
-    // Das geöffnete Bild aus dem Ordner. Reines Beiwerk, fängt keine Klicks ab —
-    // das Ei darin wird wie jedes andere angetippt.
-    { id: 'pc_fenster', ansicht: 'pc_nah', x: 1000, y: 380, w: 620, h: 330, typ: 'overlay', sichtbarWenn: 'pc_privat_offen',
-      label: 'ostern.jpg', zeichnung: `<g style="pointer-events:none">
-        <rect x="1000" y="380" width="620" height="330" rx="8" fill="#1b2230" stroke="#8d9aad" stroke-width="3"/>
-        <rect x="1000" y="380" width="620" height="38" rx="8" fill="#2c3648"/>
-        <text x="1016" y="407" font-size="21" fill="#d6dde8" font-family="sans-serif">ostern.jpg</text>
-        <rect x="1016" y="432" width="588" height="262" fill="#6f8f5e"/>
-        <path d="M1016 630 L1140 560 L1250 620 L1360 540 L1480 626 L1604 566 L1604 694 L1016 694 Z" fill="#54734a"/>
-      </g>` },
-
-    // Lag unter dem Chaos und taucht erst auf, wenn der Schreibtisch leer ist
-    { id: 'pc_futter', ansicht: 'pc_nah', x: 820, y: 580, w: 92, h: 110, typ: 'info', sichtbarWenn: 'pc_sortiert',
-      zeichnung: pcSymbol(820, 580, 'datei', 'futterplan.txt'),
+    { id: 'pc_futter', ansicht: 'pc_nah', x: 90, y: 80, w: 92, h: 110, typ: 'info',
+      zeichnung: pcSymbol(90, 80, 'datei', 'futterplan.txt'),
       label: 'futterplan.txt', titel: 'futterplan.txt',
-      text: 'Futterplan fürs Becken\n\n'
-          + 'Erst die Skalare, dann die Guppys, dann die Neons. Immer in dieser Reihenfolge, '
-          + 'sonst drängeln die Neons alles weg und die Skalare kriegen nichts.\n\n'
-          + 'Jede Art einzeln abzählen. Pro Fisch eine Prise, nicht mehr. Der Rest fault nur im Kies.' },
-
-    // Der Ordner mit dem Passwort. Die Zahl leuchtet im Treppenhaus an der Wand.
-    { id: 'pc_privat', ansicht: 'pc_nah', x: 1470, y: 70, w: 92, h: 110, typ: 'code', zustand: 'pc_privat_offen',
-      zeichnung: pcSymbol(1470, 70, 'ordner', 'privat'), label: 'privat',
-      titel: 'Passwort', code: '7392',
-      frage: 'Der Ordner will ein Passwort. Vier Ziffern.',
-      fehlerText: 'Falsch. Der Ordner bleibt zu.',
-      antwort: 'Der Ordner geht auf. Ein einziges Bild liegt darin.' },
-
+      text: 'FUTTERPLAN FÜRS BECKEN — BITTE GENAU HALTEN\n\n'
+          + 'Grüne Flocken: für die Skalare\n'
+          + 'Rote Flocken: für die Guppys\n'
+          + 'Braune Flocken: für die Neons\n\n'
+          + 'Pro Fisch eine Prise. Keine mehr, sonst kippt das Wasser.\n'
+          + 'Beim Füttern die drei Zahlen in dieser Reihenfolge angeben: grün, rot, braun.' },
+    { id: 'pc_fische', ansicht: 'pc_nah', x: 260, y: 80, w: 92, h: 110, typ: 'info',
+      zeichnung: pcSymbol(260, 80, 'ordner', 'becken'),
+      label: 'becken', titel: 'Ordner „becken"',
+      text: '47 Bilder vom Aquarium. Auf jedem ist mindestens ein Fisch unscharf oder halb aus dem Bild geschwommen.' },
+    { id: 'pc_tagebuch', ansicht: 'pc_nah', x: 90, y: 250, w: 92, h: 110, typ: 'info',
+      zeichnung: pcSymbol(90, 250, 'datei', 'notizen.txt'),
+      label: 'notizen.txt', titel: 'notizen.txt',
+      text: 'Mama sagt, ich soll aufräumen. Ich sage, ich habe ein System.\n\nSie sagt, das System heisst Boden.' },
+    { id: 'pc_korb', ansicht: 'pc_nah', x: 90, y: 420, w: 92, h: 110, typ: 'info',
+      zeichnung: pcSymbol(90, 420, 'korb', 'Papierkorb'),
+      label: 'Papierkorb', titel: 'Papierkorb',
+      text: 'Drei gelöschte Dateien liegen noch drin.\n\nhausaufgaben_final.odt, hausaufgaben_final2.odt, hausaufgaben_wirklich_final.odt' },
+    { id: 'pc_privat', ansicht: 'pc_nah', x: 260, y: 250, w: 92, h: 110, typ: 'info',
+      zeichnung: pcSymbol(260, 250, 'ordner', 'privat'),
+      label: 'privat', titel: 'Ordner „privat"',
+      text: 'Der Ordner lässt sich nicht öffnen. Ein kleines Fenster fragt nach einem Passwort.\n\n(Hier kommt das Rätsel hin.)' },
+    // Ohne Gegenstand klopft man nur. Mit der Dose fragt der Dosierer drei
+    // Zahlen ab — so viele Prisen, wie Fische der jeweiligen Art im Becken sind.
     { id: 'aq_scheibe', ansicht: 'aquarium_nah', x: 310, y: 210, w: 1160, h: 460, typ: 'klopfen',
       klang: 'metall', label: 'Aquarium', gelernt: 'aq_gelernt',
-      klopf: 'Du klopfst ans Glas. Sie stieben auseinander und sammeln sich gleich wieder. Vom Klopfen passiert hier nichts. Die wollen Futter.',
-      nimmt: 'futter', zustand: 'aq_kies', scheucht: true,
+      klopf: 'Du klopfst ans Glas. Sie stieben auseinander und sammeln sich gleich wieder. Von Lärm rückt hier nichts raus — die wollen Futter.',
+      nimmt: 'futter', zustand: 'aq_kies', verbraucht: true, scheucht: true,
       titel: 'Füttern', code: '236',
-      frage: 'Erst Skalare, dann Guppys, dann Neons. Wie viele Prisen für jede Art?',
-      fehlerText: 'Zu viel oder zu wenig. Die Fische drehen ab.',
+      frage: 'Wie viele Prisen grün, wie viele rot, wie viele braun? Drei Ziffern in dieser Reihenfolge.',
+      fehlerText: 'Die Fische drehen ab. So stimmt die Mischung nicht.',
       antwort: 'Die Flocken sinken, die Fische schiessen hinterher und pflügen den Kies um. Zwischen den Steinen bleibt etwas liegen.' },
     // --- Flur ---
     // Zahlenschloss an der Dachbodenluke. Der Code steht als Leuchtschrift im
@@ -980,11 +746,11 @@
     { id: 'fl_schloss', ansicht: 'flur', x: 630, y: 0, w: 400, h: 215, typ: 'code',
       zustand: 'luke_offen', setztAuch: 'luke_geknackt', nichtWenn: 'luke_geknackt',
       label: 'Zahlenschloss an der Luke', titel: 'Zahlenschloss',
-      frage: 'Vier Ziffern auf kleinen Rädchen. Verrostet, aber es dreht sich noch.', code: '5846' },
+      frage: 'Vier Ziffern auf kleinen Rädchen. Verrostet, aber es dreht sich noch.', code: '7392' },
     // Die drei Türen im Flur. Wohin sie führen, ist noch offen — vorerst gehen
     // sie nur auf und zu und geben den Blick in die Zimmer frei.
     { id: 'fl_tuer_links', ansicht: 'flur', x: 258, y: 40, w: 200, h: 760, typ: 'ausschnitt',
-      zustand: 'fl_links_offen', klang: 'holz', label: 'Tür zu Acis Zimmer',
+      zustand: 'fl_links_offen', klang: 'holz', label: 'Tür zur Kammer',
       patch: 'bilder/flur-tuer-links.webp', patchX: 253, patchY: 13, patchW: 216, patchH: 874 },
     // Nur das Türblatt bis oberhalb der Schwelle: darunter sitzt der Durchgang.
     { id: 'fl_tuer_ende', ansicht: 'flur', x: 740, y: 265, w: 160, h: 330, typ: 'ausschnitt',
@@ -1015,15 +781,6 @@
     { id: 'ba_wanne', ansicht: 'bad', x: 1090, y: 525, w: 380, h: 340, typ: 'naehe', nah: 'wanne_nah',
       nichtWenn: 'wanne_leer', label: 'Badewanne' },
     // --- Badewanne von nahem ---
-    // In den Bauch der Ente sind zwei Ziffern geritzt: der Anfang des Lukencodes.
-    // Die zweite Hälfte steht auf dem Zettel unter dem Sitzkissen.
-    { id: 'en_ziffer', ansicht: 'ente_nah', x: 350, y: 690, w: 240, h: 170, typ: 'overlay', label: 'Eingeritzte Ziffern',
-      zeichnung: `<g transform="rotate(-6,463,775)" style="pointer-events:none">
-        <text x="466" y="828" font-family="Georgia, serif" font-size="150" text-anchor="middle"
-              letter-spacing="10" fill="none" stroke="#8a6a2e" stroke-width="7" opacity="0.85">58</text>
-        <text x="463" y="824" font-family="Georgia, serif" font-size="150" text-anchor="middle"
-              letter-spacing="10" fill="none" stroke="#fff0bf" stroke-width="3" opacity="0.65">58</text>
-      </g>` },
     { id: 'wn_ente', ansicht: 'wanne_nah', x: 820, y: 330, w: 240, h: 230, typ: 'nehmen', zustand: 'ente_weg',
       gibt: 'ente', label: 'Gummiente',
       // Grundbild zeigt die Ente. Der Flicken ist das Wasser OHNE sie und kommt
@@ -1054,21 +811,8 @@
       nimmt: 'schluessel', setzt: 'koffer_offen',
       antwort: 'Der Schlüssel passt. Beide Schlösser springen auf.' },
     // --- Dachboden (noch Platzhalter-Geometrie) ---
-    // Koffer und Truhe schneiden sich ihren Bereich aus dem Offen-Bild.
-    { id: 'd_koffer', ansicht: 'dachboden', x: 465, y: 500, w: 265, h: 280, typ: 'ausschnitt',
-      zustand: 'dach_koffer_offen', klang: 'holz', label: 'Alter Koffer' },
-    { id: 'd_truhe', ansicht: 'dachboden', x: 1270, y: 600, w: 320, h: 190, typ: 'ausschnitt',
-      zustand: 'dach_truhe_offen', klang: 'holz', label: 'Blechtruhe' },
-    // Das Sparschwein: nur der Hammer kriegt es auf. Der Flicken kommt aus dem
-    // dritten Bild, der Rest des Raums bleibt wie er ist.
-    { id: 'd_schwein_kaputt', ansicht: 'dachboden', x: 245, y: 288, w: 120, h: 90, typ: 'overlay',
-      zustand: 'schwein_kaputt', bildAus: 'bilder/dachboden-schwein.webp', label: 'Sparschwein' },
-    { id: 'd_schwein', ansicht: 'dachboden', x: 245, y: 288, w: 120, h: 90, typ: 'ziel',
-      nichtWenn: 'schwein_kaputt', label: 'Sparschwein',
-      nimmt: 'hammer', setzt: 'schwein_kaputt', klang: 'metall',
-      leer: 'Ein Sparschwein aus Ton. Es scheppert, wenn man es schüttelt, und unten ist kein Loch.',
-      fehlt: 'Mit blossen Händen kriegst du das nicht auf.',
-      antwort: 'Einmal kurz, und das Schwein ist hin. Zwischen den Scherben liegt etwas.' }
+    { id: 'd_kiste',    ansicht: 'dachboden', x: 200,  y: 560, w: 260, h: 180, typ: 'toggle', form: 'klappe', zustand: 'dach_kiste_offen', label: 'Holzkiste' },
+    { id: 'd_schrank',  ansicht: 'dachboden', x: 1300, y: 160, w: 140, h: 200, typ: 'toggle', form: 'klappe', zustand: 'dach_schrank_offen', label: 'Alter Schrank' }
   ];
 
   // 20 Eier: 8 getarnt (Ebene 1), 7 verschlossen (Ebene 2), 5 Rätsel (Ebene 3)
@@ -1091,27 +835,21 @@
     { id: 'e14', ansicht: 'kueche',     x: 1497, y: 272, r: 8,  farbe: '#e8d8bc', muster: 'punkte', ebene: 2, sichtbarWenn: ['k_kuehl_offen', 'kueche_licht'] },  // in der Eierablage im Kühlschrank
     { id: 'e15', ansicht: 'acizimmer',  x: 778,  y: 405, r: 9,  farbe: '#d08a5a', muster: 'zickzack', ebene: 2, sichtbarWenn: 'aci_schrank_offen' },  // auf dem Wäschestapel im Kleiderschrank
     // --- Ebene 3: nur nach Rätsel sichtbar ---
-    { id: 'e16', ansicht: 'tisch_nah',  x: 330,  y: 236, r: 31, farbe: '#c9b48a', muster: 'punkte',   ebene: 1, sichtbarWenn: null },  // steht in der Tasse auf dem Couchtisch, Unterkante knapp über dem Tassenrand-Flicken
+    { id: 'e16', ansicht: 'tisch_nah',  x: 330,  y: 272, r: 20, farbe: '#c9b48a', muster: 'punkte',   ebene: 1, sichtbarWenn: null },  // in der Tasse auf dem Couchtisch, halb in der Milch
     { id: 'e17', ansicht: 'kueche',     x: 955,  y: 602, r: 9,  farbe: '#5a4a38', muster: 'punkte', ebene: 2, sichtbarWenn: ['k_ofen_offen', 'kueche_licht'] },  // auf dem Rost im Backofen
     { id: 'e18', ansicht: 'acizimmer',  x: 348,  y: 580, r: 8,  farbe: '#5a4030', muster: 'zickzack', ebene: 2, sichtbarWenn: 'aci_tisch_offen' },  // in der Nachttischschublade
-    { id: 'e19', ansicht: 'dachboden',  x: 545,  y: 676, r: 17, farbe: '#9a8358', muster: 'streifen', ebene: 1, sichtbarWenn: 'dach_koffer_offen' },  // im offenen Koffer
-    { id: 'e20', ansicht: 'dachboden',  x: 1378, y: 742, r: 16, farbe: '#8d7f63', muster: 'punkte', ebene: 1, sichtbarWenn: 'dach_truhe_offen' },  // in der offenen Blechtruhe
-    { id: 'e34', ansicht: 'dachboden',  x: 312,  y: 352, r: 14, farbe: '#c08a7a', muster: 'punkte', ebene: 1, sichtbarWenn: 'schwein_kaputt' },  // zwischen den Scherben des Sparschweins
-    { id: 'e35', ansicht: 'dachboden',  x: 836,  y: 306, r: 14, farbe: '#6d6253', muster: 'zickzack', ebene: 1, sichtbarWenn: null },  // getarnt zwischen den Krügen auf dem Tisch
+    { id: 'e19', ansicht: 'dachboden',  x: 330,  y: 650, r: 12, farbe: '#3a342c', muster: 'streifen', ebene: 2, sichtbarWenn: 'dach_kiste_offen' },
+    { id: 'e20', ansicht: 'dachboden',  x: 860,  y: 490, r: 12, farbe: '#55556a', muster: 'punkte', ebene: 1, sichtbarWenn: null },
     // --- Bad: getarnt, offen sichtbar ---
     { id: 'e21', ansicht: 'bad', x: 503,  y: 316, r: 10, farbe: '#6d3c12', muster: 'streifen', ebene: 1, sichtbarWenn: null },  // Ablage neben der Seife
     { id: 'e22', ansicht: 'bad', x: 938,  y: 412, r: 9,  farbe: '#4d3513', muster: 'punkte',   ebene: 1, sichtbarWenn: null },  // auf dem Spülkasten
-    { id: 'e23', ansicht: 'wanne_nah', x: 480, y: 668, r: 11, farbe: '#6a4222', muster: 'zickzack', ebene: 1, sichtbarWenn: null },  // auf dem vorderen Wannenrand
+    { id: 'e23', ansicht: 'bad', x: 1035, y: 828, r: 11, farbe: '#6a4222', muster: 'zickzack', ebene: 1, sichtbarWenn: null },
     // --- Anfisas Schlafzimmer ---
     { id: 'e24', ansicht: 'schlafzimmer', x: 228,  y: 462, r: 11, farbe: '#3a1a10', muster: 'punkte',   ebene: 2, sichtbarWenn: 'sz_schrank_offen' },     // unten im Kleiderschrank
     { id: 'e25', ansicht: 'schlafzimmer', x: 900,  y: 482, r: 9,  farbe: '#4c2213', muster: 'streifen', ebene: 2, sichtbarWenn: 'sz_nachttisch_offen' },  // in der Nachttischschublade
     { id: 'e26', ansicht: 'schlafzimmer', x: 1445, y: 592, r: 10, farbe: '#4e2c14', muster: 'zickzack', ebene: 2, sichtbarWenn: 'sz_frisier_offen' },     // in der Schublade am Frisiertisch
     { id: 'e27', ansicht: 'koffer_nah', x: 1245, y: 330, r: 22, farbe: '#c9b08a', muster: 'punkte', ebene: 2, sichtbarWenn: 'koffer_offen' },  // zwischen den Briefen im Koffer
     { id: 'e28', ansicht: 'aquarium_nah', x: 940, y: 710, r: 11, farbe: '#b8a884', muster: 'punkte', ebene: 2, sichtbarWenn: 'aq_kies' },  // im aufgewirbelten Kies im Aquarium
-    { id: 'e30', ansicht: 'th_kiste_nah', x: 1235, y: 625, r: 23, farbe: '#7a6a4e', muster: 'punkte', ebene: 2, sichtbarWenn: 'th_tuecher_weg' },  // in den Tuchfalten in der Holzkiste
-    { id: 'e32', ansicht: 'pc_nah', x: 1310, y: 545, r: 26, farbe: '#d9c27a', muster: 'zickzack', ebene: 1, sichtbarWenn: 'pc_privat_offen' },  // auf dem Bild im Ordner „privat"
-    { id: 'e33', ansicht: 'gruenkiste_nah', x: 1060, y: 700, r: 20, farbe: '#76704f', muster: 'streifen', ebene: 2, sichtbarWenn: null },  // rechts neben der Sicherung auf dem Kistenboden
-    { id: 'e31', ansicht: 'schreibtisch_nah', x: 1700, y: 478, r: 12, farbe: '#3a4c2a', muster: 'streifen', ebene: 1, sichtbarWenn: null },  // getarnt zwischen den Blättern der Zimmerpflanze
     { id: 'e29', ansicht: 'schreibtisch_nah', x: 196, y: 702, r: 12, farbe: '#5f4a33', muster: 'streifen', ebene: 2, sichtbarWenn: 'sb_schrank_offen' }  // in der dunklen Ecke neben den Büchern im Schreibtischschrank
   ];
 
@@ -1130,37 +868,6 @@
   const SCHEUCH_DAUER  = 8;     // Sekunden, die ein gescheuchter Fisch oben bleibt
 
   // Eier, die nach Öffnen eines Dunkel-Bereichs erst erkennbar sind: Garage-Ecke ist dunkel bis Licht an
-  // =====================================================================
-  // BACKEN
-  // Sechs Schritte, abwechselnd Gruppe A und B. Jeder Schritt tauscht das
-  // Schüsselbild. Die Zutaten liegen verstreut auf dem Tisch, nicht in der
-  // Reihenfolge — man muss also wissen oder raten, was als nächstes kommt.
-  // =====================================================================
-  const BACK_SCHRITTE = [
-    { zutat: 'hefe',     gruppe: 'A', bild: 'bilder/backen-1-hefe.webp',
-      sagt: 'Hefe zuerst, in die warme Milch. Die muss arbeiten, bevor irgendwas anderes reinkommt.' },
-    { zutat: 'mehl',     gruppe: 'B', bild: 'bilder/backen-2-mehl.webp',
-      sagt: 'Jetzt das Mehl drüber. Nicht rühren, sagt sie, erst schauen ob es blubbert.' },
-    { zutat: 'butter',   gruppe: 'A', bild: 'bilder/backen-3-butter.webp',
-      sagt: 'Butter rein und durchkneten, bis es ein Klumpen ist. Das ist der Teil, der weh tut.' },
-    { zutat: 'kardamom', gruppe: 'B', bild: 'bilder/backen-4-kardamom.webp',
-      sagt: 'Kardamom. Nur die Samen, die Schalen wirft man weg. Riecht sofort nach Ostern.' },
-    { zutat: 'safran',   gruppe: 'A', bild: 'bilder/backen-5-safran.webp',
-      sagt: 'Safran. Davon hat sie seit Jahren dasselbe Döschen. Schau, wie der Teig gelb wird.' },
-    { zutat: 'rosinen',  gruppe: 'B', bild: 'bilder/backen-6-rosinen.webp',
-      sagt: 'Rosinen zum Schluss, sonst zerdrückt man sie beim Kneten. Und dann darf er gehen.' }
-  ];
-  // Wo die Zutaten auf dem Tisch liegen. Bewusst nicht in der Reihenfolge.
-  const BACK_ZUTATEN = [
-    { id: 'hefe',     name: 'Hefe',     bild: 'bilder/zutat-hefe.webp',     x: 235,  y: 185, b: 180 },
-    { id: 'mehl',     name: 'Mehl',     bild: 'bilder/zutat-mehl.webp',     x: 1395, y: 205, b: 160 },
-    { id: 'butter',   name: 'Butter',   bild: 'bilder/zutat-butter.webp',   x: 255,  y: 560, b: 190 },
-    { id: 'kardamom', name: 'Kardamom', bild: 'bilder/zutat-kardamom.webp', x: 1455, y: 470, b: 180 },
-    { id: 'safran',   name: 'Safran',   bild: 'bilder/zutat-safran.webp',   x: 440,  y: 735, b: 170 },
-    { id: 'rosinen',  name: 'Rosinen',  bild: 'bilder/zutat-rosinen.webp',  x: 1340, y: 715, b: 180 }
-  ];
-  const BACK_LEER = 'bilder/backen-0-leer.webp';
-
   const DUNKEL = [];   // Beispiel: { ansicht: 'dachboden', x: 0, y: 0, w: 800, h: 900, hellWenn: 'dach_licht' }
 
   // Aci-Sprüche bei Meilensteinen
@@ -1175,7 +882,7 @@
     [0.95, 'Fast. Das letzte ist das, auf das sie am stolzesten ist.'],
     [1.00, 'Alle. Anfisa wird sauer sein — sie hatte auf dich gewettet.']
   ];
-  const ENDE_TEXT = 'Aci trägt die Eier in die Küche und stellt den Korb neben die Schüssel. „So viele. Dann kann ich ja endlich anfangen."';
+  const ENDE_TEXT = 'Aci sammelt die Eier in einem Korb ein, den er irgendwo vom Dachboden geholt hat. „Weisst du, was das Beste ist? Sie hat Fotos von jedem Versteck gemacht. Falls du eins nicht findest. Die zeig ich ihr jetzt. Alle zwanzig abgehakt."';
 
   // Aus den Prozentwerten feste Zahlen machen
   const SPRUECHE = (() => {
@@ -1200,9 +907,7 @@
     ansicht: 'garage1',    // aktuelle Ansicht (nicht der Raum)
     nah: null,             // ID der Nahansicht, die gerade offen ist
     laeuft: false,
-    fertig: false,
-    backen: 0,
-    gruppe: null
+    fertig: false
   };
   let zuletztGesagt = 0;
   const spruchZaehler = {};   // damit eine Figur nicht immer dasselbe sagt
@@ -1211,7 +916,7 @@
   function speichern() {
     try {
       localStorage.setItem(SPEICHER_KEY, JSON.stringify({
-        gefunden: zustand.gefunden, offen: zustand.offen, inventar: zustand.inventar, hinweise: zustand.hinweise, zeit: zustand.zeit, ansicht: zustand.ansicht, nah: zustand.nah, fertig: zustand.fertig, backen: zustand.backen, gruppe: zustand.gruppe
+        gefunden: zustand.gefunden, offen: zustand.offen, inventar: zustand.inventar, hinweise: zustand.hinweise, zeit: zustand.zeit, ansicht: zustand.ansicht, nah: zustand.nah, fertig: zustand.fertig
       }));
     } catch (e) {}
   }
@@ -1234,8 +939,6 @@
     zustand.inventar = Array.isArray(s.inventar) ? s.inventar : [];
     zustand.nah = ANSICHTEN.some(a => a.id === s.nah) ? s.nah : null;
     zustand.fertig = !!s.fertig;
-    zustand.backen = Number(s.backen) || 0;
-    zustand.gruppe = s.gruppe || null;
     return true;
   }
 
@@ -1300,6 +1003,19 @@
         <rect x="260" y="420" width="320" height="200" rx="18" fill="#f0f0ea"/>
         <rect x="900" y="300" width="420" height="400" rx="20" fill="#e4e8e4"/>
         <text x="800" y="150" font-size="26" fill="#3a4a42" text-anchor="middle" font-family="sans-serif">Bad — Bild fehlt noch</text>`;
+      case 'kammer': return `
+        <rect width="1600" height="900" fill="#6a5a46"/>
+        <rect y="700" width="1600" height="200" fill="#4a3826"/>
+        <rect x="420" y="360" width="560" height="340" fill="#7a5a3a"/>
+        <rect x="1080" y="300" width="240" height="400" fill="#5a4a38"/>
+        <text x="800" y="150" font-size="26" fill="#e8d8b8" text-anchor="middle" font-family="sans-serif">Kammer — Bild fehlt noch</text>`;
+      case 'dachboden': return `
+        <rect width="1600" height="900" fill="#1e2024"/>
+        <rect y="700" width="1600" height="200" fill="#2a2c30"/>
+        <rect x="200" y="560" width="260" height="180" fill="#5a4a38" id="form-kiste"/>
+        <rect x="1300" y="160" width="140" height="200" fill="#6a6a70" id="form-sicher"/>
+        <rect x="760" y="380" width="200" height="220" fill="#3a3a44" id="form-tresor"/><circle cx="860" cy="490" r="26" fill="#55556a"/>
+        <rect x="0" y="100" width="100" height="600" fill="#2a2a30"/><rect x="1500" y="100" width="100" height="600" fill="#2a2a30"/>`;
     }
     return '';
   }
@@ -1351,120 +1067,21 @@
   }
 
   // Beschriftung der Platzhalter — fällt weg, sobald echte Bilder da sind
-  // Ziehen einer Datei auf Acis Schreibtisch
-  let pcZug = null;
-  function pcSchatten(id) {
-    pcSchattenWeg();
-    const t = TEILE.find(x => x.id === id);
-    if (!t) return;
-    const d = document.createElement('div');
-    d.id = 'pc-schatten';
-    d.textContent = t.label;
-    d.style.cssText = 'position:fixed;z-index:60;pointer-events:none;padding:6px 10px;border-radius:8px;'
-      + 'background:rgba(10,14,22,0.88);color:#f4d484;font:600 14px sans-serif;transform:translate(-50%,-50%)';
-    document.body.appendChild(d);
-  }
-  function pcSchattenNach(x, y) {
-    const d = document.getElementById('pc-schatten');
-    if (d) { d.style.left = x + 'px'; d.style.top = y + 'px'; }
-  }
-  function pcSchattenWeg() {
-    const d = document.getElementById('pc-schatten');
-    if (d) d.remove();
-  }
-
-  // Info-Fenster mit Titel, Text und wahlweise einem Bild
-  function infoFenster(titel, text, bild, liste) {
-    document.getElementById('info-titel').textContent = titel;
-    document.getElementById('info-text').textContent = text;
-    const img = document.getElementById('info-bild');
-    if (bild) { img.src = bild; img.style.display = ''; } else { img.removeAttribute('src'); img.style.display = 'none'; }
-    const box = document.getElementById('info-liste');
-    box.innerHTML = '';
-    (liste || []).forEach(e => {
-      const b = document.createElement('button');
-      b.textContent = e.label;
-      if (e.zurueck) b.className = 'zurueck';
-      b.onclick = e.tu;
-      box.appendChild(b);
-    });
-    document.getElementById('info-modal').classList.add('show');
-  }
-
-  // Ordner auf Acis Schreibtisch: zeigt, was drinliegt, und lässt es nochmal öffnen
-  function ordnerFenster(t) {
-    const drin = TEILE.filter(x => x.ansicht === t.ansicht && x.typ === 'datei'
-      && x.ordner === t.ordner && zustand.offen[x.zustand]);
-    const liste = drin.map(x => ({ label: x.label, tu: () => dateiFenster(x, t) }));
-    (t.schon || []).forEach(e => liste.push({ label: e.label, tu: () => infoFenster(e.label, e.text, null,
-      [{ label: '← zurück in den Ordner', zurueck: true, tu: () => ordnerFenster(t) }]) }));
-    infoFenster('Ordner „' + t.label + '"',
-      liste.length ? '' : 'Leer. Erst eine Datei antippen, dann den Ordner.', null, liste);
-  }
-  function dateiFenster(x, ordner) {
-    infoFenster(x.titel || x.label, x.text || '', x.bildgross,
-      ordner ? [{ label: '← zurück in den Ordner', zurueck: true, tu: () => ordnerFenster(ordner) }] : null);
-  }
-
-  // Auf Acis Schreibtisch aufgenommene Datei. Liegt ausserhalb von zustand,
-  // weil sie nur während des Sortierens gilt und nicht gespeichert werden muss.
-  let pcGewaehlt = null;
-  function pcMarkiere(id) {
-    const alt = document.getElementById('pc-markierung');
-    if (alt) alt.remove();
-    if (!id) return;
-    const t = TEILE.find(x => x.id === id);
-    const ebene = document.getElementById('teile-offen');
-    if (!t || !ebene) return;
-    ebene.insertAdjacentHTML('beforeend',
-      `<rect id="pc-markierung" x="${t.x - 8}" y="${t.y - 8}" width="${t.w + 16}" height="${t.h + 16}" rx="12"`
-      + ` fill="rgba(244,212,132,0.16)" stroke="#f4d484" stroke-width="3" style="pointer-events:none"/>`);
-  }
-
   // Ein Symbol auf Acis Schreibtisch: Ordner oder Textdatei, mit Namen darunter.
-  function pcSymbol(x, y, art, name, vorschau, dreh) {
+  function pcSymbol(x, y, art, name) {
     const formen = {
       ordner: `<path d="M0 12 L26 12 L36 24 L92 24 L92 74 L0 74 Z" fill="#d9b863" stroke="#8a6f2e" stroke-width="2"/>
                <path d="M0 34 L92 34" stroke="#b8974a" stroke-width="2"/>`,
       datei:  `<rect x="14" y="8" width="64" height="68" rx="4" fill="#ece4d3" stroke="#8d8471" stroke-width="2"/>
                <path d="M26 26 H66 M26 38 H66 M26 50 H58 M26 62 H48" stroke="#9a9280" stroke-width="3" stroke-linecap="round"/>`,
-      bild:   `<rect x="10" y="12" width="72" height="60" rx="4" fill="#e6e1d2" stroke="#8d8471" stroke-width="2"/>
-               <path d="M14 62 L34 40 L48 54 L60 44 L78 62 Z" fill="#6f8f5e"/>
-               <circle cx="64" cy="26" r="7" fill="#e0b24f"/>`,
-      foto:   `<rect x="10" y="12" width="72" height="60" rx="4" fill="#1b2230" stroke="#8d8471" stroke-width="2"/>
-               <image href="${vorschau}" xlink:href="${vorschau}" x="12" y="14" width="68" height="56"
-                      preserveAspectRatio="xMidYMid meet"/>`,
-      musik:  `<rect x="14" y="8" width="64" height="68" rx="4" fill="#dfe3ea" stroke="#7d8490" stroke-width="2"/>
-               <path d="M36 58 V24 L62 18 V52" fill="none" stroke="#4a5362" stroke-width="4" stroke-linecap="round"/>
-               <circle cx="31" cy="59" r="7" fill="#4a5362"/><circle cx="57" cy="53" r="7" fill="#4a5362"/>`,
-      kaputt: `<rect x="10" y="12" width="72" height="60" rx="4" fill="#3a4150" stroke="#8d8471" stroke-width="2"/>
-               <path d="M46 12 L38 30 L52 40 L40 56 L48 72" fill="none" stroke="#1e232c" stroke-width="5" stroke-linejoin="round"/>
-               <path d="M46 12 L38 30 L52 40 L40 56 L48 72" fill="none" stroke="#6c7686" stroke-width="2" stroke-linejoin="round"/>
-               <path d="M16 62 L28 48 L36 56 L30 62 Z" fill="#5a6372"/>
-               <circle cx="64" cy="26" r="6" fill="#5a6372"/>`,
       korb:   `<path d="M22 20 L70 20 L64 78 L28 78 Z" fill="#9aa6b2" stroke="#5d6975" stroke-width="2"/>
                <path d="M18 14 H74" stroke="#5d6975" stroke-width="5" stroke-linecap="round"/>
                <path d="M38 10 H54" stroke="#5d6975" stroke-width="5" stroke-linecap="round"/>
                <path d="M36 32 V66 M46 32 V66 M56 32 V66" stroke="#6f7c89" stroke-width="3" stroke-linecap="round"/>`
     };
     const koerper = formen[art] || formen.datei;
-    // Lange Dateinamen umbrechen, sonst laufen sie ins Nachbarsymbol
-    const teile = [];
-    let zeile = '';
-    name.split(/(?<=[_.])/).forEach(stueck => {
-      if ((zeile + stueck).length > 15 && zeile) { teile.push(zeile); zeile = stueck; }
-      else zeile += stueck;
-    });
-    if (zeile) teile.push(zeile);
-    const schrift = teile.length > 2 ? 16 : 19;
-    // Dunkle Platte hinter dem Namen, sonst liest man im Durcheinander nichts
-    const breit = Math.max(...teile.map(z => z.length)) * schrift * 0.56 + 12;
-    const platte = `<rect x="${46 - breit / 2}" y="${96 - schrift}" width="${breit}"`
-      + ` height="${teile.length * (schrift + 3) + 6}" rx="5" fill="rgba(10,14,22,0.62)"/>`;
-    const zeilen = platte + teile.map((z, i) =>
-      `<text x="46" y="${96 + i * (schrift + 3)}" font-size="${schrift}" fill="#e8eef6" text-anchor="middle" font-family="sans-serif">${z}</text>`).join('');
-    const kippe = dreh ? ` rotate(${dreh},46,50)` : '';
-    return `<g transform="translate(${x},${y})${kippe}" style="pointer-events:none">${koerper}${zeilen}</g>`;
+    return `<g transform="translate(${x},${y})" style="pointer-events:none">${koerper}
+      <text x="46" y="98" font-size="21" fill="#e8eef6" text-anchor="middle" font-family="sans-serif">${name}</text></g>`;
   }
 
   function teilBeschriftung(teil) {
@@ -1540,7 +1157,6 @@
   }
   function renderRaum() {
     const ans = aktuelleAnsicht();
-    pcGewaehlt = null;   // aufgenommene Datei gilt nur innerhalb einer Ansicht
     RW = ans.breite || 1600; RH = ans.hoehe || 900;
     welt.style.width = RW + 'px'; welt.style.height = RH + 'px';
     const hier = (o) => o.ansicht === ans.id;
@@ -1554,11 +1170,7 @@
 
     // Grundbild kann vom Licht abhängen (Küche: dunkel bis die Sicherung sitzt)
     const istHell = !!(ans.hellWenn && zustand.offen[ans.hellWenn]);
-    // bildStatt: tauscht das Grundbild selbst, sobald ein Zustand gesetzt ist.
-    // Besser als ein Vollbild-Overlay, das sonst über den geöffneten Schränken läge.
-    const getauscht = (ans.bildStatt || []).find(w => zustand.offen[w.wenn]);
-    const grundbild = getauscht ? getauscht.bild
-      : ((istHell && ans.bildHell) ? ans.bildHell : ans.bild);
+    const grundbild = (istHell && ans.bildHell) ? ans.bildHell : ans.bild;
     let html = '';
     if (grundbild) html += `<img class="bild" src="${grundbild}" alt="">`;
     html += `<svg viewBox="0 0 ${RW} ${RH}" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">`;
@@ -1827,7 +1439,7 @@
   function bilderDerAnsicht(id) {
     const a = ansichtVon(id);
     if (!a) return [];
-    const u = [a.bild, a.bildHell, a.bildOffen].concat((a.bildStatt || []).map(w => w.bild));
+    const u = [a.bild, a.bildHell, a.bildOffen];
     TEILE.filter(t => t.ansicht === id).forEach(t => {
       u.push(t.patch, t.patchHell, t.bildAus);
       (t.phasen || []).forEach(p => u.push(p.bild));
@@ -2003,19 +1615,12 @@
           const an = zustand.gewaehlt !== id; waehle(an ? id : null); if (an) beutelZu();
         };
         fach.appendChild(b);
-        if (g.nah || g.blatt) {
+        if (g.nah) {
           const l = document.createElement('button');
           l.className = 'lupe';
           l.textContent = '🔍';
-          l.title = g.blatt ? 'Nochmal lesen' : 'Genauer ansehen';
-          l.onclick = () => {
-            waehle(null, true); beutelZu();
-            if (g.blatt) {
-              document.getElementById('info-titel').textContent = g.blatt.titel || g.name;
-              document.getElementById('info-text').textContent = g.blatt.text || g.text || '';
-              document.getElementById('info-modal').classList.add('show');
-            } else geheZu(g.nah);
-          };
+          l.title = 'Genauer ansehen';
+          l.onclick = () => { waehle(null, true); beutelZu(); geheZu(g.nah); };
           fach.appendChild(l);
         }
       }
@@ -2042,7 +1647,7 @@
   function kombiniere(gegenstandId, ziel) {
     if (ziel.nimmt !== gegenstandId) { sag('Das passt nicht zusammen.'); return false; }
     if (ziel.setzt) zustand.offen[ziel.setzt] = true;
-    if (!ziel.behaelt) zustand.inventar = zustand.inventar.filter(x => x !== gegenstandId);
+    if (ziel.verbraucht) zustand.inventar = zustand.inventar.filter(x => x !== gegenstandId);
     waehle(null, true);
     klang('nehmen');
     renderRaum(); speichern();
@@ -2063,12 +1668,6 @@
     const greift = strafen.find(x => zustand.offen[x.wenn]);
     if (greift) {
       if (greift.setzt) zustand.offen[greift.setzt] = true;
-      // Auch eine Absage soll man sehen: das Teil geht in seine Reaktionsphase,
-      // sonst wirkt es, als hätte der Tipp gar nichts getan.
-      if (teil.gabePhase != null && teil.zustand) {
-        zustand.offen[teil.zustand] = teil.gabePhase;
-        renderRaum();
-      }
       waehle(null, true); klang('fehler'); speichern();
       sag(greift.antwort || 'So nicht.', teil.sprecher || teil.label);
       return false;
@@ -2082,7 +1681,7 @@
     if (teil.einzeln && teil.einzeln[gegenstandId]) {
       const gabe = teil.einzeln[gegenstandId];
       zustand.offen[gabe.setzt] = true;
-      if (!teil.behaelt) zustand.inventar = zustand.inventar.filter(x => x !== gegenstandId);
+      if (teil.verbraucht) zustand.inventar = zustand.inventar.filter(x => x !== gegenstandId);
       if (teil.gabePhase != null && teil.zustand) zustand.offen[teil.zustand] = teil.gabePhase;
       const fehltNoch = noetig.some(id => teil.einzeln[id] && !zustand.offen[teil.einzeln[id].setzt]);
       if (!fehltNoch) {
@@ -2107,8 +1706,7 @@
 
     if (teil.setzt) zustand.offen[teil.setzt] = true;
     if (teil.loescht) zustand.offen[teil.loescht] = false;
-    // Benutzte Gegenstände sind weg, ausser das Teil sagt ausdrücklich behaelt
-    if (!teil.behaelt) zustand.inventar = zustand.inventar.filter(x => !noetig.includes(x));
+    if (teil.verbraucht) zustand.inventar = zustand.inventar.filter(x => !noetig.includes(x));
     waehle(null, true);
     klang('nehmen');
     renderRaum();
@@ -2172,19 +1770,7 @@
   document.getElementById('zoom-plus').onclick = () => zoomUm(1.4, buehne.clientWidth / 2, buehne.clientHeight / 2);
   document.getElementById('zoom-minus').onclick = () => zoomUm(1 / 1.4, buehne.clientWidth / 2, buehne.clientHeight / 2);
   document.getElementById('zoom-reset').onclick = zoomReset;
-  function zurueckAusNah() { zustand.nah = null; speichern(); renderRaum(); zoomReset(); }
-  document.getElementById('nah-zurueck').onclick = zurueckAusNah;
-
-  // Liegt der Tipp im Randstreifen des Bildes? Dort führt er zurück, damit man
-  // nicht jedes Mal den Knopf oben links treffen muss.
-  function amBildrand(cx, cy) {
-    const sv = welt.querySelector('svg');
-    if (!sv) return false;
-    const k = sv.getBoundingClientRect();
-    if (!k.width || !k.height) return false;
-    const rand = Math.max(26, Math.min(k.width, k.height) * 0.07);
-    return cx < k.left + rand || cx > k.right - rand || cy < k.top + rand || cy > k.bottom - rand;
-  }
+  document.getElementById('nah-zurueck').onclick = () => { zustand.nah = null; speichern(); renderRaum(); zoomReset(); };
 
   // Pointer: Tippen, Ziehen, Pinch
   const zeiger = new Map();
@@ -2197,13 +1783,6 @@
     buehne.setPointerCapture(e.pointerId);
     zeiger.set(e.pointerId, { x: e.clientX, y: e.clientY });
     bewegt = false;
-    // Datei auf Acis Schreibtisch: ab hier kann gezogen werden
-    pcZug = null;
-    if (zeiger.size === 1 && e.target.closest) {
-      const el = e.target.closest('.teil');
-      const t = el && TEILE.find(x => x.id === el.dataset.teil);
-      if (t && t.typ === 'datei') pcZug = { id: t.id, x: e.clientX, y: e.clientY, laeuft: false };
-    }
     if (zeiger.size === 1) {
       zugStart = { x: e.clientX, y: e.clientY, tx, ty, ziel: e.target };
     } else if (zeiger.size === 2) {
@@ -2229,14 +1808,6 @@
       zoom = zielZoom;
       wendeTransformAn();
       bewegt = true;
-    } else if (zeiger.size === 1 && pcZug) {
-      const dx = e.clientX - pcZug.x, dy = e.clientY - pcZug.y;
-      if (!pcZug.laeuft && Math.hypot(dx, dy) > 8) {
-        pcZug.laeuft = true; bewegt = true;
-        pcGewaehlt = pcZug.id; pcMarkiere(pcZug.id);
-        pcSchatten(pcZug.id);
-      }
-      if (pcZug.laeuft) pcSchattenNach(e.clientX, e.clientY);
     } else if (zeiger.size === 1 && zugStart) {
       const dx = e.clientX - zugStart.x, dy = e.clientY - zugStart.y;
       if (!bewegt && Math.hypot(dx, dy) > 8) { bewegt = true; buehne.classList.add('zieht'); }
@@ -2249,17 +1820,6 @@
     zeiger.delete(e.pointerId);
     buehne.classList.remove('zieht');
     if (zeiger.size < 2) pinchStart = null;
-    if (pcZug && pcZug.laeuft) {
-      pcSchattenWeg();
-      const unter = document.elementFromPoint(e.clientX, e.clientY);
-      const el = unter && unter.closest && unter.closest('.teil');
-      const ziel = el && TEILE.find(x => x.id === el.dataset.teil);
-      if (ziel && ziel.typ === 'ordner') teilAngetippt(ziel.id);
-      else { pcGewaehlt = null; pcMarkiere(null); klang('stoff'); }
-      pcZug = null; zugStart = null; bewegt = false;
-      return;
-    }
-    pcZug = null;
     if (warEinzeln && !bewegt && zugStart) tippe(e.clientX, e.clientY);
     zugStart = null;
   }
@@ -2334,29 +1894,8 @@
     const teilEl = ziel.closest && ziel.closest('.teil');
     if (zustand.gewaehlt) {
       const t = teilEl ? TEILE.find(x => x.id === teilEl.dataset.teil) : null;
-      if (!t) {
-        // Daneben getippt. Früher wanderte der Gegenstand stumm zurück, das
-        // sah aus, als wäre das Spiel kaputt. Jetzt sagt Aci, was los ist.
-        const name = (GEGENSTAENDE.find(g => g.id === zustand.gewaehlt) || {}).name || 'Das';
-        waehle(null, true);
-        klang('fehler');
-        sag(name + ' wieder im Rucksack. Da war nichts, womit sich das benutzen lässt.');
-        return;
-      }
+      if (!t) { waehle(null, true); return; }   // daneben getippt: Gegenstand wieder weglegen
       benutze(zustand.gewaehlt, t);
-      return;
-    }
-    // Rand angetippt und nichts getroffen: eine Ebene zurück
-    if (!teilEl && !pcGewaehlt && !zustand.gewaehlt && amBildrand(cx, cy)) {
-      if (zustand.nah) { zurueckAusNah(); return; }
-      // nur der Rückweg nach unten zählt, nicht seitliche Übergänge in andere Räume
-      const raus = WEGE.find(w => w.von === zustand.ansicht && w.art === 'unten');
-      if (raus) { geheZu(raus.nach); return; }
-    }
-    if (pcGewaehlt && !teilEl) {
-      const datei = TEILE.find(x => x.id === pcGewaehlt);
-      pcGewaehlt = null; pcMarkiere(null);
-      sag((datei ? datei.label : 'Die Datei') + ' wieder losgelassen.');
       return;
     }
     if (teilEl) { teilAngetippt(teilEl.dataset.teil); return; }
@@ -2431,8 +1970,6 @@
       }
       case 'overlay':
       case 'ziel':
-        // Ohne Gegenstand in der Hand sagt das Ziel, was ihm fehlt
-        if (t.leer) sag(t.leer, t.sprecher || t.label);
         return;
       case 'phasen': {
         const anzahl = (t.phasen || []).length || 1;
@@ -2448,13 +1985,7 @@
         aktualisiereSichtbarkeit(); speichern();
         const ph = t.phasen[neu] || {};
         let spruch = ph.text;
-        // sagtStatt: Steht gerade etwas Bestimmtes an, sagt sie das statt eines
-        // Zufallsspruchs. So merkt man beim Antippen, was noch fehlt.
-        const lage = (t.sagtStatt || []).find(e =>
-          (e.wenn || []).every(k => zustand.offen[k]) &&
-          (e.nicht || []).every(k => !zustand.offen[k]));
-        if (lage) spruch = lage.text;
-        else if (ph.texte && ph.texte.length) {
+        if (ph.texte && ph.texte.length) {
           const schluessel = t.id + ':' + neu;
           const i = (spruchZaehler[schluessel] || 0) % ph.texte.length;
           spruchZaehler[schluessel] = i + 1;
@@ -2474,50 +2005,10 @@
         if (t.neuzeichnen) renderRaum(); else aktualisiereSichtbarkeit();
         kommentar(t);
         break;
-      // Datei auf Acis Schreibtisch aufnehmen oder wieder loslassen
-      case 'datei': {
-        // Erstes Antippen nimmt nur auf. Wer hineinsehen will, tippt die Datei
-        // in der Hand nochmal an. Ziehen geht sowieso ohne Öffnen.
-        const schonInDerHand = pcGewaehlt === t.id;
-        pcGewaehlt = t.id;
-        pcMarkiere(t.id);
-        klang('stoff');
-        if (!schonInDerHand) {
-          sag(zustand.offen.pc_gelernt
-            ? t.label + ' in der Hand.'
-            : t.label + ' in der Hand. Auf einen Ordner ziehen oder den Ordner antippen. Nochmal antippen zeigt, was drinsteht.');
-          zustand.offen.pc_gelernt = true;
-          speichern();
-          return;
-        }
-        dateiFenster(t);
-        return;
-      }
-      // Zielordner: nimmt nur Dateien, die zu ihm gehören
-      case 'ordner': {
-        if (!pcGewaehlt) { ordnerFenster(t); return; }
-        const datei = TEILE.find(x => x.id === pcGewaehlt);
-        if (!datei) { pcGewaehlt = null; pcMarkiere(null); return; }
-        if (datei.ordner !== t.ordner) {
-          klang('fehler');
-          sag(datei.label + ' gehört nicht in „' + t.label + '".');
-          return;
-        }
-        zustand.offen[datei.zustand] = true;
-        pcGewaehlt = null;
-        klang('nehmen');
-        const rest = TEILE.filter(x => x.ansicht === t.ansicht && x.typ === 'datei' && !zustand.offen[x.zustand]);
-        if (!rest.length && t.fertig) zustand.offen[t.fertig] = true;
-        renderRaum(); speichern();
-        sag(rest.length
-          ? (rest.length === 1
-              ? 'Einsortiert. Noch eine Datei liegt herum.'
-              : 'Einsortiert. Noch ' + rest.length + ' Dateien liegen herum.')
-          : 'Schreibtisch leer. Darunter liegt eine Datei, die vorher niemand gesehen hat.');
-        return;
-      }
       case 'info':
-        infoFenster(t.titel || t.label, t.text || '', t.bildgross);
+        document.getElementById('info-titel').textContent = t.titel || t.label;
+        document.getElementById('info-text').textContent = t.text || '';
+        document.getElementById('info-modal').classList.add('show');
         break;
       case 'raetsel':
       case 'code':
@@ -2563,7 +2054,7 @@
       // danach lässt sich die Luke auf- und zumachen, ohne den Code erneut einzugeben
       if (t.setztAuch) zustand.offen[t.setztAuch] = true;
       // Wurde das Rätsel mit einem Gegenstand geöffnet, ist der jetzt weg
-      if (t.nimmt && !t.behaelt) {
+      if (t.verbraucht && t.nimmt) {
         const futsch = Array.isArray(t.nimmt) ? t.nimmt : [t.nimmt];
         zustand.inventar = zustand.inventar.filter(x => !futsch.includes(x));
         renderInventar();
@@ -2702,90 +2193,11 @@
   }
 
   // =====================================================================
-  // BACKEN
-  // Diese Fassung läuft nur im eigenen Browser: du spielst beide Rollen.
-  // Die Gruppe steht schon fest, damit sich später nur die Herkunft ändert —
-  // statt gewürfelt kommt sie dann aus der Datenbank.
-  // =====================================================================
-  function backStand() { return Math.min(BACK_SCHRITTE.length, Number(zustand.backen) || 0); }
-  function backBild() {
-    const i = backStand();
-    return i === 0 ? BACK_LEER : BACK_SCHRITTE[i - 1].bild;
-  }
-  function zeigeBacken() {
-    document.getElementById('screen-ende').classList.add('hidden');
-    document.getElementById('screen-backen').classList.remove('hidden');
-    renderBacken();
-  }
-  function renderBacken() {
-    const tisch = document.getElementById('back-tisch');
-    const i = backStand();
-    const fertig = i >= BACK_SCHRITTE.length;
-    let html = `<img class="grund" src="${backBild()}" alt="">`;
-    BACK_ZUTATEN.forEach(z => {
-      const drin = BACK_SCHRITTE.findIndex(x => x.zutat === z.id) < i;
-      html += `<img class="back-zutat${drin ? ' weg' : ''}" data-zutat="${z.id}" src="${z.bild}"`
-        + ` alt="${z.name}" title="${z.name}" style="left:${z.x / 1774 * 100}%; top:${z.y / 887 * 100}%;`
-        + ` width:${z.b / 1774 * 100}%">`;
-    });
-    tisch.innerHTML = html;
-    tisch.querySelectorAll('.back-zutat').forEach(el => {
-      el.onclick = () => backZutat(el.dataset.zutat);
-    });
-    const dran = document.getElementById('back-dran');
-    if (fertig) {
-      dran.innerHTML = 'Der Teig ist fertig und geht auf.';
-      document.getElementById('back-sagt').textContent =
-        'Aci stellt die Schüssel ans warme Fenster. „Und jetzt warten. Das ist der Teil, den sie am besten kann."';
-    } else {
-      const schritt = BACK_SCHRITTE[i];
-      dran.innerHTML = 'Schritt ' + (i + 1) + ' von ' + BACK_SCHRITTE.length
-        + ' — dran ist <b>Gruppe ' + schritt.gruppe + '</b>'
-        + (zustand.gruppe ? (schritt.gruppe === zustand.gruppe ? ' (du)' : ' (der andere)') : '');
-      if (!document.getElementById('back-sagt').textContent) {
-        document.getElementById('back-sagt').textContent = 'Aci liest das Rezept. „Also. Der Reihe nach."';
-      }
-    }
-  }
-  function backZutat(id) {
-    const i = backStand();
-    if (i >= BACK_SCHRITTE.length) return;
-    const schritt = BACK_SCHRITTE[i];
-    const name = (BACK_ZUTATEN.find(z => z.id === id) || {}).name || id;
-    if (id !== schritt.zutat) {
-      klang('fehler');
-      document.getElementById('back-sagt').textContent =
-        'Aci hält deine Hand fest. „' + name + ' noch nicht. Sonst wird das nichts."';
-      return;
-    }
-    zustand.backen = i + 1;
-    speichern();
-    klang('nehmen');
-    document.getElementById('back-sagt').textContent = 'Aci: „' + schritt.sagt + '"';
-    const el = document.querySelector('.back-zutat[data-zutat="' + id + '"]');
-    if (el) el.classList.add('weg');
-    setTimeout(renderBacken, 420);
-    if (zustand.backen >= BACK_SCHRITTE.length) fanfare([520, 660, 880]);
-  }
-  document.getElementById('backen-knopf').onclick = () => {
-    // Gruppe wird hier nur gewürfelt. Später kommt sie aus der Datenbank,
-    // damit A und B abwechselnd vergeben werden.
-    if (!zustand.gruppe) { zustand.gruppe = Math.random() < 0.5 ? 'A' : 'B'; speichern(); }
-    document.getElementById('back-sagt').textContent = '';
-    zeigeBacken();
-  };
-  document.getElementById('back-zurueck').onclick = () => {
-    document.getElementById('screen-backen').classList.add('hidden');
-    document.getElementById('screen-ende').classList.remove('hidden');
-  };
-
-  // =====================================================================
   // START / ENDE / BESTENLISTE
   // =====================================================================
   function spielEnde() {
     zustand.laeuft = false; zustand.fertig = true; speichern();
     document.getElementById('ende-zeit').textContent = uhrText(zustand.zeit);
-    document.getElementById('ende-label').textContent = 'für alle ' + EIER.length + ' Eier';
     document.getElementById('ende-text').textContent = ENDE_TEXT;
     document.getElementById('screen-ende').classList.remove('hidden');
     ladeRangliste();
