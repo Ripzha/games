@@ -665,12 +665,13 @@
     { id: 'ac_schrank', ansicht: 'acizimmer', x: 620, y: 80,  w: 290, h: 460, typ: 'ausschnitt', zustand: 'aci_schrank_offen', label: 'Kleiderschrank' },
     { id: 'ac_tisch',   ansicht: 'acizimmer', x: 260, y: 548, w: 195, h: 165, typ: 'ausschnitt', zustand: 'aci_tisch_offen',   label: 'Nachttischschublade' },
     { id: 'ac_aquarium', ansicht: 'acizimmer', x: 1255, y: 235, w: 200, h: 155, typ: 'naehe', nah: 'aquarium_nah', label: 'Aquarium' },
-    // Klopfen scheucht die Fische in den Kies. Beim ersten Mal wirbeln sie ihn
-    // auf und legen frei, was darin liegt.
-    { id: 'aq_scheibe', ansicht: 'aquarium_nah', x: 310, y: 210, w: 1160, h: 450, typ: 'klopfen', zustand: 'aq_kies',
-      klang: 'metall', label: 'Frontscheibe',
-      antwort: 'Du klopfst ans Glas. Die Fische schiessen nach unten und wirbeln den Kies auf. Zwischen den Steinen liegt etwas.',
-      nochmal: 'Noch ein Klopfen. Die Fische finden das nicht lustig.' },
+    // Rätsel: Jeder Klick scheucht die Fische in seiner Nähe nach oben, wo sie
+    // ein paar Sekunden bleiben. Erst wenn keiner mehr über dem Kies steht,
+    // setzt sich die Trübung und gibt das Ei frei.
+    { id: 'aq_scheibe', ansicht: 'aquarium_nah', x: 310, y: 210, w: 1160, h: 460, typ: 'klopfen',
+      klang: 'metall', label: 'Aquarium', zustand: 'aq_kies', gelernt: 'aq_gelernt',
+      klopf: 'Du klopfst ans Glas. Die in der Nähe schiessen nach oben. Solange welche über dem Kies stehen, bleibt der Sand aufgewühlt.',
+      antwort: 'Keiner mehr unten. Der Sand setzt sich, und zwischen den Steinen bleibt etwas liegen.' },
     // --- Flur ---
     // Zahlenschloss an der Dachbodenluke. Der Code steht als Leuchtschrift im
     // Treppenhaus, drei der vier Ziffern auch auf dem Zettel unter dem Sitzkissen.
@@ -794,7 +795,9 @@
     { bild: 'bilder/fisch-neon.webp',   verhaeltnis: 1.492, hoehe: 42,  anzahl: 6, tempo: 85,  nachLinks: false }
   ];
   const AQ      = { x: 330, y: 240, w: 1120, h: 380 };   // Wasser im Beckenbild
-  const AQ_KIES = { x: 390, y: 540, w: 1000, h: 110 };   // dahin stürzen sie beim Klopfen
+  const AQ_OBEN = { x: 350, y: 245, w: 1080, h: 130 };   // dahin flüchten sie beim Klopfen
+  const SCHEUCH_RADIUS = 300;   // wie weit ein Klopfen reicht
+  const SCHEUCH_DAUER  = 8;     // Sekunden, die ein gescheuchter Fisch oben bleibt
 
   // Eier, die nach Öffnen eines Dunkel-Bereichs erst erkennbar sind: Garage-Ecke ist dunkel bis Licht an
   const DUNKEL = [];   // Beispiel: { ansicht: 'dachboden', x: 0, y: 0, w: 800, h: 900, hellWenn: 'dach_licht' }
@@ -1147,7 +1150,9 @@
     if (!grundbild) html += `<g id="beschriftungen">${teile.map(teilBeschriftung).join('')}</g>`;
     // Fische: eigene Ebene über dem Beckenbild, aber unter Trefferflächen und
     // Eiern. Sie fangen keine Klicks ab, sonst käme man nicht an das Ei im Kies.
-    if (ans.fische) html += `<g id="fische" style="pointer-events:none"></g>`;
+    if (ans.fische) html += `<g id="fische" style="pointer-events:none"></g>`
+      + `<text id="fisch-anzeige" x="${AQ.x + 10}" y="${AQ.y - 12}" fill="#f4d484" font-size="26"`
+      + ` font-family="Georgia, serif" style="pointer-events:none"></text>`;
     // Dunkel-Bereiche
     html += `<g id="dunkel">${dunkel.map(d => `<rect data-hell="${d.hellWenn}" x="${d.x}" y="${d.y}" width="${d.w}" height="${d.h}" fill="#05070a" opacity="0.93"/>`).join('')}</g>`;
     // Trefferflächen der Teile — durchsichtig, liegen unter Durchgängen und Eiern,
@@ -1182,15 +1187,27 @@
   // =====================================================================
   // AQUARIUM
   // Jeder Fisch ist ein freigestelltes Bild, das ein zufälliges Ziel im Becken
-  // ansteuert und sich beim Ankommen ein neues sucht. Beim Klopfen ans Glas
-  // steigt `aufregung`: dann liegen die Ziele im Kies und alle sind schneller.
+  // ansteuert und sich beim Ankommen ein neues sucht. Ein Klopfen setzt bei
+  // allen Fischen im Umkreis `hoch`: die flüchten dann nach oben und bleiben
+  // dort, bis die Sekunden abgelaufen sind.
   // =====================================================================
-  let fische = [], fischUhr = null, fischLetzte = 0, aufregung = 0;
+  let fische = [], fischUhr = null, fischLetzte = 0;
 
   function fischZiel(f) {
-    const r = aufregung > 0 ? AQ_KIES : AQ;
+    const r = f.hoch > 0 ? AQ_OBEN : AQ;
     f.zx = r.x + f.w / 2 + Math.random() * Math.max(1, r.w - f.w);
     f.zy = r.y + f.h / 2 + Math.random() * Math.max(1, r.h - f.h);
+  }
+
+  // Klopfen an einer Stelle: alle Fische im Umkreis flüchten nach oben.
+  function fischeScheuchen(bx, by) {
+    let getroffen = 0;
+    fische.forEach(f => {
+      if (Math.hypot(f.x - bx, f.y - by) <= SCHEUCH_RADIUS) {
+        f.hoch = SCHEUCH_DAUER; fischZiel(f); getroffen++;
+      }
+    });
+    return getroffen;
   }
 
   function fischeBauen() {
@@ -1202,7 +1219,7 @@
       for (let i = 0; i < art.anzahl; i++) {
         const h = art.hoehe, w = Math.round(h * art.verhaeltnis);
         const f = {
-          art, w, h, id: 'fi' + ai + '_' + i, blick: 1,
+          art, w, h, id: 'fi' + ai + '_' + i, blick: 1, hoch: 0,
           tempo: art.tempo * (0.75 + Math.random() * 0.5),
           x: AQ.x + w / 2 + Math.random() * Math.max(1, AQ.w - w),
           y: AQ.y + h / 2 + Math.random() * Math.max(1, AQ.h - h)
@@ -1220,26 +1237,50 @@
 
   function fischeStopp() {
     if (fischUhr) cancelAnimationFrame(fischUhr);
-    fischUhr = null; fische = []; aufregung = 0;
+    fischUhr = null; fische = [];
   }
 
   function fischSchritt(jetzt) {
     if (!fische.length) { fischUhr = null; return; }
     const dt = fischLetzte ? Math.min(0.05, (jetzt - fischLetzte) / 1000) : 0.016;
     fischLetzte = jetzt;
-    if (aufregung > 0) aufregung = Math.max(0, aufregung - dt);
+    let unten = 0;
     fische.forEach(f => {
+      if (f.hoch > 0) {
+        f.hoch = Math.max(0, f.hoch - dt);
+        if (f.hoch === 0) fischZiel(f);      // Ruhe vorbei, wieder frei umher
+      } else unten++;
       const dx = f.zx - f.x, dy = f.zy - f.y;
       const weg = Math.hypot(dx, dy);
       if (weg < 10) { fischZiel(f); return; }
-      const v = f.tempo * (aufregung > 0 ? 2.8 : 1) * dt;
+      const v = f.tempo * (f.hoch > 0 ? 2.6 : 1) * dt;
       f.x += dx / weg * v;
-      f.y += dy / weg * v * 0.65;          // senkrecht gemächlicher als waagrecht
+      f.y += dy / weg * v * (f.hoch > 0 ? 1.4 : 0.65);   // auf der Flucht steigen sie schnell
       if (dx > 3) f.blick = 1; else if (dx < -3) f.blick = -1;
       const s = f.art.nachLinks ? -f.blick : f.blick;
       if (f.el) f.el.setAttribute('transform', `translate(${f.x.toFixed(1)},${f.y.toFixed(1)}) scale(${s},1)`);
     });
+    const anzeige = document.getElementById('fisch-anzeige');
+    if (anzeige) anzeige.textContent = fischRaetselOffen() ? 'Noch über dem Kies: ' + unten : '';
+    if (unten === 0 && fischRaetselOffen()) fischRaetselGeloest();
     fischUhr = requestAnimationFrame(fischSchritt);
+  }
+
+  // Das Rätsel gilt, solange der Zustand der Frontscheibe nicht gesetzt ist.
+  function fischScheibe() { return TEILE.find(t => t.typ === 'klopfen' && t.ansicht === aktuelleAnsicht().id); }
+  function fischRaetselOffen() {
+    const t = fischScheibe();
+    return !!(t && t.zustand && !zustand.offen[t.zustand]);
+  }
+  function fischRaetselGeloest() {
+    const t = fischScheibe();
+    if (!t) return;
+    zustand.offen[t.zustand] = true;
+    fanfare([660, 880, 1100]);
+    aktualisiereSichtbarkeit(); speichern();
+    const anzeige = document.getElementById('fisch-anzeige');
+    if (anzeige) anzeige.textContent = '';
+    if (t.antwort) sag(t.antwort, t.sprecher);
   }
 
   // =====================================================================
@@ -1754,10 +1795,25 @@
     return beste;
   }
 
+  // Letzter Tipp in Bildpunkten der aktuellen Ansicht. Das Aquarium braucht
+  // die Stelle, an der geklopft wurde, nicht nur das getroffene Teil.
+  let tippBild = { x: 0, y: 0 };
+  function merkeTipp(cx, cy) {
+    const sv = welt.querySelector('svg');
+    if (!sv) return;
+    const kasten = sv.getBoundingClientRect();
+    const a = aktuelleAnsicht();
+    tippBild = {
+      x: (cx - kasten.left) / kasten.width * (a.breite || 1600),
+      y: (cy - kasten.top) / kasten.height * (a.hoehe || 900)
+    };
+  }
+
   function tippe(cx, cy) {
     if (!zustand.laeuft && !EDITOR) return;
     const ziel = document.elementFromPoint(cx, cy);
     if (!ziel) return;
+    merkeTipp(cx, cy);
     if (EDITOR) zeigeKoordinaten(cx, cy, ziel);
     const eiEl = ziel.closest && ziel.closest('.ei');
     if (eiEl) { eiGefunden(eiEl.dataset.ei, cx, cy); return; }
@@ -1833,14 +1889,15 @@
         if (t.nah) geheZu(t.nah);
         return;
       case 'klopfen': {
-        // Scheucht die Fische in den Kies und setzt dabei einmalig den Zustand.
-        const erstes = t.zustand && !zustand.offen[t.zustand];
-        if (t.zustand) zustand.offen[t.zustand] = true;
-        aufregung = 4;
-        fische.forEach(fischZiel);
+        // Scheucht die Fische rund um die angetippte Stelle nach oben.
+        fischeScheuchen(tippBild.x, tippBild.y);
         klang(t.klang || 'metall');
-        aktualisiereSichtbarkeit(); speichern();
-        sag(erstes ? t.antwort : (t.nochmal || t.antwort), t.sprecher);
+        // Der Hinweis kommt nur beim ersten Mal, sonst steht beim schnellen
+        // Klopfen dauernd der Dialog im Bild.
+        if (t.gelernt && !zustand.offen[t.gelernt]) {
+          zustand.offen[t.gelernt] = true; speichern();
+          sag(t.klopf || 'Du klopfst ans Glas.', t.sprecher);
+        }
         return;
       }
       case 'overlay':
