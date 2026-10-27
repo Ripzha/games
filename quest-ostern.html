@@ -579,7 +579,7 @@
     { id: 'bi_schluessel', ansicht: 'bild_hinten', x: 535, y: 622, w: 268, h: 136, typ: 'nehmen', zustand: 'schluessel_weg',
       gibt: 'schluessel', bildAus: 'bilder/bild-hinten-leer.webp', sichtbarWenn: 'fach_offen', label: 'Schlüssel im Fach' },
     { id: 'w_frau', ansicht: 'wohnzimmer', x: 240, y: 95, w: 430, h: 330, typ: 'phasen', zustand: 'frau_phase',
-      treffer: { x: 240, y: 192, w: 430, h: 233 },
+      treffer: { x: 240, y: 192, w: 460, h: 250 },
       nichtWenn: 'anfisa_weg', label: 'Die Frau im Sessel', sprecher: 'Anfisa',
       // Solange der Fernseher aus ist, sitzt sie auf. Weiterklicken darf sie
       // dann nicht in die schlafende Phase 0 zurückfallen lassen.
@@ -1913,7 +1913,15 @@
     const teilEl = ziel.closest && ziel.closest('.teil');
     if (zustand.gewaehlt) {
       const t = teilEl ? TEILE.find(x => x.id === teilEl.dataset.teil) : null;
-      if (!t) { waehle(null, true); return; }   // daneben getippt: Gegenstand wieder weglegen
+      if (!t) {
+        // Daneben getippt. Früher wanderte der Gegenstand stumm zurück, das
+        // sah aus, als wäre das Spiel kaputt. Jetzt sagt Aci, was los ist.
+        const name = (GEGENSTAENDE.find(g => g.id === zustand.gewaehlt) || {}).name || 'Das';
+        waehle(null, true);
+        klang('fehler');
+        sag(name + ' wieder im Rucksack. Da war nichts, womit sich das benutzen lässt.');
+        return;
+      }
       benutze(zustand.gewaehlt, t);
       return;
     }
