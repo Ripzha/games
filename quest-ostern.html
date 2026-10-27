@@ -354,6 +354,9 @@
     { id: 'tisch_nah',  istNah: true, name: 'Couchtisch',      bild: 'bilder/tisch-nah.webp',  breite: 1774, hoehe: 887 },
     { id: 'becken_nah', istNah: true, name: 'Waschbecken',      bild: 'bilder/becken-nah.webp', breite: 1774, hoehe: 887 },
     { id: 'kue_unten_nah', istNah: true, name: 'Unterschrank links', bild: 'bilder/kue-unten-nah.webp', breite: 1774, hoehe: 887 },
+    // Grundbild ist der Topf mit den Batterien. Sind sie genommen, deckt der
+    // Ausschnitt aus dem leeren Topf die Stelle ab.
+    { id: 'topf_nah',   istNah: true, name: 'Emailletopf', bild: 'bilder/topf-batterien.webp', breite: 1536, hoehe: 1024 },
     { id: 'wanne_nah',  istNah: true, name: 'Badewanne',        bild: 'bilder/wanne-nah.webp',  breite: 1774, hoehe: 887 },
     // Die Ente wird wie das Bild gewendet: erst in der Hand, dann der Bauch.
     { id: 'ente_vorn',  istNah: true, name: 'Gummiente', bild: 'bilder/ente-vorn.webp', breite: 925, hoehe: 940 },
@@ -371,7 +374,7 @@
       nimmt: 'batterien', setzt: 'lampe_bereit', verbraucht: true,
       antwort: 'Batterien drin. Jetzt tut sie wieder.',
       schaltet: 'lampe_an', nurWenn: 'lampe_bereit', fehlt: 'Tote Lampe. Da müssen Batterien rein.' },
-    { id: 'batterien',  symbol: '🔋', name: 'Batterien', text: 'Zwei Batterien. Sehen noch brauchbar aus.' },
+    { id: 'batterien',  symbol: '🔋', name: 'Batterien', text: 'Vier Batterien. Sehen noch brauchbar aus.' },
     { id: 'feuerzeug',  symbol: '🔥', name: 'Feuerzeug', text: 'Ein abgegriffenes Feuerzeug. Tut es noch.' },
     { id: 'sicherung',  symbol: '🧯', name: 'Sicherung', text: 'Eine Schraubsicherung aus Porzellan. Sieht unverbraucht aus.' },
     { id: 'hammer',     symbol: '🔨', name: 'Hammer',    text: 'Anfisas Hammer. Schwer, der Stiel ist speckig vom vielen Anfassen.' },
@@ -433,8 +436,7 @@
     { id: 'g_blau',    ansicht: 'garage1', x: 536,  y: 586, w: 170, h: 70,  typ: 'ausschnitt', zustand: 'blau_offen',   label: 'Blauer Rollcontainer',   nah: '' },
     { id: 'g_steck',   ansicht: 'garage1', x: 1096, y: 668, w: 215, h: 85,  typ: 'ausschnitt', zustand: 'steck_offen',  label: 'Steckschlüssel-Schublade', nah: '' },
     { id: 'g_wagen',   ansicht: 'garage1', x: 1330, y: 584, w: 318, h: 258, typ: 'ausschnitt', zustand: 'wagen_offen',  label: 'Roter Werkstattwagen',   nah: '' },
-    { id: 'g_batterien', ansicht: 'garage1', x: 1110, y: 676, w: 80, h: 62, typ: 'nehmen', zustand: 'batterien_weg',
-      gibt: 'batterien', sichtbarWenn: 'steck_offen', label: 'Batterien' },
+
     { id: 'g_sicherung', ansicht: 'garage1', x: 1480, y: 650, w: 88, h: 64, typ: 'nehmen', zustand: 'sicherung_genommen',
       gibt: 'sicherung', sichtbarWenn: 'wagen_offen', label: 'Sicherung' },
     { id: 'g_zettel',  ansicht: 'garage1', x: 1055, y: 12,  w: 180, h: 112, typ: 'info', label: 'Zeichnung an der Wand',
@@ -629,6 +631,9 @@
     // Noch als goldene Marke, solange es kein Bild von ihr im Schrank gibt.
     { id: 'k_lampe', ansicht: 'kue_unten_nah', x: 300, y: 585, w: 115, h: 85, typ: 'nehmen', zustand: 'lampe_weg',
       gibt: 'lampe', label: 'Taschenlampe' },
+    { id: 'kn_topf', ansicht: 'kue_unten_nah', x: 335, y: 205, w: 265, h: 190, typ: 'naehe', nah: 'topf_nah', label: 'Emailletopf' },
+    { id: 'tn_batterien', ansicht: 'topf_nah', x: 400, y: 285, w: 730, h: 330, typ: 'nehmen', zustand: 'batterien_weg',
+      gibt: 'batterien', bildAus: 'bilder/topf-leer.webp', label: 'Batterien' },
     { id: 'k_ofen', ansicht: 'kueche', x: 848, y: 488, w: 200, h: 212, typ: 'ausschnitt', zustand: 'k_ofen_offen', label: 'Backofen',
       patch: 'bilder/kue-ofen-dunkel.webp', patchX: 841, patchY: 481, patchW: 214, patchH: 226,
       patchHell: 'bilder/kue-ofen-hell.webp', patchHellX: 841, patchHellY: 481, patchHellW: 214, patchHellH: 226 },
