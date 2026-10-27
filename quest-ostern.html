@@ -88,7 +88,7 @@
   /* ---------- Modale ---------- */
   .modal { position: absolute; inset: 0; background: rgba(5,10,7,0.78); display: none; align-items: center; justify-content: center; z-index: 30; padding: 20px; }
   .modal.show { display: flex; }
-  .modal-box { background: var(--cream); color: var(--tinte); border-radius: 14px; padding: 22px; max-width: 440px; width: 100%; box-shadow: 0 20px 60px rgba(0,0,0,0.6); }
+  .modal-box { background: var(--cream); color: var(--tinte); border-radius: 14px; padding: 22px; max-width: 440px; width: 100%; max-height: 82vh; overflow-y: auto; box-shadow: 0 20px 60px rgba(0,0,0,0.6); }
   .modal-box h3 { font-family: var(--serif); margin: 0 0 8px; font-weight: 500; font-size: 20px; }
   .modal-box p { margin: 0 0 12px; line-height: 1.55; font-size: 14.5px; }
   .modal-box .frage { font-family: var(--serif); font-style: italic; font-size: 16px; color: #2e3e28; background: #e8e0c8; padding: 12px 14px; border-radius: 8px; margin-bottom: 14px; }
@@ -743,7 +743,23 @@
     { id: 'pc_d04', ansicht: 'pc_nah', x: 961, y: 358, w: 92, h: 110, typ: 'datei', ordner: 'fische', zustand: 'pc_d04_weg',
       nichtWenn: 'pc_d04_weg', zeichnung: pcSymbol(961, 358, 'datei', 'tintenfische.doc', null, 11),
       label: 'tintenfische.doc', titel: 'tintenfische.doc',
-      text: 'Fakten über Tintenfische. Auffällig viel davon über die Paarung, über das Sterben danach und über Fortpflanzungsorgane, die sich ablösen und alleine weiterschwimmen.' },
+      text: 'Tintenfische haben drei Herzen.\n\n'
+          + '- Beim Schwimmen hört eines davon fast auf zu schlagen.\n'
+          + '- Die Saugnäpfe können schmecken.\n'
+          + '- Ein grosser Teil ihrer Nervenzellen sitzt in den Armen.\n'
+          + '- Ein abgetrennter Arm kann noch eine Weile reagieren.\n'
+          + '- Kraken können Menschen unterscheiden.\n'
+          + '- Manche werfen Sachen nach Menschen, die sie nicht mögen.\n'
+          + '- Krakenmännchen haben einen speziellen Paarungsarm.\n'
+          + '- Bei manchen Arten kann der Paarungsarm abbrechen und im Weibchen bleiben.\n'
+          + '- Früher dachte man deshalb, der Arm wäre ein Parasit.\n'
+          + '- Manche Männchen bleiben beim Sex möglichst weit vom Weibchen weg, weil es sie sonst fressen kann.\n'
+          + '- Kleinere Männchen mancher Arten sehen absichtlich wie Weibchen aus, damit grössere Männchen sie in Ruhe lassen.\n'
+          + '- Weibchen können Sperma speichern.\n'
+          + '- Krakenweibchen hören beim Bewachen ihrer Eier oft auf zu fressen.\n'
+          + '- Nach der Fortpflanzung sterben viele Kraken.\n'
+          + '- Wenn der Schnabel durch ein Loch passt, passt meistens der ganze Krake durch.\n'
+          + '- Kraken träumen wahrscheinlich und wechseln dabei manchmal die Farbe.' },
     { id: 'pc_d05', ansicht: 'pc_nah', x: 1063, y: 140, w: 92, h: 110, typ: 'datei', ordner: 'kram', zustand: 'pc_d05_weg',
       nichtWenn: 'pc_d05_weg', zeichnung: pcSymbol(1063, 140, 'datei', 'passwoerter_alt.txt', null, -9),
       label: 'passwoerter_alt.txt', titel: 'passwoerter_alt.txt',
