@@ -121,6 +121,11 @@
   .back-zutat.weg { opacity: 0; pointer-events: none; transition: opacity 0.4s, transform 0.4s;
                     transform: translate(-50%, -50%) scale(0.3); }
   .back-sagt { max-width: 700px; margin: 16px auto 0; font-size: 15px; line-height: 1.6; min-height: 3em; }
+  .info-liste { display: flex; flex-direction: column; gap: 6px; margin: 4px 0 14px; }
+  .info-liste button { background: #e8e0c8; border: 1px solid #c3b894; color: var(--tinte);
+    font: inherit; font-size: 14.5px; text-align: left; padding: 9px 12px; border-radius: 7px; cursor: pointer; }
+  .info-liste button:hover { background: #ddd3b4; }
+  .info-liste button.zurueck { background: transparent; border-style: dashed; }
   .ende-bild { width: 100%; max-width: 560px; border-radius: 12px; margin: 0 auto 18px; display: block; box-shadow: 0 10px 30px rgba(0,0,0,0.45); }
   .ergebnis-zahl { font-family: var(--serif); font-size: 44px; color: var(--gold-hell); margin: 0; }
   .ergebnis-label { color: var(--himmel-text); font-size: 13px; margin: 0 0 18px; }
@@ -243,6 +248,7 @@
       <h3 id="info-titel"></h3>
       <img id="info-bild" alt="" style="display:none;width:100%;border-radius:8px;margin:0 0 10px"/>
       <p id="info-text"></p>
+      <div class="info-liste" id="info-liste"></div>
       <div class="knopf-reihe"><button class="knopf sekundaer" id="info-zu">Weglegen</button></div>
     </div>
   </div>
@@ -760,10 +766,14 @@
         <rect x="116" y="756" width="36" height="36" rx="6" fill="#6b7d55"/>
         <rect x="168" y="756" width="36" height="36" rx="6" fill="#8a5f3f"/>
         <text x="1700" y="782" font-size="22" fill="#cfd8e6" text-anchor="end" font-family="sans-serif">23:14</text></g>` },
-    { id: 'pc_korb', ansicht: 'pc_nah', x: 1470, y: 230, w: 92, h: 110, typ: 'info',
-      zeichnung: pcSymbol(1470, 230, 'korb', 'Papierkorb'),
-      label: 'Papierkorb', titel: 'Papierkorb',
-      text: 'Drei gelöschte Dateien liegen noch drin.\n\nhausaufgaben_final.odt, hausaufgaben_final2.odt, hausaufgaben_wirklich_final.odt' },
+    // Der Papierkorb ist ein Ziel wie ein Ordner. Was schon drinliegt, steht in schon.
+    { id: 'pc_korb', ansicht: 'pc_nah', x: 1470, y: 230, w: 92, h: 110, typ: 'ordner', ordner: 'korb',
+      fertig: 'pc_sortiert', zeichnung: pcSymbol(1470, 230, 'korb', 'Papierkorb'), label: 'Papierkorb',
+      schon: [
+        { label: 'hausaufgaben_final.odt', text: 'Gelöscht. Lässt sich nicht öffnen.' },
+        { label: 'hausaufgaben_final2.odt', text: 'Gelöscht. Lässt sich nicht öffnen.' },
+        { label: 'hausaufgaben_wirklich_final.odt', text: 'Gelöscht. Lässt sich nicht öffnen.' }
+      ] },
 
 
     // Siebenundzwanzig lose Dateien, kreuz und quer und leicht verdreht. Was
@@ -774,7 +784,7 @@
       nichtWenn: 'pc_d01_weg', zeichnung: pcSymbol(221, 123, 'datei', 'fische.doc', null, -11),
       label: 'fische.doc', titel: 'fische.doc',
       text: 'Eine lange Liste mit Fischarten. Daneben Notizen zu Verhalten und Fortpflanzung, und bei manchen Arten dasselbe nochmal, nur ausführlicher.' },
-    { id: 'pc_d02', ansicht: 'pc_nah', x: 368, y: 402, w: 92, h: 110, typ: 'datei', ordner: 'fische', zustand: 'pc_d02_weg',
+    { id: 'pc_d02', ansicht: 'pc_nah', x: 368, y: 402, w: 92, h: 110, typ: 'datei', ordner: 'korb', zustand: 'pc_d02_weg',
       nichtWenn: 'pc_d02_weg', zeichnung: pcSymbol(368, 402, 'datei', 'fische2.doc', null, 11),
       label: 'fische2.doc', titel: 'fische2.doc',
       text: 'Lässt sich nicht öffnen.' },
@@ -814,15 +824,15 @@
       nichtWenn: 'pc_d05_weg', zeichnung: pcSymbol(1063, 140, 'datei', 'passwoerter_alt.txt', null, -9),
       label: 'passwoerter_alt.txt', titel: 'passwoerter_alt.txt',
       text: 'schulkonto:\naci2004\nschulkonto neu:\naci2004!\n\nmail:\nrocheN8381!\n\nsteam:\ntintenfisch_1\n\nbibliothek:\naci2004bibliothek\n\nprivat:\nwand, licht aus' },
-    { id: 'pc_d06', ansicht: 'pc_nah', x: 1392, y: 364, w: 92, h: 110, typ: 'datei', ordner: 'kram', zustand: 'pc_d06_weg',
+    { id: 'pc_d06', ansicht: 'pc_nah', x: 1392, y: 364, w: 92, h: 110, typ: 'datei', ordner: 'korb', zustand: 'pc_d06_weg',
       nichtWenn: 'pc_d06_weg', zeichnung: pcSymbol(1392, 364, 'kaputt', 'vaas_idiot.png', null, -11),
       bildgross: PC_KAPUTT,
       label: 'vaas_idiot.png', titel: 'vaas_idiot.png' },
-    { id: 'pc_d07', ansicht: 'pc_nah', x: 507, y: 474, w: 92, h: 110, typ: 'datei', ordner: 'kram', zustand: 'pc_d07_weg',
+    { id: 'pc_d07', ansicht: 'pc_nah', x: 507, y: 474, w: 92, h: 110, typ: 'datei', ordner: 'korb', zustand: 'pc_d07_weg',
       nichtWenn: 'pc_d07_weg', zeichnung: pcSymbol(507, 474, 'datei', 'neu_neu_richtig.doc', null, -11),
       label: 'neu_neu_richtig.doc', titel: 'neu_neu_richtig.doc',
       text: 'Lässt sich nicht öffnen.' },
-    { id: 'pc_d08', ansicht: 'pc_nah', x: 1075, y: 492, w: 92, h: 110, typ: 'datei', ordner: 'kram', zustand: 'pc_d08_weg',
+    { id: 'pc_d08', ansicht: 'pc_nah', x: 1075, y: 492, w: 92, h: 110, typ: 'datei', ordner: 'korb', zustand: 'pc_d08_weg',
       nichtWenn: 'pc_d08_weg', zeichnung: pcSymbol(1075, 492, 'datei', 'neu_richtig2.doc', null, -3),
       label: 'neu_richtig2.doc', titel: 'neu_richtig2.doc',
       text: 'Lässt sich nicht öffnen.' },
@@ -855,11 +865,11 @@
       nichtWenn: 'pc_d11_weg', zeichnung: pcSymbol(646, 82, 'foto', 'pudel.jpg', 'bilder/pc-pudel.webp', -5),
       bildgross: 'bilder/pc-pudel.webp',
       label: 'pudel.jpg', titel: 'pudel.jpg' },
-    { id: 'pc_d12', ansicht: 'pc_nah', x: 862, y: 313, w: 92, h: 110, typ: 'datei', ordner: 'kram', zustand: 'pc_d12_weg',
+    { id: 'pc_d12', ansicht: 'pc_nah', x: 862, y: 313, w: 92, h: 110, typ: 'datei', ordner: 'korb', zustand: 'pc_d12_weg',
       nichtWenn: 'pc_d12_weg', zeichnung: pcSymbol(862, 313, 'musik', 'musik.mp3', null, -3),
       label: 'musik.mp3', titel: 'musik.mp3',
       text: 'Lässt sich nicht öffnen. Falsches Programm.' },
-    { id: 'pc_d13', ansicht: 'pc_nah', x: 1114, y: 115, w: 92, h: 110, typ: 'datei', ordner: 'kram', zustand: 'pc_d13_weg',
+    { id: 'pc_d13', ansicht: 'pc_nah', x: 1114, y: 115, w: 92, h: 110, typ: 'datei', ordner: 'korb', zustand: 'pc_d13_weg',
       nichtWenn: 'pc_d13_weg', zeichnung: pcSymbol(1114, 115, 'datei', 'nicht_loeschen.zip', null, -3),
       label: 'nicht_loeschen.zip', titel: 'nicht_loeschen.zip',
       text: 'Lässt sich nicht öffnen. Beschädigtes Archiv.' },
@@ -1364,12 +1374,36 @@
   }
 
   // Info-Fenster mit Titel, Text und wahlweise einem Bild
-  function infoFenster(titel, text, bild) {
+  function infoFenster(titel, text, bild, liste) {
     document.getElementById('info-titel').textContent = titel;
     document.getElementById('info-text').textContent = text;
     const img = document.getElementById('info-bild');
     if (bild) { img.src = bild; img.style.display = ''; } else { img.removeAttribute('src'); img.style.display = 'none'; }
+    const box = document.getElementById('info-liste');
+    box.innerHTML = '';
+    (liste || []).forEach(e => {
+      const b = document.createElement('button');
+      b.textContent = e.label;
+      if (e.zurueck) b.className = 'zurueck';
+      b.onclick = e.tu;
+      box.appendChild(b);
+    });
     document.getElementById('info-modal').classList.add('show');
+  }
+
+  // Ordner auf Acis Schreibtisch: zeigt, was drinliegt, und lässt es nochmal öffnen
+  function ordnerFenster(t) {
+    const drin = TEILE.filter(x => x.ansicht === t.ansicht && x.typ === 'datei'
+      && x.ordner === t.ordner && zustand.offen[x.zustand]);
+    const liste = drin.map(x => ({ label: x.label, tu: () => dateiFenster(x, t) }));
+    (t.schon || []).forEach(e => liste.push({ label: e.label, tu: () => infoFenster(e.label, e.text, null,
+      [{ label: '← zurück in den Ordner', zurueck: true, tu: () => ordnerFenster(t) }]) }));
+    infoFenster('Ordner „' + t.label + '"',
+      liste.length ? '' : 'Leer. Erst eine Datei antippen, dann den Ordner.', null, liste);
+  }
+  function dateiFenster(x, ordner) {
+    infoFenster(x.titel || x.label, x.text || '', x.bildgross,
+      ordner ? [{ label: '← zurück in den Ordner', zurueck: true, tu: () => ordnerFenster(ordner) }] : null);
   }
 
   // Auf Acis Schreibtisch aufgenommene Datei. Liegt ausserhalb von zustand,
@@ -2456,19 +2490,12 @@
           speichern();
           return;
         }
-        infoFenster(t.titel || t.label, t.text || '', t.bildgross);
+        dateiFenster(t);
         return;
       }
       // Zielordner: nimmt nur Dateien, die zu ihm gehören
       case 'ordner': {
-        if (!pcGewaehlt) {
-          // Ohne Datei in der Hand zeigt der Ordner, was schon drinliegt
-          const drin = TEILE.filter(x => x.ansicht === t.ansicht && x.typ === 'datei'
-            && x.ordner === t.ordner && zustand.offen[x.zustand]).map(x => x.label);
-          infoFenster('Ordner „' + t.label + '"',
-            drin.length ? drin.join('\n') : 'Leer. Erst eine Datei antippen, dann den Ordner.');
-          return;
-        }
+        if (!pcGewaehlt) { ordnerFenster(t); return; }
         const datei = TEILE.find(x => x.id === pcGewaehlt);
         if (!datei) { pcGewaehlt = null; pcMarkiere(null); return; }
         if (datei.ordner !== t.ordner) {
