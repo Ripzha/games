@@ -453,6 +453,10 @@
     { id: 'ki_feuerzeug', ansicht: 'kiste_nah', x: 478, y: 558, w: 410, h: 219, typ: 'nehmen', zustand: 'feuerzeug_weg',
       gibt: 'feuerzeug', label: 'Feuerzeug',
       patch: 'bilder/kiste-feuerzeug.webp', patchNicht: true, patchX: 483, patchY: 563, patchW: 400, patchH: 209 },
+    // Die Taschenlampe liegt links daneben im Kistenboden. Noch als goldene
+    // Marke, ein Bild von ihr gibt es nicht.
+    { id: 'ki_lampe', ansicht: 'kiste_nah', x: 170, y: 560, w: 250, h: 190, typ: 'nehmen', zustand: 'lampe_weg',
+      gibt: 'lampe', label: 'Taschenlampe' },
     // Hinter der geschlossenen Tür ist es dunkel, solange im Treppenhaus kein Licht brennt
     { id: 'g2_fenster', ansicht: 'garage2', x: 1162, y: 242, w: 130, h: 186, typ: 'overlay',
       nichtWenn: 'th_licht,g2_tuer_offen', label: 'Türfenster',
@@ -629,8 +633,6 @@
       patchHell: 'bilder/kue-unten-links-hell.webp', patchHellX: 363, patchHellY: 485, patchHellW: 392, patchHellH: 224 },
     // Die Taschenlampe liegt jetzt in der Nahaufnahme, nicht mehr im Raumbild.
     // Noch als goldene Marke, solange es kein Bild von ihr im Schrank gibt.
-    { id: 'k_lampe', ansicht: 'kue_unten_nah', x: 300, y: 585, w: 115, h: 85, typ: 'nehmen', zustand: 'lampe_weg',
-      gibt: 'lampe', label: 'Taschenlampe' },
     { id: 'kn_topf', ansicht: 'kue_unten_nah', x: 335, y: 205, w: 265, h: 190, typ: 'naehe', nah: 'topf_nah', label: 'Emailletopf' },
     { id: 'tn_batterien', ansicht: 'topf_nah', x: 400, y: 285, w: 730, h: 330, typ: 'nehmen', zustand: 'batterien_weg',
       gibt: 'batterien', bildAus: 'bilder/topf-leer.webp', label: 'Batterien' },
