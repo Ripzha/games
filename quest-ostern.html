@@ -312,17 +312,15 @@
     { id: 'treppenhaus', name: 'Treppenhaus', start: 'treppenhaus', gesperrtBis: null, imMenu: false },
     { id: 'wohnzimmer', name: 'Wohnzimmer', start: 'wohnzimmer', gesperrtBis: null },
     { id: 'kueche',     name: 'Küche',      start: 'kueche',     gesperrtBis: null },
-    // Acis Zimmer. Vorerst nur über den Knopf oben erreichbar — im Flur sind
-    // alle drei Türen schon vergeben.
-    { id: 'acizimmer',  name: 'Acis Zimmer', start: 'acizimmer', gesperrtBis: null },
+    // Acis Zimmer liegt hinter der linken Flurtür, wo vorher die Kammer war.
+    { id: 'acizimmer',  name: 'Acis Zimmer', start: 'acizimmer', gesperrtBis: null, imMenu: false },
     // Flur und Dachboden sind Durchgangsräume: nur über Wege erreichbar,
     // nicht über die Knöpfe oben. Beide warten noch auf ihre Bilder.
     { id: 'flur',      name: 'Flur',      start: 'flur',      gesperrtBis: null, imMenu: false },
     { id: 'dachboden',   name: 'Dachboden',   start: 'dachboden',   gesperrtBis: null, imMenu: false },
     // Die drei Zimmer am Flur. Bilder fehlen noch, darum Platzhalter-Geometrie.
     { id: 'schlafzimmer', name: 'Schlafzimmer', start: 'schlafzimmer', gesperrtBis: null, imMenu: false },
-    { id: 'bad',          name: 'Bad',          start: 'bad',          gesperrtBis: null, imMenu: false },
-    { id: 'kammer',       name: 'Kammer',       start: 'kammer',       gesperrtBis: null, imMenu: false }
+    { id: 'bad',          name: 'Bad',          start: 'bad',          gesperrtBis: null, imMenu: false }
   ];
 
   const ANSICHTEN = [
@@ -345,7 +343,6 @@
       lampeWenn: 'lampe_an', lampeRadius: 160 },
     { id: 'schlafzimmer', raum: 'schlafzimmer', name: 'Anfisas Schlafzimmer', bild: 'bilder/schlafzimmer.webp', breite: 1774, hoehe: 887 },
     { id: 'bad', raum: 'bad', name: 'Bad', bild: 'bilder/bad.webp', breite: 1774, hoehe: 887 },
-    { id: 'kammer',       raum: 'kammer',       name: 'Kammer',       bild: '' },
     // Nahansichten von Gegenständen, die man in die Hand nimmt.
     // istNah: true = gehört zu keinem Raum, wird über das Inventar geöffnet.
     { id: 'bild_vorn',   istNah: true, name: 'Landschaftsbild — Vorderseite', bild: 'bilder/bild-vorn.webp',      breite: 1402, hoehe: 912 },
@@ -432,8 +429,8 @@
       wennOffen: ['luke_geknackt', 'luke_offen'], label: 'die Leiter hinauf' },
     // Die drei Zimmer. Durch die hintere Tür kommt man nicht, solange die Leiter
     // davorsteht — dann muss man die Luke erst wieder zuklappen.
-    { von: 'flur', nach: 'kammer', art: 'rein', pfeil: 'links', x: 262, y: 120, w: 110, h: 600,
-      wennOffen: 'fl_links_offen', label: 'in die Kammer' },
+    { von: 'flur', nach: 'acizimmer', art: 'rein', pfeil: 'links', x: 262, y: 120, w: 110, h: 600,
+      wennOffen: 'fl_links_offen', label: 'in Acis Zimmer' },
     { von: 'flur', nach: 'bad', art: 'rein', pfeil: 'rechts', x: 1340, y: 120, w: 130, h: 620,
       wennOffen: 'fl_rechts_offen', label: 'ins Bad' },
     // Der Durchgang liegt unten auf der Schwelle, nicht mitten auf dem Türblatt —
@@ -442,7 +439,7 @@
       wennOffen: 'fl_ende_offen', wennZu: 'luke_offen', label: 'in Anfisas Zimmer' },
     { von: 'schlafzimmer', nach: 'flur', art: 'unten', label: 'zurück in den Flur' },
     { von: 'bad',          nach: 'flur', art: 'unten', label: 'zurück in den Flur' },
-    { von: 'kammer',       nach: 'flur', art: 'unten', label: 'zurück in den Flur' },
+    { von: 'acizimmer',    nach: 'flur', art: 'unten', label: 'zurück in den Flur' },
     { von: 'dachboden', nach: 'flur',      art: 'unten', label: 'hinunter in den Flur' },
     // Bild in der Hand wenden
     { von: 'bild_vorn',   nach: 'bild_hinten', art: 'wenden', label: '↻ Umdrehen' },
@@ -762,7 +759,7 @@
     // Die drei Türen im Flur. Wohin sie führen, ist noch offen — vorerst gehen
     // sie nur auf und zu und geben den Blick in die Zimmer frei.
     { id: 'fl_tuer_links', ansicht: 'flur', x: 258, y: 40, w: 200, h: 760, typ: 'ausschnitt',
-      zustand: 'fl_links_offen', klang: 'holz', label: 'Tür zur Kammer',
+      zustand: 'fl_links_offen', klang: 'holz', label: 'Tür zu Acis Zimmer',
       patch: 'bilder/flur-tuer-links.webp', patchX: 253, patchY: 13, patchW: 216, patchH: 874 },
     // Nur das Türblatt bis oberhalb der Schwelle: darunter sitzt der Durchgang.
     { id: 'fl_tuer_ende', ansicht: 'flur', x: 740, y: 265, w: 160, h: 330, typ: 'ausschnitt',
@@ -1016,12 +1013,6 @@
         <rect x="260" y="420" width="320" height="200" rx="18" fill="#f0f0ea"/>
         <rect x="900" y="300" width="420" height="400" rx="20" fill="#e4e8e4"/>
         <text x="800" y="150" font-size="26" fill="#3a4a42" text-anchor="middle" font-family="sans-serif">Bad — Bild fehlt noch</text>`;
-      case 'kammer': return `
-        <rect width="1600" height="900" fill="#6a5a46"/>
-        <rect y="700" width="1600" height="200" fill="#4a3826"/>
-        <rect x="420" y="360" width="560" height="340" fill="#7a5a3a"/>
-        <rect x="1080" y="300" width="240" height="400" fill="#5a4a38"/>
-        <text x="800" y="150" font-size="26" fill="#e8d8b8" text-anchor="middle" font-family="sans-serif">Kammer — Bild fehlt noch</text>`;
       case 'dachboden': return `
         <rect width="1600" height="900" fill="#1e2024"/>
         <rect y="700" width="1600" height="200" fill="#2a2c30"/>
