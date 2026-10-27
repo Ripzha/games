@@ -353,6 +353,7 @@
     { id: 'sessel_nah', istNah: true, name: 'Anfisas Sessel', bild: 'bilder/sessel-nah.webp', breite: 1774, hoehe: 887 },
     { id: 'tisch_nah',  istNah: true, name: 'Couchtisch',      bild: 'bilder/tisch-nah.webp',  breite: 1774, hoehe: 887 },
     { id: 'becken_nah', istNah: true, name: 'Waschbecken',      bild: 'bilder/becken-nah.webp', breite: 1774, hoehe: 887 },
+    { id: 'kue_unten_nah', istNah: true, name: 'Unterschrank links', bild: 'bilder/kue-unten-nah.webp', breite: 1774, hoehe: 887 },
     { id: 'wanne_nah',  istNah: true, name: 'Badewanne',        bild: 'bilder/wanne-nah.webp',  breite: 1774, hoehe: 887 },
     // Die Ente wird wie das Bild gewendet: erst in der Hand, dann der Bauch.
     { id: 'ente_vorn',  istNah: true, name: 'Gummiente', bild: 'bilder/ente-vorn.webp', breite: 925, hoehe: 940 },
@@ -617,11 +618,17 @@
     { id: 'k_ober_rechts', ansicht: 'kueche', x: 1015, y: 50, w: 357, h: 252, typ: 'ausschnitt', zustand: 'k_ober_rechts_offen', label: 'Oberschränke rechts',
       patch: 'bilder/kue-ober-rechts-dunkel.webp', patchX: 1008, patchY: 43, patchW: 371, patchH: 266,
       patchHell: 'bilder/kue-ober-rechts-hell.webp', patchHellX: 1008, patchHellY: 43, patchHellW: 371, patchHellH: 266 },
+    // Zweites Antippen geht in die Nahaufnahme — aber nur bei Licht, sonst
+    // stünde man vor einem schwarzen Loch.
     { id: 'k_unten_links', ansicht: 'kueche', x: 370, y: 492, w: 378, h: 210, typ: 'ausschnitt', zustand: 'k_unten_links_offen', label: 'Unterschrank links',
+      nah: 'kue_unten_nah', nahWenn: 'kueche_licht',
+      nahFehlt: 'Da drin ist es schwarz. Näher ranzugehen bringt nichts, solange kein Licht brennt.',
       patch: 'bilder/kue-unten-links-dunkel.webp', patchX: 363, patchY: 485, patchW: 392, patchH: 224,
       patchHell: 'bilder/kue-unten-links-hell.webp', patchHellX: 363, patchHellY: 485, patchHellW: 392, patchHellH: 224 },
-    { id: 'k_lampe', ansicht: 'kueche', x: 400, y: 530, w: 110, h: 80, typ: 'nehmen', zustand: 'lampe_weg',
-      gibt: 'lampe', sichtbarWenn: ['k_unten_links_offen', 'kueche_licht'], label: 'Taschenlampe' },
+    // Die Taschenlampe liegt jetzt in der Nahaufnahme, nicht mehr im Raumbild.
+    // Noch als goldene Marke, solange es kein Bild von ihr im Schrank gibt.
+    { id: 'k_lampe', ansicht: 'kue_unten_nah', x: 300, y: 585, w: 115, h: 85, typ: 'nehmen', zustand: 'lampe_weg',
+      gibt: 'lampe', label: 'Taschenlampe' },
     { id: 'k_ofen', ansicht: 'kueche', x: 848, y: 488, w: 200, h: 212, typ: 'ausschnitt', zustand: 'k_ofen_offen', label: 'Backofen',
       patch: 'bilder/kue-ofen-dunkel.webp', patchX: 841, patchY: 481, patchW: 214, patchH: 226,
       patchHell: 'bilder/kue-ofen-hell.webp', patchHellX: 841, patchHellY: 481, patchHellW: 214, patchHellH: 226 },
@@ -1698,6 +1705,8 @@
       case 'ausschnitt':
         // Offen -> mit Nahaufnahme: näher ran. Ohne Nahaufnahme: zweites Antippen schliesst wieder.
         if (zustand.offen[t.zustand] && t.nah) {
+          // nahWenn: ohne diesen Zustand gibt es nichts zu sehen
+          if (t.nahWenn && !zustand.offen[t.nahWenn]) { sag(t.nahFehlt || 'Da gibt es nichts zu sehen.'); return; }
           geheZu(t.nah);
         } else {
           zustand.offen[t.zustand] = !zustand.offen[t.zustand];
@@ -1723,6 +1732,7 @@
         aktualisiereSichtbarkeit(); speichern();
         break;
       case 'naehe':
+        if (t.nahWenn && !zustand.offen[t.nahWenn]) { sag(t.nahFehlt || 'Da gibt es nichts zu sehen.'); return; }
         if (t.nah) geheZu(t.nah);
         return;
       case 'overlay':
