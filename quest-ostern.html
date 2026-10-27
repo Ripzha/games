@@ -565,8 +565,8 @@
       // 1 = aufgeschreckt (wz-frau-wach.webp), 0 = schlafend (Grundbild).
       setztPhase: { zustand: 'frau_phase', an: 1, aus: 0, nichtWenn: 'anfisa_weg' },
       sprecher: 'Anfisa', sagtNichtWenn: 'anfisa_weg',
-      sagtAn:  '„Hey!" Sie richtet sich halb auf. „Das war mein Film. Mach wieder an."',
-      sagtAus: '„Nu also." Sie sinkt zurück. „Geht doch."' },
+      sagtAn:  '„Hey! Das war mein Film. Mach wieder an."',
+      sagtAus: '„Nu also. Geht doch."' },
     // --- Das Bild in der Hand, Rückseite ---
     { id: 'bi_fach', ansicht: 'bild_hinten', x: 510, y: 600, w: 570, h: 210, typ: 'ausschnitt', zustand: 'fach_offen',
       bildAus: 'bilder/bild-hinten-offen.webp', label: 'Fach in der Rückwand' },
@@ -581,21 +581,22 @@
       // Sie will beides: Schachtel und Feuerzeug. Und solange das Bild nicht
       // an der Wand hängt, nimmt sie gar nichts an.
       nimmt: ['kippen', 'feuerzeug'], setzt: 'anfisa_weg', verbraucht: true,
-      // Sie nimmt jedes Stück für sich an und richtet sich dabei auf. Welches
-      // zuerst kommt, ist egal — der Satz zum zweiten ist immer der letzte.
+      // Sie nimmt jedes Stück für sich an und richtet sich dabei auf. Das
+      // zeigt das Bild, es steht also nicht im Text. Welches Stück zuerst
+      // kommt, ist egal — der Satz zum zweiten ist immer der letzte.
       gabePhase: 1,
       einzeln: {
         kippen: { setzt: 'anfisa_kippen',
-          antwort: '„Papirossy." Sie richtet sich auf und dreht die Schachtel zweimal in der Hand. „Und womit soll ich die anzünden? Mit Blick?"' },
+          antwort: '„Papirossy. Und womit soll ich die anzünden? Mit Blick?"' },
         feuerzeug: { setzt: 'anfisa_feuer',
-          antwort: '„Feuer." Sie setzt sich gerade hin und lässt es einmal klicken. „Schön. Jetzt fehlt nur noch, was man damit anzündet."' }
+          antwort: '„Feuer. Schön. Und was soll ich damit anzünden, Luft?"' }
       },
-      antwort: '„Jetzt stimmt es." Sie steckt beides ein und stemmt sich hoch, langsam wie ein Schrank. „Dann setze ich Wasser auf. Ohne Tee schmeckt das nicht."',
+      antwort: '„Jetzt stimmt es. Dann setze ich Wasser auf. Ohne Tee schmeckt das nicht."',
       strafen: [
         { wenn: 'bild_ab', setzt: 'anfisa_sauer',
-          antwort: '„Stoj." Sie deutet mit dem Kinn zur Wand. „Da ist Loch. Mein Bild hing da. Solange das so aussieht, rühre ich mich nicht."' },
+          antwort: '„Stoj. Da ist Loch an der Wand. Mein Bild hing da. Solange das so aussieht, rühre ich mich nicht."' },
         { wenn: 'tv_aus',
-          antwort: '„Erst Fernseher wieder an." Sie verschränkt die Arme. „Bei Totenstille bleibe ich sitzen."' }
+          antwort: '„Erst Fernseher wieder an. Bei Totenstille bleibe ich sitzen."' }
       ],
       phasen: [
         { bild: '' },
