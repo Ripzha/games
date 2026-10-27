@@ -362,6 +362,9 @@
     // Ausschnitt aus dem leeren Topf die Stelle ab.
     { id: 'topf_nah',   istNah: true, name: 'Emailletopf', bild: 'bilder/topf-batterien.webp', breite: 1536, hoehe: 1024 },
     { id: 'wagen_nah', istNah: true, name: 'Werkstattwagen', bild: 'bilder/wagen-nah.webp', breite: 1774, hoehe: 887 },
+    // Tücher beiseite = bildOffen, Schachtel genommen = bildAus am Schachtel-Teil
+    { id: 'th_kiste_nah', istNah: true, name: 'Holzkiste', bild: 'bilder/th-kiste-nah.webp',
+      bildOffen: 'bilder/th-kiste-tuecher-weg.webp', breite: 1774, hoehe: 887 },
     // Umgedrehter Helm steckt in bildOffen, der leere Helm im bildAus der Lampe
     { id: 'regalwand_nah', istNah: true, name: 'Regalwand', bild: 'bilder/regalwand-nah.webp',
       bildOffen: 'bilder/regalwand-helm-um.webp', breite: 1774, hoehe: 887 },
@@ -508,12 +511,15 @@
       patch: 'bilder/th-tuer-dunkel.webp', patchX: 954, patchY: 14, patchW: 242, patchH: 407,
       patchHell: 'bilder/th-tuer-hell.webp', patchHellX: 954, patchHellY: 14, patchHellW: 242, patchHellH: 407 },
     { id: 'th_kiste', ansicht: 'treppenhaus', x: 1390, y: 440, w: 240, h: 175, typ: 'ausschnitt', zustand: 'th_kiste_offen', label: 'Holzkiste neben der Treppe',
+      nah: 'th_kiste_nah', nahWenn: 'th_licht',
+      nahFehlt: 'In der Kiste ist es finster. Ohne Licht siehst du da gar nichts.',
       patch: 'bilder/th-kiste-dunkel.webp', patchX: 1384, patchY: 434, patchW: 252, patchH: 187,
       patchHell: 'bilder/th-kiste-hell.webp', patchHellX: 1384, patchHellY: 434, patchHellW: 252, patchHellH: 187 },
-    // VORLÄUFIGER ORT der Zigarettenschachtel. Sobald klar ist, wo sie wirklich
-    // liegt, nur ansicht/x/y/w/h ändern. Ohne bildAus zeichnet das Spiel eine Marke.
-    { id: 'th_kippen', ansicht: 'treppenhaus', x: 1420, y: 520, w: 140, h: 65, typ: 'nehmen', zustand: 'kippen_weg',
-      gibt: 'kippen', sichtbarWenn: 'th_kiste_offen', label: 'Zigarettenschachtel' },
+    // --- Holzkiste von nahem ---
+    { id: 'tk_tuecher', ansicht: 'th_kiste_nah', x: 550, y: 315, w: 840, h: 465, typ: 'ausschnitt', zustand: 'th_tuecher_weg',
+      klang: 'stoff', label: 'Tücher' },
+    { id: 'tk_kippen', ansicht: 'th_kiste_nah', x: 935, y: 625, w: 180, h: 115, typ: 'nehmen', zustand: 'kippen_weg',
+      gibt: 'kippen', sichtbarWenn: 'th_tuecher_weg', bildAus: 'bilder/th-kiste-ohne-kippen.webp', label: 'Zigarettenschachtel' },
     // --- Wohnzimmer (Koordinaten im Bild 1774 x 887) ---
     // Ist der Hammer genommen, wird das ganze Raumbild getauscht statt nur ein
     // Stück davon. Das Bild ohne Hammer ist neu gerendert und weicht überall
@@ -836,7 +842,7 @@
     { id: 'e14', ansicht: 'kueche',     x: 1497, y: 272, r: 8,  farbe: '#e8d8bc', muster: 'punkte', ebene: 2, sichtbarWenn: ['k_kuehl_offen', 'kueche_licht'] },  // in der Eierablage im Kühlschrank
     { id: 'e15', ansicht: 'acizimmer',  x: 778,  y: 405, r: 9,  farbe: '#d08a5a', muster: 'zickzack', ebene: 2, sichtbarWenn: 'aci_schrank_offen' },  // auf dem Wäschestapel im Kleiderschrank
     // --- Ebene 3: nur nach Rätsel sichtbar ---
-    { id: 'e16', ansicht: 'tisch_nah',  x: 330,  y: 272, r: 20, farbe: '#c9b48a', muster: 'punkte',   ebene: 1, sichtbarWenn: null },  // in der Tasse auf dem Couchtisch, halb in der Milch
+    { id: 'e16', ansicht: 'tisch_nah',  x: 330,  y: 236, r: 31, farbe: '#c9b48a', muster: 'punkte',   ebene: 1, sichtbarWenn: null },  // steht in der Tasse auf dem Couchtisch, Unterkante knapp über dem Tassenrand-Flicken
     { id: 'e17', ansicht: 'kueche',     x: 955,  y: 602, r: 9,  farbe: '#5a4a38', muster: 'punkte', ebene: 2, sichtbarWenn: ['k_ofen_offen', 'kueche_licht'] },  // auf dem Rost im Backofen
     { id: 'e18', ansicht: 'acizimmer',  x: 348,  y: 580, r: 8,  farbe: '#5a4030', muster: 'zickzack', ebene: 2, sichtbarWenn: 'aci_tisch_offen' },  // in der Nachttischschublade
     { id: 'e19', ansicht: 'dachboden',  x: 330,  y: 650, r: 12, farbe: '#3a342c', muster: 'streifen', ebene: 2, sichtbarWenn: 'dach_kiste_offen' },
@@ -851,6 +857,7 @@
     { id: 'e26', ansicht: 'schlafzimmer', x: 1445, y: 592, r: 10, farbe: '#4e2c14', muster: 'zickzack', ebene: 2, sichtbarWenn: 'sz_frisier_offen' },     // in der Schublade am Frisiertisch
     { id: 'e27', ansicht: 'koffer_nah', x: 1245, y: 330, r: 22, farbe: '#c9b08a', muster: 'punkte', ebene: 2, sichtbarWenn: 'koffer_offen' },  // zwischen den Briefen im Koffer
     { id: 'e28', ansicht: 'aquarium_nah', x: 940, y: 710, r: 11, farbe: '#b8a884', muster: 'punkte', ebene: 2, sichtbarWenn: 'aq_kies' },  // im aufgewirbelten Kies im Aquarium
+    { id: 'e30', ansicht: 'th_kiste_nah', x: 1255, y: 635, r: 12, farbe: '#7a6a4e', muster: 'punkte', ebene: 2, sichtbarWenn: 'th_tuecher_weg' },  // in den Tuchfalten in der Holzkiste
     { id: 'e29', ansicht: 'schreibtisch_nah', x: 196, y: 702, r: 12, farbe: '#5f4a33', muster: 'streifen', ebene: 2, sichtbarWenn: 'sb_schrank_offen' }  // in der dunklen Ecke neben den Büchern im Schreibtischschrank
   ];
 
