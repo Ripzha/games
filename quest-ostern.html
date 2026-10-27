@@ -455,6 +455,17 @@
     { von: 'ente_nah',  nach: 'ente_vorn', art: 'wenden', label: '↻ Umdrehen' }
   ];
 
+  // Ein kaputtes Bild fürs Fenster, gezeichnet statt geladen
+  const PC_KAPUTT = 'data:image/svg+xml;utf8,' + encodeURIComponent(
+    '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 260">'
+    + '<rect width="400" height="260" fill="#3a4150"/>'
+    + '<path d="M0 0 H206 L178 60 L216 104 L170 160 L206 260 H0 Z" fill="#434b5c"/>'
+    + '<path d="M206 0 L178 60 L216 104 L170 160 L206 260" fill="none" stroke="#242a35" stroke-width="10" stroke-linejoin="round"/>'
+    + '<path d="M40 210 L96 150 L132 188 L104 210 Z" fill="#59616f"/>'
+    + '<circle cx="300" cy="70" r="26" fill="#59616f"/>'
+    + '<path d="M240 210 L300 142 L352 196 L330 210 Z" fill="#59616f"/>'
+    + '</svg>');
+
   const TEILE = [
     // --- Garage (Koordinaten im Bild 1774 x 887) ---
     // typ 'ausschnitt': Antippen blendet diesen Bereich aus bildOffen ein. nah = Bild der Nahaufnahme (später).
@@ -779,9 +790,9 @@
       label: 'passwoerter_alt.txt', titel: 'passwoerter_alt.txt',
       text: 'schulkonto:\naci2004\nschulkonto neu:\naci2004!\n\nmail:\nrocheN8381!\n\nsteam:\ntintenfisch_1\n\nbibliothek:\naci2004bibliothek\n\nprivat:\nwand, licht aus' },
     { id: 'pc_d06', ansicht: 'pc_nah', x: 1392, y: 364, w: 92, h: 110, typ: 'datei', ordner: 'kram', zustand: 'pc_d06_weg',
-      nichtWenn: 'pc_d06_weg', zeichnung: pcSymbol(1392, 364, 'bild', 'vaas_idiot.png', null, -11),
-      label: 'vaas_idiot.png', titel: 'vaas_idiot.png',
-      text: 'Ein Bildschirmfoto aus einem Chat. Vaas hat kompletten Scheiss geschrieben. Nichts markiert, nichts kommentiert.' },
+      nichtWenn: 'pc_d06_weg', zeichnung: pcSymbol(1392, 364, 'kaputt', 'vaas_idiot.png', null, -11),
+      bildgross: PC_KAPUTT,
+      label: 'vaas_idiot.png', titel: 'vaas_idiot.png' },
     { id: 'pc_d07', ansicht: 'pc_nah', x: 507, y: 474, w: 92, h: 110, typ: 'datei', ordner: 'kram', zustand: 'pc_d07_weg',
       nichtWenn: 'pc_d07_weg', zeichnung: pcSymbol(507, 474, 'datei', 'neu_neu_richtig.doc', null, -11),
       label: 'neu_neu_richtig.doc', titel: 'neu_neu_richtig.doc',
@@ -1315,6 +1326,11 @@
       musik:  `<rect x="14" y="8" width="64" height="68" rx="4" fill="#dfe3ea" stroke="#7d8490" stroke-width="2"/>
                <path d="M36 58 V24 L62 18 V52" fill="none" stroke="#4a5362" stroke-width="4" stroke-linecap="round"/>
                <circle cx="31" cy="59" r="7" fill="#4a5362"/><circle cx="57" cy="53" r="7" fill="#4a5362"/>`,
+      kaputt: `<rect x="10" y="12" width="72" height="60" rx="4" fill="#3a4150" stroke="#8d8471" stroke-width="2"/>
+               <path d="M46 12 L38 30 L52 40 L40 56 L48 72" fill="none" stroke="#1e232c" stroke-width="5" stroke-linejoin="round"/>
+               <path d="M46 12 L38 30 L52 40 L40 56 L48 72" fill="none" stroke="#6c7686" stroke-width="2" stroke-linejoin="round"/>
+               <path d="M16 62 L28 48 L36 56 L30 62 Z" fill="#5a6372"/>
+               <circle cx="64" cy="26" r="6" fill="#5a6372"/>`,
       korb:   `<path d="M22 20 L70 20 L64 78 L28 78 Z" fill="#9aa6b2" stroke="#5d6975" stroke-width="2"/>
                <path d="M18 14 H74" stroke="#5d6975" stroke-width="5" stroke-linecap="round"/>
                <path d="M38 10 H54" stroke="#5d6975" stroke-width="5" stroke-linecap="round"/>
