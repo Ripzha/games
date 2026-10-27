@@ -341,7 +341,8 @@
       bildOffen: 'bilder/aci-zimmer-offen.webp', breite: 1774, hoehe: 887 },
     { id: 'flur', raum: 'flur', name: 'Flur', bild: 'bilder/flur.webp', breite: 1774, hoehe: 887 },
     { id: 'dachboden', raum: 'dachboden', name: 'Dachboden', bild: 'bilder/dachboden.webp',
-      breite: 1774, hoehe: 887, lampeWenn: 'lampe_an', lampeRadius: 160 },
+      bildOffen: 'bilder/dachboden-offen.webp', breite: 1774, hoehe: 887,
+      lampeWenn: 'lampe_an', lampeRadius: 160 },
     { id: 'schlafzimmer', raum: 'schlafzimmer', name: 'Anfisas Schlafzimmer', bild: 'bilder/schlafzimmer.webp', breite: 1774, hoehe: 887 },
     { id: 'bad', raum: 'bad', name: 'Bad', bild: 'bilder/bad.webp', breite: 1774, hoehe: 887 },
     // Nahansichten von Gegenständen, die man in die Hand nimmt.
@@ -1019,8 +1020,21 @@
       nimmt: 'schluessel', setzt: 'koffer_offen',
       antwort: 'Der Schlüssel passt. Beide Schlösser springen auf.' },
     // --- Dachboden (noch Platzhalter-Geometrie) ---
-    // Platzhalter-Möbel sind raus, seit der Dachboden sein Bild hat. Wenn du
-    // hier etwas zum Öffnen willst, brauche ich ein zweites Bild dazu.
+    // Koffer und Truhe schneiden sich ihren Bereich aus dem Offen-Bild.
+    { id: 'd_koffer', ansicht: 'dachboden', x: 465, y: 500, w: 265, h: 280, typ: 'ausschnitt',
+      zustand: 'dach_koffer_offen', klang: 'holz', label: 'Alter Koffer' },
+    { id: 'd_truhe', ansicht: 'dachboden', x: 1270, y: 600, w: 320, h: 190, typ: 'ausschnitt',
+      zustand: 'dach_truhe_offen', klang: 'holz', label: 'Blechtruhe' },
+    // Das Sparschwein: nur der Hammer kriegt es auf. Der Flicken kommt aus dem
+    // dritten Bild, der Rest des Raums bleibt wie er ist.
+    { id: 'd_schwein_kaputt', ansicht: 'dachboden', x: 245, y: 288, w: 120, h: 90, typ: 'overlay',
+      zustand: 'schwein_kaputt', bildAus: 'bilder/dachboden-schwein.webp', label: 'Sparschwein' },
+    { id: 'd_schwein', ansicht: 'dachboden', x: 245, y: 288, w: 120, h: 90, typ: 'ziel',
+      nichtWenn: 'schwein_kaputt', label: 'Sparschwein',
+      nimmt: 'hammer', setzt: 'schwein_kaputt', klang: 'metall',
+      leer: 'Ein Sparschwein aus Ton. Es scheppert, wenn man es schüttelt, und unten ist kein Loch.',
+      fehlt: 'Mit blossen Händen kriegst du das nicht auf.',
+      antwort: 'Einmal kurz, und das Schwein ist hin. Zwischen den Scherben liegt etwas.' }
   ];
 
   // 20 Eier: 8 getarnt (Ebene 1), 7 verschlossen (Ebene 2), 5 Rätsel (Ebene 3)
@@ -1046,8 +1060,10 @@
     { id: 'e16', ansicht: 'tisch_nah',  x: 330,  y: 236, r: 31, farbe: '#c9b48a', muster: 'punkte',   ebene: 1, sichtbarWenn: null },  // steht in der Tasse auf dem Couchtisch, Unterkante knapp über dem Tassenrand-Flicken
     { id: 'e17', ansicht: 'kueche',     x: 955,  y: 602, r: 9,  farbe: '#5a4a38', muster: 'punkte', ebene: 2, sichtbarWenn: ['k_ofen_offen', 'kueche_licht'] },  // auf dem Rost im Backofen
     { id: 'e18', ansicht: 'acizimmer',  x: 348,  y: 580, r: 8,  farbe: '#5a4030', muster: 'zickzack', ebene: 2, sichtbarWenn: 'aci_tisch_offen' },  // in der Nachttischschublade
-    { id: 'e19', ansicht: 'dachboden',  x: 302,  y: 626, r: 15, farbe: '#3a342c', muster: 'streifen', ebene: 1, sichtbarWenn: null },  // auf der grossen Truhe vorne links
-    { id: 'e20', ansicht: 'dachboden',  x: 906,  y: 330, r: 13, farbe: '#55556a', muster: 'punkte', ebene: 1, sichtbarWenn: null },  // auf dem Fensterbrett zwischen den Krügen
+    { id: 'e19', ansicht: 'dachboden',  x: 545,  y: 676, r: 17, farbe: '#9a8358', muster: 'streifen', ebene: 1, sichtbarWenn: 'dach_koffer_offen' },  // im offenen Koffer
+    { id: 'e20', ansicht: 'dachboden',  x: 1378, y: 742, r: 16, farbe: '#8d7f63', muster: 'punkte', ebene: 1, sichtbarWenn: 'dach_truhe_offen' },  // in der offenen Blechtruhe
+    { id: 'e34', ansicht: 'dachboden',  x: 312,  y: 352, r: 14, farbe: '#c08a7a', muster: 'punkte', ebene: 1, sichtbarWenn: 'schwein_kaputt' },  // zwischen den Scherben des Sparschweins
+    { id: 'e35', ansicht: 'dachboden',  x: 836,  y: 306, r: 14, farbe: '#6d6253', muster: 'zickzack', ebene: 1, sichtbarWenn: null },  // getarnt zwischen den Krügen auf dem Tisch
     // --- Bad: getarnt, offen sichtbar ---
     { id: 'e21', ansicht: 'bad', x: 503,  y: 316, r: 10, farbe: '#6d3c12', muster: 'streifen', ebene: 1, sichtbarWenn: null },  // Ablage neben der Seife
     { id: 'e22', ansicht: 'bad', x: 938,  y: 412, r: 9,  farbe: '#4d3513', muster: 'punkte',   ebene: 1, sichtbarWenn: null },  // auf dem Spülkasten
@@ -2318,6 +2334,8 @@
       }
       case 'overlay':
       case 'ziel':
+        // Ohne Gegenstand in der Hand sagt das Ziel, was ihm fehlt
+        if (t.leer) sag(t.leer, t.sprecher || t.label);
         return;
       case 'phasen': {
         const anzahl = (t.phasen || []).length || 1;
