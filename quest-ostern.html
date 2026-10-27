@@ -584,6 +584,11 @@
       // Solange der Fernseher aus ist, sitzt sie auf. Weiterklicken darf sie
       // dann nicht in die schlafende Phase 0 zurückfallen lassen.
       mindestPhase: { wenn: ['tv_aus', 'anfisa_kippen', 'anfisa_feuer'], phase: 1 },
+      // Hat sie erst eins von beidem, sagt sie beim Antippen, was noch fehlt
+      sagtStatt: [
+        { wenn: ['anfisa_kippen'], nicht: ['anfisa_feuer'], text: '„Schachtel liegt hier. Feuer liegt nicht hier."' },
+        { wenn: ['anfisa_feuer'], nicht: ['anfisa_kippen'], text: '„Feuerzeug habe ich. Und was zünde ich damit an? Vorhang?"' }
+      ],
       // Sie will beides: Schachtel und Feuerzeug. Und solange das Bild nicht
       // an der Wand hängt, nimmt sie gar nichts an.
       nimmt: ['kippen', 'feuerzeug'], setzt: 'anfisa_weg', verbraucht: true,
@@ -600,7 +605,7 @@
       antwort: '„Jetzt stimmt es. Dann setze ich Wasser auf. Ohne Tee schmeckt das nicht."',
       strafen: [
         { wenn: 'bild_ab', setzt: 'anfisa_sauer',
-          antwort: '„Stoj. Da ist Loch an der Wand. Mein Bild hing da. Solange das so aussieht, rühre ich mich nicht."' },
+          antwort: '„Stoj. Da ist Loch an der Wand. Häng mein Bild zurück, dann reden wir."' },
         { wenn: 'tv_aus',
           antwort: '„Erst Fernseher wieder an. Bei Totenstille bleibe ich sitzen."' }
       ],
@@ -1676,6 +1681,12 @@
     const greift = strafen.find(x => zustand.offen[x.wenn]);
     if (greift) {
       if (greift.setzt) zustand.offen[greift.setzt] = true;
+      // Auch eine Absage soll man sehen: das Teil geht in seine Reaktionsphase,
+      // sonst wirkt es, als hätte der Tipp gar nichts getan.
+      if (teil.gabePhase != null && teil.zustand) {
+        zustand.offen[teil.zustand] = teil.gabePhase;
+        renderRaum();
+      }
       waehle(null, true); klang('fehler'); speichern();
       sag(greift.antwort || 'So nicht.', teil.sprecher || teil.label);
       return false;
@@ -1993,7 +2004,13 @@
         aktualisiereSichtbarkeit(); speichern();
         const ph = t.phasen[neu] || {};
         let spruch = ph.text;
-        if (ph.texte && ph.texte.length) {
+        // sagtStatt: Steht gerade etwas Bestimmtes an, sagt sie das statt eines
+        // Zufallsspruchs. So merkt man beim Antippen, was noch fehlt.
+        const lage = (t.sagtStatt || []).find(e =>
+          (e.wenn || []).every(k => zustand.offen[k]) &&
+          (e.nicht || []).every(k => !zustand.offen[k]));
+        if (lage) spruch = lage.text;
+        else if (ph.texte && ph.texte.length) {
           const schluessel = t.id + ':' + neu;
           const i = (spruchZaehler[schluessel] || 0) % ph.texte.length;
           spruchZaehler[schluessel] = i + 1;
