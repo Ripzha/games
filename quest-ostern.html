@@ -400,7 +400,7 @@
     // blatt: Mit der Lupe im Rucksack lässt sich der Zettel nochmal lesen
     { id: 'zettel',     symbol: '📄', name: 'Zettel',   text: 'Ein abgerissener Fetzen Papier.',
       blatt: { titel: 'Ein Fetzen Papier',
-               text: 'Die linke Hälfte fehlt, da ist das Papier abgerissen.\n\nZu lesen ist noch: … 3 9 2' } },
+               text: 'Die linke Hälfte fehlt, da ist das Papier abgerissen.\n\nZu lesen ist noch: … 9 2' } },
     { id: 'feuerzeug',  symbol: '🔥', name: 'Feuerzeug', text: 'Ein abgegriffenes Feuerzeug. Tut es noch.' },
     { id: 'sicherung',  symbol: '🧯', name: 'Sicherung', text: 'Eine Schraubsicherung aus Porzellan. Sieht unverbraucht aus.' },
     { id: 'hammer',     symbol: '🔨', name: 'Hammer',    text: 'Anfisas Hammer. Schwer, der Stiel ist speckig vom vielen Anfassen.' },
@@ -655,7 +655,7 @@
       zeichnung: `<g transform="translate(1000,315) rotate(-7)">
         <path d="M0 6 L14 0 L190 4 L205 18 L198 112 L182 126 L22 120 L4 104 Z" fill="#cdc0a2" stroke="#7e7459" stroke-width="1.5"/>
         <path d="M0 6 L10 22 L0 38 L12 54 L2 70 L12 86 L4 104" fill="none" stroke="#8a7f66" stroke-width="2"/>
-        <text x="62" y="86" font-family="Georgia, serif" font-size="44" fill="#3a3326" letter-spacing="7">392</text>
+        <text x="86" y="86" font-family="Georgia, serif" font-size="44" fill="#3a3326" letter-spacing="7">92</text>
         <path d="M40 28 L172 30 M40 42 L148 44" stroke="#9a9078" stroke-width="2" opacity="0.7"/>
       </g>` },
 
@@ -980,6 +980,19 @@
     { id: 'ba_wanne', ansicht: 'bad', x: 1090, y: 525, w: 380, h: 340, typ: 'naehe', nah: 'wanne_nah',
       nichtWenn: 'wanne_leer', label: 'Badewanne' },
     // --- Badewanne von nahem ---
+    // In den Bauch der Ente sind zwei Ziffern geritzt: der Anfang des Lukencodes.
+    // Die zweite Hälfte steht auf dem Zettel unter dem Sitzkissen.
+    { id: 'en_ziffer', ansicht: 'ente_nah', x: 350, y: 690, w: 240, h: 160, typ: 'overlay', label: 'Eingeritzte Ziffern',
+      zeichnung: `<g transform="rotate(-6,463,765)" style="pointer-events:none">
+        <g stroke="#8a6a2e" stroke-width="9" fill="none" stroke-linecap="round" stroke-linejoin="round" opacity="0.85">
+          <path d="M366 712 H456 L402 830"/>
+          <path d="M496 724 Q540 700 566 726 Q584 748 540 770 Q590 782 572 812 Q548 840 496 820"/>
+        </g>
+        <g stroke="#fff0bf" stroke-width="3.5" fill="none" stroke-linecap="round" stroke-linejoin="round" opacity="0.7">
+          <path d="M363 708 H453 L399 826"/>
+          <path d="M493 720 Q537 696 563 722 Q581 744 537 766 Q587 778 569 808 Q545 836 493 816"/>
+        </g>
+      </g>` },
     { id: 'wn_ente', ansicht: 'wanne_nah', x: 820, y: 330, w: 240, h: 230, typ: 'nehmen', zustand: 'ente_weg',
       gibt: 'ente', label: 'Gummiente',
       // Grundbild zeigt die Ente. Der Flicken ist das Wasser OHNE sie und kommt
