@@ -360,6 +360,8 @@
     // Grundbild ist der Topf mit den Batterien. Sind sie genommen, deckt der
     // Ausschnitt aus dem leeren Topf die Stelle ab.
     { id: 'topf_nah',   istNah: true, name: 'Emailletopf', bild: 'bilder/topf-batterien.webp', breite: 1536, hoehe: 1024 },
+    // fische: true schaltet die Schwimm-Ebene ein (siehe Abschnitt AQUARIUM)
+    { id: 'aquarium_nah', istNah: true, name: 'Aquarium', bild: 'bilder/aquarium-nah.webp', breite: 1774, hoehe: 887, fische: true },
     { id: 'wanne_nah',  istNah: true, name: 'Badewanne',        bild: 'bilder/wanne-nah.webp',  breite: 1774, hoehe: 887 },
     // Die Ente wird wie das Bild gewendet: erst in der Hand, dann der Bauch.
     { id: 'ente_vorn',  istNah: true, name: 'Gummiente', bild: 'bilder/ente-vorn.webp', breite: 925, hoehe: 940 },
@@ -662,6 +664,13 @@
     // --- Acis Zimmer ---
     { id: 'ac_schrank', ansicht: 'acizimmer', x: 620, y: 80,  w: 290, h: 460, typ: 'ausschnitt', zustand: 'aci_schrank_offen', label: 'Kleiderschrank' },
     { id: 'ac_tisch',   ansicht: 'acizimmer', x: 260, y: 548, w: 195, h: 165, typ: 'ausschnitt', zustand: 'aci_tisch_offen',   label: 'Nachttischschublade' },
+    { id: 'ac_aquarium', ansicht: 'acizimmer', x: 1255, y: 235, w: 200, h: 155, typ: 'naehe', nah: 'aquarium_nah', label: 'Aquarium' },
+    // Klopfen scheucht die Fische in den Kies. Beim ersten Mal wirbeln sie ihn
+    // auf und legen frei, was darin liegt.
+    { id: 'aq_scheibe', ansicht: 'aquarium_nah', x: 310, y: 210, w: 1160, h: 450, typ: 'klopfen', zustand: 'aq_kies',
+      klang: 'metall', label: 'Frontscheibe',
+      antwort: 'Du klopfst ans Glas. Die Fische schiessen nach unten und wirbeln den Kies auf. Zwischen den Steinen liegt etwas.',
+      nochmal: 'Noch ein Klopfen. Die Fische finden das nicht lustig.' },
     // --- Flur ---
     // Zahlenschloss an der Dachbodenluke. Der Code steht als Leuchtschrift im
     // Treppenhaus, drei der vier Ziffern auch auf dem Zettel unter dem Sitzkissen.
@@ -772,8 +781,20 @@
     { id: 'e24', ansicht: 'schlafzimmer', x: 228,  y: 462, r: 11, farbe: '#3a1a10', muster: 'punkte',   ebene: 2, sichtbarWenn: 'sz_schrank_offen' },     // unten im Kleiderschrank
     { id: 'e25', ansicht: 'schlafzimmer', x: 900,  y: 482, r: 9,  farbe: '#4c2213', muster: 'streifen', ebene: 2, sichtbarWenn: 'sz_nachttisch_offen' },  // in der Nachttischschublade
     { id: 'e26', ansicht: 'schlafzimmer', x: 1445, y: 592, r: 10, farbe: '#4e2c14', muster: 'zickzack', ebene: 2, sichtbarWenn: 'sz_frisier_offen' },     // in der Schublade am Frisiertisch
-    { id: 'e27', ansicht: 'koffer_nah', x: 1245, y: 330, r: 22, farbe: '#c9b08a', muster: 'punkte', ebene: 2, sichtbarWenn: 'koffer_offen' }  // zwischen den Briefen im Koffer
+    { id: 'e27', ansicht: 'koffer_nah', x: 1245, y: 330, r: 22, farbe: '#c9b08a', muster: 'punkte', ebene: 2, sichtbarWenn: 'koffer_offen' },  // zwischen den Briefen im Koffer
+    { id: 'e28', ansicht: 'aquarium_nah', x: 940, y: 710, r: 11, farbe: '#b8a884', muster: 'punkte', ebene: 2, sichtbarWenn: 'aq_kies' }  // im aufgewirbelten Kies im Aquarium
   ];
+
+  // Fische im Aquarium. verhaeltnis = Breite durch Höhe des freigestellten
+  // Bildes, tempo = Bildpunkte je Sekunde, nachLinks = der Fisch schaut im
+  // Bild nach links und wird beim Schwimmen nach rechts gespiegelt.
+  const FISCHE = [
+    { bild: 'bilder/fisch-skalar.webp', verhaeltnis: 1.075, hoehe: 150, anzahl: 2, tempo: 40,  nachLinks: true },
+    { bild: 'bilder/fisch-guppy.webp',  verhaeltnis: 1.975, hoehe: 70,  anzahl: 3, tempo: 60,  nachLinks: true },
+    { bild: 'bilder/fisch-neon.webp',   verhaeltnis: 1.492, hoehe: 42,  anzahl: 6, tempo: 85,  nachLinks: false }
+  ];
+  const AQ      = { x: 330, y: 240, w: 1120, h: 380 };   // Wasser im Beckenbild
+  const AQ_KIES = { x: 390, y: 540, w: 1000, h: 110 };   // dahin stürzen sie beim Klopfen
 
   // Eier, die nach Öffnen eines Dunkel-Bereichs erst erkennbar sind: Garage-Ecke ist dunkel bis Licht an
   const DUNKEL = [];   // Beispiel: { ansicht: 'dachboden', x: 0, y: 0, w: 800, h: 900, hellWenn: 'dach_licht' }
@@ -1124,6 +1145,9 @@
       return `<g data-offen="${t.zustand || ''}">${teilOffenForm(t)}</g>`;
     })())).join('')}</g>`;
     if (!grundbild) html += `<g id="beschriftungen">${teile.map(teilBeschriftung).join('')}</g>`;
+    // Fische: eigene Ebene über dem Beckenbild, aber unter Trefferflächen und
+    // Eiern. Sie fangen keine Klicks ab, sonst käme man nicht an das Ei im Kies.
+    if (ans.fische) html += `<g id="fische" style="pointer-events:none"></g>`;
     // Dunkel-Bereiche
     html += `<g id="dunkel">${dunkel.map(d => `<rect data-hell="${d.hellWenn}" x="${d.x}" y="${d.y}" width="${d.w}" height="${d.h}" fill="#05070a" opacity="0.93"/>`).join('')}</g>`;
     // Trefferflächen der Teile — durchsichtig, liegen unter Durchgängen und Eiern,
@@ -1150,8 +1174,72 @@
     warteAufBilder();
     aktualisiereSichtbarkeit();
     renderRaumKnoepfe();
+    if (ans.fische) fischeBauen(); else fischeStopp();
     setzeLampe(ans);
     nachbarnVorladen(ans.id);
+  }
+
+  // =====================================================================
+  // AQUARIUM
+  // Jeder Fisch ist ein freigestelltes Bild, das ein zufälliges Ziel im Becken
+  // ansteuert und sich beim Ankommen ein neues sucht. Beim Klopfen ans Glas
+  // steigt `aufregung`: dann liegen die Ziele im Kies und alle sind schneller.
+  // =====================================================================
+  let fische = [], fischUhr = null, fischLetzte = 0, aufregung = 0;
+
+  function fischZiel(f) {
+    const r = aufregung > 0 ? AQ_KIES : AQ;
+    f.zx = r.x + f.w / 2 + Math.random() * Math.max(1, r.w - f.w);
+    f.zy = r.y + f.h / 2 + Math.random() * Math.max(1, r.h - f.h);
+  }
+
+  function fischeBauen() {
+    const box = document.getElementById('fische');
+    fischeStopp();
+    if (!box) return;
+    let html = '';
+    FISCHE.forEach((art, ai) => {
+      for (let i = 0; i < art.anzahl; i++) {
+        const h = art.hoehe, w = Math.round(h * art.verhaeltnis);
+        const f = {
+          art, w, h, id: 'fi' + ai + '_' + i, blick: 1,
+          tempo: art.tempo * (0.75 + Math.random() * 0.5),
+          x: AQ.x + w / 2 + Math.random() * Math.max(1, AQ.w - w),
+          y: AQ.y + h / 2 + Math.random() * Math.max(1, AQ.h - h)
+        };
+        fischZiel(f);
+        fische.push(f);
+        html += `<g id="${f.id}"><image href="${art.bild}" xlink:href="${art.bild}" x="${-w / 2}" y="${-h / 2}" width="${w}" height="${h}"/></g>`;
+      }
+    });
+    box.innerHTML = html;
+    fische.forEach(f => { f.el = document.getElementById(f.id); });
+    fischLetzte = 0;
+    fischUhr = requestAnimationFrame(fischSchritt);
+  }
+
+  function fischeStopp() {
+    if (fischUhr) cancelAnimationFrame(fischUhr);
+    fischUhr = null; fische = []; aufregung = 0;
+  }
+
+  function fischSchritt(jetzt) {
+    if (!fische.length) { fischUhr = null; return; }
+    const dt = fischLetzte ? Math.min(0.05, (jetzt - fischLetzte) / 1000) : 0.016;
+    fischLetzte = jetzt;
+    if (aufregung > 0) aufregung = Math.max(0, aufregung - dt);
+    fische.forEach(f => {
+      const dx = f.zx - f.x, dy = f.zy - f.y;
+      const weg = Math.hypot(dx, dy);
+      if (weg < 10) { fischZiel(f); return; }
+      const v = f.tempo * (aufregung > 0 ? 2.8 : 1) * dt;
+      f.x += dx / weg * v;
+      f.y += dy / weg * v * 0.65;          // senkrecht gemächlicher als waagrecht
+      if (dx > 3) f.blick = 1; else if (dx < -3) f.blick = -1;
+      const s = f.art.nachLinks ? -f.blick : f.blick;
+      if (f.el) f.el.setAttribute('transform', `translate(${f.x.toFixed(1)},${f.y.toFixed(1)}) scale(${s},1)`);
+    });
+    fischUhr = requestAnimationFrame(fischSchritt);
   }
 
   // =====================================================================
@@ -1744,6 +1832,17 @@
         if (t.nahWenn && !zustand.offen[t.nahWenn]) { sag(t.nahFehlt || 'Da gibt es nichts zu sehen.'); return; }
         if (t.nah) geheZu(t.nah);
         return;
+      case 'klopfen': {
+        // Scheucht die Fische in den Kies und setzt dabei einmalig den Zustand.
+        const erstes = t.zustand && !zustand.offen[t.zustand];
+        if (t.zustand) zustand.offen[t.zustand] = true;
+        aufregung = 4;
+        fische.forEach(fischZiel);
+        klang(t.klang || 'metall');
+        aktualisiereSichtbarkeit(); speichern();
+        sag(erstes ? t.antwort : (t.nochmal || t.antwort), t.sprecher);
+        return;
+      }
       case 'overlay':
       case 'ziel':
         return;
