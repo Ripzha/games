@@ -228,6 +228,7 @@
   <div class="modal" id="info-modal">
     <div class="modal-box">
       <h3 id="info-titel"></h3>
+      <img id="info-bild" alt="" style="display:none;width:100%;border-radius:8px;margin:0 0 10px"/>
       <p id="info-text"></p>
       <div class="knopf-reihe"><button class="knopf sekundaer" id="info-zu">Weglegen</button></div>
     </div>
@@ -767,13 +768,19 @@
       label: 'sachen_die_man_nicht_fragen_soll.doc', titel: 'sachen_die_man_nicht_fragen_soll.doc',
       text: 'Fragen, bei denen jemand gesagt hat, dass man sie Leuten nicht einfach stellt. Nach Datum sortiert. Bei einigen steht trotzdem eine Antwort dahinter.' },
     { id: 'pc_d11', ansicht: 'pc_nah', x: 1010, y: 230, w: 92, h: 110, typ: 'datei', ordner: 'kram', zustand: 'pc_d11_weg',
-      nichtWenn: 'pc_d11_weg', zeichnung: pcSymbol(1010, 230, 'bild', 'pudel.jpg'),
+      nichtWenn: 'pc_d11_weg', zeichnung: pcSymbol(1010, 230, 'foto', 'pudel.jpg', 'bilder/pc-pudel.webp'),
+      bildgross: 'bilder/pc-pudel.webp',
       label: 'pudel.jpg', titel: 'pudel.jpg',
       text: 'Ein altes Foto. Pudel, Seth, Vaas und Aci irgendwo draussen. Pudel schaut gerade nicht in die Kamera.' },
     { id: 'pc_d12', ansicht: 'pc_nah', x: 1240, y: 230, w: 92, h: 110, typ: 'datei', ordner: 'kram', zustand: 'pc_d12_weg',
       nichtWenn: 'pc_d12_weg', zeichnung: pcSymbol(1240, 230, 'musik', 'musik.mp3'),
       label: 'musik.mp3', titel: 'musik.mp3',
       text: 'Lässt sich nicht öffnen. Falsches Programm.' },
+    { id: 'pc_d14', ansicht: 'pc_nah', x: 320, y: 390, w: 92, h: 110, typ: 'datei', ordner: 'kram', zustand: 'pc_d14_weg',
+      nichtWenn: 'pc_d14_weg', zeichnung: pcSymbol(320, 390, 'foto', 'vaas_und_ich.jpg', 'bilder/pc-vaas-aci.webp'),
+      bildgross: 'bilder/pc-vaas-aci.webp',
+      label: 'vaas_und_ich.jpg', titel: 'vaas_und_ich.jpg',
+      text: 'Nachts irgendwo in der Stadt. Vaas hat den Arm um Acis Schulter. Keiner von beiden lacht.' },
     { id: 'pc_d13', ansicht: 'pc_nah', x: 90, y: 390, w: 92, h: 110, typ: 'datei', ordner: 'kram', zustand: 'pc_d13_weg',
       nichtWenn: 'pc_d13_weg', zeichnung: pcSymbol(90, 390, 'datei', 'nicht_loeschen.zip'),
       label: 'nicht_loeschen.zip', titel: 'nicht_loeschen.zip',
@@ -1149,6 +1156,15 @@
   }
 
   // Beschriftung der Platzhalter — fällt weg, sobald echte Bilder da sind
+  // Info-Fenster mit Titel, Text und wahlweise einem Bild
+  function infoFenster(titel, text, bild) {
+    document.getElementById('info-titel').textContent = titel;
+    document.getElementById('info-text').textContent = text;
+    const img = document.getElementById('info-bild');
+    if (bild) { img.src = bild; img.style.display = ''; } else { img.removeAttribute('src'); img.style.display = 'none'; }
+    document.getElementById('info-modal').classList.add('show');
+  }
+
   // Auf Acis Schreibtisch aufgenommene Datei. Liegt ausserhalb von zustand,
   // weil sie nur während des Sortierens gilt und nicht gespeichert werden muss.
   let pcGewaehlt = null;
@@ -1165,7 +1181,7 @@
   }
 
   // Ein Symbol auf Acis Schreibtisch: Ordner oder Textdatei, mit Namen darunter.
-  function pcSymbol(x, y, art, name) {
+  function pcSymbol(x, y, art, name, vorschau) {
     const formen = {
       ordner: `<path d="M0 12 L26 12 L36 24 L92 24 L92 74 L0 74 Z" fill="#d9b863" stroke="#8a6f2e" stroke-width="2"/>
                <path d="M0 34 L92 34" stroke="#b8974a" stroke-width="2"/>`,
@@ -1174,6 +1190,9 @@
       bild:   `<rect x="10" y="12" width="72" height="60" rx="4" fill="#e6e1d2" stroke="#8d8471" stroke-width="2"/>
                <path d="M14 62 L34 40 L48 54 L60 44 L78 62 Z" fill="#6f8f5e"/>
                <circle cx="64" cy="26" r="7" fill="#e0b24f"/>`,
+      foto:   `<rect x="10" y="12" width="72" height="60" rx="4" fill="#1b2230" stroke="#8d8471" stroke-width="2"/>
+               <image href="${vorschau}" xlink:href="${vorschau}" x="12" y="14" width="68" height="56"
+                      preserveAspectRatio="xMidYMid meet"/>`,
       musik:  `<rect x="14" y="8" width="64" height="68" rx="4" fill="#dfe3ea" stroke="#7d8490" stroke-width="2"/>
                <path d="M36 58 V24 L62 18 V52" fill="none" stroke="#4a5362" stroke-width="4" stroke-linecap="round"/>
                <circle cx="31" cy="59" r="7" fill="#4a5362"/><circle cx="57" cy="53" r="7" fill="#4a5362"/>`,
@@ -2158,10 +2177,9 @@
         pcGewaehlt = t.id;
         pcMarkiere(t.id);
         klang('stoff');
-        document.getElementById('info-titel').textContent = t.titel || t.label;
-        document.getElementById('info-text').textContent = (t.text || '')
-          + '\n\nLiegt jetzt in der Hand. Fenster schliessen und den Ordner antippen, in den sie gehört.';
-        document.getElementById('info-modal').classList.add('show');
+        infoFenster(t.titel || t.label,
+          (t.text || '') + '\n\nLiegt jetzt in der Hand. Fenster schliessen und den Ordner antippen, in den sie gehört.',
+          t.bildgross);
         return;
       // Zielordner: nimmt nur Dateien, die zu ihm gehören
       case 'ordner': {
@@ -2169,11 +2187,8 @@
           // Ohne Datei in der Hand zeigt der Ordner, was schon drinliegt
           const drin = TEILE.filter(x => x.ansicht === t.ansicht && x.typ === 'datei'
             && x.ordner === t.ordner && zustand.offen[x.zustand]).map(x => x.label);
-          document.getElementById('info-titel').textContent = 'Ordner „' + t.label + '"';
-          document.getElementById('info-text').textContent = drin.length
-            ? drin.join('\n')
-            : 'Leer. Erst eine Datei antippen, dann den Ordner.';
-          document.getElementById('info-modal').classList.add('show');
+          infoFenster('Ordner „' + t.label + '"',
+            drin.length ? drin.join('\n') : 'Leer. Erst eine Datei antippen, dann den Ordner.');
           return;
         }
         const datei = TEILE.find(x => x.id === pcGewaehlt);
@@ -2190,14 +2205,14 @@
         if (!rest.length && t.fertig) zustand.offen[t.fertig] = true;
         renderRaum(); speichern();
         sag(rest.length
-          ? 'Einsortiert. Noch ' + rest.length + (rest.length === 1 ? ' Datei' : ' Dateien') + ' liegen herum.'
+          ? (rest.length === 1
+              ? 'Einsortiert. Noch eine Datei liegt herum.'
+              : 'Einsortiert. Noch ' + rest.length + ' Dateien liegen herum.')
           : 'Schreibtisch leer. Darunter liegt eine Datei, die vorher niemand gesehen hat.');
         return;
       }
       case 'info':
-        document.getElementById('info-titel').textContent = t.titel || t.label;
-        document.getElementById('info-text').textContent = t.text || '';
-        document.getElementById('info-modal').classList.add('show');
+        infoFenster(t.titel || t.label, t.text || '', t.bildgross);
         break;
       case 'raetsel':
       case 'code':
