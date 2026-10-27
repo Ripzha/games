@@ -394,7 +394,7 @@
       antwort: 'Batterien drin. Jetzt tut sie wieder.',
       schaltet: 'lampe_an', nurWenn: 'lampe_bereit', fehlt: 'Tote Lampe. Da müssen Batterien rein.' },
     { id: 'batterien',  symbol: '🔋', name: 'Batterien', text: 'Vier Batterien. Sehen noch brauchbar aus.' },
-    { id: 'futter',     symbol: '🥫', name: 'Futter',   text: 'Eine Dose mit drei Kammern: grüne, rote und braune Flocken.' },
+    { id: 'futter',     symbol: '🥫', name: 'Futter',   text: 'Eine Dose Fischfutter, noch gut halb voll.' },
     // blatt: Mit der Lupe im Rucksack lässt sich der Zettel nochmal lesen
     { id: 'zettel',     symbol: '📄', name: 'Zettel',   text: 'Ein abgerissener Fetzen Papier.',
       blatt: { titel: 'Ein Fetzen Papier',
@@ -721,11 +721,9 @@
       zeichnung: pcSymbol(90, 80, 'datei', 'futterplan.txt'),
       label: 'futterplan.txt', titel: 'futterplan.txt',
       text: 'FUTTERPLAN FÜRS BECKEN — BITTE GENAU HALTEN\n\n'
-          + 'Grüne Flocken: für die Skalare\n'
-          + 'Rote Flocken: für die Guppys\n'
-          + 'Braune Flocken: für die Neons\n\n'
-          + 'Pro Fisch eine Prise. Keine mehr, sonst kippt das Wasser.\n'
-          + 'Beim Füttern die drei Zahlen in dieser Reihenfolge angeben: grün, rot, braun.' },
+          + 'Im Becken schwimmen Skalare, Guppys und Neons.\n'
+          + 'Jeder Fisch bekommt eine Prise. Keine mehr, sonst kippt das Wasser.\n\n'
+          + 'Also erst zählen, dann füttern. Die Neons sind schnell, lass dich nicht vertun.' },
     { id: 'pc_fische', ansicht: 'pc_nah', x: 260, y: 80, w: 92, h: 110, typ: 'info',
       zeichnung: pcSymbol(260, 80, 'ordner', 'becken'),
       label: 'becken', titel: 'Ordner „becken"',
@@ -742,15 +740,16 @@
       zeichnung: pcSymbol(260, 250, 'ordner', 'privat'),
       label: 'privat', titel: 'Ordner „privat"',
       text: 'Der Ordner lässt sich nicht öffnen. Ein kleines Fenster fragt nach einem Passwort.\n\n(Hier kommt das Rätsel hin.)' },
-    // Ohne Gegenstand klopft man nur. Mit der Dose fragt der Dosierer drei
-    // Zahlen ab — so viele Prisen, wie Fische der jeweiligen Art im Becken sind.
+    // Ohne Gegenstand klopft man nur. Mit der Dose wird gefragt, wie viele
+    // Prisen — eine pro Fisch. Der Code muss zur Summe der anzahl-Werte in
+    // FISCHE passen, sonst ist das Rätsel nicht lösbar.
     { id: 'aq_scheibe', ansicht: 'aquarium_nah', x: 310, y: 210, w: 1160, h: 460, typ: 'klopfen',
       klang: 'metall', label: 'Aquarium', gelernt: 'aq_gelernt',
-      klopf: 'Du klopfst ans Glas. Sie stieben auseinander und sammeln sich gleich wieder. Von Lärm rückt hier nichts raus — die wollen Futter.',
+      klopf: 'Du klopfst ans Glas. Sie stieben auseinander und sammeln sich gleich wieder. Von Lärm rückt hier nichts raus — die wollen Futter, abgezählt.',
       nimmt: 'futter', zustand: 'aq_kies', verbraucht: true, scheucht: true,
-      titel: 'Füttern', code: '236',
-      frage: 'Wie viele Prisen grün, wie viele rot, wie viele braun? Drei Ziffern in dieser Reihenfolge.',
-      fehlerText: 'Die Fische drehen ab. So stimmt die Mischung nicht.',
+      titel: 'Füttern', code: '11',
+      frage: 'Wie viele Prisen streust du ins Becken?',
+      fehlerText: 'Zu viel oder zu wenig. Die Fische drehen ab.',
       antwort: 'Die Flocken sinken, die Fische schiessen hinterher und pflügen den Kies um. Zwischen den Steinen bleibt etwas liegen.' },
     // --- Flur ---
     // Zahlenschloss an der Dachbodenluke. Der Code steht als Leuchtschrift im
@@ -865,6 +864,7 @@
     { id: 'e27', ansicht: 'koffer_nah', x: 1245, y: 330, r: 22, farbe: '#c9b08a', muster: 'punkte', ebene: 2, sichtbarWenn: 'koffer_offen' },  // zwischen den Briefen im Koffer
     { id: 'e28', ansicht: 'aquarium_nah', x: 940, y: 710, r: 11, farbe: '#b8a884', muster: 'punkte', ebene: 2, sichtbarWenn: 'aq_kies' },  // im aufgewirbelten Kies im Aquarium
     { id: 'e30', ansicht: 'th_kiste_nah', x: 1255, y: 635, r: 12, farbe: '#7a6a4e', muster: 'punkte', ebene: 2, sichtbarWenn: 'th_tuecher_weg' },  // in den Tuchfalten in der Holzkiste
+    { id: 'e31', ansicht: 'schreibtisch_nah', x: 1700, y: 478, r: 12, farbe: '#3a4c2a', muster: 'streifen', ebene: 1, sichtbarWenn: null },  // getarnt zwischen den Blättern der Zimmerpflanze
     { id: 'e29', ansicht: 'schreibtisch_nah', x: 196, y: 702, r: 12, farbe: '#5f4a33', muster: 'streifen', ebene: 2, sichtbarWenn: 'sb_schrank_offen' }  // in der dunklen Ecke neben den Büchern im Schreibtischschrank
   ];
 
