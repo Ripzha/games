@@ -717,47 +717,75 @@
         <rect x="116" y="756" width="36" height="36" rx="6" fill="#6b7d55"/>
         <rect x="168" y="756" width="36" height="36" rx="6" fill="#8a5f3f"/>
         <text x="1700" y="782" font-size="22" fill="#cfd8e6" text-anchor="end" font-family="sans-serif">23:14</text></g>` },
-    { id: 'pc_notizen', ansicht: 'pc_nah', x: 60, y: 80, w: 92, h: 110, typ: 'info',
-      zeichnung: pcSymbol(60, 80, 'datei', 'notizen.txt'),
-      label: 'notizen.txt', titel: 'notizen.txt',
-      text: 'Mama sagt, ich soll aufräumen. Ich sage, ich habe ein System.\n'
-          + 'Sie sagt, das System heisst Boden.\n\n'
-          + 'Passwort wie immer. Die Zahl, die im Treppenhaus an der Wand nachleuchtet, '
-          + 'wenn man das Licht ausmacht.' },
-    { id: 'pc_korb', ansicht: 'pc_nah', x: 1540, y: 80, w: 92, h: 110, typ: 'info',
-      zeichnung: pcSymbol(1540, 80, 'korb', 'Papierkorb'),
+    { id: 'pc_korb', ansicht: 'pc_nah', x: 1470, y: 230, w: 92, h: 110, typ: 'info',
+      zeichnung: pcSymbol(1470, 230, 'korb', 'Papierkorb'),
       label: 'Papierkorb', titel: 'Papierkorb',
       text: 'Drei gelöschte Dateien liegen noch drin.\n\nhausaufgaben_final.odt, hausaufgaben_final2.odt, hausaufgaben_wirklich_final.odt' },
 
-    // Neun lose Dateien. Jede gehört in einen der drei Ordner unten. Antippen
-    // nimmt sie auf, Antippen des Ordners legt sie ab. Liegen alle richtig,
-    // kommt der Futterplan zum Vorschein, der darunter begraben war.
-    { id: 'pc_d1', ansicht: 'pc_nah', x: 300,  y: 80,  w: 92, h: 110, typ: 'datei', ordner: 'bilder', zustand: 'pc_d1_weg',
-      nichtWenn: 'pc_d1_weg', zeichnung: pcSymbol(300, 80, 'bild', 'urlaub.jpg'), label: 'urlaub.jpg' },
-    { id: 'pc_d2', ansicht: 'pc_nah', x: 470,  y: 180, w: 92, h: 110, typ: 'datei', ordner: 'bilder', zustand: 'pc_d2_weg',
-      nichtWenn: 'pc_d2_weg', zeichnung: pcSymbol(470, 180, 'bild', 'rudy.png'), label: 'rudy.png' },
-    { id: 'pc_d3', ansicht: 'pc_nah', x: 640,  y: 90,  w: 92, h: 110, typ: 'datei', ordner: 'bilder', zustand: 'pc_d3_weg',
-      nichtWenn: 'pc_d3_weg', zeichnung: pcSymbol(640, 90, 'bild', 'becken.jpg'), label: 'becken.jpg' },
-    { id: 'pc_d4', ansicht: 'pc_nah', x: 820,  y: 190, w: 92, h: 110, typ: 'datei', ordner: 'musik', zustand: 'pc_d4_weg',
-      nichtWenn: 'pc_d4_weg', zeichnung: pcSymbol(820, 190, 'musik', 'mixtape.mp3'), label: 'mixtape.mp3' },
-    { id: 'pc_d5', ansicht: 'pc_nah', x: 990,  y: 80,  w: 92, h: 110, typ: 'datei', ordner: 'musik', zustand: 'pc_d5_weg',
-      nichtWenn: 'pc_d5_weg', zeichnung: pcSymbol(990, 80, 'musik', 'radio.mp3'), label: 'radio.mp3' },
-    { id: 'pc_d6', ansicht: 'pc_nah', x: 1160, y: 190, w: 92, h: 110, typ: 'datei', ordner: 'musik', zustand: 'pc_d6_weg',
-      nichtWenn: 'pc_d6_weg', zeichnung: pcSymbol(1160, 190, 'musik', 'lied_neu.mp3'), label: 'lied_neu.mp3' },
-    { id: 'pc_d7', ansicht: 'pc_nah', x: 300,  y: 300, w: 92, h: 110, typ: 'datei', ordner: 'schule', zustand: 'pc_d7_weg',
-      nichtWenn: 'pc_d7_weg', zeichnung: pcSymbol(300, 300, 'datei', 'vokabeln.doc'), label: 'vokabeln.doc' },
-    { id: 'pc_d8', ansicht: 'pc_nah', x: 640,  y: 330, w: 92, h: 110, typ: 'datei', ordner: 'schule', zustand: 'pc_d8_weg',
-      nichtWenn: 'pc_d8_weg', zeichnung: pcSymbol(640, 330, 'datei', 'referat.doc'), label: 'referat.doc' },
-    { id: 'pc_d9', ansicht: 'pc_nah', x: 990,  y: 300, w: 92, h: 110, typ: 'datei', ordner: 'schule', zustand: 'pc_d9_weg',
-      nichtWenn: 'pc_d9_weg', zeichnung: pcSymbol(990, 300, 'datei', 'mathe.pdf'), label: 'mathe.pdf' },
 
-    // Die drei Zielordner. fertig: Zustand, der gesetzt wird, sobald nichts mehr herumliegt.
-    { id: 'pc_o_bilder', ansicht: 'pc_nah', x: 150, y: 580, w: 92, h: 110, typ: 'ordner', ordner: 'bilder',
-      fertig: 'pc_sortiert', zeichnung: pcSymbol(150, 580, 'ordner', 'bilder'), label: 'bilder' },
-    { id: 'pc_o_musik', ansicht: 'pc_nah', x: 330, y: 580, w: 92, h: 110, typ: 'ordner', ordner: 'musik',
-      fertig: 'pc_sortiert', zeichnung: pcSymbol(330, 580, 'ordner', 'musik'), label: 'musik' },
-    { id: 'pc_o_schule', ansicht: 'pc_nah', x: 510, y: 580, w: 92, h: 110, typ: 'ordner', ordner: 'schule',
-      fertig: 'pc_sortiert', zeichnung: pcSymbol(510, 580, 'ordner', 'schule'), label: 'schule' },
+    // Dreizehn lose Dateien. Antippen öffnet sie und nimmt sie gleichzeitig auf,
+    // danach den Ordner antippen. Liegt nichts mehr herum, kommt der Futterplan
+    // zum Vorschein, der darunter begraben war.
+    { id: 'pc_d01', ansicht: 'pc_nah', x: 90, y: 70, w: 92, h: 110, typ: 'datei', ordner: 'fische', zustand: 'pc_d01_weg',
+      nichtWenn: 'pc_d01_weg', zeichnung: pcSymbol(90, 70, 'datei', 'fische.doc'),
+      label: 'fische.doc', titel: 'fische.doc',
+      text: 'Eine lange Liste mit Fischarten. Daneben Notizen zu Verhalten und Fortpflanzung, und bei manchen Arten dasselbe nochmal, nur ausführlicher.' },
+    { id: 'pc_d02', ansicht: 'pc_nah', x: 320, y: 70, w: 92, h: 110, typ: 'datei', ordner: 'fische', zustand: 'pc_d02_weg',
+      nichtWenn: 'pc_d02_weg', zeichnung: pcSymbol(320, 70, 'datei', 'fische2.doc'),
+      label: 'fische2.doc', titel: 'fische2.doc',
+      text: 'Mehr Fische. Warum es dafür eine zweite Datei brauchte, steht nirgends.' },
+    { id: 'pc_d03', ansicht: 'pc_nah', x: 550, y: 70, w: 92, h: 110, typ: 'datei', ordner: 'fische', zustand: 'pc_d03_weg',
+      nichtWenn: 'pc_d03_weg', zeichnung: pcSymbol(550, 70, 'datei', 'warum_fische_ihr_geschlecht_wechseln.doc'),
+      label: 'warum_fische_ihr_geschlecht_wechseln.doc', titel: 'warum_fische_ihr_geschlecht_wechseln.doc',
+      text: 'Ein zusammenkopierter Text über Arten, die im Lauf ihres Lebens das Geschlecht wechseln. Zwischen den Absätzen stehen einzelne Sätze, die jemand selbst ergänzt hat.' },
+    { id: 'pc_d04', ansicht: 'pc_nah', x: 780, y: 70, w: 92, h: 110, typ: 'datei', ordner: 'fische', zustand: 'pc_d04_weg',
+      nichtWenn: 'pc_d04_weg', zeichnung: pcSymbol(780, 70, 'datei', 'tintenfische.doc'),
+      label: 'tintenfische.doc', titel: 'tintenfische.doc',
+      text: 'Fakten über Tintenfische. Auffällig viel davon über die Paarung, über das Sterben danach und über Fortpflanzungsorgane, die sich ablösen und alleine weiterschwimmen.' },
+    { id: 'pc_d05', ansicht: 'pc_nah', x: 1010, y: 70, w: 92, h: 110, typ: 'datei', ordner: 'forum', zustand: 'pc_d05_weg',
+      nichtWenn: 'pc_d05_weg', zeichnung: pcSymbol(1010, 70, 'datei', 'forum_passwort_alt.txt'),
+      label: 'forum_passwort_alt.txt', titel: 'forum_passwort_alt.txt',
+      text: 'Ganz oben ein Passwort, das längst nicht mehr geht. Darunter drei Varianten, keine davon markiert.\n\nAm Ende eine Zeile für sich: die Zahl nehmen, die im Treppenhaus an der Wand nachleuchtet, wenn das Licht aus ist.' },
+    { id: 'pc_d06', ansicht: 'pc_nah', x: 1240, y: 70, w: 92, h: 110, typ: 'datei', ordner: 'forum', zustand: 'pc_d06_weg',
+      nichtWenn: 'pc_d06_weg', zeichnung: pcSymbol(1240, 70, 'bild', 'vaas_idiot.png'),
+      label: 'vaas_idiot.png', titel: 'vaas_idiot.png',
+      text: 'Ein Screenshot aus dem Forum. Vaas hat kompletten Scheiss geschrieben. Nichts markiert, nichts kommentiert.' },
+    { id: 'pc_d07', ansicht: 'pc_nah', x: 90, y: 230, w: 92, h: 110, typ: 'datei', ordner: 'forum', zustand: 'pc_d07_weg',
+      nichtWenn: 'pc_d07_weg', zeichnung: pcSymbol(90, 230, 'datei', 'neu_neu_richtig.doc'),
+      label: 'neu_neu_richtig.doc', titel: 'neu_neu_richtig.doc',
+      text: 'Eine ältere Fassung irgendeines Forumtexts.' },
+    { id: 'pc_d08', ansicht: 'pc_nah', x: 320, y: 230, w: 92, h: 110, typ: 'datei', ordner: 'forum', zustand: 'pc_d08_weg',
+      nichtWenn: 'pc_d08_weg', zeichnung: pcSymbol(320, 230, 'datei', 'neu_richtig2.doc'),
+      label: 'neu_richtig2.doc', titel: 'neu_richtig2.doc',
+      text: 'Noch eine Fassung. Das Änderungsdatum liegt vor neu_neu_richtig.doc. Der Name sagt etwas anderes.' },
+    { id: 'pc_d09', ansicht: 'pc_nah', x: 550, y: 230, w: 92, h: 110, typ: 'datei', ordner: 'kram', zustand: 'pc_d09_weg',
+      nichtWenn: 'pc_d09_weg', zeichnung: pcSymbol(550, 230, 'datei', 'sexfragen.txt'),
+      label: 'sexfragen.txt', titel: 'sexfragen.txt',
+      text: 'Eine Liste von Fragen über Sex und Körper. Sachlich aufgeschrieben und durchnummeriert. Hinter manchen steht eine Antwort, hinter den meisten nichts.' },
+    { id: 'pc_d10', ansicht: 'pc_nah', x: 780, y: 230, w: 92, h: 110, typ: 'datei', ordner: 'kram', zustand: 'pc_d10_weg',
+      nichtWenn: 'pc_d10_weg', zeichnung: pcSymbol(780, 230, 'datei', 'sachen_die_man_nicht_fragen_soll.doc'),
+      label: 'sachen_die_man_nicht_fragen_soll.doc', titel: 'sachen_die_man_nicht_fragen_soll.doc',
+      text: 'Fragen, bei denen jemand gesagt hat, dass man sie Leuten nicht einfach stellt. Nach Datum sortiert. Bei einigen steht trotzdem eine Antwort dahinter.' },
+    { id: 'pc_d11', ansicht: 'pc_nah', x: 1010, y: 230, w: 92, h: 110, typ: 'datei', ordner: 'kram', zustand: 'pc_d11_weg',
+      nichtWenn: 'pc_d11_weg', zeichnung: pcSymbol(1010, 230, 'bild', 'pudel.jpg'),
+      label: 'pudel.jpg', titel: 'pudel.jpg',
+      text: 'Ein altes Foto. Pudel, Seth, Vaas und Aci irgendwo draussen. Pudel schaut gerade nicht in die Kamera.' },
+    { id: 'pc_d12', ansicht: 'pc_nah', x: 1240, y: 230, w: 92, h: 110, typ: 'datei', ordner: 'kram', zustand: 'pc_d12_weg',
+      nichtWenn: 'pc_d12_weg', zeichnung: pcSymbol(1240, 230, 'musik', 'musik.mp3'),
+      label: 'musik.mp3', titel: 'musik.mp3',
+      text: 'Lässt sich nicht öffnen. Falsches Programm.' },
+    { id: 'pc_d13', ansicht: 'pc_nah', x: 90, y: 390, w: 92, h: 110, typ: 'datei', ordner: 'kram', zustand: 'pc_d13_weg',
+      nichtWenn: 'pc_d13_weg', zeichnung: pcSymbol(90, 390, 'datei', 'nicht_loeschen.zip'),
+      label: 'nicht_loeschen.zip', titel: 'nicht_loeschen.zip',
+      text: 'Lässt sich nicht öffnen. Beschädigtes Archiv.' },
+
+    // Die drei Zielordner. Was nicht Fisch und nicht Forum ist, ist Kram.
+    { id: 'pc_o_fische', ansicht: 'pc_nah', x: 90, y: 580, w: 92, h: 110, typ: 'ordner', ordner: 'fische',
+      fertig: 'pc_sortiert', zeichnung: pcSymbol(90, 580, 'ordner', 'fische'), label: 'fische' },
+    { id: 'pc_o_forum', ansicht: 'pc_nah', x: 320, y: 580, w: 92, h: 110, typ: 'ordner', ordner: 'forum',
+      fertig: 'pc_sortiert', zeichnung: pcSymbol(320, 580, 'ordner', 'forum'), label: 'forum' },
+    { id: 'pc_o_kram', ansicht: 'pc_nah', x: 550, y: 580, w: 92, h: 110, typ: 'ordner', ordner: 'kram',
+      fertig: 'pc_sortiert', zeichnung: pcSymbol(550, 580, 'ordner', 'kram'), label: 'kram' },
 
     // Das geöffnete Bild aus dem Ordner. Reines Beiwerk, fängt keine Klicks ab —
     // das Ei darin wird wie jedes andere angetippt.
@@ -771,8 +799,8 @@
       </g>` },
 
     // Lag unter dem Chaos und taucht erst auf, wenn der Schreibtisch leer ist
-    { id: 'pc_futter', ansicht: 'pc_nah', x: 820, y: 430, w: 92, h: 110, typ: 'info', sichtbarWenn: 'pc_sortiert',
-      zeichnung: pcSymbol(820, 430, 'datei', 'futterplan.txt'),
+    { id: 'pc_futter', ansicht: 'pc_nah', x: 820, y: 580, w: 92, h: 110, typ: 'info', sichtbarWenn: 'pc_sortiert',
+      zeichnung: pcSymbol(820, 580, 'datei', 'futterplan.txt'),
       label: 'futterplan.txt', titel: 'futterplan.txt',
       text: 'FUTTERPLAN FÜRS BECKEN — BITTE GENAU HALTEN\n\n'
           + 'Im Becken schwimmen Skalare, Guppys und Neons.\n'
@@ -780,8 +808,8 @@
           + 'Also erst zählen, dann füttern. Die Neons sind schnell, lass dich nicht vertun.' },
 
     // Der Ordner mit dem Passwort. Die Zahl leuchtet im Treppenhaus an der Wand.
-    { id: 'pc_privat', ansicht: 'pc_nah', x: 1380, y: 80, w: 92, h: 110, typ: 'code', zustand: 'pc_privat_offen',
-      zeichnung: pcSymbol(1380, 80, 'ordner', 'privat'), label: 'privat',
+    { id: 'pc_privat', ansicht: 'pc_nah', x: 1470, y: 70, w: 92, h: 110, typ: 'code', zustand: 'pc_privat_offen',
+      zeichnung: pcSymbol(1470, 70, 'ordner', 'privat'), label: 'privat',
       titel: 'Passwort', code: '7392',
       frage: 'Der Ordner will ein Passwort. Vier Ziffern.',
       fehlerText: 'Falsch. Der Ordner bleibt zu.',
@@ -1155,8 +1183,18 @@
                <path d="M36 32 V66 M46 32 V66 M56 32 V66" stroke="#6f7c89" stroke-width="3" stroke-linecap="round"/>`
     };
     const koerper = formen[art] || formen.datei;
-    return `<g transform="translate(${x},${y})" style="pointer-events:none">${koerper}
-      <text x="46" y="98" font-size="21" fill="#e8eef6" text-anchor="middle" font-family="sans-serif">${name}</text></g>`;
+    // Lange Dateinamen umbrechen, sonst laufen sie ins Nachbarsymbol
+    const teile = [];
+    let zeile = '';
+    name.split(/(?<=[_.])/).forEach(stueck => {
+      if ((zeile + stueck).length > 15 && zeile) { teile.push(zeile); zeile = stueck; }
+      else zeile += stueck;
+    });
+    if (zeile) teile.push(zeile);
+    const schrift = teile.length > 2 ? 16 : 19;
+    const zeilen = teile.map((z, i) =>
+      `<text x="46" y="${96 + i * (schrift + 3)}" font-size="${schrift}" fill="#e8eef6" text-anchor="middle" font-family="sans-serif">${z}</text>`).join('');
+    return `<g transform="translate(${x},${y})" style="pointer-events:none">${koerper}${zeilen}</g>`;
   }
 
   function teilBeschriftung(teil) {
@@ -1995,6 +2033,12 @@
       benutze(zustand.gewaehlt, t);
       return;
     }
+    if (pcGewaehlt && !teilEl) {
+      const datei = TEILE.find(x => x.id === pcGewaehlt);
+      pcGewaehlt = null; pcMarkiere(null);
+      sag((datei ? datei.label : 'Die Datei') + ' wieder losgelassen.');
+      return;
+    }
     if (teilEl) { teilAngetippt(teilEl.dataset.teil); return; }
   }
 
@@ -2110,14 +2154,28 @@
         break;
       // Datei auf Acis Schreibtisch aufnehmen oder wieder loslassen
       case 'datei':
-        pcGewaehlt = (pcGewaehlt === t.id) ? null : t.id;
-        pcMarkiere(pcGewaehlt);
+        // Antippen öffnet die Datei und nimmt sie gleichzeitig auf
+        pcGewaehlt = t.id;
+        pcMarkiere(t.id);
         klang('stoff');
-        sag(pcGewaehlt ? t.label + ' angefasst. Jetzt den Ordner antippen, in den sie gehört.' : t.label + ' wieder losgelassen.');
+        document.getElementById('info-titel').textContent = t.titel || t.label;
+        document.getElementById('info-text').textContent = (t.text || '')
+          + '\n\nLiegt jetzt in der Hand. Fenster schliessen und den Ordner antippen, in den sie gehört.';
+        document.getElementById('info-modal').classList.add('show');
         return;
       // Zielordner: nimmt nur Dateien, die zu ihm gehören
       case 'ordner': {
-        if (!pcGewaehlt) { sag('Erst eine Datei antippen, dann den Ordner.'); return; }
+        if (!pcGewaehlt) {
+          // Ohne Datei in der Hand zeigt der Ordner, was schon drinliegt
+          const drin = TEILE.filter(x => x.ansicht === t.ansicht && x.typ === 'datei'
+            && x.ordner === t.ordner && zustand.offen[x.zustand]).map(x => x.label);
+          document.getElementById('info-titel').textContent = 'Ordner „' + t.label + '"';
+          document.getElementById('info-text').textContent = drin.length
+            ? drin.join('\n')
+            : 'Leer. Erst eine Datei antippen, dann den Ordner.';
+          document.getElementById('info-modal').classList.add('show');
+          return;
+        }
         const datei = TEILE.find(x => x.id === pcGewaehlt);
         if (!datei) { pcGewaehlt = null; pcMarkiere(null); return; }
         if (datei.ordner !== t.ordner) {
