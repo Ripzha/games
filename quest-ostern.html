@@ -303,7 +303,7 @@
   //          'rein' = anklickbare Stelle im Bild (braucht x, y, w, h in Bildpixeln)
   // Teil:    { id, ansicht, x, y, w, h, typ: 'ausschnitt'|'toggle'|'raetsel'|'code'|'info'|'schalter',
   //            zustand (Key), label, ...rätselfelder }
-  // Ei:      { id, ansicht, x, y, r, farbe, muster, ebene: 1|2|3, sichtbarWenn: Zustand-Key oder null,
+  // Ei:      { id, ansicht, x, y, r, farbe, muster, ebene: 1|2|3, sichtbarWenn: Zustand-Key, Liste davon oder null,
   //            hinten: true = liegt hinter Möbeln (wird teilweise verdeckt) }
   // =====================================================================
   // imMenu: false = taucht nicht in der Kopfzeile auf, nur über einen Weg erreichbar
@@ -538,12 +538,20 @@
       nichtWenn: 'anfisa_weg', label: 'Die Frau im Sessel', sprecher: 'Anfisa',
       // Solange der Fernseher aus ist, sitzt sie auf. Weiterklicken darf sie
       // dann nicht in die schlafende Phase 0 zurückfallen lassen.
-      mindestPhase: { wenn: 'tv_aus', phase: 1 },
+      mindestPhase: { wenn: ['tv_aus', 'anfisa_kippen', 'anfisa_feuer'], phase: 1 },
       // Sie will beides: Schachtel und Feuerzeug. Und solange das Bild nicht
       // an der Wand hängt, nimmt sie gar nichts an.
       nimmt: ['kippen', 'feuerzeug'], setzt: 'anfisa_weg', verbraucht: true,
-      antwort: '„Papirossy. Und Feuer." Sie steckt beides ein und stemmt sich hoch, langsam wie ein Schrank. „Dann setze ich Wasser auf. Ohne Tee schmeckt das nicht."',
-      fehlt: '„Halbe Sachen." Sie streckt die Hand aus und lässt sie wieder sinken. „Bring mir beides. Dann reden wir."',
+      // Sie nimmt jedes Stück für sich an und richtet sich dabei auf. Welches
+      // zuerst kommt, ist egal — der Satz zum zweiten ist immer der letzte.
+      gabePhase: 1,
+      einzeln: {
+        kippen: { setzt: 'anfisa_kippen',
+          antwort: '„Papirossy." Sie richtet sich auf und dreht die Schachtel zweimal in der Hand. „Und womit soll ich die anzünden? Mit Blick?"' },
+        feuerzeug: { setzt: 'anfisa_feuer',
+          antwort: '„Feuer." Sie setzt sich gerade hin und lässt es einmal klicken. „Schön. Jetzt fehlt nur noch, was man damit anzündet."' }
+      },
+      antwort: '„Jetzt stimmt es." Sie steckt beides ein und stemmt sich hoch, langsam wie ein Schrank. „Dann setze ich Wasser auf. Ohne Tee schmeckt das nicht."',
       strafen: [
         { wenn: 'bild_ab', setzt: 'anfisa_sauer',
           antwort: '„Stoj." Sie deutet mit dem Kinn zur Wand. „Da ist Loch. Mein Bild hing da. Solange das so aussieht, rühre ich mich nicht."' },
@@ -1312,11 +1320,19 @@
     return '';
   }
 
+  // sichtbarWenn darf ein einzelner Zustand oder eine Liste sein. Beide Stellen,
+  // die das prüfen, müssen dieselbe Antwort geben — sonst sieht man ein Ei,
+  // kann es aber nicht einsammeln.
+  function eiSichtbar(ei) {
+    if (!ei || !ei.sichtbarWenn) return true;
+    const noetig = Array.isArray(ei.sichtbarWenn) ? ei.sichtbarWenn : [ei.sichtbarWenn];
+    return noetig.every(k => zustand.offen[k]);
+  }
+
   function aktualisiereSichtbarkeit() {
     welt.querySelectorAll('.ei').forEach(el => {
       const ei = EIER.find(e => e.id === el.dataset.ei);
-      const noetig = !ei.sichtbarWenn ? [] : (Array.isArray(ei.sichtbarWenn) ? ei.sichtbarWenn : [ei.sichtbarWenn]);
-      const sichtbar = noetig.every(k => zustand.offen[k]);
+      const sichtbar = eiSichtbar(ei);
       el.classList.toggle('versteckt', !sichtbar && !EDITOR);
       el.classList.toggle('gefunden', zustand.gefunden.includes(ei.id));
     });
@@ -1448,6 +1464,27 @@
       sag(greift.antwort || 'So nicht.', teil.sprecher || teil.label);
       return false;
     }
+    // einzeln: Das Teil nimmt jeden Gegenstand für sich an, in beliebiger
+    // Reihenfolge. Erst wenn alle da sind, passiert das Eigentliche.
+    if (teil.einzeln && teil.einzeln[gegenstandId]) {
+      const gabe = teil.einzeln[gegenstandId];
+      zustand.offen[gabe.setzt] = true;
+      if (teil.verbraucht) zustand.inventar = zustand.inventar.filter(x => x !== gegenstandId);
+      if (teil.gabePhase != null && teil.zustand) zustand.offen[teil.zustand] = teil.gabePhase;
+      const fehltNoch = noetig.some(id => teil.einzeln[id] && !zustand.offen[teil.einzeln[id].setzt]);
+      if (!fehltNoch) {
+        if (teil.setzt) zustand.offen[teil.setzt] = true;
+        if (teil.loescht) zustand.offen[teil.loescht] = false;
+      }
+      waehle(null, true);
+      klang('nehmen');
+      renderRaum();
+      speichern();
+      const text = fehltNoch ? gabe.antwort : teil.antwort;
+      if (text) sag(text, teil.sprecher || teil.label);
+      return true;
+    }
+
     // Fehlt noch etwas aus der Liste?
     if (noetig.some(id => !zustand.inventar.includes(id))) {
       waehle(null, true); klang('fehler');
@@ -1641,7 +1678,7 @@
     if (zustand.gefunden.includes(id)) return;
     const ei = EIER.find(e => e.id === id);
     if (!ei) return;
-    if (ei.sichtbarWenn && !zustand.offen[ei.sichtbarWenn] && !EDITOR) return;
+    if (!eiSichtbar(ei) && !EDITOR) return;
     zustand.gefunden.push(id);
     fanfare([880, 1180, 1480]); klang('ei');
     const r = buehne.getBoundingClientRect();
@@ -1697,7 +1734,10 @@
         let neu = ((Number(zustand.offen[t.zustand]) || 0) + 1) % anzahl;
         // mindestPhase: solange die Bedingung gilt, werden die Phasen darunter
         // übersprungen. Anfisa bleibt bei ausgeschaltetem Fernseher aufrecht.
-        if (t.mindestPhase && zustand.offen[t.mindestPhase.wenn] && neu < t.mindestPhase.phase) neu = t.mindestPhase.phase;
+        if (t.mindestPhase) {
+          const bed = Array.isArray(t.mindestPhase.wenn) ? t.mindestPhase.wenn : [t.mindestPhase.wenn];
+          if (bed.some(k => zustand.offen[k]) && neu < t.mindestPhase.phase) neu = t.mindestPhase.phase;
+        }
         zustand.offen[t.zustand] = neu;
         klang('stoff');
         aktualisiereSichtbarkeit(); speichern();
