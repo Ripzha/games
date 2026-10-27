@@ -71,6 +71,7 @@
   .ei-treffer { fill: transparent; cursor: pointer; }
   .ei.gefunden { display: none; }
   .ei.versteckt { display: none; }
+  #info-text { white-space: pre-line; }
   .zoom-hinweis { position: absolute; right: 10px; top: 10px; font-size: 11px; color: var(--himmel-text); background: rgba(10,18,12,0.7); padding: 4px 8px; border-radius: 6px; pointer-events: none; z-index: 5; }
   .zoom-knoepfe { position: absolute; left: 10px; bottom: 10px; display: flex; gap: 6px; z-index: 9; }
   .zoom-knoepfe button { width: 36px; height: 36px; border-radius: 8px; border: 1px solid var(--panel-rand); background: rgba(10,18,12,0.85); color: var(--cream); font-size: 18px; cursor: pointer; }
@@ -360,6 +361,12 @@
     // Grundbild ist der Topf mit den Batterien. Sind sie genommen, deckt der
     // Ausschnitt aus dem leeren Topf die Stelle ab.
     { id: 'topf_nah',   istNah: true, name: 'Emailletopf', bild: 'bilder/topf-batterien.webp', breite: 1536, hoehe: 1024 },
+    // Schrank und Schublade stecken im selben Offen-Bild, die Teile schneiden
+    // sich ihren Bereich daraus.
+    { id: 'schreibtisch_nah', istNah: true, name: 'Acis Schreibtisch', bild: 'bilder/schreibtisch.webp',
+      bildOffen: 'bilder/schreibtisch-offen.webp', breite: 1774, hoehe: 887 },
+    // Der Bildschirm ist ein echtes Bild, die Symbole werden daraufgezeichnet.
+    { id: 'pc_nah', istNah: true, name: 'Acis Rechner', bild: 'bilder/pc-schirm.webp', breite: 1774, hoehe: 887 },
     // fische: true schaltet die Schwimm-Ebene ein (siehe Abschnitt AQUARIUM)
     { id: 'aquarium_nah', istNah: true, name: 'Aquarium', bild: 'bilder/aquarium-nah.webp', breite: 1774, hoehe: 887, fische: true },
     { id: 'wanne_nah',  istNah: true, name: 'Badewanne',        bild: 'bilder/wanne-nah.webp',  breite: 1774, hoehe: 887 },
@@ -380,6 +387,7 @@
       antwort: 'Batterien drin. Jetzt tut sie wieder.',
       schaltet: 'lampe_an', nurWenn: 'lampe_bereit', fehlt: 'Tote Lampe. Da müssen Batterien rein.' },
     { id: 'batterien',  symbol: '🔋', name: 'Batterien', text: 'Vier Batterien. Sehen noch brauchbar aus.' },
+    { id: 'futter',     symbol: '🥫', name: 'Futter',   text: 'Eine Dose mit drei Kammern: grüne, rote und braune Flocken. Am Deckel sitzen drei Rädchen.' },
     { id: 'feuerzeug',  symbol: '🔥', name: 'Feuerzeug', text: 'Ein abgegriffenes Feuerzeug. Tut es noch.' },
     { id: 'sicherung',  symbol: '🧯', name: 'Sicherung', text: 'Eine Schraubsicherung aus Porzellan. Sieht unverbraucht aus.' },
     { id: 'hammer',     symbol: '🔨', name: 'Hammer',    text: 'Anfisas Hammer. Schwer, der Stiel ist speckig vom vielen Anfassen.' },
@@ -640,6 +648,10 @@
       patchHell: 'bilder/kue-ober-rechts-hell.webp', patchHellX: 1008, patchHellY: 43, patchHellW: 371, patchHellH: 266 },
     // Zweites Antippen geht in die Nahaufnahme — aber nur bei Licht, sonst
     // stünde man vor einem schwarzen Loch.
+    // Die Futterdose steht unten zwischen den Gewürzgläsern. Ohne Bild von ihr
+    // zeichnet das Spiel eine goldene Marke.
+    { id: 'k_futter', ansicht: 'kueche', x: 1030, y: 250, w: 120, h: 50, typ: 'nehmen', zustand: 'futter_weg',
+      gibt: 'futter', sichtbarWenn: ['k_ober_rechts_offen', 'kueche_licht'], label: 'Dose zwischen den Gewürzen' },
     { id: 'k_unten_links', ansicht: 'kueche', x: 370, y: 492, w: 378, h: 210, typ: 'ausschnitt', zustand: 'k_unten_links_offen', label: 'Unterschrank links',
       nah: 'kue_unten_nah', nahWenn: 'kueche_licht',
       nahFehlt: 'Da drin ist es schwarz. Näher ranzugehen bringt nichts, solange kein Licht brennt.',
@@ -665,13 +677,53 @@
     { id: 'ac_schrank', ansicht: 'acizimmer', x: 620, y: 80,  w: 290, h: 460, typ: 'ausschnitt', zustand: 'aci_schrank_offen', label: 'Kleiderschrank' },
     { id: 'ac_tisch',   ansicht: 'acizimmer', x: 260, y: 548, w: 195, h: 165, typ: 'ausschnitt', zustand: 'aci_tisch_offen',   label: 'Nachttischschublade' },
     { id: 'ac_aquarium', ansicht: 'acizimmer', x: 1255, y: 235, w: 200, h: 155, typ: 'naehe', nah: 'aquarium_nah', label: 'Aquarium' },
-    // Rätsel: Jeder Klick scheucht die Fische in seiner Nähe nach oben, wo sie
-    // ein paar Sekunden bleiben. Erst wenn keiner mehr über dem Kies steht,
-    // setzt sich die Trübung und gibt das Ei frei.
+    { id: 'ac_pc', ansicht: 'acizimmer', x: 1500, y: 262, w: 125, h: 142, typ: 'naehe', nah: 'pc_nah', label: 'Acis Rechner' },
+    { id: 'ac_schreibtisch', ansicht: 'acizimmer', x: 1430, y: 410, w: 344, h: 120, typ: 'naehe', nah: 'schreibtisch_nah', label: 'Schreibtisch' },
+    // --- Acis Schreibtisch von nahem ---
+    { id: 'sb_monitor', ansicht: 'schreibtisch_nah', x: 590, y: 145, w: 495, h: 295, typ: 'naehe', nah: 'pc_nah', label: 'Bildschirm' },
+    { id: 'sb_aquarium', ansicht: 'schreibtisch_nah', x: 0, y: 20, w: 250, h: 380, typ: 'naehe', nah: 'aquarium_nah', label: 'Aquarium' },
+    { id: 'sb_schrank', ansicht: 'schreibtisch_nah', x: 10, y: 585, w: 470, h: 302, typ: 'ausschnitt', zustand: 'sb_schrank_offen', label: 'Schrank unter der Tischplatte' },
+    { id: 'sb_schublade', ansicht: 'schreibtisch_nah', x: 1240, y: 572, w: 490, h: 275, typ: 'ausschnitt', zustand: 'sb_schublade_offen', label: 'Schublade' },
+    // --- Acis Schreibtisch auf dem Bildschirm ---
+    // Die Leiste gehört zum Bild, nicht zum Spiel: overlay fängt keine Klicks.
+    { id: 'pc_leiste', ansicht: 'pc_nah', x: 40, y: 740, w: 1695, h: 68, typ: 'overlay', label: 'Leiste',
+      zeichnung: `<g style="pointer-events:none">
+        <rect x="40" y="740" width="1695" height="68" fill="rgba(8,11,20,0.82)"/>
+        <rect x="64" y="756" width="36" height="36" rx="6" fill="#3f6c8a"/>
+        <rect x="116" y="756" width="36" height="36" rx="6" fill="#6b7d55"/>
+        <rect x="168" y="756" width="36" height="36" rx="6" fill="#8a5f3f"/>
+        <text x="1700" y="782" font-size="22" fill="#cfd8e6" text-anchor="end" font-family="sans-serif">23:14</text></g>` },
+    { id: 'pc_futter', ansicht: 'pc_nah', x: 90, y: 80, w: 92, h: 110, typ: 'info',
+      zeichnung: pcSymbol(90, 80, 'datei', 'futterplan.txt'),
+      label: 'futterplan.txt', titel: 'futterplan.txt',
+      text: 'FUTTERPLAN FÜRS BECKEN — BITTE GENAU HALTEN\n\n'
+          + 'Grüne Flocken: für die Skalare\n'
+          + 'Rote Flocken: für die Guppys\n'
+          + 'Braune Flocken: für die Neons\n\n'
+          + 'Pro Fisch eine Prise. Keine mehr, sonst kippt das Wasser.\n'
+          + 'Die drei Rädchen am Dosierer der Reihe nach einstellen: grün, rot, braun.' },
+    { id: 'pc_fische', ansicht: 'pc_nah', x: 260, y: 80, w: 92, h: 110, typ: 'info',
+      zeichnung: pcSymbol(260, 80, 'ordner', 'becken'),
+      label: 'becken', titel: 'Ordner „becken"',
+      text: '47 Bilder vom Aquarium. Auf allen ist mindestens ein Fisch unscharf oder halb aus dem Bild geschwommen.\n\nKein einziges zeigt alle gleichzeitig.' },
+    { id: 'pc_tagebuch', ansicht: 'pc_nah', x: 90, y: 250, w: 92, h: 110, typ: 'info',
+      zeichnung: pcSymbol(90, 250, 'datei', 'notizen.txt'),
+      label: 'notizen.txt', titel: 'notizen.txt',
+      text: 'Mama sagt, ich soll aufräumen. Ich sage, ich habe ein System.\n\nSie sagt, das System heisst Boden.' },
+    { id: 'pc_privat', ansicht: 'pc_nah', x: 260, y: 250, w: 92, h: 110, typ: 'info',
+      zeichnung: pcSymbol(260, 250, 'ordner', 'privat'),
+      label: 'privat', titel: 'Ordner „privat"',
+      text: 'Der Ordner lässt sich nicht öffnen. Ein kleines Fenster fragt nach einem Passwort.\n\n(Hier kommt das Rätsel hin.)' },
+    // Ohne Gegenstand klopft man nur. Mit der Dose fragt der Dosierer drei
+    // Zahlen ab — so viele Prisen, wie Fische der jeweiligen Art im Becken sind.
     { id: 'aq_scheibe', ansicht: 'aquarium_nah', x: 310, y: 210, w: 1160, h: 460, typ: 'klopfen',
-      klang: 'metall', label: 'Aquarium', zustand: 'aq_kies', gelernt: 'aq_gelernt',
-      klopf: 'Du klopfst ans Glas. Die in der Nähe schiessen nach oben. Solange welche über dem Kies stehen, bleibt der Sand aufgewühlt.',
-      antwort: 'Keiner mehr unten. Der Sand setzt sich, und zwischen den Steinen bleibt etwas liegen.' },
+      klang: 'metall', label: 'Aquarium', gelernt: 'aq_gelernt',
+      klopf: 'Du klopfst ans Glas. Sie stieben auseinander und sammeln sich gleich wieder. Von Lärm rückt hier nichts raus — die wollen Futter.',
+      nimmt: 'futter', zustand: 'aq_kies', verbraucht: true, scheucht: true,
+      titel: 'Dosierer', code: '236',
+      frage: 'Drei Rädchen am Deckel der Dose, für grün, rot und braun. Wie viele Prisen von jeder?',
+      fehlerText: 'Die Fische drehen ab. So stimmt die Mischung nicht.',
+      antwort: 'Die Flocken sinken, die Fische schiessen hinterher und pflügen den Kies um. Zwischen den Steinen bleibt etwas liegen.' },
     // --- Flur ---
     // Zahlenschloss an der Dachbodenluke. Der Code steht als Leuchtschrift im
     // Treppenhaus, drei der vier Ziffern auch auf dem Zettel unter dem Sitzkissen.
@@ -783,7 +835,8 @@
     { id: 'e25', ansicht: 'schlafzimmer', x: 900,  y: 482, r: 9,  farbe: '#4c2213', muster: 'streifen', ebene: 2, sichtbarWenn: 'sz_nachttisch_offen' },  // in der Nachttischschublade
     { id: 'e26', ansicht: 'schlafzimmer', x: 1445, y: 592, r: 10, farbe: '#4e2c14', muster: 'zickzack', ebene: 2, sichtbarWenn: 'sz_frisier_offen' },     // in der Schublade am Frisiertisch
     { id: 'e27', ansicht: 'koffer_nah', x: 1245, y: 330, r: 22, farbe: '#c9b08a', muster: 'punkte', ebene: 2, sichtbarWenn: 'koffer_offen' },  // zwischen den Briefen im Koffer
-    { id: 'e28', ansicht: 'aquarium_nah', x: 940, y: 710, r: 11, farbe: '#b8a884', muster: 'punkte', ebene: 2, sichtbarWenn: 'aq_kies' }  // im aufgewirbelten Kies im Aquarium
+    { id: 'e28', ansicht: 'aquarium_nah', x: 940, y: 710, r: 11, farbe: '#b8a884', muster: 'punkte', ebene: 2, sichtbarWenn: 'aq_kies' },  // im aufgewirbelten Kies im Aquarium
+    { id: 'e29', ansicht: 'schreibtisch_nah', x: 196, y: 702, r: 12, farbe: '#5f4a33', muster: 'streifen', ebene: 2, sichtbarWenn: 'sb_schrank_offen' }  // in der dunklen Ecke neben den Büchern im Schreibtischschrank
   ];
 
   // Fische im Aquarium. verhaeltnis = Breite durch Höhe des freigestellten
@@ -796,6 +849,7 @@
   ];
   const AQ      = { x: 330, y: 240, w: 1120, h: 380 };   // Wasser im Beckenbild
   const AQ_OBEN = { x: 350, y: 245, w: 1080, h: 130 };   // dahin flüchten sie beim Klopfen
+  const AQ_KIES = { x: 390, y: 520, w: 1000, h: 110 };   // dahin stürzen sie, wenn Futter fällt
   const SCHEUCH_RADIUS = 300;   // wie weit ein Klopfen reicht
   const SCHEUCH_DAUER  = 8;     // Sekunden, die ein gescheuchter Fisch oben bleibt
 
@@ -999,6 +1053,17 @@
   }
 
   // Beschriftung der Platzhalter — fällt weg, sobald echte Bilder da sind
+  // Ein Symbol auf Acis Schreibtisch: Ordner oder Textdatei, mit Namen darunter.
+  function pcSymbol(x, y, art, name) {
+    const koerper = art === 'ordner'
+      ? `<path d="M0 12 L26 12 L36 24 L92 24 L92 74 L0 74 Z" fill="#d9b863" stroke="#8a6f2e" stroke-width="2"/>
+         <path d="M0 34 L92 34" stroke="#b8974a" stroke-width="2"/>`
+      : `<rect x="14" y="8" width="64" height="68" rx="4" fill="#ece4d3" stroke="#8d8471" stroke-width="2"/>
+         <path d="M26 26 H66 M26 38 H66 M26 50 H58 M26 62 H48" stroke="#9a9280" stroke-width="3" stroke-linecap="round"/>`;
+    return `<g transform="translate(${x},${y})" style="pointer-events:none">${koerper}
+      <text x="46" y="98" font-size="21" fill="#e8eef6" text-anchor="middle" font-family="sans-serif">${name}</text></g>`;
+  }
+
   function teilBeschriftung(teil) {
     return `<text x="${teil.x + teil.w / 2}" y="${teil.y - 8}" font-size="15" fill="rgba(255,255,255,0.55)" text-anchor="middle" font-family="sans-serif" style="pointer-events:none">${teil.label}</text>`;
   }
@@ -1147,12 +1212,10 @@
       if (grundbild) return '';
       return `<g data-offen="${t.zustand || ''}">${teilOffenForm(t)}</g>`;
     })())).join('')}</g>`;
-    if (!grundbild) html += `<g id="beschriftungen">${teile.map(teilBeschriftung).join('')}</g>`;
+    if (!grundbild && !ans.ohneBeschriftung) html += `<g id="beschriftungen">${teile.map(teilBeschriftung).join('')}</g>`;
     // Fische: eigene Ebene über dem Beckenbild, aber unter Trefferflächen und
     // Eiern. Sie fangen keine Klicks ab, sonst käme man nicht an das Ei im Kies.
-    if (ans.fische) html += `<g id="fische" style="pointer-events:none"></g>`
-      + `<text id="fisch-anzeige" x="${AQ.x + 10}" y="${AQ.y - 12}" fill="#f4d484" font-size="26"`
-      + ` font-family="Georgia, serif" style="pointer-events:none"></text>`;
+    if (ans.fische) html += `<g id="fische" style="pointer-events:none"></g>`;
     // Dunkel-Bereiche
     html += `<g id="dunkel">${dunkel.map(d => `<rect data-hell="${d.hellWenn}" x="${d.x}" y="${d.y}" width="${d.w}" height="${d.h}" fill="#05070a" opacity="0.93"/>`).join('')}</g>`;
     // Trefferflächen der Teile — durchsichtig, liegen unter Durchgängen und Eiern,
@@ -1191,10 +1254,10 @@
   // allen Fischen im Umkreis `hoch`: die flüchten dann nach oben und bleiben
   // dort, bis die Sekunden abgelaufen sind.
   // =====================================================================
-  let fische = [], fischUhr = null, fischLetzte = 0;
+  let fische = [], fischUhr = null, fischLetzte = 0, gier = 0;
 
   function fischZiel(f) {
-    const r = f.hoch > 0 ? AQ_OBEN : AQ;
+    const r = gier > 0 ? AQ_KIES : (f.hoch > 0 ? AQ_OBEN : AQ);
     f.zx = r.x + f.w / 2 + Math.random() * Math.max(1, r.w - f.w);
     f.zy = r.y + f.h / 2 + Math.random() * Math.max(1, r.h - f.h);
   }
@@ -1237,50 +1300,31 @@
 
   function fischeStopp() {
     if (fischUhr) cancelAnimationFrame(fischUhr);
-    fischUhr = null; fische = [];
+    fischUhr = null; fische = []; gier = 0;
   }
 
   function fischSchritt(jetzt) {
     if (!fische.length) { fischUhr = null; return; }
     const dt = fischLetzte ? Math.min(0.05, (jetzt - fischLetzte) / 1000) : 0.016;
     fischLetzte = jetzt;
-    let unten = 0;
+    if (gier > 0) gier = Math.max(0, gier - dt);
     fische.forEach(f => {
       if (f.hoch > 0) {
         f.hoch = Math.max(0, f.hoch - dt);
-        if (f.hoch === 0) fischZiel(f);      // Ruhe vorbei, wieder frei umher
-      } else unten++;
+        if (f.hoch === 0) fischZiel(f);      // Schreck vorbei, wieder frei umher
+      }
       const dx = f.zx - f.x, dy = f.zy - f.y;
       const weg = Math.hypot(dx, dy);
       if (weg < 10) { fischZiel(f); return; }
-      const v = f.tempo * (f.hoch > 0 ? 2.6 : 1) * dt;
+      const hektisch = f.hoch > 0 || gier > 0;
+      const v = f.tempo * (hektisch ? 2.6 : 1) * dt;
       f.x += dx / weg * v;
-      f.y += dy / weg * v * (f.hoch > 0 ? 1.4 : 0.65);   // auf der Flucht steigen sie schnell
+      f.y += dy / weg * v * (hektisch ? 1.4 : 0.65);   // auf der Flucht und beim Futter steigen sie schnell
       if (dx > 3) f.blick = 1; else if (dx < -3) f.blick = -1;
       const s = f.art.nachLinks ? -f.blick : f.blick;
       if (f.el) f.el.setAttribute('transform', `translate(${f.x.toFixed(1)},${f.y.toFixed(1)}) scale(${s},1)`);
     });
-    const anzeige = document.getElementById('fisch-anzeige');
-    if (anzeige) anzeige.textContent = fischRaetselOffen() ? 'Noch über dem Kies: ' + unten : '';
-    if (unten === 0 && fischRaetselOffen()) fischRaetselGeloest();
     fischUhr = requestAnimationFrame(fischSchritt);
-  }
-
-  // Das Rätsel gilt, solange der Zustand der Frontscheibe nicht gesetzt ist.
-  function fischScheibe() { return TEILE.find(t => t.typ === 'klopfen' && t.ansicht === aktuelleAnsicht().id); }
-  function fischRaetselOffen() {
-    const t = fischScheibe();
-    return !!(t && t.zustand && !zustand.offen[t.zustand]);
-  }
-  function fischRaetselGeloest() {
-    const t = fischScheibe();
-    if (!t) return;
-    zustand.offen[t.zustand] = true;
-    fanfare([660, 880, 1100]);
-    aktualisiereSichtbarkeit(); speichern();
-    const anzeige = document.getElementById('fisch-anzeige');
-    if (anzeige) anzeige.textContent = '';
-    if (t.antwort) sag(t.antwort, t.sprecher);
   }
 
   // =====================================================================
@@ -1608,6 +1652,10 @@
       sag(greift.antwort || 'So nicht.', teil.sprecher || teil.label);
       return false;
     }
+    // Teil mit code: Der Gegenstand allein reicht nicht, erst kommt die Abfrage.
+    // Gesetzt und verbraucht wird beim richtigen Lösen, siehe pruefeRaetsel.
+    if (teil.code) { waehle(null, true); oeffneRaetsel(teil); return true; }
+
     // einzeln: Das Teil nimmt jeden Gegenstand für sich an, in beliebiger
     // Reihenfolge. Erst wenn alle da sind, passiert das Eigentliche.
     if (teil.einzeln && teil.einzeln[gegenstandId]) {
@@ -1963,8 +2011,9 @@
     document.getElementById('raetsel-titel').textContent = t.titel || t.label;
     document.getElementById('raetsel-frage').textContent = t.frage;
     const inp = document.getElementById('raetsel-input');
-    inp.value = ''; inp.placeholder = t.typ === 'code' ? '····' : 'Antwort';
-    inp.inputMode = t.typ === 'code' ? 'numeric' : 'text';
+    // Ein Teil mit code ist eine Zahleneingabe, egal welchen Typ es sonst hat
+    inp.value = ''; inp.placeholder = t.code ? '····' : 'Antwort';
+    inp.inputMode = t.code ? 'numeric' : 'text';
     document.getElementById('raetsel-fehler').textContent = '';
     document.getElementById('raetsel-modal').classList.add('show');
     setTimeout(() => inp.focus(), 100);
@@ -1976,7 +2025,7 @@
     if (!aktivesRaetsel) return;
     const t = aktivesRaetsel;
     const eingabe = normalisiere(document.getElementById('raetsel-input').value);
-    const richtig = t.typ === 'code'
+    const richtig = t.code
       ? eingabe === String(t.code)
       : (t.antworten || []).some(a => normalisiere(a) === eingabe);
     if (richtig) {
@@ -1984,12 +2033,19 @@
       // setztAuch merkt sich dauerhaft, dass das Schloss geknackt ist —
       // danach lässt sich die Luke auf- und zumachen, ohne den Code erneut einzugeben
       if (t.setztAuch) zustand.offen[t.setztAuch] = true;
+      // Wurde das Rätsel mit einem Gegenstand geöffnet, ist der jetzt weg
+      if (t.verbraucht && t.nimmt) {
+        const futsch = Array.isArray(t.nimmt) ? t.nimmt : [t.nimmt];
+        zustand.inventar = zustand.inventar.filter(x => !futsch.includes(x));
+        renderInventar();
+      }
+      if (t.scheucht) { gier = 6; fische.forEach(fischZiel); }
       document.getElementById('raetsel-modal').classList.remove('show');
       klang('nehmen');
       aktualisiereSichtbarkeit(); renderRaumKnoepfe(); speichern();
-      sag(t.typ === 'code' ? 'Klick. Offen.' : 'Richtig. Anfisa hätte nicht gedacht, dass du das weisst.');
+      sag(t.antwort || (t.code ? 'Klick. Offen.' : 'Richtig. Anfisa hätte nicht gedacht, dass du das weisst.'));
     } else {
-      document.getElementById('raetsel-fehler').textContent = t.typ === 'code' ? 'Bleibt zu.' : 'Nein. Denk nochmal nach.';
+      document.getElementById('raetsel-fehler').textContent = t.fehlerText || (t.code ? 'Bleibt zu.' : 'Nein. Denk nochmal nach.');
       klang('fehler');
     }
   }
