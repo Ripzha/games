@@ -69,8 +69,7 @@
   .welt .bild { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: fill; }
   .teil { cursor: pointer; }
   .ei-treffer { fill: transparent; cursor: pointer; }
-  .ei.gefunden .ei-form { opacity: 0.25; }
-  .ei.gefunden .ei-treffer { cursor: default; }
+  .ei.gefunden { display: none; }
   .ei.versteckt { display: none; }
   .zoom-hinweis { position: absolute; right: 10px; top: 10px; font-size: 11px; color: var(--himmel-text); background: rgba(10,18,12,0.7); padding: 4px 8px; border-radius: 6px; pointer-events: none; z-index: 5; }
   .zoom-knoepfe { position: absolute; left: 10px; bottom: 10px; display: flex; gap: 6px; z-index: 9; }
@@ -303,7 +302,7 @@
   //          'rein' = anklickbare Stelle im Bild (braucht x, y, w, h in Bildpixeln)
   // Teil:    { id, ansicht, x, y, w, h, typ: 'ausschnitt'|'toggle'|'raetsel'|'code'|'info'|'schalter',
   //            zustand (Key), label, ...rätselfelder }
-  // Ei:      { id, ansicht, x, y, r, farbe, muster, ebene: 1|2|3, sichtbarWenn: Zustand-Key oder null,
+  // Ei:      { id, ansicht, x, y, r, farbe, muster, ebene: 1|2|3, sichtbarWenn: Zustand-Key, Liste davon oder null,
   //            hinten: true = liegt hinter Möbeln (wird teilweise verdeckt) }
   // =====================================================================
   // imMenu: false = taucht nicht in der Kopfzeile auf, nur über einen Weg erreichbar
@@ -312,11 +311,17 @@
     { id: 'treppenhaus', name: 'Treppenhaus', start: 'treppenhaus', gesperrtBis: null, imMenu: false },
     { id: 'wohnzimmer', name: 'Wohnzimmer', start: 'wohnzimmer', gesperrtBis: null },
     { id: 'kueche',     name: 'Küche',      start: 'kueche',     gesperrtBis: null },
-    { id: 'garten',     name: 'Garten',     start: 'garten',     gesperrtBis: null },
+    // Acis Zimmer. Vorerst nur über den Knopf oben erreichbar — im Flur sind
+    // alle drei Türen schon vergeben.
+    { id: 'acizimmer',  name: 'Acis Zimmer', start: 'acizimmer', gesperrtBis: null },
     // Flur und Dachboden sind Durchgangsräume: nur über Wege erreichbar,
     // nicht über die Knöpfe oben. Beide warten noch auf ihre Bilder.
     { id: 'flur',      name: 'Flur',      start: 'flur',      gesperrtBis: null, imMenu: false },
-    { id: 'dachboden', name: 'Dachboden', start: 'dachboden', gesperrtBis: null, imMenu: false }
+    { id: 'dachboden',   name: 'Dachboden',   start: 'dachboden',   gesperrtBis: null, imMenu: false },
+    // Die drei Zimmer am Flur. Bilder fehlen noch, darum Platzhalter-Geometrie.
+    { id: 'schlafzimmer', name: 'Schlafzimmer', start: 'schlafzimmer', gesperrtBis: null, imMenu: false },
+    { id: 'bad',          name: 'Bad',          start: 'bad',          gesperrtBis: null, imMenu: false },
+    { id: 'kammer',       name: 'Kammer',       start: 'kammer',       gesperrtBis: null, imMenu: false }
   ];
 
   const ANSICHTEN = [
@@ -330,10 +335,16 @@
     { id: 'wohnzimmer', raum: 'wohnzimmer', name: 'Wohnzimmer', bild: 'bilder/wohnzimmer-zu.webp', breite: 1774, hoehe: 887 },
     { id: 'kueche', raum: 'kueche', name: 'Küche', bild: 'bilder/kueche-dunkel.webp',
       hellWenn: 'kueche_licht', bildHell: 'bilder/kueche-hell.webp', breite: 1774, hoehe: 887 },
-    { id: 'garten',     raum: 'garten',     name: 'Garten',     bild: '' },
-    { id: 'flur', raum: 'flur', name: 'Flur', bild: '' },
+    // Schrank und Nachttischschublade stecken beide im selben Offen-Bild, darum
+    // schneiden sich die Teile ihren Bereich daraus (bildOffen), ohne eigenen Flicken.
+    { id: 'acizimmer',  raum: 'acizimmer',  name: 'Acis Zimmer', bild: 'bilder/aci-zimmer.webp',
+      bildOffen: 'bilder/aci-zimmer-offen.webp', breite: 1774, hoehe: 887 },
+    { id: 'flur', raum: 'flur', name: 'Flur', bild: 'bilder/flur.webp', breite: 1774, hoehe: 887 },
     { id: 'dachboden', raum: 'dachboden', name: 'Dachboden', bild: '',
       lampeWenn: 'lampe_an', lampeRadius: 160 },
+    { id: 'schlafzimmer', raum: 'schlafzimmer', name: 'Anfisas Schlafzimmer', bild: 'bilder/schlafzimmer.webp', breite: 1774, hoehe: 887 },
+    { id: 'bad', raum: 'bad', name: 'Bad', bild: 'bilder/bad.webp', breite: 1774, hoehe: 887 },
+    { id: 'kammer',       raum: 'kammer',       name: 'Kammer',       bild: '' },
     // Nahansichten von Gegenständen, die man in die Hand nimmt.
     // istNah: true = gehört zu keinem Raum, wird über das Inventar geöffnet.
     { id: 'bild_vorn',   istNah: true, name: 'Landschaftsbild — Vorderseite', bild: 'bilder/bild-vorn.webp',      breite: 1402, hoehe: 912 },
@@ -343,7 +354,17 @@
     { id: 'gruen_nah', istNah: true, name: 'Unterschrank — von nahem', bild: 'bilder/gruen-nah.webp', breite: 1448, hoehe: 1086 },
     { id: 'kiste_nah', istNah: true, name: 'Blechkiste', bild: 'bilder/kiste-nah.webp', breite: 1361, hoehe: 1028 },
     { id: 'sessel_nah', istNah: true, name: 'Anfisas Sessel', bild: 'bilder/sessel-nah.webp', breite: 1774, hoehe: 887 },
-    { id: 'tisch_nah',  istNah: true, name: 'Couchtisch',      bild: 'bilder/tisch-nah.webp',  breite: 1774, hoehe: 887 }
+    { id: 'tisch_nah',  istNah: true, name: 'Couchtisch',      bild: 'bilder/tisch-nah.webp',  breite: 1774, hoehe: 887 },
+    { id: 'becken_nah', istNah: true, name: 'Waschbecken',      bild: 'bilder/becken-nah.webp', breite: 1774, hoehe: 887 },
+    { id: 'kue_unten_nah', istNah: true, name: 'Unterschrank links', bild: 'bilder/kue-unten-nah.webp', breite: 1774, hoehe: 887 },
+    // Grundbild ist der Topf mit den Batterien. Sind sie genommen, deckt der
+    // Ausschnitt aus dem leeren Topf die Stelle ab.
+    { id: 'topf_nah',   istNah: true, name: 'Emailletopf', bild: 'bilder/topf-batterien.webp', breite: 1536, hoehe: 1024 },
+    { id: 'wanne_nah',  istNah: true, name: 'Badewanne',        bild: 'bilder/wanne-nah.webp',  breite: 1774, hoehe: 887 },
+    // Die Ente wird wie das Bild gewendet: erst in der Hand, dann der Bauch.
+    { id: 'ente_vorn',  istNah: true, name: 'Gummiente', bild: 'bilder/ente-vorn.webp', breite: 925, hoehe: 940 },
+    { id: 'ente_nah',   istNah: true, name: 'Gummiente — von unten', bild: 'bilder/ente-nah.webp', breite: 926, hoehe: 940 },
+    { id: 'koffer_nah', istNah: true, name: 'Anfisas Koffer', bild: 'bilder/koffer-nah.webp', breite: 1774, hoehe: 887 }
   ];
 
   // Gegenstände im Inventar. nah = ID der Nahansicht, die ein Klick darauf öffnet.
@@ -356,10 +377,11 @@
       nimmt: 'batterien', setzt: 'lampe_bereit', verbraucht: true,
       antwort: 'Batterien drin. Jetzt tut sie wieder.',
       schaltet: 'lampe_an', nurWenn: 'lampe_bereit', fehlt: 'Tote Lampe. Da müssen Batterien rein.' },
-    { id: 'batterien',  symbol: '🔋', name: 'Batterien', text: 'Zwei Batterien. Sehen noch brauchbar aus.' },
+    { id: 'batterien',  symbol: '🔋', name: 'Batterien', text: 'Vier Batterien. Sehen noch brauchbar aus.' },
     { id: 'feuerzeug',  symbol: '🔥', name: 'Feuerzeug', text: 'Ein abgegriffenes Feuerzeug. Tut es noch.' },
     { id: 'sicherung',  symbol: '🧯', name: 'Sicherung', text: 'Eine Schraubsicherung aus Porzellan. Sieht unverbraucht aus.' },
-    { id: 'hammer',     symbol: '🔨', name: 'Hammer',    text: 'Anfisas Hammer. Schwer, der Stiel ist speckig vom vielen Anfassen.' }
+    { id: 'hammer',     symbol: '🔨', name: 'Hammer',    text: 'Anfisas Hammer. Schwer, der Stiel ist speckig vom vielen Anfassen.' },
+    { id: 'ente',       symbol: '🦆', name: 'Ente',      nah: 'ente_vorn', text: 'Eine Gummiente mit Fellmütze und rotem Stern. Sie quietscht, wenn man sie drückt.' }
   ];
 
   const WEGE = [
@@ -382,13 +404,32 @@
     { von: 'kueche', nach: 'flur', art: 'rein', pfeil: 'links', x: 100, y: 100, w: 95, h: 560,
       wennOffen: 'k_tuer_offen', label: 'in den Flur' },
     { von: 'flur',   nach: 'kueche',    art: 'rechts', label: 'zurück in die Küche' },
-    // VORLÄUFIG ein Pfeil nach oben. Sobald das Flurbild da ist, wird daraus
-    // eine Luke oder Klapptreppe als Stelle im Bild.
-    { von: 'flur',      nach: 'dachboden', art: 'oben',  label: 'hinauf auf den Dachboden' },
+    // Die Luke in der Decke. Der Hotspot liegt auf der Leiter, nicht auf dem
+    // Schloss — sonst würde ein Klick die Code-Eingabe wieder öffnen.
+    // Beide Zustände nötig: ohne luke_geknackt wird die Leiter gar nicht gezeichnet,
+    // dann darf auch kein Pfeil ins Nichts führen.
+    { von: 'flur', nach: 'dachboden', art: 'rein', pfeil: 'hoch', x: 700, y: 230, w: 260, h: 260,
+      wennOffen: ['luke_geknackt', 'luke_offen'], label: 'die Leiter hinauf' },
+    // Die drei Zimmer. Durch die hintere Tür kommt man nicht, solange die Leiter
+    // davorsteht — dann muss man die Luke erst wieder zuklappen.
+    { von: 'flur', nach: 'kammer', art: 'rein', pfeil: 'links', x: 262, y: 120, w: 110, h: 600,
+      wennOffen: 'fl_links_offen', label: 'in die Kammer' },
+    { von: 'flur', nach: 'bad', art: 'rein', pfeil: 'rechts', x: 1340, y: 120, w: 130, h: 620,
+      wennOffen: 'fl_rechts_offen', label: 'ins Bad' },
+    // Der Durchgang liegt unten auf der Schwelle, nicht mitten auf dem Türblatt —
+    // sonst deckt er die Tür zu und sie lässt sich nicht mehr schliessen.
+    { von: 'flur', nach: 'schlafzimmer', art: 'rein', pfeil: 'hoch', x: 770, y: 600, w: 90, h: 95,
+      wennOffen: 'fl_ende_offen', wennZu: 'luke_offen', label: 'in Anfisas Zimmer' },
+    { von: 'schlafzimmer', nach: 'flur', art: 'unten', label: 'zurück in den Flur' },
+    { von: 'bad',          nach: 'flur', art: 'unten', label: 'zurück in den Flur' },
+    { von: 'kammer',       nach: 'flur', art: 'unten', label: 'zurück in den Flur' },
     { von: 'dachboden', nach: 'flur',      art: 'unten', label: 'hinunter in den Flur' },
     // Bild in der Hand wenden
     { von: 'bild_vorn',   nach: 'bild_hinten', art: 'wenden', label: '↻ Umdrehen' },
-    { von: 'bild_hinten', nach: 'bild_vorn',   art: 'wenden', label: '↻ Umdrehen' }
+    { von: 'bild_hinten', nach: 'bild_vorn',   art: 'wenden', label: '↻ Umdrehen' },
+    // Ente in der Hand wenden
+    { von: 'ente_vorn', nach: 'ente_nah',  art: 'wenden', label: '↻ Umdrehen' },
+    { von: 'ente_nah',  nach: 'ente_vorn', art: 'wenden', label: '↻ Umdrehen' }
   ];
 
   const TEILE = [
@@ -398,12 +439,11 @@
     { id: 'g_blau',    ansicht: 'garage1', x: 536,  y: 586, w: 170, h: 70,  typ: 'ausschnitt', zustand: 'blau_offen',   label: 'Blauer Rollcontainer',   nah: '' },
     { id: 'g_steck',   ansicht: 'garage1', x: 1096, y: 668, w: 215, h: 85,  typ: 'ausschnitt', zustand: 'steck_offen',  label: 'Steckschlüssel-Schublade', nah: '' },
     { id: 'g_wagen',   ansicht: 'garage1', x: 1330, y: 584, w: 318, h: 258, typ: 'ausschnitt', zustand: 'wagen_offen',  label: 'Roter Werkstattwagen',   nah: '' },
-    { id: 'g_batterien', ansicht: 'garage1', x: 1110, y: 676, w: 80, h: 62, typ: 'nehmen', zustand: 'batterien_weg',
-      gibt: 'batterien', sichtbarWenn: 'steck_offen', label: 'Batterien' },
+
     { id: 'g_sicherung', ansicht: 'garage1', x: 1480, y: 650, w: 88, h: 64, typ: 'nehmen', zustand: 'sicherung_genommen',
       gibt: 'sicherung', sichtbarWenn: 'wagen_offen', label: 'Sicherung' },
     { id: 'g_zettel',  ansicht: 'garage1', x: 1055, y: 12,  w: 180, h: 112, typ: 'info', label: 'Zeichnung an der Wand',
-      titel: 'Notiz am Rand der Zeichnung', text: '[PLATZHALTER — Text kommt, sobald klar ist, wozu der Code gehört] „Vier Ziffern. Wenn du sie nicht weisst, hast du nicht zugehört." — Anfisa' },
+      titel: 'Notiz am Rand der Zeichnung', text: '„Aci — den Code für die Luke hab ich an die Wand geschrieben. Mit der Farbe, die im Dunkeln leuchtet. Du weisst schon, wo." — Anfisa' },
     // --- Garage, Ansicht 2: Türseite (Koordinaten im Bild 1774 x 887) ---
     { id: 'g2_oben',  ansicht: 'garage2', x: 470,  y: 150, w: 350, h: 396, typ: 'ausschnitt', zustand: 'g2_oben_offen',  label: 'Grosser Schrank, oben',  nah: '' },
     { id: 'g2_unten', ansicht: 'garage2', x: 470,  y: 548, w: 380, h: 265, typ: 'ausschnitt', zustand: 'g2_unten_offen', label: 'Grosser Schrank, unten', nah: 'gruen_nah' },
@@ -416,6 +456,10 @@
     { id: 'ki_feuerzeug', ansicht: 'kiste_nah', x: 478, y: 558, w: 410, h: 219, typ: 'nehmen', zustand: 'feuerzeug_weg',
       gibt: 'feuerzeug', label: 'Feuerzeug',
       patch: 'bilder/kiste-feuerzeug.webp', patchNicht: true, patchX: 483, patchY: 563, patchW: 400, patchH: 209 },
+    // Die Taschenlampe liegt links daneben im Kistenboden. Noch als goldene
+    // Marke, ein Bild von ihr gibt es nicht.
+    { id: 'ki_lampe', ansicht: 'kiste_nah', x: 170, y: 560, w: 250, h: 190, typ: 'nehmen', zustand: 'lampe_weg',
+      gibt: 'lampe', label: 'Taschenlampe' },
     // Hinter der geschlossenen Tür ist es dunkel, solange im Treppenhaus kein Licht brennt
     { id: 'g2_fenster', ansicht: 'garage2', x: 1162, y: 242, w: 130, h: 186, typ: 'overlay',
       nichtWenn: 'th_licht,g2_tuer_offen', label: 'Türfenster',
@@ -450,12 +494,21 @@
     { id: 'th_kippen', ansicht: 'treppenhaus', x: 1420, y: 520, w: 140, h: 65, typ: 'nehmen', zustand: 'kippen_weg',
       gibt: 'kippen', sichtbarWenn: 'th_kiste_offen', label: 'Zigarettenschachtel' },
     // --- Wohnzimmer (Koordinaten im Bild 1774 x 887) ---
+    // Ist der Hammer genommen, wird das ganze Raumbild getauscht statt nur ein
+    // Stück davon. Das Bild ohne Hammer ist neu gerendert und weicht überall
+    // leicht ab, ein Ausschnitt daraus wäre als Rechteck zu sehen. Dieses Teil
+    // steht als erstes im Raum, damit offene Schränke und Flicken darüber liegen.
+    { id: 'w_ohne_hammer', ansicht: 'wohnzimmer', x: 0, y: 0, w: 1774, h: 887, typ: 'overlay', zustand: 'hammer_weg',
+      bildAus: 'bilder/wohnzimmer-ohne-hammer.webp', label: 'Wohnzimmer' },
     { id: 'w_regal',    ansicht: 'wohnzimmer', x: 862,  y: 336, w: 236, h: 146, typ: 'ausschnitt', zustand: 'wz_regal_offen', label: 'Schrank unter dem Bücherregal',
       patch: 'bilder/wz-regal-auf.webp', patchX: 856, patchY: 330, patchW: 248, patchH: 158 },
     // Nur die linke Tür geht auf. Das mittlere Fach und der Couchtisch sind in
     // beiden Bildern unterschiedlich gefüllt und bleiben darum aus dem Flicken
     // ausgespart, sonst verändert sich beim Öffnen das halbe Möbel.
-    { id: 'w_tvmoebel', ansicht: 'wohnzimmer', x: 1215, y: 398, w: 205, h: 118, typ: 'ausschnitt', zustand: 'wz_tv_offen', label: 'Fernsehmöbel',
+    // Nur die freie Schranktür rechts vom Aschenbecher: der alte Rahmen reichte
+    // über den Aschenbecher und die Tischplatte, darum ging beim Antippen des
+    // Aschenbechers das Möbel auf.
+    { id: 'w_tvmoebel', ansicht: 'wohnzimmer', x: 1305, y: 388, w: 100, h: 92, typ: 'ausschnitt', zustand: 'wz_tv_offen', label: 'Fernsehmöbel',
       patch: 'bilder/wz-tvmoebel-auf.webp', patchX: 1209, patchY: 390, patchW: 542, patchH: 132 },
     // Die Frau im Sessel: drei Frames. 0 = schlafend (Grundbild), 1 = aufgeschreckt, 2 = spricht.
     // Jeder Klick geht eine Phase weiter, nach der letzten wieder zurück auf schlafend.
@@ -464,7 +517,10 @@
     // Eng freigestellt: nur Anfisa selbst. Ein grosszuegigerer Rand nimmt Wand
     // mit, und die ist im Leer-Bild deutlich anders gezeichnet (Abweichung 19
     // gegenueber 6 beim Rest des Raums) — das sieht man dann als Fleck.
+    // nichtWenn: Der Leer-Flicken zeigt den Hammer noch auf der Lehne. Sobald er
+    // genommen ist, übernimmt das ganze Bild ohne Hammer.
     { id: 'w_sessel_leer', ansicht: 'wohnzimmer', x: 239, y: 133, w: 749, h: 649, typ: 'overlay', zustand: 'anfisa_weg',
+      nichtWenn: 'hammer_weg',
       patch: 'bilder/wz-sessel-leer.webp', patchX: 239, patchY: 133, patchW: 749, patchH: 649, label: 'Sessel' },
     { id: 'w_gemaelde', ansicht: 'wohnzimmer', x: 415, y: 0, w: 275, h: 188, typ: 'nehmen', zustand: 'bild_ab', gibt: 'gemaelde',
       patch: 'bilder/wz-bild-ab.webp', patchX: 405, patchY: 0, patchW: 292, patchH: 195, label: 'Bild an der Wand' },
@@ -474,13 +530,19 @@
     // Erst wenn Anfisa weg ist, kommt man an den Sessel heran
     { id: 'w_sessel', ansicht: 'wohnzimmer', x: 250, y: 430, w: 520, h: 250, typ: 'naehe', nah: 'sessel_nah',
       sichtbarWenn: 'anfisa_weg', label: 'Sessel' },
-    { id: 'w_tisch', ansicht: 'wohnzimmer', x: 970, y: 505, w: 240, h: 65, typ: 'naehe', nah: 'tisch_nah', label: 'Couchtisch' },
+    { id: 'w_tisch', ansicht: 'wohnzimmer', x: 970, y: 495, w: 480, h: 90, typ: 'naehe', nah: 'tisch_nah', label: 'Couchtisch' },
+    // Tasse und Aschenbecher stehen über der Tischplatte und brauchen eine
+    // eigene Fläche, sonst trifft man sie nicht.
+    { id: 'w_ascher', ansicht: 'wohnzimmer', x: 1060, y: 450, w: 240, h: 50, typ: 'naehe', nah: 'tisch_nah', label: 'Aschenbecher' },
     // Der Tassenrand liegt über den Eiern, damit das Ei wirklich in der Tasse steckt
     { id: 'ti_rand', ansicht: 'tisch_nah', x: 139, y: 224, w: 452, h: 132, typ: 'overlay', vorn: true, label: 'Tassenrand',
       patch: 'bilder/tisch-tassenrand.webp', patchX: 139, patchY: 224, patchW: 452, patchH: 132 },
     { id: 'w_tv', ansicht: 'wohnzimmer', x: 1408, y: 148, w: 217, h: 200, klang: 'metall', typ: 'ausschnitt', zustand: 'tv_aus',
       patch: 'bilder/wz-tv-aus.webp', patchX: 1402, patchY: 142, patchW: 229, patchH: 206, label: 'Fernseher',
       // Achtung: der Zustand heisst tv_aus. Gesetzt = Fernseher ist AUS.
+      // Sie sitzt dabei wirklich auf: der Schalter setzt Anfisas Phase mit.
+      // 1 = aufgeschreckt (wz-frau-wach.webp), 0 = schlafend (Grundbild).
+      setztPhase: { zustand: 'frau_phase', an: 1, aus: 0, nichtWenn: 'anfisa_weg' },
       sprecher: 'Anfisa', sagtNichtWenn: 'anfisa_weg',
       sagtAn:  '„Hey!" Sie richtet sich halb auf. „Das war mein Film. Mach wieder an."',
       sagtAus: '„Nu also." Sie sinkt zurück. „Geht doch."' },
@@ -492,11 +554,22 @@
     { id: 'w_frau', ansicht: 'wohnzimmer', x: 240, y: 95, w: 430, h: 330, typ: 'phasen', zustand: 'frau_phase',
       treffer: { x: 240, y: 192, w: 430, h: 233 },
       nichtWenn: 'anfisa_weg', label: 'Die Frau im Sessel', sprecher: 'Anfisa',
+      // Solange der Fernseher aus ist, sitzt sie auf. Weiterklicken darf sie
+      // dann nicht in die schlafende Phase 0 zurückfallen lassen.
+      mindestPhase: { wenn: ['tv_aus', 'anfisa_kippen', 'anfisa_feuer'], phase: 1 },
       // Sie will beides: Schachtel und Feuerzeug. Und solange das Bild nicht
       // an der Wand hängt, nimmt sie gar nichts an.
       nimmt: ['kippen', 'feuerzeug'], setzt: 'anfisa_weg', verbraucht: true,
-      antwort: '„Papirossy. Und Feuer." Sie steckt beides ein und stemmt sich hoch, langsam wie ein Schrank. „Dann setze ich Wasser auf. Ohne Tee schmeckt das nicht."',
-      fehlt: '„Halbe Sachen." Sie streckt die Hand aus und lässt sie wieder sinken. „Bring mir beides. Dann reden wir."',
+      // Sie nimmt jedes Stück für sich an und richtet sich dabei auf. Welches
+      // zuerst kommt, ist egal — der Satz zum zweiten ist immer der letzte.
+      gabePhase: 1,
+      einzeln: {
+        kippen: { setzt: 'anfisa_kippen',
+          antwort: '„Papirossy." Sie richtet sich auf und dreht die Schachtel zweimal in der Hand. „Und womit soll ich die anzünden? Mit Blick?"' },
+        feuerzeug: { setzt: 'anfisa_feuer',
+          antwort: '„Feuer." Sie setzt sich gerade hin und lässt es einmal klicken. „Schön. Jetzt fehlt nur noch, was man damit anzündet."' }
+      },
+      antwort: '„Jetzt stimmt es." Sie steckt beides ein und stemmt sich hoch, langsam wie ein Schrank. „Dann setze ich Wasser auf. Ohne Tee schmeckt das nicht."',
       strafen: [
         { wenn: 'bild_ab', setzt: 'anfisa_sauer',
           antwort: '„Stoj." Sie deutet mit dem Kinn zur Wand. „Da ist Loch. Mein Bild hing da. Solange das so aussieht, rühre ich mich nicht."' },
@@ -563,11 +636,18 @@
     { id: 'k_ober_rechts', ansicht: 'kueche', x: 1015, y: 50, w: 357, h: 252, typ: 'ausschnitt', zustand: 'k_ober_rechts_offen', label: 'Oberschränke rechts',
       patch: 'bilder/kue-ober-rechts-dunkel.webp', patchX: 1008, patchY: 43, patchW: 371, patchH: 266,
       patchHell: 'bilder/kue-ober-rechts-hell.webp', patchHellX: 1008, patchHellY: 43, patchHellW: 371, patchHellH: 266 },
+    // Zweites Antippen geht in die Nahaufnahme — aber nur bei Licht, sonst
+    // stünde man vor einem schwarzen Loch.
     { id: 'k_unten_links', ansicht: 'kueche', x: 370, y: 492, w: 378, h: 210, typ: 'ausschnitt', zustand: 'k_unten_links_offen', label: 'Unterschrank links',
+      nah: 'kue_unten_nah', nahWenn: 'kueche_licht',
+      nahFehlt: 'Da drin ist es schwarz. Näher ranzugehen bringt nichts, solange kein Licht brennt.',
       patch: 'bilder/kue-unten-links-dunkel.webp', patchX: 363, patchY: 485, patchW: 392, patchH: 224,
       patchHell: 'bilder/kue-unten-links-hell.webp', patchHellX: 363, patchHellY: 485, patchHellW: 392, patchHellH: 224 },
-    { id: 'k_lampe', ansicht: 'kueche', x: 400, y: 530, w: 110, h: 80, typ: 'nehmen', zustand: 'lampe_weg',
-      gibt: 'lampe', sichtbarWenn: ['k_unten_links_offen', 'kueche_licht'], label: 'Taschenlampe' },
+    // Die Taschenlampe liegt jetzt in der Nahaufnahme, nicht mehr im Raumbild.
+    // Noch als goldene Marke, solange es kein Bild von ihr im Schrank gibt.
+    { id: 'kn_topf', ansicht: 'kue_unten_nah', x: 335, y: 205, w: 265, h: 190, typ: 'naehe', nah: 'topf_nah', label: 'Emailletopf' },
+    { id: 'tn_batterien', ansicht: 'topf_nah', x: 400, y: 285, w: 730, h: 330, typ: 'nehmen', zustand: 'batterien_weg',
+      gibt: 'batterien', bildAus: 'bilder/topf-leer.webp', label: 'Batterien' },
     { id: 'k_ofen', ansicht: 'kueche', x: 848, y: 488, w: 200, h: 212, typ: 'ausschnitt', zustand: 'k_ofen_offen', label: 'Backofen',
       patch: 'bilder/kue-ofen-dunkel.webp', patchX: 841, patchY: 481, patchW: 214, patchH: 226,
       patchHell: 'bilder/kue-ofen-hell.webp', patchHellX: 841, patchHellY: 481, patchHellW: 214, patchHellH: 226 },
@@ -579,10 +659,81 @@
     { id: 'k_kuehl', ansicht: 'kueche', x: 1374, y: 186, w: 316, h: 500, klang: 'metall', typ: 'ausschnitt', zustand: 'k_kuehl_offen', label: 'Kühlschrank',
       patch: 'bilder/kue-kuehl-dunkel.webp', patchX: 1361, patchY: 179, patchW: 336, patchH: 513,
       patchHell: 'bilder/kue-kuehl-hell.webp', patchHellX: 1361, patchHellY: 179, patchHellW: 336, patchHellH: 513 },
-    // --- Garten ---
-    { id: 'r_busch',    ansicht: 'garten', x: 120,  y: 480, w: 300, h: 240, typ: 'toggle', form: 'busch', zustand: 'busch_geteilt', label: 'Busch' },
-    { id: 'r_vogel',    ansicht: 'garten', x: 1250, y: 180, w: 120, h: 130, typ: 'toggle', form: 'klappe', zustand: 'vogelhaus_offen', label: 'Vogelhaus' },
-    { id: 'r_giess',    ansicht: 'garten', x: 760,  y: 620, w: 150, h: 110, typ: 'toggle', form: 'kippen', zustand: 'kanne_gekippt', label: 'Giesskanne' },
+    // --- Acis Zimmer ---
+    { id: 'ac_schrank', ansicht: 'acizimmer', x: 620, y: 80,  w: 290, h: 460, typ: 'ausschnitt', zustand: 'aci_schrank_offen', label: 'Kleiderschrank' },
+    { id: 'ac_tisch',   ansicht: 'acizimmer', x: 260, y: 548, w: 195, h: 165, typ: 'ausschnitt', zustand: 'aci_tisch_offen',   label: 'Nachttischschublade' },
+    // --- Flur ---
+    // Zahlenschloss an der Dachbodenluke. Der Code steht als Leuchtschrift im
+    // Treppenhaus, drei der vier Ziffern auch auf dem Zettel unter dem Sitzkissen.
+    // Solange das Schloss hängt: die ganze Luke ist die Trefferfläche, nicht nur
+    // das kleine Schloss. Der Code setzt zusätzlich luke_geknackt, dauerhaft.
+    { id: 'fl_schloss', ansicht: 'flur', x: 630, y: 0, w: 400, h: 215, typ: 'code',
+      zustand: 'luke_offen', setztAuch: 'luke_geknackt', nichtWenn: 'luke_geknackt',
+      label: 'Zahlenschloss an der Luke', titel: 'Zahlenschloss',
+      frage: 'Vier Ziffern auf kleinen Rädchen. Verrostet, aber es dreht sich noch.', code: '7392' },
+    // Die drei Türen im Flur. Wohin sie führen, ist noch offen — vorerst gehen
+    // sie nur auf und zu und geben den Blick in die Zimmer frei.
+    { id: 'fl_tuer_links', ansicht: 'flur', x: 258, y: 40, w: 200, h: 760, typ: 'ausschnitt',
+      zustand: 'fl_links_offen', klang: 'holz', label: 'Tür zur Kammer',
+      patch: 'bilder/flur-tuer-links.webp', patchX: 253, patchY: 13, patchW: 216, patchH: 874 },
+    // Nur das Türblatt bis oberhalb der Schwelle: darunter sitzt der Durchgang.
+    { id: 'fl_tuer_ende', ansicht: 'flur', x: 740, y: 265, w: 160, h: 330, typ: 'ausschnitt',
+      zustand: 'fl_ende_offen', klang: 'holz', label: 'Tür zu Anfisas Zimmer',
+      patch: 'bilder/flur-tuer-ende.webp', patchX: 723, patchY: 248, patchW: 249, patchH: 471 },
+    { id: 'fl_tuer_rechts', ansicht: 'flur', x: 1310, y: 40, w: 250, h: 800, typ: 'ausschnitt',
+      zustand: 'fl_rechts_offen', klang: 'holz', label: 'Tür zum Bad',
+      patch: 'bilder/flur-tuer-rechts.webp', patchX: 1293, patchY: 13, patchW: 296, patchH: 874 },
+    // Danach klappt die Luke auf und zu, ohne dass der Code nochmal gebraucht wird.
+    // Zwei Fassungen der Leiter: eine mit geschlossener, eine mit offener Tür am
+    // Ende des Gangs — sonst überdeckt die Leiter die offene Tür wieder.
+    { id: 'fl_luke', ansicht: 'flur', x: 630, y: 0, w: 400, h: 215, typ: 'ausschnitt',
+      zustand: 'luke_offen', sichtbarWenn: 'luke_geknackt', klang: 'holz', label: 'Dachbodenluke',
+      hellWenn: 'fl_ende_offen',
+      patch: 'bilder/flur-leiter.webp', patchX: 648, patchY: 0, patchW: 374, patchH: 852,
+      patchHell: 'bilder/flur-leiter-tuer.webp', patchHellX: 648, patchHellY: 0, patchHellW: 374, patchHellH: 852 },
+    // --- Bad ---
+    { id: 'ba_becken', ansicht: 'bad', x: 245, y: 430, w: 355, h: 195, typ: 'naehe', nah: 'becken_nah',
+      label: 'Waschbecken' },
+    // Grundbild zeigt den Deckel OFFEN. Der Flicken liegt darauf, solange er zu ist.
+    { id: 'ba_deckel', ansicht: 'bad', x: 800, y: 480, w: 200, h: 175, typ: 'ausschnitt', zustand: 'klodeckel_auf',
+      klang: 'holz', label: 'Klodeckel',
+      patch: 'bilder/bad-deckel-zu.webp', patchNicht: true, patchX: 809, patchY: 419, patchW: 182, patchH: 237 },
+    // Die leere Wanne im Raumbild. Der Zustand wird in der Nahaufnahme gesetzt.
+    { id: 'ba_wanne_leer', ansicht: 'bad', x: 1090, y: 525, w: 380, h: 340, typ: 'overlay', zustand: 'wanne_leer',
+      patch: 'bilder/bad-wanne-leer.webp', patchX: 1078, patchY: 513, patchW: 399, patchH: 374, label: 'Badewanne' },
+    // Solange Wasser drin ist, kommt man näher heran
+    { id: 'ba_wanne', ansicht: 'bad', x: 1090, y: 525, w: 380, h: 340, typ: 'naehe', nah: 'wanne_nah',
+      nichtWenn: 'wanne_leer', label: 'Badewanne' },
+    // --- Badewanne von nahem ---
+    { id: 'wn_ente', ansicht: 'wanne_nah', x: 820, y: 330, w: 240, h: 230, typ: 'nehmen', zustand: 'ente_weg',
+      gibt: 'ente', label: 'Gummiente',
+      // Grundbild zeigt die Ente. Der Flicken ist das Wasser OHNE sie und kommt
+      // erst, wenn man sie genommen hat — also kein patchNicht.
+      patch: 'bilder/wanne-ohne-ente.webp', patchX: 762, patchY: 322, patchW: 356, patchH: 256 },
+    { id: 'wn_stoepsel', ansicht: 'wanne_nah', x: 150, y: 360, w: 300, h: 200, typ: 'ausschnitt', zustand: 'wanne_leer',
+      klang: 'stoff', zurueck: true, label: 'Stöpsel' },
+    // --- Anfisas Schlafzimmer ---
+    { id: 'sz_schrank', ansicht: 'schlafzimmer', x: 150, y: 30, w: 290, h: 520, typ: 'ausschnitt',
+      zustand: 'sz_schrank_offen', klang: 'holz', label: 'Kleiderschrank',
+      patch: 'bilder/sz-schrank.webp', patchX: 138, patchY: 13, patchW: 314, patchH: 549 },
+    { id: 'sz_nachttisch', ansicht: 'schlafzimmer', x: 838, y: 455, w: 150, h: 105, typ: 'ausschnitt',
+      zustand: 'sz_nachttisch_offen', klang: 'holz', label: 'Nachttischschublade',
+      patch: 'bilder/sz-nachttisch.webp', patchX: 831, patchY: 445, patchW: 164, patchH: 124 },
+    { id: 'sz_frisier', ansicht: 'schlafzimmer', x: 1320, y: 555, w: 200, h: 130, typ: 'ausschnitt',
+      zustand: 'sz_frisier_offen', klang: 'holz', label: 'Schublade am Frisiertisch',
+      patch: 'bilder/sz-frisier.webp', patchX: 1311, patchY: 545, patchW: 221, patchH: 152 },
+    // Koffer hervorziehen. Das zweite Antippen soll später in die Nahaufnahme
+    // führen — dafür fehlt noch das Bild.
+    { id: 'sz_koffer', ansicht: 'schlafzimmer', x: 348, y: 710, w: 340, h: 170, typ: 'ausschnitt',
+      zustand: 'sz_koffer_vor', klang: 'holz', label: 'Koffer unter dem Bett', nah: 'koffer_nah',
+      patch: 'bilder/sz-koffer.webp', patchX: 338, patchY: 698, patchW: 361, patchH: 189 },
+    // --- Koffer von nahem. Die Schlösser gehen nur mit dem Schlüssel aus dem Bild. ---
+    { id: 'kf_offen', ansicht: 'koffer_nah', x: 260, y: 0, w: 1235, h: 595, typ: 'overlay', zustand: 'koffer_offen',
+      patch: 'bilder/koffer-offen.webp', patchX: 252, patchY: 0, patchW: 1251, patchH: 603, label: 'Koffer' },
+    { id: 'kf_schloss', ansicht: 'koffer_nah', x: 300, y: 480, w: 1180, h: 280, typ: 'ziel',
+      nichtWenn: 'koffer_offen', label: 'Schlösser am Koffer',
+      nimmt: 'schluessel', setzt: 'koffer_offen',
+      antwort: 'Der Schlüssel passt. Beide Schlösser springen auf.' },
     // --- Dachboden (noch Platzhalter-Geometrie) ---
     { id: 'd_kiste',    ansicht: 'dachboden', x: 200,  y: 560, w: 260, h: 180, typ: 'toggle', form: 'klappe', zustand: 'dach_kiste_offen', label: 'Holzkiste' },
     { id: 'd_schrank',  ansicht: 'dachboden', x: 1300, y: 160, w: 140, h: 200, typ: 'toggle', form: 'klappe', zustand: 'dach_schrank_offen', label: 'Alter Schrank' }
@@ -597,8 +748,8 @@
     { id: 'e08', ansicht: 'kiste_nah',   x: 1010, y: 600, r: 30, farbe: '#7a7a52', muster: 'punkte',   ebene: 2, sichtbarWenn: null },  // in der Blechkiste
     { id: 'e04', ansicht: 'wohnzimmer', x: 1332, y: 712, r: 9,  farbe: '#8a4a3a', muster: 'punkte', ebene: 1, sichtbarWenn: null },  // auf dem Teppich
     { id: 'e03', ansicht: 'kueche',     x: 1318, y: 419, r: 9,  farbe: '#c8703a', muster: 'streifen', ebene: 1, sichtbarWenn: ['kueche_licht'] },  // in der Obstschale
-    { id: 'e06', ansicht: 'garten',     x: 1044, y: 846, r: 8,  farbe: '#4e7a3e', muster: 'punkte', ebene: 1, sichtbarWenn: null },
-    { id: 'e07', ansicht: 'garten',     x: 24,   y: 212, r: 7,  farbe: '#8fb9d9', muster: 'zickzack', ebene: 1, sichtbarWenn: null },
+    { id: 'e06', ansicht: 'acizimmer',  x: 566,  y: 650, r: 9,  farbe: '#6a4a2a', muster: 'punkte', ebene: 1, sichtbarWenn: null },  // im dunklen Spalt zwischen Reisetasche und Koffer unter dem Bett
+    { id: 'e07', ansicht: 'bad',        x: 1322, y: 752, r: 13, farbe: '#cfc3ad', muster: 'zickzack', ebene: 2, sichtbarWenn: 'wanne_leer' },  // am Boden der Badewanne
     // --- Ebene 2: nur nach Öffnen sichtbar ---
     { id: 'e09', ansicht: 'garage1',     x: 170,  y: 470, r: 8,  farbe: '#5a5337', muster: 'streifen', ebene: 2, sichtbarWenn: 'akten_offen' },  // in der Aktenschrank-Schublade
     { id: 'e10', ansicht: 'garage1',     x: 618,  y: 618, r: 8,  farbe: '#2a1a12', muster: 'punkte',   ebene: 2, sichtbarWenn: 'blau_offen' },   // in der blauen Schublade
@@ -606,28 +757,50 @@
     { id: 'e12', ansicht: 'wohnzimmer', x: 1000, y: 440, r: 9,  farbe: '#6a4a30', muster: 'punkte', ebene: 2, sichtbarWenn: 'wz_regal_offen' },  // im Schrank unter dem Regal
     { id: 'e13', ansicht: 'wohnzimmer', x: 1398, y: 452, r: 9,  farbe: '#5a4232', muster: 'streifen', ebene: 2, sichtbarWenn: 'wz_tv_offen' },  // im Fernsehmöbel
     { id: 'e14', ansicht: 'kueche',     x: 1497, y: 272, r: 8,  farbe: '#e8d8bc', muster: 'punkte', ebene: 2, sichtbarWenn: ['k_kuehl_offen', 'kueche_licht'] },  // in der Eierablage im Kühlschrank
-    { id: 'e15', ansicht: 'garten',     x: 1310, y: 250, r: 11, farbe: '#d08a5a', muster: 'zickzack', ebene: 2, sichtbarWenn: 'vogelhaus_offen' },
+    { id: 'e15', ansicht: 'acizimmer',  x: 778,  y: 405, r: 9,  farbe: '#d08a5a', muster: 'zickzack', ebene: 2, sichtbarWenn: 'aci_schrank_offen' },  // auf dem Wäschestapel im Kleiderschrank
     // --- Ebene 3: nur nach Rätsel sichtbar ---
-    { id: 'e16', ansicht: 'tisch_nah',  x: 330,  y: 265, r: 30, farbe: '#c9b48a', muster: 'punkte',   ebene: 1, sichtbarWenn: null },  // in der Tasse auf dem Couchtisch
+    { id: 'e16', ansicht: 'tisch_nah',  x: 330,  y: 272, r: 20, farbe: '#c9b48a', muster: 'punkte',   ebene: 1, sichtbarWenn: null },  // in der Tasse auf dem Couchtisch, halb in der Milch
     { id: 'e17', ansicht: 'kueche',     x: 955,  y: 602, r: 9,  farbe: '#5a4a38', muster: 'punkte', ebene: 2, sichtbarWenn: ['k_ofen_offen', 'kueche_licht'] },  // auf dem Rost im Backofen
-    { id: 'e18', ansicht: 'garten',     x: 270,  y: 600, r: 12, farbe: '#5a4030', muster: 'zickzack', ebene: 2, sichtbarWenn: 'busch_geteilt' },
+    { id: 'e18', ansicht: 'acizimmer',  x: 348,  y: 580, r: 8,  farbe: '#5a4030', muster: 'zickzack', ebene: 2, sichtbarWenn: 'aci_tisch_offen' },  // in der Nachttischschublade
     { id: 'e19', ansicht: 'dachboden',  x: 330,  y: 650, r: 12, farbe: '#3a342c', muster: 'streifen', ebene: 2, sichtbarWenn: 'dach_kiste_offen' },
-    { id: 'e20', ansicht: 'dachboden',  x: 860,  y: 490, r: 12, farbe: '#55556a', muster: 'punkte', ebene: 1, sichtbarWenn: null }
+    { id: 'e20', ansicht: 'dachboden',  x: 860,  y: 490, r: 12, farbe: '#55556a', muster: 'punkte', ebene: 1, sichtbarWenn: null },
+    // --- Bad: getarnt, offen sichtbar ---
+    { id: 'e21', ansicht: 'bad', x: 503,  y: 316, r: 10, farbe: '#6d3c12', muster: 'streifen', ebene: 1, sichtbarWenn: null },  // Ablage neben der Seife
+    { id: 'e22', ansicht: 'bad', x: 938,  y: 412, r: 9,  farbe: '#4d3513', muster: 'punkte',   ebene: 1, sichtbarWenn: null },  // auf dem Spülkasten
+    { id: 'e23', ansicht: 'bad', x: 1035, y: 828, r: 11, farbe: '#6a4222', muster: 'zickzack', ebene: 1, sichtbarWenn: null },
+    // --- Anfisas Schlafzimmer ---
+    { id: 'e24', ansicht: 'schlafzimmer', x: 228,  y: 462, r: 11, farbe: '#3a1a10', muster: 'punkte',   ebene: 2, sichtbarWenn: 'sz_schrank_offen' },     // unten im Kleiderschrank
+    { id: 'e25', ansicht: 'schlafzimmer', x: 900,  y: 482, r: 9,  farbe: '#4c2213', muster: 'streifen', ebene: 2, sichtbarWenn: 'sz_nachttisch_offen' },  // in der Nachttischschublade
+    { id: 'e26', ansicht: 'schlafzimmer', x: 1445, y: 592, r: 10, farbe: '#4e2c14', muster: 'zickzack', ebene: 2, sichtbarWenn: 'sz_frisier_offen' },     // in der Schublade am Frisiertisch
+    { id: 'e27', ansicht: 'koffer_nah', x: 1245, y: 330, r: 22, farbe: '#c9b08a', muster: 'punkte', ebene: 2, sichtbarWenn: 'koffer_offen' }  // zwischen den Briefen im Koffer
   ];
 
   // Eier, die nach Öffnen eines Dunkel-Bereichs erst erkennbar sind: Garage-Ecke ist dunkel bis Licht an
   const DUNKEL = [];   // Beispiel: { ansicht: 'dachboden', x: 0, y: 0, w: 800, h: 900, hellWenn: 'dach_licht' }
 
   // Aci-Sprüche bei Meilensteinen
-  const SPRUECHE = {
-    1:  'Eins. Nur noch neunzehn. Ich hol mir einen Kaffee.',
-    5:  'Fünf. Die leichten sind jetzt durch, nehm ich an.',
-    10: 'Halbzeit. Anfisa hat gesagt, ab hier wird es gemein.',
-    15: 'Fünfzehn. Hast du schon mal was geöffnet? Nur so eine Idee.',
-    19: 'Neunzehn. Das letzte ist das, auf das sie am stolzesten ist.',
-    20: 'Zwanzig. Alle. Anfisa wird sauer sein — sie hatte auf dich gewettet.'
-  };
+  // Meilensteine. Die Schlüssel werden beim Start auf die tatsächliche Eierzahl
+  // umgerechnet, damit sie nicht bei jeder neuen Ansicht von Hand nachgezogen
+  // werden müssen. Angaben in Prozent des Gesamtbestands.
+  const MEILENSTEINE = [
+    [0.04, 'Eins. Nur noch der Rest. Ich hol mir einen Kaffee.'],
+    [0.22, 'Die leichten sind jetzt durch, nehm ich an.'],
+    [0.50, 'Halbzeit. Anfisa hat gesagt, ab hier wird es gemein.'],
+    [0.70, 'Hast du schon mal was geöffnet? Nur so eine Idee.'],
+    [0.95, 'Fast. Das letzte ist das, auf das sie am stolzesten ist.'],
+    [1.00, 'Alle. Anfisa wird sauer sein — sie hatte auf dich gewettet.']
+  ];
   const ENDE_TEXT = 'Aci sammelt die Eier in einem Korb ein, den er irgendwo vom Dachboden geholt hat. „Weisst du, was das Beste ist? Sie hat Fotos von jedem Versteck gemacht. Falls du eins nicht findest. Die zeig ich ihr jetzt. Alle zwanzig abgehakt."';
+
+  // Aus den Prozentwerten feste Zahlen machen
+  const SPRUECHE = (() => {
+    const o = {};
+    MEILENSTEINE.forEach(([anteil, text]) => {
+      const n = Math.max(1, Math.round(anteil * EIER.length));
+      if (!o[n]) o[n] = text;
+    });
+    return o;
+  })();
 
   // =====================================================================
   // ZUSTAND
@@ -660,6 +833,10 @@
     if (!s) return false;
     zustand.gefunden = Array.isArray(s.gefunden) ? s.gefunden : [];
     zustand.offen = s.offen || {};
+    // Altstand: luke_offen gesetzt, luke_geknackt noch nicht. Dann fehlt die
+    // Leiter im Bild, der Dachbodenpfeil steht trotzdem da und der Durchgang
+    // in Anfisas Zimmer bleibt gesperrt. Die beiden gehören zusammen.
+    if (zustand.offen.luke_offen) zustand.offen.luke_geknackt = true;
     zustand.hinweise = typeof s.hinweise === 'number' ? s.hinweise : HINWEISE_GESAMT;
     zustand.zeit = s.zeit || 0;
     // Altstand: dort stand noch eine Raum-ID. Auf die Startansicht des Raums umbiegen.
@@ -713,16 +890,6 @@
         <rect x="1180" y="220" width="220" height="470" rx="12" fill="#d8d8d0" id="form-kuehl"/>
         <rect x="900" y="120" width="200" height="120" fill="#8a5a3a"/><rect x="905" y="125" width="190" height="110" fill="#f4ead0"/>
         <rect x="1480" y="800" width="100" height="60" fill="#8a8780"/><rect x="180" y="830" width="80" height="40" fill="#7a7870"/>`;
-      case 'garten': return `
-        <rect width="1600" height="900" fill="#9fd0e8"/>
-        <rect y="520" width="1600" height="380" fill="#5f9a46"/>
-        <ellipse cx="270" cy="600" rx="150" ry="120" fill="#3f7a30" id="form-busch"/>
-        <rect x="1250" y="180" width="120" height="130" fill="#8a5a3a" id="form-vogel"/><polygon points="1240,180 1310,120 1380,180" fill="#6a3a2a"/>
-        <circle cx="970" cy="390" r="90" fill="#aaa" id="form-sonnenuhr"/><circle cx="970" cy="390" r="70" fill="#ccc"/>
-        <rect x="760" y="620" width="150" height="110" rx="10" fill="#3a8a3a" id="form-giess"/>
-        <rect x="1420" y="400" width="140" height="300" fill="#4a3a2a" id="form-tuer"/><circle cx="1540" cy="560" r="10" fill="#c8a040"/>
-        <rect x="0" y="180" width="60" height="340" fill="#5a4a3a"/><ellipse cx="30" cy="180" rx="90" ry="70" fill="#4e7a3e"/>
-        <rect x="1000" y="820" width="90" height="40" fill="#4e7a3e"/>`;
       case 'flur': return `
         <rect width="1600" height="900" fill="#b9a885"/>
         <rect y="700" width="1600" height="200" fill="#6b4a32"/>
@@ -731,6 +898,25 @@
         <rect x="640" y="60" width="320" height="40" fill="#7a6a52"/>
         <rect x="660" y="100" width="280" height="30" fill="#5a4a38"/>
         <text x="800" y="90" font-size="22" fill="#e8d8b8" text-anchor="middle" font-family="sans-serif">Luke zum Dachboden</text>`;
+      case 'schlafzimmer': return `
+        <rect width="1600" height="900" fill="#7a6a58"/>
+        <rect y="700" width="1600" height="200" fill="#5a4030"/>
+        <rect x="300" y="380" width="700" height="320" rx="12" fill="#8a4a4a"/>
+        <rect x="320" y="300" width="300" height="120" rx="14" fill="#d8cdb0"/>
+        <rect x="1100" y="420" width="220" height="280" fill="#5a4a38"/>
+        <text x="800" y="150" font-size="26" fill="#e8d8b8" text-anchor="middle" font-family="sans-serif">Schlafzimmer — Bild fehlt noch</text>`;
+      case 'bad': return `
+        <rect width="1600" height="900" fill="#cfd8d2"/>
+        <rect y="700" width="1600" height="200" fill="#9aa39c"/>
+        <rect x="260" y="420" width="320" height="200" rx="18" fill="#f0f0ea"/>
+        <rect x="900" y="300" width="420" height="400" rx="20" fill="#e4e8e4"/>
+        <text x="800" y="150" font-size="26" fill="#3a4a42" text-anchor="middle" font-family="sans-serif">Bad — Bild fehlt noch</text>`;
+      case 'kammer': return `
+        <rect width="1600" height="900" fill="#6a5a46"/>
+        <rect y="700" width="1600" height="200" fill="#4a3826"/>
+        <rect x="420" y="360" width="560" height="340" fill="#7a5a3a"/>
+        <rect x="1080" y="300" width="240" height="400" fill="#5a4a38"/>
+        <text x="800" y="150" font-size="26" fill="#e8d8b8" text-anchor="middle" font-family="sans-serif">Kammer — Bild fehlt noch</text>`;
       case 'dachboden': return `
         <rect width="1600" height="900" fill="#1e2024"/>
         <rect y="700" width="1600" height="200" fill="#2a2c30"/>
@@ -1088,7 +1274,9 @@
   function durchgangForm(w) {
     const mx = w.x + w.w / 2, my = w.y + w.h / 2;
     const winkel = PFEIL_WINKEL[w.pfeil] || 0;
-    return `<g class="durchgang" data-weg="${w.nach}" data-wenn="${w.wennOffen || ''}" transform="translate(${mx},${my})">
+    // wennOffen und wennZu dürfen Listen sein — alle müssen erfüllt sein
+    const liste = (v) => (Array.isArray(v) ? v : [v]).filter(Boolean).join(',');
+    return `<g class="durchgang" data-weg="${w.nach}" data-wenn="${liste(w.wennOffen)}" data-nicht="${liste(w.wennZu)}" transform="translate(${mx},${my})">
       <rect x="${-w.w / 2}" y="${-w.h / 2}" width="${w.w}" height="${w.h}" fill="transparent"><title>${w.label || 'weiter'}</title></rect>
       <g class="marke">
         <circle r="30" fill="rgba(10,18,12,0.6)" stroke="#f4d484" stroke-width="2"/>
@@ -1102,7 +1290,8 @@
     box.innerHTML = '';
     const hier = zustand.nah || zustand.ansicht;
     WEGE.filter(w => w.von === hier && w.art !== 'rein'
-                     && (!w.wennOffen || zustand.offen[w.wennOffen])).forEach(w => {
+                     && (!w.wennOffen || zustand.offen[w.wennOffen])
+                     && (!w.wennZu || !zustand.offen[w.wennZu])).forEach(w => {
       const b = document.createElement('button');
       const seite = w.art === 'links' || w.art === 'rechts';
       const mitte = w.art === 'unten' || w.art === 'oben';
@@ -1146,11 +1335,19 @@
     return '';
   }
 
+  // sichtbarWenn darf ein einzelner Zustand oder eine Liste sein. Beide Stellen,
+  // die das prüfen, müssen dieselbe Antwort geben — sonst sieht man ein Ei,
+  // kann es aber nicht einsammeln.
+  function eiSichtbar(ei) {
+    if (!ei || !ei.sichtbarWenn) return true;
+    const noetig = Array.isArray(ei.sichtbarWenn) ? ei.sichtbarWenn : [ei.sichtbarWenn];
+    return noetig.every(k => zustand.offen[k]);
+  }
+
   function aktualisiereSichtbarkeit() {
     welt.querySelectorAll('.ei').forEach(el => {
       const ei = EIER.find(e => e.id === el.dataset.ei);
-      const noetig = !ei.sichtbarWenn ? [] : (Array.isArray(ei.sichtbarWenn) ? ei.sichtbarWenn : [ei.sichtbarWenn]);
-      const sichtbar = noetig.every(k => zustand.offen[k]);
+      const sichtbar = eiSichtbar(ei);
       el.classList.toggle('versteckt', !sichtbar && !EDITOR);
       el.classList.toggle('gefunden', zustand.gefunden.includes(ei.id));
     });
@@ -1282,6 +1479,27 @@
       sag(greift.antwort || 'So nicht.', teil.sprecher || teil.label);
       return false;
     }
+    // einzeln: Das Teil nimmt jeden Gegenstand für sich an, in beliebiger
+    // Reihenfolge. Erst wenn alle da sind, passiert das Eigentliche.
+    if (teil.einzeln && teil.einzeln[gegenstandId]) {
+      const gabe = teil.einzeln[gegenstandId];
+      zustand.offen[gabe.setzt] = true;
+      if (teil.verbraucht) zustand.inventar = zustand.inventar.filter(x => x !== gegenstandId);
+      if (teil.gabePhase != null && teil.zustand) zustand.offen[teil.zustand] = teil.gabePhase;
+      const fehltNoch = noetig.some(id => teil.einzeln[id] && !zustand.offen[teil.einzeln[id].setzt]);
+      if (!fehltNoch) {
+        if (teil.setzt) zustand.offen[teil.setzt] = true;
+        if (teil.loescht) zustand.offen[teil.loescht] = false;
+      }
+      waehle(null, true);
+      klang('nehmen');
+      renderRaum();
+      speichern();
+      const text = fehltNoch ? gabe.antwort : teil.antwort;
+      if (text) sag(text, teil.sprecher || teil.label);
+      return true;
+    }
+
     // Fehlt noch etwas aus der Liste?
     if (noetig.some(id => !zustand.inventar.includes(id))) {
       waehle(null, true); klang('fehler');
@@ -1475,7 +1693,7 @@
     if (zustand.gefunden.includes(id)) return;
     const ei = EIER.find(e => e.id === id);
     if (!ei) return;
-    if (ei.sichtbarWenn && !zustand.offen[ei.sichtbarWenn] && !EDITOR) return;
+    if (!eiSichtbar(ei) && !EDITOR) return;
     zustand.gefunden.push(id);
     fanfare([880, 1180, 1480]); klang('ei');
     const r = buehne.getBoundingClientRect();
@@ -1496,11 +1714,22 @@
       case 'ausschnitt':
         // Offen -> mit Nahaufnahme: näher ran. Ohne Nahaufnahme: zweites Antippen schliesst wieder.
         if (zustand.offen[t.zustand] && t.nah) {
+          // nahWenn: ohne diesen Zustand gibt es nichts zu sehen
+          if (t.nahWenn && !zustand.offen[t.nahWenn]) { sag(t.nahFehlt || 'Da gibt es nichts zu sehen.'); return; }
           geheZu(t.nah);
         } else {
           zustand.offen[t.zustand] = !zustand.offen[t.zustand];
+          // setztPhase: ein Schalter stellt nebenbei die Phase einer Figur.
+          // Der Fernseher weckt Anfisa beim Ausschalten auf und lässt sie beim
+          // Einschalten wieder zurücksinken.
+          if (t.setztPhase && !(t.setztPhase.nichtWenn && zustand.offen[t.setztPhase.nichtWenn])) {
+            zustand.offen[t.setztPhase.zustand] = zustand.offen[t.zustand] ? t.setztPhase.an : t.setztPhase.aus;
+          }
           klang(t.klang || 'holz');
-          aktualisiereSichtbarkeit(); speichern();
+          // zurueck: danach die Nahaufnahme verlassen, damit man die Wirkung
+          // im Raum sieht (das Wasser läuft ab, während man zurücktritt)
+          if (t.zurueck && zustand.nah) { zustand.nah = null; speichern(); renderRaum(); zoomReset(); }
+          else { aktualisiereSichtbarkeit(); speichern(); }
           kommentar(t);
         }
         break;
@@ -1512,6 +1741,7 @@
         aktualisiereSichtbarkeit(); speichern();
         break;
       case 'naehe':
+        if (t.nahWenn && !zustand.offen[t.nahWenn]) { sag(t.nahFehlt || 'Da gibt es nichts zu sehen.'); return; }
         if (t.nah) geheZu(t.nah);
         return;
       case 'overlay':
@@ -1519,7 +1749,13 @@
         return;
       case 'phasen': {
         const anzahl = (t.phasen || []).length || 1;
-        const neu = ((Number(zustand.offen[t.zustand]) || 0) + 1) % anzahl;
+        let neu = ((Number(zustand.offen[t.zustand]) || 0) + 1) % anzahl;
+        // mindestPhase: solange die Bedingung gilt, werden die Phasen darunter
+        // übersprungen. Anfisa bleibt bei ausgeschaltetem Fernseher aufrecht.
+        if (t.mindestPhase) {
+          const bed = Array.isArray(t.mindestPhase.wenn) ? t.mindestPhase.wenn : [t.mindestPhase.wenn];
+          if (bed.some(k => zustand.offen[k]) && neu < t.mindestPhase.phase) neu = t.mindestPhase.phase;
+        }
         zustand.offen[t.zustand] = neu;
         klang('stoff');
         aktualisiereSichtbarkeit(); speichern();
@@ -1589,6 +1825,9 @@
       : (t.antworten || []).some(a => normalisiere(a) === eingabe);
     if (richtig) {
       zustand.offen[t.zustand] = true;
+      // setztAuch merkt sich dauerhaft, dass das Schloss geknackt ist —
+      // danach lässt sich die Luke auf- und zumachen, ohne den Code erneut einzugeben
+      if (t.setztAuch) zustand.offen[t.setztAuch] = true;
       document.getElementById('raetsel-modal').classList.remove('show');
       klang('nehmen');
       aktualisiereSichtbarkeit(); renderRaumKnoepfe(); speichern();
