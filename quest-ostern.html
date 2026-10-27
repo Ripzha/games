@@ -680,7 +680,7 @@
       gibt: 'futter', sichtbarWenn: ['k_ober_rechts_offen', 'kueche_licht'], label: 'Dose zwischen den Gewürzen' },
     { id: 'k_unten_links', ansicht: 'kueche', x: 370, y: 492, w: 378, h: 210, typ: 'ausschnitt', zustand: 'k_unten_links_offen', label: 'Unterschrank links',
       nah: 'kue_unten_nah', nahWenn: 'kueche_licht',
-      nahFehlt: 'Da drin ist es schwarz. Näher ranzugehen bringt nichts, solange kein Licht brennt.',
+      nahFehlt: 'Da drin ist es stockdunkel. Solange kein Licht brennt, siehst du gar nichts.',
       patch: 'bilder/kue-unten-links-dunkel.webp', patchX: 363, patchY: 485, patchW: 392, patchH: 224,
       patchHell: 'bilder/kue-unten-links-hell.webp', patchHellX: 363, patchHellY: 485, patchHellW: 392, patchHellH: 224 },
     // Die Taschenlampe liegt jetzt in der Nahaufnahme, nicht mehr im Raumbild.
@@ -882,10 +882,10 @@
     { id: 'pc_futter', ansicht: 'pc_nah', x: 820, y: 580, w: 92, h: 110, typ: 'info', sichtbarWenn: 'pc_sortiert',
       zeichnung: pcSymbol(820, 580, 'datei', 'futterplan.txt'),
       label: 'futterplan.txt', titel: 'futterplan.txt',
-      text: 'FUTTERPLAN FÜRS BECKEN — BITTE GENAU HALTEN\n\n'
-          + 'Im Becken schwimmen Skalare, Guppys und Neons.\n'
-          + 'Jeder Fisch bekommt eine Prise. Keine mehr — was liegen bleibt, fault im Kies.\n\n'
-          + 'Also erst zählen, dann füttern. Die Neons sind schnell, lass dich nicht vertun.' },
+      text: 'Futterplan fürs Becken\n\n'
+          + 'Im Becken sind Skalare, Guppys und Neons.\n'
+          + 'Jeder Fisch kriegt eine Prise, nicht mehr. Der Rest fault nur im Kies.\n\n'
+          + 'Also vorher zählen. Die Neons schwimmen schnell, da verzählt man sich leicht.' },
 
     // Der Ordner mit dem Passwort. Die Zahl leuchtet im Treppenhaus an der Wand.
     { id: 'pc_privat', ansicht: 'pc_nah', x: 1470, y: 70, w: 92, h: 110, typ: 'code', zustand: 'pc_privat_offen',
@@ -897,7 +897,7 @@
 
     { id: 'aq_scheibe', ansicht: 'aquarium_nah', x: 310, y: 210, w: 1160, h: 460, typ: 'klopfen',
       klang: 'metall', label: 'Aquarium', gelernt: 'aq_gelernt',
-      klopf: 'Du klopfst ans Glas. Sie stieben auseinander und sammeln sich gleich wieder. Von Lärm rückt hier nichts raus — die wollen Futter, abgezählt.',
+      klopf: 'Du klopfst ans Glas. Sie stieben auseinander und sammeln sich gleich wieder. Vom Klopfen passiert hier nichts. Die wollen Futter.',
       nimmt: 'futter', zustand: 'aq_kies', verbraucht: true, scheucht: true,
       titel: 'Füttern', code: '11',
       frage: 'Wie viele Prisen streust du ins Becken?',
