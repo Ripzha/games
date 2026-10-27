@@ -312,17 +312,15 @@
     { id: 'treppenhaus', name: 'Treppenhaus', start: 'treppenhaus', gesperrtBis: null, imMenu: false },
     { id: 'wohnzimmer', name: 'Wohnzimmer', start: 'wohnzimmer', gesperrtBis: null },
     { id: 'kueche',     name: 'Küche',      start: 'kueche',     gesperrtBis: null },
-    // Acis Zimmer. Vorerst nur über den Knopf oben erreichbar — im Flur sind
-    // alle drei Türen schon vergeben.
-    { id: 'acizimmer',  name: 'Acis Zimmer', start: 'acizimmer', gesperrtBis: null },
+    // Acis Zimmer liegt hinter der linken Flurtür, wo vorher die Kammer war.
+    { id: 'acizimmer',  name: 'Acis Zimmer', start: 'acizimmer', gesperrtBis: null, imMenu: false },
     // Flur und Dachboden sind Durchgangsräume: nur über Wege erreichbar,
     // nicht über die Knöpfe oben. Beide warten noch auf ihre Bilder.
     { id: 'flur',      name: 'Flur',      start: 'flur',      gesperrtBis: null, imMenu: false },
     { id: 'dachboden',   name: 'Dachboden',   start: 'dachboden',   gesperrtBis: null, imMenu: false },
     // Die drei Zimmer am Flur. Bilder fehlen noch, darum Platzhalter-Geometrie.
     { id: 'schlafzimmer', name: 'Schlafzimmer', start: 'schlafzimmer', gesperrtBis: null, imMenu: false },
-    { id: 'bad',          name: 'Bad',          start: 'bad',          gesperrtBis: null, imMenu: false },
-    { id: 'kammer',       name: 'Kammer',       start: 'kammer',       gesperrtBis: null, imMenu: false }
+    { id: 'bad',          name: 'Bad',          start: 'bad',          gesperrtBis: null, imMenu: false }
   ];
 
   const ANSICHTEN = [
@@ -345,7 +343,6 @@
       lampeWenn: 'lampe_an', lampeRadius: 160 },
     { id: 'schlafzimmer', raum: 'schlafzimmer', name: 'Anfisas Schlafzimmer', bild: 'bilder/schlafzimmer.webp', breite: 1774, hoehe: 887 },
     { id: 'bad', raum: 'bad', name: 'Bad', bild: 'bilder/bad.webp', breite: 1774, hoehe: 887 },
-    { id: 'kammer',       raum: 'kammer',       name: 'Kammer',       bild: '' },
     // Nahansichten von Gegenständen, die man in die Hand nimmt.
     // istNah: true = gehört zu keinem Raum, wird über das Inventar geöffnet.
     { id: 'bild_vorn',   istNah: true, name: 'Landschaftsbild — Vorderseite', bild: 'bilder/bild-vorn.webp',      breite: 1402, hoehe: 912 },
@@ -362,6 +359,9 @@
     // Ausschnitt aus dem leeren Topf die Stelle ab.
     { id: 'topf_nah',   istNah: true, name: 'Emailletopf', bild: 'bilder/topf-batterien.webp', breite: 1536, hoehe: 1024 },
     { id: 'wagen_nah', istNah: true, name: 'Werkstattwagen', bild: 'bilder/wagen-nah.webp', breite: 1774, hoehe: 887 },
+    // Tücher beiseite = bildOffen, Schachtel genommen = bildAus am Schachtel-Teil
+    { id: 'th_kiste_nah', istNah: true, name: 'Holzkiste', bild: 'bilder/th-kiste-nah.webp',
+      bildOffen: 'bilder/th-kiste-tuecher-weg.webp', breite: 1774, hoehe: 887 },
     // Umgedrehter Helm steckt in bildOffen, der leere Helm im bildAus der Lampe
     { id: 'regalwand_nah', istNah: true, name: 'Regalwand', bild: 'bilder/regalwand-nah.webp',
       bildOffen: 'bilder/regalwand-helm-um.webp', breite: 1774, hoehe: 887 },
@@ -394,7 +394,11 @@
       antwort: 'Batterien drin. Jetzt tut sie wieder.',
       schaltet: 'lampe_an', nurWenn: 'lampe_bereit', fehlt: 'Tote Lampe. Da müssen Batterien rein.' },
     { id: 'batterien',  symbol: '🔋', name: 'Batterien', text: 'Vier Batterien. Sehen noch brauchbar aus.' },
-    { id: 'futter',     symbol: '🥫', name: 'Futter',   text: 'Eine Dose mit drei Kammern: grüne, rote und braune Flocken.' },
+    { id: 'futter',     symbol: '🥫', name: 'Futter',   text: 'Eine Dose Fischfutter, noch gut halb voll.' },
+    // blatt: Mit der Lupe im Rucksack lässt sich der Zettel nochmal lesen
+    { id: 'zettel',     symbol: '📄', name: 'Zettel',   text: 'Ein abgerissener Fetzen Papier.',
+      blatt: { titel: 'Ein Fetzen Papier',
+               text: 'Die linke Hälfte fehlt, da ist das Papier abgerissen.\n\nZu lesen ist noch: … 3 9 2' } },
     { id: 'feuerzeug',  symbol: '🔥', name: 'Feuerzeug', text: 'Ein abgegriffenes Feuerzeug. Tut es noch.' },
     { id: 'sicherung',  symbol: '🧯', name: 'Sicherung', text: 'Eine Schraubsicherung aus Porzellan. Sieht unverbraucht aus.' },
     { id: 'hammer',     symbol: '🔨', name: 'Hammer',    text: 'Anfisas Hammer. Schwer, der Stiel ist speckig vom vielen Anfassen.' },
@@ -429,8 +433,8 @@
       wennOffen: ['luke_geknackt', 'luke_offen'], label: 'die Leiter hinauf' },
     // Die drei Zimmer. Durch die hintere Tür kommt man nicht, solange die Leiter
     // davorsteht — dann muss man die Luke erst wieder zuklappen.
-    { von: 'flur', nach: 'kammer', art: 'rein', pfeil: 'links', x: 262, y: 120, w: 110, h: 600,
-      wennOffen: 'fl_links_offen', label: 'in die Kammer' },
+    { von: 'flur', nach: 'acizimmer', art: 'rein', pfeil: 'links', x: 262, y: 120, w: 110, h: 600,
+      wennOffen: 'fl_links_offen', label: 'in Acis Zimmer' },
     { von: 'flur', nach: 'bad', art: 'rein', pfeil: 'rechts', x: 1340, y: 120, w: 130, h: 620,
       wennOffen: 'fl_rechts_offen', label: 'ins Bad' },
     // Der Durchgang liegt unten auf der Schwelle, nicht mitten auf dem Türblatt —
@@ -439,7 +443,7 @@
       wennOffen: 'fl_ende_offen', wennZu: 'luke_offen', label: 'in Anfisas Zimmer' },
     { von: 'schlafzimmer', nach: 'flur', art: 'unten', label: 'zurück in den Flur' },
     { von: 'bad',          nach: 'flur', art: 'unten', label: 'zurück in den Flur' },
-    { von: 'kammer',       nach: 'flur', art: 'unten', label: 'zurück in den Flur' },
+    { von: 'acizimmer',    nach: 'flur', art: 'unten', label: 'zurück in den Flur' },
     { von: 'dachboden', nach: 'flur',      art: 'unten', label: 'hinunter in den Flur' },
     // Bild in der Hand wenden
     { von: 'bild_vorn',   nach: 'bild_hinten', art: 'wenden', label: '↻ Umdrehen' },
@@ -508,12 +512,15 @@
       patch: 'bilder/th-tuer-dunkel.webp', patchX: 954, patchY: 14, patchW: 242, patchH: 407,
       patchHell: 'bilder/th-tuer-hell.webp', patchHellX: 954, patchHellY: 14, patchHellW: 242, patchHellH: 407 },
     { id: 'th_kiste', ansicht: 'treppenhaus', x: 1390, y: 440, w: 240, h: 175, typ: 'ausschnitt', zustand: 'th_kiste_offen', label: 'Holzkiste neben der Treppe',
+      nah: 'th_kiste_nah', nahWenn: 'th_licht',
+      nahFehlt: 'In der Kiste ist es finster. Ohne Licht siehst du da gar nichts.',
       patch: 'bilder/th-kiste-dunkel.webp', patchX: 1384, patchY: 434, patchW: 252, patchH: 187,
       patchHell: 'bilder/th-kiste-hell.webp', patchHellX: 1384, patchHellY: 434, patchHellW: 252, patchHellH: 187 },
-    // VORLÄUFIGER ORT der Zigarettenschachtel. Sobald klar ist, wo sie wirklich
-    // liegt, nur ansicht/x/y/w/h ändern. Ohne bildAus zeichnet das Spiel eine Marke.
-    { id: 'th_kippen', ansicht: 'treppenhaus', x: 1420, y: 520, w: 140, h: 65, typ: 'nehmen', zustand: 'kippen_weg',
-      gibt: 'kippen', sichtbarWenn: 'th_kiste_offen', label: 'Zigarettenschachtel' },
+    // --- Holzkiste von nahem ---
+    { id: 'tk_tuecher', ansicht: 'th_kiste_nah', x: 550, y: 315, w: 840, h: 465, typ: 'ausschnitt', zustand: 'th_tuecher_weg',
+      klang: 'stoff', label: 'Tücher' },
+    { id: 'tk_kippen', ansicht: 'th_kiste_nah', x: 935, y: 625, w: 180, h: 115, typ: 'nehmen', zustand: 'kippen_weg',
+      gibt: 'kippen', sichtbarWenn: 'th_tuecher_weg', bildAus: 'bilder/th-kiste-ohne-kippen.webp', label: 'Zigarettenschachtel' },
     // --- Wohnzimmer (Koordinaten im Bild 1774 x 887) ---
     // Ist der Hammer genommen, wird das ganze Raumbild getauscht statt nur ein
     // Stück davon. Das Bild ohne Hammer ist neu gerendert und weicht überall
@@ -565,37 +572,43 @@
       // 1 = aufgeschreckt (wz-frau-wach.webp), 0 = schlafend (Grundbild).
       setztPhase: { zustand: 'frau_phase', an: 1, aus: 0, nichtWenn: 'anfisa_weg' },
       sprecher: 'Anfisa', sagtNichtWenn: 'anfisa_weg',
-      sagtAn:  '„Hey!" Sie richtet sich halb auf. „Das war mein Film. Mach wieder an."',
-      sagtAus: '„Nu also." Sie sinkt zurück. „Geht doch."' },
+      sagtAn:  '„Hey! Das war mein Film. Mach wieder an."',
+      sagtAus: '„Nu also. Geht doch."' },
     // --- Das Bild in der Hand, Rückseite ---
     { id: 'bi_fach', ansicht: 'bild_hinten', x: 510, y: 600, w: 570, h: 210, typ: 'ausschnitt', zustand: 'fach_offen',
       bildAus: 'bilder/bild-hinten-offen.webp', label: 'Fach in der Rückwand' },
     { id: 'bi_schluessel', ansicht: 'bild_hinten', x: 535, y: 622, w: 268, h: 136, typ: 'nehmen', zustand: 'schluessel_weg',
       gibt: 'schluessel', bildAus: 'bilder/bild-hinten-leer.webp', sichtbarWenn: 'fach_offen', label: 'Schlüssel im Fach' },
     { id: 'w_frau', ansicht: 'wohnzimmer', x: 240, y: 95, w: 430, h: 330, typ: 'phasen', zustand: 'frau_phase',
-      treffer: { x: 240, y: 192, w: 430, h: 233 },
+      treffer: { x: 240, y: 192, w: 460, h: 250 },
       nichtWenn: 'anfisa_weg', label: 'Die Frau im Sessel', sprecher: 'Anfisa',
       // Solange der Fernseher aus ist, sitzt sie auf. Weiterklicken darf sie
       // dann nicht in die schlafende Phase 0 zurückfallen lassen.
       mindestPhase: { wenn: ['tv_aus', 'anfisa_kippen', 'anfisa_feuer'], phase: 1 },
+      // Hat sie erst eins von beidem, sagt sie beim Antippen, was noch fehlt
+      sagtStatt: [
+        { wenn: ['anfisa_kippen'], nicht: ['anfisa_feuer'], text: '„Schachtel liegt hier. Feuer liegt nicht hier."' },
+        { wenn: ['anfisa_feuer'], nicht: ['anfisa_kippen'], text: '„Feuerzeug habe ich. Und was zünde ich damit an? Vorhang?"' }
+      ],
       // Sie will beides: Schachtel und Feuerzeug. Und solange das Bild nicht
       // an der Wand hängt, nimmt sie gar nichts an.
       nimmt: ['kippen', 'feuerzeug'], setzt: 'anfisa_weg', verbraucht: true,
-      // Sie nimmt jedes Stück für sich an und richtet sich dabei auf. Welches
-      // zuerst kommt, ist egal — der Satz zum zweiten ist immer der letzte.
+      // Sie nimmt jedes Stück für sich an und richtet sich dabei auf. Das
+      // zeigt das Bild, es steht also nicht im Text. Welches Stück zuerst
+      // kommt, ist egal — der Satz zum zweiten ist immer der letzte.
       gabePhase: 1,
       einzeln: {
         kippen: { setzt: 'anfisa_kippen',
-          antwort: '„Papirossy." Sie richtet sich auf und dreht die Schachtel zweimal in der Hand. „Und womit soll ich die anzünden? Mit Blick?"' },
+          antwort: '„Papirossy. Und womit soll ich die anzünden? Mit Blick?"' },
         feuerzeug: { setzt: 'anfisa_feuer',
-          antwort: '„Feuer." Sie setzt sich gerade hin und lässt es einmal klicken. „Schön. Jetzt fehlt nur noch, was man damit anzündet."' }
+          antwort: '„Feuer. Schön. Und was soll ich damit anzünden, Luft?"' }
       },
-      antwort: '„Jetzt stimmt es." Sie steckt beides ein und stemmt sich hoch, langsam wie ein Schrank. „Dann setze ich Wasser auf. Ohne Tee schmeckt das nicht."',
+      antwort: '„Jetzt stimmt es. Dann setze ich Wasser auf. Ohne Tee schmeckt das nicht."',
       strafen: [
         { wenn: 'bild_ab', setzt: 'anfisa_sauer',
-          antwort: '„Stoj." Sie deutet mit dem Kinn zur Wand. „Da ist Loch. Mein Bild hing da. Solange das so aussieht, rühre ich mich nicht."' },
+          antwort: '„Stoj. Da ist Loch an der Wand. Häng mein Bild zurück, dann reden wir."' },
         { wenn: 'tv_aus',
-          antwort: '„Erst Fernseher wieder an." Sie verschränkt die Arme. „Bei Totenstille bleibe ich sitzen."' }
+          antwort: '„Erst Fernseher wieder an. Bei Totenstille bleibe ich sitzen."' }
       ],
       phasen: [
         { bild: '' },
@@ -622,9 +635,10 @@
     { id: 'se_kissen', ansicht: 'sessel_nah', x: 420, y: 200, w: 940, h: 480, klang: 'stoff', typ: 'ausschnitt', zustand: 'kissen_weg', label: 'Sitzkissen',
       patch: 'bilder/sessel-kissen.webp', patchX: 372, patchY: 132, patchW: 1036, patchH: 755 },
     // Abgerissener Zettel unter dem Kissen. Die erste Ziffer fehlt.
-    { id: 'se_zettel', ansicht: 'sessel_nah', x: 980, y: 300, w: 230, h: 150, typ: 'info', zustand: 'zettel_gelesen',
-      sichtbarWenn: 'kissen_weg', label: 'Abgerissener Zettel',
-      titel: 'Ein Fetzen Papier', text: 'Die linke Hälfte fehlt, da ist das Papier abgerissen. Zu lesen ist noch: … 3 9 2',
+    // Der Zettel wandert in den Rucksack. nichtWenn blendet die Zeichnung aus,
+    // sobald er genommen ist, sonst läge er weiter auf dem Sessel.
+    { id: 'se_zettel', ansicht: 'sessel_nah', x: 980, y: 300, w: 230, h: 150, typ: 'nehmen', zustand: 'zettel_weg',
+      gibt: 'zettel', sichtbarWenn: 'kissen_weg', nichtWenn: 'zettel_weg', label: 'Abgerissener Zettel',
       zeichnung: `<g transform="translate(1000,315) rotate(-7)">
         <path d="M0 6 L14 0 L190 4 L205 18 L198 112 L182 126 L22 120 L4 104 Z" fill="#cdc0a2" stroke="#7e7459" stroke-width="1.5"/>
         <path d="M0 6 L10 22 L0 38 L12 54 L2 70 L12 86 L4 104" fill="none" stroke="#8a7f66" stroke-width="2"/>
@@ -703,40 +717,83 @@
         <rect x="116" y="756" width="36" height="36" rx="6" fill="#6b7d55"/>
         <rect x="168" y="756" width="36" height="36" rx="6" fill="#8a5f3f"/>
         <text x="1700" y="782" font-size="22" fill="#cfd8e6" text-anchor="end" font-family="sans-serif">23:14</text></g>` },
-    { id: 'pc_futter', ansicht: 'pc_nah', x: 90, y: 80, w: 92, h: 110, typ: 'info',
-      zeichnung: pcSymbol(90, 80, 'datei', 'futterplan.txt'),
-      label: 'futterplan.txt', titel: 'futterplan.txt',
-      text: 'FUTTERPLAN FÜRS BECKEN — BITTE GENAU HALTEN\n\n'
-          + 'Grüne Flocken: für die Skalare\n'
-          + 'Rote Flocken: für die Guppys\n'
-          + 'Braune Flocken: für die Neons\n\n'
-          + 'Pro Fisch eine Prise. Keine mehr, sonst kippt das Wasser.\n'
-          + 'Beim Füttern die drei Zahlen in dieser Reihenfolge angeben: grün, rot, braun.' },
-    { id: 'pc_fische', ansicht: 'pc_nah', x: 260, y: 80, w: 92, h: 110, typ: 'info',
-      zeichnung: pcSymbol(260, 80, 'ordner', 'becken'),
-      label: 'becken', titel: 'Ordner „becken"',
-      text: '47 Bilder vom Aquarium. Auf jedem ist mindestens ein Fisch unscharf oder halb aus dem Bild geschwommen.' },
-    { id: 'pc_tagebuch', ansicht: 'pc_nah', x: 90, y: 250, w: 92, h: 110, typ: 'info',
-      zeichnung: pcSymbol(90, 250, 'datei', 'notizen.txt'),
+    { id: 'pc_notizen', ansicht: 'pc_nah', x: 60, y: 80, w: 92, h: 110, typ: 'info',
+      zeichnung: pcSymbol(60, 80, 'datei', 'notizen.txt'),
       label: 'notizen.txt', titel: 'notizen.txt',
-      text: 'Mama sagt, ich soll aufräumen. Ich sage, ich habe ein System.\n\nSie sagt, das System heisst Boden.' },
-    { id: 'pc_korb', ansicht: 'pc_nah', x: 90, y: 420, w: 92, h: 110, typ: 'info',
-      zeichnung: pcSymbol(90, 420, 'korb', 'Papierkorb'),
+      text: 'Mama sagt, ich soll aufräumen. Ich sage, ich habe ein System.\n'
+          + 'Sie sagt, das System heisst Boden.\n\n'
+          + 'Passwort wie immer. Die Zahl, die im Treppenhaus an der Wand nachleuchtet, '
+          + 'wenn man das Licht ausmacht.' },
+    { id: 'pc_korb', ansicht: 'pc_nah', x: 1540, y: 80, w: 92, h: 110, typ: 'info',
+      zeichnung: pcSymbol(1540, 80, 'korb', 'Papierkorb'),
       label: 'Papierkorb', titel: 'Papierkorb',
       text: 'Drei gelöschte Dateien liegen noch drin.\n\nhausaufgaben_final.odt, hausaufgaben_final2.odt, hausaufgaben_wirklich_final.odt' },
-    { id: 'pc_privat', ansicht: 'pc_nah', x: 260, y: 250, w: 92, h: 110, typ: 'info',
-      zeichnung: pcSymbol(260, 250, 'ordner', 'privat'),
-      label: 'privat', titel: 'Ordner „privat"',
-      text: 'Der Ordner lässt sich nicht öffnen. Ein kleines Fenster fragt nach einem Passwort.\n\n(Hier kommt das Rätsel hin.)' },
-    // Ohne Gegenstand klopft man nur. Mit der Dose fragt der Dosierer drei
-    // Zahlen ab — so viele Prisen, wie Fische der jeweiligen Art im Becken sind.
+
+    // Neun lose Dateien. Jede gehört in einen der drei Ordner unten. Antippen
+    // nimmt sie auf, Antippen des Ordners legt sie ab. Liegen alle richtig,
+    // kommt der Futterplan zum Vorschein, der darunter begraben war.
+    { id: 'pc_d1', ansicht: 'pc_nah', x: 300,  y: 80,  w: 92, h: 110, typ: 'datei', ordner: 'bilder', zustand: 'pc_d1_weg',
+      nichtWenn: 'pc_d1_weg', zeichnung: pcSymbol(300, 80, 'bild', 'urlaub.jpg'), label: 'urlaub.jpg' },
+    { id: 'pc_d2', ansicht: 'pc_nah', x: 470,  y: 180, w: 92, h: 110, typ: 'datei', ordner: 'bilder', zustand: 'pc_d2_weg',
+      nichtWenn: 'pc_d2_weg', zeichnung: pcSymbol(470, 180, 'bild', 'rudy.png'), label: 'rudy.png' },
+    { id: 'pc_d3', ansicht: 'pc_nah', x: 640,  y: 90,  w: 92, h: 110, typ: 'datei', ordner: 'bilder', zustand: 'pc_d3_weg',
+      nichtWenn: 'pc_d3_weg', zeichnung: pcSymbol(640, 90, 'bild', 'becken.jpg'), label: 'becken.jpg' },
+    { id: 'pc_d4', ansicht: 'pc_nah', x: 820,  y: 190, w: 92, h: 110, typ: 'datei', ordner: 'musik', zustand: 'pc_d4_weg',
+      nichtWenn: 'pc_d4_weg', zeichnung: pcSymbol(820, 190, 'musik', 'mixtape.mp3'), label: 'mixtape.mp3' },
+    { id: 'pc_d5', ansicht: 'pc_nah', x: 990,  y: 80,  w: 92, h: 110, typ: 'datei', ordner: 'musik', zustand: 'pc_d5_weg',
+      nichtWenn: 'pc_d5_weg', zeichnung: pcSymbol(990, 80, 'musik', 'radio.mp3'), label: 'radio.mp3' },
+    { id: 'pc_d6', ansicht: 'pc_nah', x: 1160, y: 190, w: 92, h: 110, typ: 'datei', ordner: 'musik', zustand: 'pc_d6_weg',
+      nichtWenn: 'pc_d6_weg', zeichnung: pcSymbol(1160, 190, 'musik', 'lied_neu.mp3'), label: 'lied_neu.mp3' },
+    { id: 'pc_d7', ansicht: 'pc_nah', x: 300,  y: 300, w: 92, h: 110, typ: 'datei', ordner: 'schule', zustand: 'pc_d7_weg',
+      nichtWenn: 'pc_d7_weg', zeichnung: pcSymbol(300, 300, 'datei', 'vokabeln.doc'), label: 'vokabeln.doc' },
+    { id: 'pc_d8', ansicht: 'pc_nah', x: 640,  y: 330, w: 92, h: 110, typ: 'datei', ordner: 'schule', zustand: 'pc_d8_weg',
+      nichtWenn: 'pc_d8_weg', zeichnung: pcSymbol(640, 330, 'datei', 'referat.doc'), label: 'referat.doc' },
+    { id: 'pc_d9', ansicht: 'pc_nah', x: 990,  y: 300, w: 92, h: 110, typ: 'datei', ordner: 'schule', zustand: 'pc_d9_weg',
+      nichtWenn: 'pc_d9_weg', zeichnung: pcSymbol(990, 300, 'datei', 'mathe.pdf'), label: 'mathe.pdf' },
+
+    // Die drei Zielordner. fertig: Zustand, der gesetzt wird, sobald nichts mehr herumliegt.
+    { id: 'pc_o_bilder', ansicht: 'pc_nah', x: 150, y: 580, w: 92, h: 110, typ: 'ordner', ordner: 'bilder',
+      fertig: 'pc_sortiert', zeichnung: pcSymbol(150, 580, 'ordner', 'bilder'), label: 'bilder' },
+    { id: 'pc_o_musik', ansicht: 'pc_nah', x: 330, y: 580, w: 92, h: 110, typ: 'ordner', ordner: 'musik',
+      fertig: 'pc_sortiert', zeichnung: pcSymbol(330, 580, 'ordner', 'musik'), label: 'musik' },
+    { id: 'pc_o_schule', ansicht: 'pc_nah', x: 510, y: 580, w: 92, h: 110, typ: 'ordner', ordner: 'schule',
+      fertig: 'pc_sortiert', zeichnung: pcSymbol(510, 580, 'ordner', 'schule'), label: 'schule' },
+
+    // Das geöffnete Bild aus dem Ordner. Reines Beiwerk, fängt keine Klicks ab —
+    // das Ei darin wird wie jedes andere angetippt.
+    { id: 'pc_fenster', ansicht: 'pc_nah', x: 1000, y: 380, w: 620, h: 330, typ: 'overlay', sichtbarWenn: 'pc_privat_offen',
+      label: 'ostern.jpg', zeichnung: `<g style="pointer-events:none">
+        <rect x="1000" y="380" width="620" height="330" rx="8" fill="#1b2230" stroke="#8d9aad" stroke-width="3"/>
+        <rect x="1000" y="380" width="620" height="38" rx="8" fill="#2c3648"/>
+        <text x="1016" y="407" font-size="21" fill="#d6dde8" font-family="sans-serif">ostern.jpg</text>
+        <rect x="1016" y="432" width="588" height="262" fill="#6f8f5e"/>
+        <path d="M1016 630 L1140 560 L1250 620 L1360 540 L1480 626 L1604 566 L1604 694 L1016 694 Z" fill="#54734a"/>
+      </g>` },
+
+    // Lag unter dem Chaos und taucht erst auf, wenn der Schreibtisch leer ist
+    { id: 'pc_futter', ansicht: 'pc_nah', x: 820, y: 430, w: 92, h: 110, typ: 'info', sichtbarWenn: 'pc_sortiert',
+      zeichnung: pcSymbol(820, 430, 'datei', 'futterplan.txt'),
+      label: 'futterplan.txt', titel: 'futterplan.txt',
+      text: 'FUTTERPLAN FÜRS BECKEN — BITTE GENAU HALTEN\n\n'
+          + 'Im Becken schwimmen Skalare, Guppys und Neons.\n'
+          + 'Jeder Fisch bekommt eine Prise. Keine mehr — was liegen bleibt, fault im Kies.\n\n'
+          + 'Also erst zählen, dann füttern. Die Neons sind schnell, lass dich nicht vertun.' },
+
+    // Der Ordner mit dem Passwort. Die Zahl leuchtet im Treppenhaus an der Wand.
+    { id: 'pc_privat', ansicht: 'pc_nah', x: 1380, y: 80, w: 92, h: 110, typ: 'code', zustand: 'pc_privat_offen',
+      zeichnung: pcSymbol(1380, 80, 'ordner', 'privat'), label: 'privat',
+      titel: 'Passwort', code: '7392',
+      frage: 'Der Ordner will ein Passwort. Vier Ziffern.',
+      fehlerText: 'Falsch. Der Ordner bleibt zu.',
+      antwort: 'Der Ordner geht auf. Ein einziges Bild liegt darin.' },
+
     { id: 'aq_scheibe', ansicht: 'aquarium_nah', x: 310, y: 210, w: 1160, h: 460, typ: 'klopfen',
       klang: 'metall', label: 'Aquarium', gelernt: 'aq_gelernt',
-      klopf: 'Du klopfst ans Glas. Sie stieben auseinander und sammeln sich gleich wieder. Von Lärm rückt hier nichts raus — die wollen Futter.',
+      klopf: 'Du klopfst ans Glas. Sie stieben auseinander und sammeln sich gleich wieder. Von Lärm rückt hier nichts raus — die wollen Futter, abgezählt.',
       nimmt: 'futter', zustand: 'aq_kies', verbraucht: true, scheucht: true,
-      titel: 'Füttern', code: '236',
-      frage: 'Wie viele Prisen grün, wie viele rot, wie viele braun? Drei Ziffern in dieser Reihenfolge.',
-      fehlerText: 'Die Fische drehen ab. So stimmt die Mischung nicht.',
+      titel: 'Füttern', code: '11',
+      frage: 'Wie viele Prisen streust du ins Becken?',
+      fehlerText: 'Zu viel oder zu wenig. Die Fische drehen ab.',
       antwort: 'Die Flocken sinken, die Fische schiessen hinterher und pflügen den Kies um. Zwischen den Steinen bleibt etwas liegen.' },
     // --- Flur ---
     // Zahlenschloss an der Dachbodenluke. Der Code steht als Leuchtschrift im
@@ -750,7 +807,7 @@
     // Die drei Türen im Flur. Wohin sie führen, ist noch offen — vorerst gehen
     // sie nur auf und zu und geben den Blick in die Zimmer frei.
     { id: 'fl_tuer_links', ansicht: 'flur', x: 258, y: 40, w: 200, h: 760, typ: 'ausschnitt',
-      zustand: 'fl_links_offen', klang: 'holz', label: 'Tür zur Kammer',
+      zustand: 'fl_links_offen', klang: 'holz', label: 'Tür zu Acis Zimmer',
       patch: 'bilder/flur-tuer-links.webp', patchX: 253, patchY: 13, patchW: 216, patchH: 874 },
     // Nur das Türblatt bis oberhalb der Schwelle: darunter sitzt der Durchgang.
     { id: 'fl_tuer_ende', ansicht: 'flur', x: 740, y: 265, w: 160, h: 330, typ: 'ausschnitt',
@@ -808,7 +865,7 @@
       patch: 'bilder/koffer-offen.webp', patchX: 252, patchY: 0, patchW: 1251, patchH: 603, label: 'Koffer' },
     { id: 'kf_schloss', ansicht: 'koffer_nah', x: 300, y: 480, w: 1180, h: 280, typ: 'ziel',
       nichtWenn: 'koffer_offen', label: 'Schlösser am Koffer',
-      nimmt: 'schluessel', setzt: 'koffer_offen',
+      nimmt: 'schluessel', setzt: 'koffer_offen', verbraucht: true,
       antwort: 'Der Schlüssel passt. Beide Schlösser springen auf.' },
     // --- Dachboden (noch Platzhalter-Geometrie) ---
     { id: 'd_kiste',    ansicht: 'dachboden', x: 200,  y: 560, w: 260, h: 180, typ: 'toggle', form: 'klappe', zustand: 'dach_kiste_offen', label: 'Holzkiste' },
@@ -835,7 +892,7 @@
     { id: 'e14', ansicht: 'kueche',     x: 1497, y: 272, r: 8,  farbe: '#e8d8bc', muster: 'punkte', ebene: 2, sichtbarWenn: ['k_kuehl_offen', 'kueche_licht'] },  // in der Eierablage im Kühlschrank
     { id: 'e15', ansicht: 'acizimmer',  x: 778,  y: 405, r: 9,  farbe: '#d08a5a', muster: 'zickzack', ebene: 2, sichtbarWenn: 'aci_schrank_offen' },  // auf dem Wäschestapel im Kleiderschrank
     // --- Ebene 3: nur nach Rätsel sichtbar ---
-    { id: 'e16', ansicht: 'tisch_nah',  x: 330,  y: 272, r: 20, farbe: '#c9b48a', muster: 'punkte',   ebene: 1, sichtbarWenn: null },  // in der Tasse auf dem Couchtisch, halb in der Milch
+    { id: 'e16', ansicht: 'tisch_nah',  x: 330,  y: 236, r: 31, farbe: '#c9b48a', muster: 'punkte',   ebene: 1, sichtbarWenn: null },  // steht in der Tasse auf dem Couchtisch, Unterkante knapp über dem Tassenrand-Flicken
     { id: 'e17', ansicht: 'kueche',     x: 955,  y: 602, r: 9,  farbe: '#5a4a38', muster: 'punkte', ebene: 2, sichtbarWenn: ['k_ofen_offen', 'kueche_licht'] },  // auf dem Rost im Backofen
     { id: 'e18', ansicht: 'acizimmer',  x: 348,  y: 580, r: 8,  farbe: '#5a4030', muster: 'zickzack', ebene: 2, sichtbarWenn: 'aci_tisch_offen' },  // in der Nachttischschublade
     { id: 'e19', ansicht: 'dachboden',  x: 330,  y: 650, r: 12, farbe: '#3a342c', muster: 'streifen', ebene: 2, sichtbarWenn: 'dach_kiste_offen' },
@@ -843,13 +900,16 @@
     // --- Bad: getarnt, offen sichtbar ---
     { id: 'e21', ansicht: 'bad', x: 503,  y: 316, r: 10, farbe: '#6d3c12', muster: 'streifen', ebene: 1, sichtbarWenn: null },  // Ablage neben der Seife
     { id: 'e22', ansicht: 'bad', x: 938,  y: 412, r: 9,  farbe: '#4d3513', muster: 'punkte',   ebene: 1, sichtbarWenn: null },  // auf dem Spülkasten
-    { id: 'e23', ansicht: 'bad', x: 1035, y: 828, r: 11, farbe: '#6a4222', muster: 'zickzack', ebene: 1, sichtbarWenn: null },
+    { id: 'e23', ansicht: 'wanne_nah', x: 480, y: 668, r: 11, farbe: '#6a4222', muster: 'zickzack', ebene: 1, sichtbarWenn: null },  // auf dem vorderen Wannenrand
     // --- Anfisas Schlafzimmer ---
     { id: 'e24', ansicht: 'schlafzimmer', x: 228,  y: 462, r: 11, farbe: '#3a1a10', muster: 'punkte',   ebene: 2, sichtbarWenn: 'sz_schrank_offen' },     // unten im Kleiderschrank
     { id: 'e25', ansicht: 'schlafzimmer', x: 900,  y: 482, r: 9,  farbe: '#4c2213', muster: 'streifen', ebene: 2, sichtbarWenn: 'sz_nachttisch_offen' },  // in der Nachttischschublade
     { id: 'e26', ansicht: 'schlafzimmer', x: 1445, y: 592, r: 10, farbe: '#4e2c14', muster: 'zickzack', ebene: 2, sichtbarWenn: 'sz_frisier_offen' },     // in der Schublade am Frisiertisch
     { id: 'e27', ansicht: 'koffer_nah', x: 1245, y: 330, r: 22, farbe: '#c9b08a', muster: 'punkte', ebene: 2, sichtbarWenn: 'koffer_offen' },  // zwischen den Briefen im Koffer
     { id: 'e28', ansicht: 'aquarium_nah', x: 940, y: 710, r: 11, farbe: '#b8a884', muster: 'punkte', ebene: 2, sichtbarWenn: 'aq_kies' },  // im aufgewirbelten Kies im Aquarium
+    { id: 'e30', ansicht: 'th_kiste_nah', x: 1255, y: 635, r: 12, farbe: '#7a6a4e', muster: 'punkte', ebene: 2, sichtbarWenn: 'th_tuecher_weg' },  // in den Tuchfalten in der Holzkiste
+    { id: 'e32', ansicht: 'pc_nah', x: 1310, y: 545, r: 26, farbe: '#d9c27a', muster: 'zickzack', ebene: 1, sichtbarWenn: 'pc_privat_offen' },  // auf dem Bild im Ordner „privat"
+    { id: 'e31', ansicht: 'schreibtisch_nah', x: 1700, y: 478, r: 12, farbe: '#3a4c2a', muster: 'streifen', ebene: 1, sichtbarWenn: null },  // getarnt zwischen den Blättern der Zimmerpflanze
     { id: 'e29', ansicht: 'schreibtisch_nah', x: 196, y: 702, r: 12, farbe: '#5f4a33', muster: 'streifen', ebene: 2, sichtbarWenn: 'sb_schrank_offen' }  // in der dunklen Ecke neben den Büchern im Schreibtischschrank
   ];
 
@@ -1003,12 +1063,6 @@
         <rect x="260" y="420" width="320" height="200" rx="18" fill="#f0f0ea"/>
         <rect x="900" y="300" width="420" height="400" rx="20" fill="#e4e8e4"/>
         <text x="800" y="150" font-size="26" fill="#3a4a42" text-anchor="middle" font-family="sans-serif">Bad — Bild fehlt noch</text>`;
-      case 'kammer': return `
-        <rect width="1600" height="900" fill="#6a5a46"/>
-        <rect y="700" width="1600" height="200" fill="#4a3826"/>
-        <rect x="420" y="360" width="560" height="340" fill="#7a5a3a"/>
-        <rect x="1080" y="300" width="240" height="400" fill="#5a4a38"/>
-        <text x="800" y="150" font-size="26" fill="#e8d8b8" text-anchor="middle" font-family="sans-serif">Kammer — Bild fehlt noch</text>`;
       case 'dachboden': return `
         <rect width="1600" height="900" fill="#1e2024"/>
         <rect y="700" width="1600" height="200" fill="#2a2c30"/>
@@ -1067,6 +1121,21 @@
   }
 
   // Beschriftung der Platzhalter — fällt weg, sobald echte Bilder da sind
+  // Auf Acis Schreibtisch aufgenommene Datei. Liegt ausserhalb von zustand,
+  // weil sie nur während des Sortierens gilt und nicht gespeichert werden muss.
+  let pcGewaehlt = null;
+  function pcMarkiere(id) {
+    const alt = document.getElementById('pc-markierung');
+    if (alt) alt.remove();
+    if (!id) return;
+    const t = TEILE.find(x => x.id === id);
+    const ebene = document.getElementById('teile-offen');
+    if (!t || !ebene) return;
+    ebene.insertAdjacentHTML('beforeend',
+      `<rect id="pc-markierung" x="${t.x - 8}" y="${t.y - 8}" width="${t.w + 16}" height="${t.h + 16}" rx="12"`
+      + ` fill="rgba(244,212,132,0.16)" stroke="#f4d484" stroke-width="3" style="pointer-events:none"/>`);
+  }
+
   // Ein Symbol auf Acis Schreibtisch: Ordner oder Textdatei, mit Namen darunter.
   function pcSymbol(x, y, art, name) {
     const formen = {
@@ -1074,6 +1143,12 @@
                <path d="M0 34 L92 34" stroke="#b8974a" stroke-width="2"/>`,
       datei:  `<rect x="14" y="8" width="64" height="68" rx="4" fill="#ece4d3" stroke="#8d8471" stroke-width="2"/>
                <path d="M26 26 H66 M26 38 H66 M26 50 H58 M26 62 H48" stroke="#9a9280" stroke-width="3" stroke-linecap="round"/>`,
+      bild:   `<rect x="10" y="12" width="72" height="60" rx="4" fill="#e6e1d2" stroke="#8d8471" stroke-width="2"/>
+               <path d="M14 62 L34 40 L48 54 L60 44 L78 62 Z" fill="#6f8f5e"/>
+               <circle cx="64" cy="26" r="7" fill="#e0b24f"/>`,
+      musik:  `<rect x="14" y="8" width="64" height="68" rx="4" fill="#dfe3ea" stroke="#7d8490" stroke-width="2"/>
+               <path d="M36 58 V24 L62 18 V52" fill="none" stroke="#4a5362" stroke-width="4" stroke-linecap="round"/>
+               <circle cx="31" cy="59" r="7" fill="#4a5362"/><circle cx="57" cy="53" r="7" fill="#4a5362"/>`,
       korb:   `<path d="M22 20 L70 20 L64 78 L28 78 Z" fill="#9aa6b2" stroke="#5d6975" stroke-width="2"/>
                <path d="M18 14 H74" stroke="#5d6975" stroke-width="5" stroke-linecap="round"/>
                <path d="M38 10 H54" stroke="#5d6975" stroke-width="5" stroke-linecap="round"/>
@@ -1157,6 +1232,7 @@
   }
   function renderRaum() {
     const ans = aktuelleAnsicht();
+    pcGewaehlt = null;   // aufgenommene Datei gilt nur innerhalb einer Ansicht
     RW = ans.breite || 1600; RH = ans.hoehe || 900;
     welt.style.width = RW + 'px'; welt.style.height = RH + 'px';
     const hier = (o) => o.ansicht === ans.id;
@@ -1615,12 +1691,19 @@
           const an = zustand.gewaehlt !== id; waehle(an ? id : null); if (an) beutelZu();
         };
         fach.appendChild(b);
-        if (g.nah) {
+        if (g.nah || g.blatt) {
           const l = document.createElement('button');
           l.className = 'lupe';
           l.textContent = '🔍';
-          l.title = 'Genauer ansehen';
-          l.onclick = () => { waehle(null, true); beutelZu(); geheZu(g.nah); };
+          l.title = g.blatt ? 'Nochmal lesen' : 'Genauer ansehen';
+          l.onclick = () => {
+            waehle(null, true); beutelZu();
+            if (g.blatt) {
+              document.getElementById('info-titel').textContent = g.blatt.titel || g.name;
+              document.getElementById('info-text').textContent = g.blatt.text || g.text || '';
+              document.getElementById('info-modal').classList.add('show');
+            } else geheZu(g.nah);
+          };
           fach.appendChild(l);
         }
       }
@@ -1668,6 +1751,12 @@
     const greift = strafen.find(x => zustand.offen[x.wenn]);
     if (greift) {
       if (greift.setzt) zustand.offen[greift.setzt] = true;
+      // Auch eine Absage soll man sehen: das Teil geht in seine Reaktionsphase,
+      // sonst wirkt es, als hätte der Tipp gar nichts getan.
+      if (teil.gabePhase != null && teil.zustand) {
+        zustand.offen[teil.zustand] = teil.gabePhase;
+        renderRaum();
+      }
       waehle(null, true); klang('fehler'); speichern();
       sag(greift.antwort || 'So nicht.', teil.sprecher || teil.label);
       return false;
@@ -1894,7 +1983,15 @@
     const teilEl = ziel.closest && ziel.closest('.teil');
     if (zustand.gewaehlt) {
       const t = teilEl ? TEILE.find(x => x.id === teilEl.dataset.teil) : null;
-      if (!t) { waehle(null, true); return; }   // daneben getippt: Gegenstand wieder weglegen
+      if (!t) {
+        // Daneben getippt. Früher wanderte der Gegenstand stumm zurück, das
+        // sah aus, als wäre das Spiel kaputt. Jetzt sagt Aci, was los ist.
+        const name = (GEGENSTAENDE.find(g => g.id === zustand.gewaehlt) || {}).name || 'Das';
+        waehle(null, true);
+        klang('fehler');
+        sag(name + ' wieder im Rucksack. Da war nichts, womit sich das benutzen lässt.');
+        return;
+      }
       benutze(zustand.gewaehlt, t);
       return;
     }
@@ -1985,7 +2082,13 @@
         aktualisiereSichtbarkeit(); speichern();
         const ph = t.phasen[neu] || {};
         let spruch = ph.text;
-        if (ph.texte && ph.texte.length) {
+        // sagtStatt: Steht gerade etwas Bestimmtes an, sagt sie das statt eines
+        // Zufallsspruchs. So merkt man beim Antippen, was noch fehlt.
+        const lage = (t.sagtStatt || []).find(e =>
+          (e.wenn || []).every(k => zustand.offen[k]) &&
+          (e.nicht || []).every(k => !zustand.offen[k]));
+        if (lage) spruch = lage.text;
+        else if (ph.texte && ph.texte.length) {
           const schluessel = t.id + ':' + neu;
           const i = (spruchZaehler[schluessel] || 0) % ph.texte.length;
           spruchZaehler[schluessel] = i + 1;
@@ -2005,6 +2108,34 @@
         if (t.neuzeichnen) renderRaum(); else aktualisiereSichtbarkeit();
         kommentar(t);
         break;
+      // Datei auf Acis Schreibtisch aufnehmen oder wieder loslassen
+      case 'datei':
+        pcGewaehlt = (pcGewaehlt === t.id) ? null : t.id;
+        pcMarkiere(pcGewaehlt);
+        klang('stoff');
+        sag(pcGewaehlt ? t.label + ' angefasst. Jetzt den Ordner antippen, in den sie gehört.' : t.label + ' wieder losgelassen.');
+        return;
+      // Zielordner: nimmt nur Dateien, die zu ihm gehören
+      case 'ordner': {
+        if (!pcGewaehlt) { sag('Erst eine Datei antippen, dann den Ordner.'); return; }
+        const datei = TEILE.find(x => x.id === pcGewaehlt);
+        if (!datei) { pcGewaehlt = null; pcMarkiere(null); return; }
+        if (datei.ordner !== t.ordner) {
+          klang('fehler');
+          sag(datei.label + ' gehört nicht in „' + t.label + '".');
+          return;
+        }
+        zustand.offen[datei.zustand] = true;
+        pcGewaehlt = null;
+        klang('nehmen');
+        const rest = TEILE.filter(x => x.ansicht === t.ansicht && x.typ === 'datei' && !zustand.offen[x.zustand]);
+        if (!rest.length && t.fertig) zustand.offen[t.fertig] = true;
+        renderRaum(); speichern();
+        sag(rest.length
+          ? 'Einsortiert. Noch ' + rest.length + (rest.length === 1 ? ' Datei' : ' Dateien') + ' liegen herum.'
+          : 'Schreibtisch leer. Darunter liegt eine Datei, die vorher niemand gesehen hat.');
+        return;
+      }
       case 'info':
         document.getElementById('info-titel').textContent = t.titel || t.label;
         document.getElementById('info-text').textContent = t.text || '';
