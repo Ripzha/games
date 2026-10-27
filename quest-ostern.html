@@ -1038,8 +1038,9 @@
     { id: 'e26', ansicht: 'schlafzimmer', x: 1445, y: 592, r: 10, farbe: '#4e2c14', muster: 'zickzack', ebene: 2, sichtbarWenn: 'sz_frisier_offen' },     // in der Schublade am Frisiertisch
     { id: 'e27', ansicht: 'koffer_nah', x: 1245, y: 330, r: 22, farbe: '#c9b08a', muster: 'punkte', ebene: 2, sichtbarWenn: 'koffer_offen' },  // zwischen den Briefen im Koffer
     { id: 'e28', ansicht: 'aquarium_nah', x: 940, y: 710, r: 11, farbe: '#b8a884', muster: 'punkte', ebene: 2, sichtbarWenn: 'aq_kies' },  // im aufgewirbelten Kies im Aquarium
-    { id: 'e30', ansicht: 'th_kiste_nah', x: 1255, y: 635, r: 12, farbe: '#7a6a4e', muster: 'punkte', ebene: 2, sichtbarWenn: 'th_tuecher_weg' },  // in den Tuchfalten in der Holzkiste
+    { id: 'e30', ansicht: 'th_kiste_nah', x: 1235, y: 625, r: 23, farbe: '#7a6a4e', muster: 'punkte', ebene: 2, sichtbarWenn: 'th_tuecher_weg' },  // in den Tuchfalten in der Holzkiste
     { id: 'e32', ansicht: 'pc_nah', x: 1310, y: 545, r: 26, farbe: '#d9c27a', muster: 'zickzack', ebene: 1, sichtbarWenn: 'pc_privat_offen' },  // auf dem Bild im Ordner „privat"
+    { id: 'e33', ansicht: 'gruenkiste_nah', x: 1060, y: 700, r: 20, farbe: '#76704f', muster: 'streifen', ebene: 2, sichtbarWenn: null },  // rechts neben der Sicherung auf dem Kistenboden
     { id: 'e31', ansicht: 'schreibtisch_nah', x: 1700, y: 478, r: 12, farbe: '#3a4c2a', muster: 'streifen', ebene: 1, sichtbarWenn: null },  // getarnt zwischen den Blättern der Zimmerpflanze
     { id: 'e29', ansicht: 'schreibtisch_nah', x: 196, y: 702, r: 12, farbe: '#5f4a33', muster: 'streifen', ebene: 2, sichtbarWenn: 'sb_schrank_offen' }  // in der dunklen Ecke neben den Büchern im Schreibtischschrank
   ];
@@ -2040,7 +2041,19 @@
   document.getElementById('zoom-plus').onclick = () => zoomUm(1.4, buehne.clientWidth / 2, buehne.clientHeight / 2);
   document.getElementById('zoom-minus').onclick = () => zoomUm(1 / 1.4, buehne.clientWidth / 2, buehne.clientHeight / 2);
   document.getElementById('zoom-reset').onclick = zoomReset;
-  document.getElementById('nah-zurueck').onclick = () => { zustand.nah = null; speichern(); renderRaum(); zoomReset(); };
+  function zurueckAusNah() { zustand.nah = null; speichern(); renderRaum(); zoomReset(); }
+  document.getElementById('nah-zurueck').onclick = zurueckAusNah;
+
+  // Liegt der Tipp im Randstreifen des Bildes? Dort führt er zurück, damit man
+  // nicht jedes Mal den Knopf oben links treffen muss.
+  function amBildrand(cx, cy) {
+    const sv = welt.querySelector('svg');
+    if (!sv) return false;
+    const k = sv.getBoundingClientRect();
+    if (!k.width || !k.height) return false;
+    const rand = Math.max(26, Math.min(k.width, k.height) * 0.07);
+    return cx < k.left + rand || cx > k.right - rand || cy < k.top + rand || cy > k.bottom - rand;
+  }
 
   // Pointer: Tippen, Ziehen, Pinch
   const zeiger = new Map();
@@ -2201,6 +2214,13 @@
       }
       benutze(zustand.gewaehlt, t);
       return;
+    }
+    // Rand angetippt und nichts getroffen: eine Ebene zurück
+    if (!teilEl && !pcGewaehlt && !zustand.gewaehlt && amBildrand(cx, cy)) {
+      if (zustand.nah) { zurueckAusNah(); return; }
+      // nur der Rückweg nach unten zählt, nicht seitliche Übergänge in andere Räume
+      const raus = WEGE.find(w => w.von === zustand.ansicht && w.art === 'unten');
+      if (raus) { geheZu(raus.nach); return; }
     }
     if (pcGewaehlt && !teilEl) {
       const datei = TEILE.find(x => x.id === pcGewaehlt);
