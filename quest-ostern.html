@@ -365,7 +365,7 @@
 
   // Wird bei jedem Paket neu gesetzt. Steht unten im Startbildschirm, damit man
   // sofort sieht, welche Fassung gerade live ist.
-  const BAUSTAND = '28.10.2026 14:01';
+  const BAUSTAND = '28.10.2026 14:03';
   const SPEICHER_KEY = 'ostern_fortschritt';
   const HINWEISE_GESAMT = 3;
   // Gemeinsamer Faktor für alle Eier. Die Radien in EIER bleiben, hier wird
@@ -3270,8 +3270,8 @@
     { art: 'zeile', text: '— Namen folgen —' },
     { art: 'titel', text: 'An die Community' },
     { art: 'zeile', text: 'simsforumrpg.de' },
-    { art: 'titel', text: 'An alle, die bis hierher gesucht haben' },
-    { art: 'klein', text: 'und an Anfisa, die alles versteckt hat' },
+    { art: 'titel', text: 'An alle, die bis hierher geschaut haben' },
+    { art: 'klein', text: 'und an Anfisa, die die Eier versteckt hat' },
 
     { art: 'luft' },
     { art: 'klein', text: 'Beim Backen wurden keine Eier verschwendet.' },
@@ -3335,12 +3335,15 @@
       });
     } catch (e) { musik = null; }
   }
-  function musikAus() {
+  // sekunden: so lange dauert das Ausblenden. Am Ende des Abspanns genauso
+  // lang wie das Schwarzwerden des Bildes, beim Überspringen kurz.
+  function musikAus(sekunden) {
     if (!musik) return;
     const m = musik;
-    const schritt = m.volume / 30;
+    const schritte = Math.max(1, Math.round((sekunden || 1) * 20));
+    const minus = m.volume / schritte;
     const t = setInterval(() => {
-      m.volume = Math.max(0, m.volume - schritt);
+      m.volume = Math.max(0, m.volume - minus);
       if (m.volume <= 0.001) { clearInterval(t); m.pause(); }
     }, 50);
   }
@@ -3373,13 +3376,13 @@
     // Kurz vor Schluss wird das Bild schwarz
     abspannLauf = setTimeout(() => {
       document.getElementById('abspann-schleier').classList.add('dunkel');
-      musikAus();
+      musikAus(6);   // dieselben sechs Sekunden wie das Bild
     }, Math.max(1000, (dauer - 7) * 1000));
   }
   document.getElementById('abspann-knopf').onclick = zeigeAbspann;
   document.getElementById('abspann-weg').onclick = () => {
     clearTimeout(abspannLauf);
-    musikAus();
+    musikAus(0.8);
     if (ABSPANNTEST) { zeigeAbspann(); return; }   // im Testmodus einfach von vorn
     document.getElementById('screen-abspann').classList.add('hidden');
     document.getElementById('screen-ende').classList.remove('hidden');
