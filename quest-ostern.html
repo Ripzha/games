@@ -344,7 +344,7 @@
 
   // Wird bei jedem Paket neu gesetzt. Steht unten im Startbildschirm, damit man
   // sofort sieht, welche Fassung gerade live ist.
-  const BAUSTAND = '28.10.2026 10:00';
+  const BAUSTAND = '28.10.2026 10:18';
   const SPEICHER_KEY = 'ostern_fortschritt';
   const HINWEISE_GESAMT = 3;
   // Gemeinsamer Faktor für alle Eier. Die Radien in EIER bleiben, hier wird
@@ -761,10 +761,10 @@
     // Zwei Gruppen statt sieben Einzeltüren: Die Türen schwingen über die
     // Feldgrenzen hinweg. Bei einer feineren Teilung steht an der Trennlinie
     // eine offene Tür ohne ihren Schrank.
-    { id: 'k_ober_links', ansicht: 'kueche', x: 425, y: 50, w: 590, h: 252, typ: 'ausschnitt', klang: 'schranktuer', zustand: 'k_ober_links_offen', label: 'Oberschränke links',
+    { id: 'k_ober_links', ansicht: 'kueche', x: 425, y: 50, w: 590, h: 252, typ: 'ausschnitt', klang: 'klappe', zustand: 'k_ober_links_offen', label: 'Oberschränke links',
       patch: 'ostern/bilder/kue-ober-links-dunkel.webp', patchX: 418, patchY: 43, patchW: 604, patchH: 266,
       patchHell: 'ostern/bilder/kue-ober-links-hell.webp', patchHellX: 418, patchHellY: 43, patchHellW: 604, patchHellH: 266 },
-    { id: 'k_ober_rechts', ansicht: 'kueche', x: 1015, y: 50, w: 357, h: 252, typ: 'ausschnitt', klang: 'schranktuer', zustand: 'k_ober_rechts_offen', label: 'Oberschränke rechts',
+    { id: 'k_ober_rechts', ansicht: 'kueche', x: 1015, y: 50, w: 357, h: 252, typ: 'ausschnitt', klang: 'klappe', zustand: 'k_ober_rechts_offen', label: 'Oberschränke rechts',
       nah: 'kue_ober_nah', nahWenn: 'kueche_licht',
       nahFehlt: 'Im Schrank ist es stockdunkel. Solange kein Licht brennt, siehst du gar nichts.',
       patch: 'ostern/bilder/kue-ober-rechts-dunkel.webp', patchX: 1008, patchY: 43, patchW: 371, patchH: 266,
@@ -778,7 +778,7 @@
       bildAus: 'ostern/bilder/kue-ober-ohne-glas.webp', label: 'Oberschrank' },
     { id: 'k_futter', ansicht: 'kue_ober_nah', x: 1022, y: 680, w: 180, h: 190, typ: 'nehmen', zustand: 'futter_weg',
       gibt: 'futter', ohneMarke: true, label: 'Glas mit Fischfutter' },
-    { id: 'k_unten_links', ansicht: 'kueche', x: 370, y: 492, w: 378, h: 210, typ: 'ausschnitt', klang: 'schranktuer', zustand: 'k_unten_links_offen', label: 'Unterschrank links',
+    { id: 'k_unten_links', ansicht: 'kueche', x: 370, y: 492, w: 378, h: 210, typ: 'ausschnitt', klang: 'klappe', zustand: 'k_unten_links_offen', label: 'Unterschrank links',
       nah: 'kue_unten_nah', nahWenn: 'kueche_licht',
       nahFehlt: 'Da drin ist es stockdunkel. Solange kein Licht brennt, siehst du gar nichts.',
       patch: 'ostern/bilder/kue-unten-links-dunkel.webp', patchX: 363, patchY: 485, patchW: 392, patchH: 224,
@@ -791,7 +791,7 @@
     { id: 'k_ofen', ansicht: 'kueche', x: 848, y: 488, w: 200, h: 212, typ: 'ausschnitt', klang: 'klappe', zustand: 'k_ofen_offen', label: 'Backofen',
       patch: 'ostern/bilder/kue-ofen-dunkel.webp', patchX: 841, patchY: 481, patchW: 214, patchH: 226,
       patchHell: 'ostern/bilder/kue-ofen-hell.webp', patchHellX: 841, patchHellY: 481, patchHellW: 214, patchHellH: 226 },
-    { id: 'k_unten_rechts', ansicht: 'kueche', x: 1070, y: 500, w: 278, h: 192, typ: 'ausschnitt', klang: 'schranktuer', zustand: 'k_unten_rechts_offen', label: 'Unterschrank unter der Spüle',
+    { id: 'k_unten_rechts', ansicht: 'kueche', x: 1070, y: 500, w: 278, h: 192, typ: 'ausschnitt', klang: 'klappe', zustand: 'k_unten_rechts_offen', label: 'Unterschrank unter der Spüle',
       patch: 'ostern/bilder/kue-unten-rechts-dunkel.webp', patchX: 1063, patchY: 493, patchW: 292, patchH: 206,
       patchHell: 'ostern/bilder/kue-unten-rechts-hell.webp', patchHellX: 1063, patchHellY: 493, patchHellW: 292, patchHellH: 206 },
     // Schnittkante unter der Oberseite: die Emailledose dort steht nur im
