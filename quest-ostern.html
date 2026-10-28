@@ -142,17 +142,6 @@
   .ende-bild { width: 100%; max-width: 560px; border-radius: 12px; margin: 0 auto 18px; display: block; box-shadow: 0 10px 30px rgba(0,0,0,0.45); }
   .ergebnis-zahl { font-family: var(--serif); font-size: 44px; color: var(--gold-hell); margin: 0; }
   .ergebnis-label { color: var(--himmel-text); font-size: 13px; margin: 0 0 18px; }
-  .eintrag { display: flex; gap: 8px; flex-wrap: wrap; justify-content: center; margin: 0 0 14px; }
-  .eintrag input { font: inherit; font-size: 15px; padding: 10px 12px; border-radius: 8px; border: 1px solid var(--panel-rand); background: #1a2a1e; color: var(--cream); width: 180px; text-transform: uppercase; }
-  .eintrag-fehler { color: var(--rot); font-size: 13px; min-height: 18px; margin: 0 0 8px; }
-  .rangliste { max-width: 360px; width: 100%; margin: 0 0 18px; }
-  .rang-zeile { display: flex; gap: 10px; padding: 5px 10px; font-size: 14px; border-bottom: 1px solid rgba(58,90,68,0.4); }
-  .rang-zeile .platz { color: var(--himmel-text); width: 26px; }
-  .rang-zeile .name { flex: 1; text-align: left; }
-  .rang-zeile .pkt { font-variant-numeric: tabular-nums; }
-  .rang-zeile.top1 { color: var(--gold-hell); }
-  .rang-zeile.eigener { background: rgba(200,146,72,0.18); }
-  .rang-laedt { color: var(--himmel-text); font-size: 13px; }
 
   /* ---------- Taschenlampe: Dunkelheit mit wanderndem Lichtkegel ---------- */
   .lampe { position: absolute; inset: 0; z-index: 6; pointer-events: none; display: none; }
@@ -319,12 +308,6 @@
     <p class="ergebnis-zahl" id="ende-zeit">00:00</p>
     <p class="ergebnis-label" id="ende-label">für alle Eier</p>
     <p class="intro-text" id="ende-text"></p>
-    <div class="eintrag" id="eintrag-bereich">
-      <input type="text" id="name-input" maxlength="12" placeholder="Dein Name">
-      <button class="knopf" id="eintragen-knopf">In Bestenliste eintragen</button>
-    </div>
-    <p class="eintrag-fehler" id="eintrag-fehler"></p>
-    <div class="rangliste" id="rangliste"></div>
     <div class="knopf-reihe">
       <button class="knopf" id="backen-knopf">Kuchen backen</button>
       <a class="knopf sekundaer" href="index.html">Zurück</a>
@@ -345,11 +328,9 @@
   const SB_URL = 'https://uvnffzypgtrzgqtthdrn.supabase.co';
   const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InV2bmZmenlwZ3RyemdxdHRoZHJuIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTMxMzc1NDIsImV4cCI6MjEwODcxMzU0Mn0.W3i6Lay-TF_DCQjmpF9qDZQLL_azppmk_F4fPcfpG1o';
 
-  const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwxKRKsfh_2YFkS5a5kpDYWSQImA1lEq3ndnVJj4YpPqWcLrqmUinp-l4WA93e5U79MPA/exec';
-  const SPIEL_ID = 'ostern';
   // Wird bei jedem Paket neu gesetzt. Steht unten im Startbildschirm, damit man
   // sofort sieht, welche Fassung gerade live ist.
-  const BAUSTAND = '28.10.2026 08:37';
+  const BAUSTAND = '28.10.2026 08:48';
   const SPEICHER_KEY = 'ostern_fortschritt';
   const HINWEISE_GESAMT = 3;
   // Gemeinsamer Faktor für alle Eier. Die Radien in EIER bleiben, hier wird
@@ -3114,61 +3095,8 @@
     document.getElementById('ende-label').textContent = 'für alle ' + meineEier().length + ' Eier';
     document.getElementById('ende-text').textContent = ENDE_TEXT;
     document.getElementById('screen-ende').classList.remove('hidden');
-    ladeRangliste();
   }
 
-  async function holeJson(url, versuche) {
-    versuche = versuche || 3;
-    let letzterFehler = null;
-    for (let i = 1; i <= versuche; i++) {
-      try {
-        const res = await fetch(url);
-        const text = await res.text();
-        try { return JSON.parse(text); } catch (e) { letzterFehler = new Error('Google hat keine Daten geliefert'); }
-      } catch (e) { letzterFehler = e; }
-      if (i < versuche) await new Promise(r => setTimeout(r, 1500 * i));
-    }
-    throw letzterFehler;
-  }
-  async function ladeRangliste(eigenerName) {
-    const el = document.getElementById('rangliste');
-    el.innerHTML = '<p class="rang-laedt">Bestenliste lädt …</p>';
-    try {
-      const data = await holeJson(APPS_SCRIPT_URL + '?action=scores&spiel=' + SPIEL_ID, 3);
-      const liste = (data.scores || []);
-      if (!liste.length) { el.innerHTML = '<p class="rang-laedt">Noch keine Einträge — sei der erste!</p>'; return; }
-      // Punkte = Sekunden; schnellste zuerst (kleinster Wert oben)
-      liste.sort((a, b) => a.punkte - b.punkte);
-      el.innerHTML = liste.slice(0, 10).map((s, i) => `
-        <div class="rang-zeile ${i === 0 ? 'top1' : ''} ${eigenerName && s.name === eigenerName ? 'eigener' : ''}">
-          <span class="platz">${i + 1}.</span><span class="name">${String(s.name).replace(/</g, '&lt;')}</span><span class="pkt">${uhrText(Number(s.punkte) || 0)}</span>
-        </div>`).join('');
-    } catch (e) {
-      el.innerHTML = '<p class="rang-laedt">Bestenliste gerade nicht erreichbar.</p>';
-    }
-  }
-  let speichertGerade = false;
-  async function speicherePunkte() {
-    if (speichertGerade) return;
-    const input = document.getElementById('name-input');
-    const fehler = document.getElementById('eintrag-fehler');
-    const name = input.value.trim().toUpperCase().slice(0, 12);
-    if (name.length < 2) { fehler.textContent = 'Mindestens 2 Zeichen.'; return; }
-    const knopf = document.getElementById('eintragen-knopf');
-    speichertGerade = true; knopf.disabled = true; knopf.textContent = 'Speichert …'; fehler.textContent = '';
-    try {
-      const res = await fetch(APPS_SCRIPT_URL + '?action=score_save&spiel=' + SPIEL_ID + '&name=' + encodeURIComponent(name) + '&punkte=' + zustand.zeit);
-      const text = await res.text();
-      let data; try { data = JSON.parse(text); } catch (e) { throw new Error('Google hat gerade nicht geantwortet — bitte nochmal auf den Knopf'); }
-      if (data.ok) { document.getElementById('eintrag-bereich').style.display = 'none'; ladeRangliste(name); }
-      else { fehler.textContent = 'Speichern fehlgeschlagen' + (data.error ? ': ' + data.error : '.'); knopf.disabled = false; knopf.textContent = 'In Bestenliste eintragen'; }
-    } catch (e) {
-      fehler.textContent = e.message || 'Verbindung fehlgeschlagen.';
-      knopf.disabled = false; knopf.textContent = 'In Bestenliste eintragen';
-    } finally { speichertGerade = false; }
-  }
-  document.getElementById('eintragen-knopf').onclick = speicherePunkte;
-  document.getElementById('name-input').addEventListener('keydown', (e) => { if (e.key === 'Enter') speicherePunkte(); });
 
   document.getElementById('start-knopf').onclick = () => {
     if (!nameUebernehmen()) return;
