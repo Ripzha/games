@@ -365,7 +365,7 @@
 
   // Wird bei jedem Paket neu gesetzt. Steht unten im Startbildschirm, damit man
   // sofort sieht, welche Fassung gerade live ist.
-  const BAUSTAND = '28.10.2026 15:13';
+  const BAUSTAND = '28.10.2026 15:18';
   const SPEICHER_KEY = 'ostern_fortschritt';
   const HINWEISE_GESAMT = 3;
   // Gemeinsamer Faktor für alle Eier. Die Radien in EIER bleiben, hier wird
@@ -645,6 +645,11 @@
     // Stück davon. Das Bild ohne Hammer ist neu gerendert und weicht überall
     // leicht ab, ein Ausschnitt daraus wäre als Rechteck zu sehen. Dieses Teil
     // steht als erstes im Raum, damit offene Schränke und Flicken darüber liegen.
+    // Muss vor den Schränken stehen: der Flicken ist gross und würde sonst
+    // die linke Hälfte des offenen Regals überdecken.
+    { id: 'w_sessel_leer', ansicht: 'wohnzimmer', x: 239, y: 133, w: 749, h: 649, typ: 'overlay', zustand: 'anfisa_weg',
+      nichtWenn: 'hammer_weg',
+      patch: 'ostern/bilder/wz-sessel-leer.webp', patchX: 239, patchY: 133, patchW: 749, patchH: 649, label: 'Sessel' },
     { id: 'w_regal',    ansicht: 'wohnzimmer', x: 862,  y: 336, w: 236, h: 146, typ: 'ausschnitt', klang: 'schranktuer', zustand: 'wz_regal_offen', label: 'Schrank unter dem Bücherregal',
       patch: 'ostern/bilder/wz-regal-auf.webp', patchX: 856, patchY: 330, patchW: 248, patchH: 158 },
     // Nur die linke Tür geht auf. Das mittlere Fach und der Couchtisch sind in
@@ -664,9 +669,6 @@
     // gegenueber 6 beim Rest des Raums) — das sieht man dann als Fleck.
     // nichtWenn: Der Leer-Flicken zeigt den Hammer noch auf der Lehne. Sobald er
     // genommen ist, übernimmt das ganze Bild ohne Hammer.
-    { id: 'w_sessel_leer', ansicht: 'wohnzimmer', x: 239, y: 133, w: 749, h: 649, typ: 'overlay', zustand: 'anfisa_weg',
-      nichtWenn: 'hammer_weg',
-      patch: 'ostern/bilder/wz-sessel-leer.webp', patchX: 239, patchY: 133, patchW: 749, patchH: 649, label: 'Sessel' },
     { id: 'w_gemaelde', ansicht: 'wohnzimmer', x: 415, y: 0, w: 275, h: 188, typ: 'nehmen', zustand: 'bild_ab', gibt: 'gemaelde',
       patch: 'ostern/bilder/wz-bild-ab.webp', patchX: 405, patchY: 0, patchW: 292, patchH: 195, label: 'Bild an der Wand' },
     // Der leere Nagel: nimmt das Bild wieder entgegen. Nur da, solange es fehlt.
@@ -1125,8 +1127,17 @@
       // Grundbild zeigt die Ente. Der Flicken ist das Wasser OHNE sie und kommt
       // erst, wenn man sie genommen hat — also kein patchNicht.
       patch: 'ostern/bilder/wanne-ohne-ente.webp', patchX: 762, patchY: 322, patchW: 356, patchH: 256 },
-    { id: 'wn_stoepsel', ansicht: 'wanne_nah', x: 150, y: 360, w: 300, h: 200, typ: 'ausschnitt', zustand: 'wanne_leer',
-      klang: 'stoff', zurueck: true, label: 'Stöpsel' },
+    // Der Stöpsel war eine unsichtbare Fläche — niemand kam darauf, dort zu
+    // ziehen. Jetzt liegt eine Marke auf der Kette, und die Klickfläche sitzt
+    // auf dem Stöpsel statt auf dem halben Wannenrand.
+    { id: 'wn_stoepsel', ansicht: 'wanne_nah', x: 330, y: 505, w: 150, h: 140, typ: 'ausschnitt',
+      zustand: 'wanne_leer', klang: 'wasser', zurueck: true, label: 'Stöpsel',
+      antwort: 'Du ziehst am Kettchen. Der Stöpsel kommt hoch und das Wasser läuft gurgelnd ab.',
+      zeichnung: `<g data-nicht="wanne_leer" class="nimm-marke" transform="translate(402,578)">
+        <circle r="22" fill="rgba(10,18,12,0.5)" stroke="#f4d484" stroke-width="2"/>
+        <path d="M0 -9 L0 7 M-6 1 L0 7 L6 1" stroke="#f4d484" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+      </g>` },
+
     // --- Anfisas Schlafzimmer ---
     { id: 'sz_schrank', ansicht: 'schlafzimmer', x: 150, y: 30, w: 290, h: 520, typ: 'ausschnitt',
       zustand: 'sz_schrank_offen', klang: 'klappe', label: 'Kleiderschrank',
