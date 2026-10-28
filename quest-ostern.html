@@ -365,7 +365,7 @@
 
   // Wird bei jedem Paket neu gesetzt. Steht unten im Startbildschirm, damit man
   // sofort sieht, welche Fassung gerade live ist.
-  const BAUSTAND = '28.10.2026 13:49';
+  const BAUSTAND = '28.10.2026 13:50';
   const SPEICHER_KEY = 'ostern_fortschritt';
   const HINWEISE_GESAMT = 3;
   // Gemeinsamer Faktor für alle Eier. Die Radien in EIER bleiben, hier wird
@@ -3313,15 +3313,25 @@
       musik.currentTime = 0;
       musik.volume = 0;
       const ziel = 0.5;
-      musik.play().then(() => {
-        // über zwei Sekunden aufblenden
+      const aufblenden = () => {
         let v = 0;
         const t = setInterval(() => {
           v += ziel / 40;
           if (!musik || v >= ziel) { if (musik) musik.volume = ziel; clearInterval(t); return; }
           musik.volume = v;
         }, 50);
-      }).catch(() => {});
+      };
+      musik.play().then(aufblenden).catch(() => {
+        // Browser erlauben Ton erst nach einer Berührung. Dann eben beim
+        // nächsten Klick irgendwo auf der Seite.
+        const nachholen = () => {
+          document.removeEventListener('pointerdown', nachholen);
+          document.removeEventListener('keydown', nachholen);
+          if (musik) musik.play().then(aufblenden).catch(() => {});
+        };
+        document.addEventListener('pointerdown', nachholen);
+        document.addEventListener('keydown', nachholen);
+      });
     } catch (e) { musik = null; }
   }
   function musikAus() {
