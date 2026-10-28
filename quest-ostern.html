@@ -340,11 +340,16 @@
   // =====================================================================
   // EINSTELLUNGEN
   // =====================================================================
+  // Supabase: Spieler, Gruppen und Backtische. Der anon-Key darf offen stehen,
+  // geschrieben wird nur über die Funktionen in der Datenbank.
+  const SB_URL = 'https://uvnffzypgtrzgqtthdrn.supabase.co';
+  const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InV2bmZmenlwZ3RyemdxdHRoZHJuIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTMxMzc1NDIsImV4cCI6MjEwODcxMzU0Mn0.W3i6Lay-TF_DCQjmpF9qDZQLL_azppmk_F4fPcfpG1o';
+
   const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwxKRKsfh_2YFkS5a5kpDYWSQImA1lEq3ndnVJj4YpPqWcLrqmUinp-l4WA93e5U79MPA/exec';
   const SPIEL_ID = 'ostern';
   // Wird bei jedem Paket neu gesetzt. Steht unten im Startbildschirm, damit man
   // sofort sieht, welche Fassung gerade live ist.
-  const BAUSTAND = '28.10.2026 06:57';
+  const BAUSTAND = '28.10.2026 08:17';
   const SPEICHER_KEY = 'ostern_fortschritt';
   const HINWEISE_GESAMT = 3;
   // Gemeinsamer Faktor für alle Eier. Die Radien in EIER bleiben, hier wird
@@ -1224,6 +1229,8 @@
     { id: 'rosinen',  name: 'Rosinen',  bild: 'bilder/zutat-rosinen.webp',  x: 1340, y: 715, b: 180 }
   ];
   const BACK_LEER = 'bilder/backen-0-leer.webp';
+  // Nach dem sechsten Schritt: aus dem Ofen, mit Guss und Streuseln.
+  const BACK_FERTIG = 'bilder/aci-kuchen.webp';
 
   const DUNKEL = [];   // Beispiel: { ansicht: 'dachboden', x: 0, y: 0, w: 800, h: 900, hellWenn: 'dach_licht' }
 
@@ -2809,19 +2816,23 @@
   function backStand() { return Math.min(BACK_SCHRITTE.length, Number(zustand.backen) || 0); }
   function backBild() {
     const i = backStand();
+    if (i >= BACK_SCHRITTE.length) return BACK_FERTIG;
     return i === 0 ? BACK_LEER : BACK_SCHRITTE[i - 1].bild;
   }
   function zeigeBacken() {
     document.getElementById('screen-ende').classList.add('hidden');
     document.getElementById('screen-backen').classList.remove('hidden');
     renderBacken();
+    tischHolen();
+    if (tischUhr) clearInterval(tischUhr);
+    tischUhr = setInterval(tischAuffrischen, 4000);
   }
   function renderBacken() {
     const tisch = document.getElementById('back-tisch');
     const i = backStand();
     const fertig = i >= BACK_SCHRITTE.length;
     let html = `<img class="grund" src="${backBild()}" alt="">`;
-    BACK_ZUTATEN.forEach(z => {
+    if (backStand() < BACK_SCHRITTE.length) BACK_ZUTATEN.forEach(z => {
       const drin = BACK_SCHRITTE.findIndex(x => x.zutat === z.id) < i;
       html += `<img class="back-zutat${drin ? ' weg' : ''}" data-zutat="${z.id}" src="${z.bild}"`
         + ` alt="${z.name}" title="${z.name}" style="left:${z.x / 1774 * 100}%; top:${z.y / 887 * 100}%;`
@@ -2836,9 +2847,9 @@
       + (zustand.anfisaHilft ? ' und Anfisa.' : '.');
     const dran = document.getElementById('back-dran');
     if (fertig) {
-      dran.innerHTML = 'Der Teig ist fertig und geht auf.';
+      dran.innerHTML = 'Der Kulitsch ist fertig.';
       document.getElementById('back-sagt').textContent =
-        'Aci stellt die Schüssel ans warme Fenster. „Und jetzt warten. Das ist der Teil, den sie am besten kann."';
+        'Aci hält ihn hoch. „Der erste, den ich alleine hingekriegt habe. Also fast alleine."';
     } else {
       const schritt = BACK_SCHRITTE[i];
       const fremd = zustand.gruppe && schritt.gruppe !== zustand.gruppe;
@@ -2861,6 +2872,24 @@
         'Aci hält deine Hand fest. „' + name + ' noch nicht. Sonst wird das nichts."';
       return;
     }
+    // Am echten Tisch entscheidet der Server, ob man dran ist.
+    if (tisch) {
+      sbRuf('schritt_setzen', { p_id: zustand.spielerId, p_tisch: tisch.id, p_schritt: i + 1 })
+        .then(d => {
+          tisch = Array.isArray(d) ? d[0] : d;
+          zustand.backen = tisch.schritt; speichern();
+          klang('nehmen');
+          document.getElementById('back-sagt').textContent = 'Aci: „' + schritt.sagt + '"';
+          renderBacken();
+          if (zustand.backen >= BACK_SCHRITTE.length) fanfare([520, 660, 880]);
+        })
+        .catch(() => {
+          klang('fehler');
+          document.getElementById('back-sagt').textContent =
+            'Aci schüttelt den Kopf. „Nicht du. Der andere ist dran."';
+        });
+      return;
+    }
     zustand.backen = i + 1;
     speichern();
     klang('nehmen');
@@ -2870,9 +2899,156 @@
     setTimeout(renderBacken, 420);
     if (zustand.backen >= BACK_SCHRITTE.length) fanfare([520, 660, 880]);
   }
+  // =====================================================================
+  // SUPABASE
+  // Nur vier Aufrufe: anmelden, Tisch holen, Schritt setzen, Tische lesen.
+  // Fällt der Server aus, läuft alles lokal weiter — niemand bleibt stecken.
+  // =====================================================================
+  let tisch = null;          // aktueller Backtisch, null solange nur lokal
+  let tischUhr = null;       // Abfrage im Hintergrund, während der Backtisch offen ist
+
+  async function sbRuf(funktion, args) {
+    const r = await fetch(SB_URL + '/rest/v1/rpc/' + funktion, {
+      method: 'POST',
+      headers: { 'apikey': SB_KEY, 'Authorization': 'Bearer ' + SB_KEY,
+                 'Content-Type': 'application/json' },
+      body: JSON.stringify(args)
+    });
+    if (!r.ok) throw new Error(await r.text());
+    return r.json();
+  }
+  async function sbLies(pfad) {
+    const r = await fetch(SB_URL + '/rest/v1/' + pfad, {
+      headers: { 'apikey': SB_KEY, 'Authorization': 'Bearer ' + SB_KEY }
+    });
+    if (!r.ok) throw new Error(await r.text());
+    return r.json();
+  }
+
+  // Beim Start anmelden. Der Server teilt die Gruppe zu, damit A und B
+  // gleichmässig besetzt sind. Ohne Server bleibt die gewürfelte Gruppe.
+  async function anmelden() {
+    if (!zustand.spielerId || !zustand.name) return;
+    try {
+      const d = await sbRuf('spieler_anmelden', { p_id: zustand.spielerId, p_name: zustand.name });
+      const g = Array.isArray(d) ? d[0] : d;
+      if (g && g.reset_angefordert) {
+        // Der Admin hat zurückgesetzt. Aufräumen und dem Server Bescheid geben.
+        try { await sbRuf('reset_bestaetigt', { p_id: zustand.spielerId }); } catch (e) {}
+        if (g.gruppe) zustand.gruppe = g.gruppe;
+        neuAnfangen();
+        return;
+      }
+      if (g && g.gruppe && g.gruppe !== zustand.gruppe) {
+        zustand.gruppe = g.gruppe;
+        speichern(); baueSprueche(); renderRaum(); renderRaumKnoepfe();
+      }
+    } catch (e) { /* offline: lokale Gruppe gilt weiter */ }
+  }
+
+  async function tischHolen() {
+    try {
+      const d = await sbRuf('tisch_beitreten', { p_id: zustand.spielerId });
+      tisch = Array.isArray(d) ? d[0] : d;
+      if (tisch) { zustand.backen = tisch.schritt; zustand.anfisaHilft = !!tisch.anfisa; speichern(); }
+    } catch (e) { tisch = null; }
+    renderBacken();
+  }
+  async function tischAuffrischen() {
+    if (!tisch) return;
+    try {
+      const d = await sbLies('tische?id=eq.' + tisch.id + '&select=*');
+      if (d && d[0] && (d[0].schritt !== tisch.schritt || d[0].anfisa !== tisch.anfisa)) {
+        tisch = d[0];
+        zustand.backen = tisch.schritt; zustand.anfisaHilft = !!tisch.anfisa; speichern();
+        renderBacken();
+      }
+    } catch (e) { /* egal, nächster Versuch */ }
+  }
+
   // ---- Adminansicht ----
-  function renderAdmin() {
+  async function renderAdmin() {
     const box = document.getElementById('admin-liste');
+    box.innerHTML = '<div class="admin-tisch"><div class="zeile">Lade …</div></div>';
+    try {
+      const [tische, leute] = await Promise.all([
+        sbLies('tische?fertig_um=is.null&select=*&order=erstellt'),
+        sbLies('spieler?select=id,name,gruppe,reset_angefordert&order=name')
+      ]);
+      const name = id => (leute.find(x => x.id === id) || {}).name || null;
+      box.innerHTML = '';
+      if (!tische.length) {
+        box.innerHTML = '<div class="admin-tisch"><div class="zeile">Noch kein Tisch offen.</div></div>';
+      }
+      tische.forEach((t, n) => {
+        const wartet = Math.round((Date.now() - new Date(t.geaendert).getTime()) / 60000);
+        const platz = (p, g) => name(p) || (t.anfisa === g ? 'Anfisa' : '— frei —');
+        const k = document.createElement('div');
+        k.className = 'admin-tisch';
+        k.innerHTML = '<div class="kopf">Tisch ' + (n + 1) + '</div>'
+          + '<div class="zeile">A: ' + platz(t.platz_a, 'A') + ' &nbsp;·&nbsp; B: ' + platz(t.platz_b, 'B')
+          + '<br>Schritt ' + t.schritt + ' von 6, seit ' + wartet + ' Minuten unverändert.</div>';
+        const fehlt = !t.platz_a ? 'A' : (!t.platz_b ? 'B' : null);
+        if (fehlt && !t.anfisa) {
+          const b = document.createElement('button');
+          b.className = 'knopf sekundaer';
+          b.textContent = 'Anfisa auf Platz ' + fehlt + ' setzen';
+          b.onclick = async () => {
+            b.disabled = true;
+            try {
+              await fetch(SB_URL + '/rest/v1/tische?id=eq.' + t.id, {
+                method: 'PATCH',
+                headers: { 'apikey': SB_KEY, 'Authorization': 'Bearer ' + SB_KEY,
+                           'Content-Type': 'application/json' },
+                body: JSON.stringify({ anfisa: fehlt })
+              });
+              document.getElementById('admin-hinweis').textContent =
+                'Anfisa sitzt jetzt an Tisch ' + (n + 1) + ' auf Platz ' + fehlt + '.';
+            } catch (e) {
+              document.getElementById('admin-hinweis').textContent = 'Hat nicht geklappt: ' + e.message;
+            }
+            renderAdmin();
+          };
+          k.appendChild(b);
+        }
+        box.appendChild(k);
+      });
+      // Spielerliste darunter, jeder einzeln zurücksetzbar
+      const k = document.createElement('div');
+      k.className = 'admin-tisch';
+      k.innerHTML = '<div class="kopf">Spieler (' + leute.length + ')</div>';
+      leute.forEach(sp => {
+        const z = document.createElement('div');
+        z.className = 'zeile';
+        z.textContent = sp.name + ' — Gruppe ' + sp.gruppe
+          + (sp.reset_angefordert ? ' — zurückgesetzt, wartet auf seinen Browser' : '');
+        const b = document.createElement('button');
+        b.className = 'knopf sekundaer';
+        b.textContent = 'zurücksetzen';
+        b.onclick = async () => {
+          b.disabled = true;
+          try {
+            await sbRuf('spieler_zuruecksetzen', { p_id: sp.id });
+            document.getElementById('admin-hinweis').textContent =
+              sp.name + ' fängt beim nächsten Laden von vorn an. Gruppe bleibt ' + sp.gruppe + '.';
+          } catch (e) {
+            document.getElementById('admin-hinweis').textContent = 'Hat nicht geklappt: ' + e.message;
+          }
+          renderAdmin();
+        };
+        z.appendChild(document.createTextNode(' '));
+        z.appendChild(b);
+        k.appendChild(z);
+      });
+      if (leute.length) box.appendChild(k);
+      document.getElementById('admin-hinweis').textContent =
+        tische.length + (tische.length === 1 ? ' offener Tisch' : ' offene Tische') + ', '
+        + leute.length + ' Spieler angemeldet (A: ' + leute.filter(x => x.gruppe === 'A').length
+        + ', B: ' + leute.filter(x => x.gruppe === 'B').length + ').';
+      return;
+    } catch (e) {
+      document.getElementById('admin-hinweis').textContent = 'Datenbank nicht erreichbar. Zeige den lokalen Stand.';
+    }
     box.innerHTML = '';
     const i = backStand();
     const fertig = i >= BACK_SCHRITTE.length;
@@ -2912,6 +3088,7 @@
     zeigeBacken();
   };
   document.getElementById('back-zurueck').onclick = () => {
+    if (tischUhr) { clearInterval(tischUhr); tischUhr = null; }
     document.getElementById('screen-backen').classList.add('hidden');
     document.getElementById('screen-ende').classList.remove('hidden');
   };
@@ -2983,6 +3160,7 @@
 
   document.getElementById('start-knopf').onclick = () => {
     if (!nameUebernehmen()) return;
+    anmelden();
     document.getElementById('screen-intro').classList.add('hidden');
     zustand.laeuft = true;
     uhrStart();
@@ -2990,8 +3168,7 @@
     setTimeout(() => sag(zustand.gefunden.length ? 'Weiter geht es. ' + zustand.gefunden.length + ' hast du schon.' : 'Fang in der Garage an. Oder wo du willst. Mir egal, ich schau zu.'), 400);
   };
   document.getElementById('reset-knopf').onclick = () => {
-    try { localStorage.removeItem(SPEICHER_KEY); } catch (e) {}
-    location.reload();
+    neuAnfangen();
   };
 
   // =====================================================================
@@ -3011,6 +3188,22 @@
   // =====================================================================
   // START
   // =====================================================================
+  // Von vorn anfangen. Name, Kennung und Gruppe bleiben, sonst wechselt man
+  // beim Zurücksetzen die Gruppe und fällt aus dem laufenden Tisch.
+  function neuAnfangen() {
+    const behalten = { name: zustand.name, spielerId: zustand.spielerId, gruppe: zustand.gruppe };
+    try {
+      localStorage.setItem(SPEICHER_KEY, JSON.stringify({
+        gefunden: [], offen: {}, inventar: [], hinweise: HINWEISE_GESAMT, zeit: 0,
+        ansicht: null, nah: null, fertig: false, backen: 0, anfisaHilft: false,
+        name: behalten.name, spielerId: behalten.spielerId, gruppe: behalten.gruppe
+      }));
+    } catch (e) {
+      try { localStorage.removeItem(SPEICHER_KEY); } catch (e2) {}
+    }
+    location.reload();
+  }
+
   // Name: der Spieler tippt ihn einmal ein, danach steht er im Browser.
   // spielerId erkennt denselben Browser wieder, auch wenn der Name sich ändert.
   const namensfeld = document.getElementById('spielername');
@@ -3051,8 +3244,7 @@
     document.getElementById('neu-knopf').style.display = '';
   }
   document.getElementById('neu-knopf').onclick = () => {
-    try { localStorage.removeItem(SPEICHER_KEY); } catch (e) {}
-    location.reload();
+    neuAnfangen();
   };
   if (hatte && zustand.fertig) { document.getElementById('screen-intro').classList.add('hidden'); spielEnde(); }
   // ?backen=1 öffnet den Backtisch sofort, zum Anschauen ohne vollständige Suche
