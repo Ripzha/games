@@ -338,7 +338,7 @@
 
   // Wird bei jedem Paket neu gesetzt. Steht unten im Startbildschirm, damit man
   // sofort sieht, welche Fassung gerade live ist.
-  const BAUSTAND = '28.10.2026 10:21';
+  const BAUSTAND = '28.10.2026 10:22';
   const SPEICHER_KEY = 'ostern_fortschritt';
   const HINWEISE_GESAMT = 3;
   // Gemeinsamer Faktor für alle Eier. Die Radien in EIER bleiben, hier wird
@@ -790,7 +790,7 @@
       patchHell: 'ostern/bilder/kue-unten-rechts-hell.webp', patchHellX: 1063, patchHellY: 493, patchHellW: 292, patchHellH: 206 },
     // Schnittkante unter der Oberseite: die Emailledose dort steht nur im
     // geöffneten Bild, sonst taucht sie beim Öffnen aus dem Nichts auf.
-    { id: 'k_kuehl', ansicht: 'kueche', x: 1374, y: 186, w: 316, h: 500, klang: 'metall', typ: 'ausschnitt', zustand: 'k_kuehl_offen', label: 'Kühlschrank',
+    { id: 'k_kuehl', ansicht: 'kueche', x: 1374, y: 186, w: 316, h: 500, klang: 'kuehlschrank', typ: 'ausschnitt', zustand: 'k_kuehl_offen', label: 'Kühlschrank',
       patch: 'ostern/bilder/kue-kuehl-dunkel.webp', patchX: 1361, patchY: 179, patchW: 336, patchH: 513,
       patchHell: 'ostern/bilder/kue-kuehl-hell.webp', patchHellX: 1361, patchHellY: 179, patchHellW: 336, patchHellH: 513 },
     // --- Acis Zimmer ---
@@ -2737,7 +2737,7 @@
   // Aufgenommene Töne. Fehlt eine Datei, nimmt klang() den erzeugten Klang.
   // Grundlautstärke für alle Töne. Eine Zahl zwischen 0 und 1 — hier drehst du
   // alles auf einmal leiser oder lauter.
-  const TON_LAUT = 0.14;
+  const TON_LAUT = 0.09;
   // Einzelne Töne stechen heraus und werden zusätzlich gedämpft. 1 = unverändert.
   const TON_FEIN = {
     schranktuer: 0.4,  // kleine Schranktüren hört man sonst aus jedem Zimmer
@@ -2753,13 +2753,14 @@
     tv_aus: 0.8,
     tv_an: 0.8,
     sicherung: 0.85,
-    schalter: 0.8
+    schalter: 0.8,
+    kuehlschrank: 0.9
   };
   // Hier stehen die Töne, die als Aufnahme abgespielt werden. Wer heraus-
   // fliegt, bekommt wieder den erzeugten Klang — einfach aus der Liste nehmen.
   const TOENE = ['schublade', 'schranktuer', 'kistendeckel', 'tuer', 'klappe', 'metall',
                  'stoff', 'ei', 'keramik', 'glas', 'wasser', 'klick', 'schritt',
-                 'tv_aus', 'tv_an', 'sicherung', 'schalter'];
+                 'tv_aus', 'tv_an', 'sicherung', 'schalter', 'kuehlschrank'];
   // 'nehmen' ist bewusst nicht dabei: das Aufsammeln klingt erzeugt besser.
   const tonPuffer = {};
   TOENE.forEach(name => {
