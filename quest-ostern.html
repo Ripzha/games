@@ -46,11 +46,6 @@
   .zaehler { font-family: var(--serif); font-size: 20px; color: var(--gold-hell); min-width: 64px; }
   .zaehler small { font-size: 12px; color: var(--himmel-text); font-family: var(--sans); }
   .uhr { font-size: 13px; color: var(--himmel-text); font-variant-numeric: tabular-nums; }
-  .raeume { display: flex; gap: 6px; margin-left: auto; flex-wrap: wrap; }
-  .raum-knopf { font: inherit; font-size: 12px; font-weight: 600; padding: 6px 10px; border-radius: 6px; border: 1px solid var(--panel-rand); background: rgba(58,90,68,0.25); color: var(--cream); cursor: pointer; white-space: nowrap; }
-  .raum-knopf.aktiv { background: var(--gold); color: var(--tinte); border-color: var(--gold-hell); }
-  .raum-knopf.gesperrt { opacity: 0.5; }
-  .raum-knopf .fertig-punkt { color: var(--gruen); margin-left: 4px; }
   .hinweis-knopf { font: inherit; font-size: 12px; padding: 6px 10px; border-radius: 6px; border: 1px solid var(--gold); background: transparent; color: var(--gold-hell); cursor: pointer; }
   .hinweis-knopf:disabled { opacity: 0.4; cursor: default; }
 
@@ -207,7 +202,6 @@
     <span class="uhr" id="uhr">00:00</span>
     <button class="hinweis-knopf" id="hinweis-knopf">Hinweis (3)</button>
     <button class="hinweis-knopf" id="nah-zurueck" style="display:none">← Zurück in den Raum</button>
-    <div class="raeume" id="raeume"></div>
   </div>
 
   <div class="buehne" id="buehne">
@@ -344,7 +338,7 @@
 
   // Wird bei jedem Paket neu gesetzt. Steht unten im Startbildschirm, damit man
   // sofort sieht, welche Fassung gerade live ist.
-  const BAUSTAND = '28.10.2026 10:18';
+  const BAUSTAND = '28.10.2026 10:21';
   const SPEICHER_KEY = 'ostern_fortschritt';
   const HINWEISE_GESAMT = 3;
   // Gemeinsamer Faktor für alle Eier. Die Radien in EIER bleiben, hier wird
@@ -1725,7 +1719,6 @@
     welt.innerHTML = html;
     warteAufBilder();
     aktualisiereSichtbarkeit();
-    renderRaumKnoepfe();
     renderFehlliste();
     if (ans.fische) fischeBauen(); else fischeStopp();
     setzeLampe(ans);
@@ -2223,21 +2216,7 @@
         }).join('<br>');
   }
 
-  function renderRaumKnoepfe() {
-    const box = document.getElementById('raeume');
-    box.innerHTML = '';
-    const aktiverRaum = raumVon(zustand.ansicht);
-    RAEUME.filter(r => r.imMenu !== false).forEach(r => {
-      const gesperrt = r.gesperrtBis && !zustand.offen[r.gesperrtBis];
-      const im = meineEier().filter(e => raumVon(e.ansicht) === r.id);
-      const fertig = im.length && im.every(e => zustand.gefunden.includes(e.id));
-      const b = document.createElement('button');
-      b.className = 'raum-knopf' + (r.id === aktiverRaum ? ' aktiv' : '') + (gesperrt ? ' gesperrt' : '');
-      b.innerHTML = (gesperrt ? '🔒 ' : '') + r.name + (fertig ? '<span class="fertig-punkt">✓</span>' : '');
-      b.onclick = () => geheZu(r.start);
-      box.appendChild(b);
-    });
-  }
+
 
   // =====================================================================
   // ZOOM & PAN
@@ -2480,7 +2459,7 @@
     f.className = 'fund'; f.textContent = '🥚 ' + zustand.gefunden.length + '/' + meineEier().length;
     f.style.left = (cx - r.left) + 'px'; f.style.top = (cy - r.top) + 'px';
     buehne.appendChild(f); setTimeout(() => f.remove(), 1000);
-    aktualisiereSichtbarkeit(); renderRaumKnoepfe(); speichern();
+    aktualisiereSichtbarkeit(); speichern();
     const n = zustand.gefunden.length;
     if (SPRUECHE[n]) sag(SPRUECHE[n]);
     if (n >= meineEier().length) setTimeout(spielEnde, 1200);
@@ -2690,7 +2669,7 @@
       if (t.scheucht) { gier = 6; fische.forEach(fischZiel); }
       document.getElementById('raetsel-modal').classList.remove('show');
       klang(t.klangLoesung || 'nehmen');
-      aktualisiereSichtbarkeit(); renderRaumKnoepfe(); speichern();
+      aktualisiereSichtbarkeit(); speichern();
       sag(t.antwort || (t.code ? 'Klick. Jetzt ist es offen.' : 'Richtig. Mama dachte, das dauert länger.'));
     } else {
       document.getElementById('raetsel-fehler').textContent = t.fehlerText || (t.code ? 'Bleibt zu.' : 'Nein. Denk nochmal nach.');
@@ -3002,7 +2981,7 @@
       }
       if (g && g.gruppe && g.gruppe !== zustand.gruppe) {
         zustand.gruppe = g.gruppe;
-        speichern(); baueSprueche(); renderRaum(); renderRaumKnoepfe();
+        speichern(); baueSprueche(); renderRaum();
       }
     } catch (e) { /* offline: lokale Gruppe gilt weiter */ }
   }
