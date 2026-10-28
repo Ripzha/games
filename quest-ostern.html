@@ -139,7 +139,7 @@
   .abspann-rolle h4 { font-family: var(--serif); font-size: 19px; font-weight: 500; letter-spacing: 4px;
                       text-transform: uppercase; color: var(--creme); margin: 64px 0 4px;
                       padding-bottom: 10px; border-bottom: 1px solid rgba(232,224,200,0.25); }
-  .abspann-rolle h2 { font-family: var(--serif); font-size: 26px; font-weight: 500; margin: 0 0 8px; }
+  .abspann-rolle h2 { font-family: var(--serif); font-size: 26px; font-weight: 500; margin: 0 0 8px; padding-top: 8px; }
   .abspann-rolle p { margin: 0 0 4px; }
   .abspann-rolle .klein { font-size: 13px; color: var(--sand); }
   .abspann-rolle .luft { height: 46vh; }
@@ -365,7 +365,7 @@
 
   // Wird bei jedem Paket neu gesetzt. Steht unten im Startbildschirm, damit man
   // sofort sieht, welche Fassung gerade live ist.
-  const BAUSTAND = '28.10.2026 13:44';
+  const BAUSTAND = '28.10.2026 13:49';
   const SPEICHER_KEY = 'ostern_fortschritt';
   const HINWEISE_GESAMT = 3;
   // Gemeinsamer Faktor für alle Eier. Die Radien in EIER bleiben, hier wird
@@ -3131,7 +3131,6 @@
   // dann Design, Narrative, Art, Engineering, Audio, QA, Live Operations,
   // Besetzung, Technik, Dank, Rechtliches.
   const ABSPANN = [
-    { art: 'luft' },
     { art: 'gross', text: 'Acis Eiersuche' },
     { art: 'klein', text: 'Ein Osterspiel für simsforumrpg.de' },
     { art: 'luft' },
@@ -3348,10 +3347,12 @@
     const r = document.getElementById('abspann-rolle');
     const fenster = document.getElementById('abspann-fenster');
     r.style.transition = 'none';
-    r.style.top = fenster.clientHeight + 'px';
+    // Nicht ganz unten starten, sonst sieht man eine halbe Minute nichts
+    const anfang = Math.round(fenster.clientHeight * 0.35);
+    r.style.top = anfang + 'px';
     // Die Rolle läuft so lange wie die Hymne, damit beides zusammen endet.
     // Ohne Musik bleibt es bei rund 60 Punkten je Sekunde.
-    const weg = r.scrollHeight + fenster.clientHeight;
+    const weg = r.scrollHeight + anfang;
     const dauer = Math.max(30, Math.round(ABSPANN_DAUER || weg / 60));
     requestAnimationFrame(() => {
       r.style.transition = 'top ' + dauer + 's linear';
