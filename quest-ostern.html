@@ -1104,7 +1104,7 @@
     // Koffer hervorziehen. Das zweite Antippen soll später in die Nahaufnahme
     // führen — dafür fehlt noch das Bild.
     { id: 'sz_koffer', ansicht: 'schlafzimmer', x: 348, y: 710, w: 340, h: 170, typ: 'ausschnitt',
-      zustand: 'sz_koffer_vor', klang: 'kistendeckel', label: 'Koffer unter dem Bett', nah: 'koffer_nah',
+      zustand: 'sz_koffer_vor', klang: 'keiner', label: 'Koffer unter dem Bett', nah: 'koffer_nah',
       patch: 'ostern/bilder/sz-koffer.webp', patchX: 338, patchY: 698, patchW: 361, patchH: 189 },
     // --- Koffer von nahem. Die Schlösser gehen nur mit dem Schlüssel aus dem Bild. ---
     { id: 'kf_offen', ansicht: 'koffer_nah', x: 260, y: 0, w: 1235, h: 595, typ: 'overlay', zustand: 'koffer_offen',
@@ -2782,6 +2782,8 @@
   }
 
   function klang(art) {
+    // 'keiner' am Teil schaltet den Ton an dieser Stelle ab
+    if (!art || art === 'keiner') return;
     if (!tonAn()) return;
     if (spieleDatei(art)) return;
     const t = actx.currentTime;
