@@ -349,7 +349,7 @@
   const SPIEL_ID = 'ostern';
   // Wird bei jedem Paket neu gesetzt. Steht unten im Startbildschirm, damit man
   // sofort sieht, welche Fassung gerade live ist.
-  const BAUSTAND = '28.10.2026 08:23';
+  const BAUSTAND = '28.10.2026 08:37';
   const SPEICHER_KEY = 'ostern_fortschritt';
   const HINWEISE_GESAMT = 3;
   // Gemeinsamer Faktor für alle Eier. Die Radien in EIER bleiben, hier wird
@@ -685,45 +685,48 @@
       mindestPhase: { wenn: ['tv_aus', 'anfisa_kippen', 'anfisa_feuer'], phase: 1 },
       // Hat sie erst eins von beidem, sagt sie beim Antippen, was noch fehlt
       sagtStatt: [
-        { wenn: ['anfisa_kippen'], nicht: ['anfisa_feuer'], text: '„Schachtel liegt hier. Feuer liegt nicht hier."' },
-        { wenn: ['anfisa_feuer'], nicht: ['anfisa_kippen'], text: '„Feuerzeug habe ich. Und was zünde ich damit an? Vorhang?"' }
+        { wenn: ['anfisa_kippen'], nicht: ['anfisa_feuer'], text: '„Schachtel liegen chier. Feuer liegen nicht chier."' },
+        { wenn: ['anfisa_feuer'], nicht: ['anfisa_kippen'], text: '„Feuerzeug jch chabe. Und was zünde jch damit an? Vorchang?"' }
       ],
       // Sie will beides: Schachtel und Feuerzeug. Und solange das Bild nicht
       // an der Wand hängt, nimmt sie gar nichts an.
-      nimmt: ['kippen', 'feuerzeug'], setzt: 'anfisa_weg',
+      // Nach der Gabe bleibt sie noch einen Moment sitzen. Erst das nächste
+      // Antippen schickt sie los, siehe dannWeg.
+      nimmt: ['kippen', 'feuerzeug'], setzt: 'anfisa_geht',
+      dannWeg: { wenn: 'anfisa_geht', setzt: 'anfisa_weg' },
       // Sie nimmt jedes Stück für sich an und richtet sich dabei auf. Das
       // zeigt das Bild, es steht also nicht im Text. Welches Stück zuerst
       // kommt, ist egal — der Satz zum zweiten ist immer der letzte.
       gabePhase: 1,
       einzeln: {
         kippen: { setzt: 'anfisa_kippen',
-          antwort: '„Papirossy. Und womit soll ich die anzünden? Mit Blick?"' },
+          antwort: '„Papirossy. Und womit soll jch anzünden? Mit Blick?"' },
         feuerzeug: { setzt: 'anfisa_feuer',
-          antwort: '„Feuer. Schön. Und was soll ich damit anzünden, Luft?"' }
+          antwort: '„Feuer. Schön. Und was soll jch damit anzünden, Luft?"' }
       },
-      antwort: '„Jetzt stimmt es. Dann setze ich Wasser auf. Ohne Tee schmeckt das nicht."',
+      antwort: '„Gutes Kind. Du machen eine alte Frau sehr glücklich. Jch gehen zum Supermarkt jetzt."',
       strafen: [
         { wenn: 'bild_ab', setzt: 'anfisa_sauer',
-          antwort: '„Pha! Du klaust Einrichtung? Mit dir rede ich nicht."' },
+          antwort: '„Pha! Du klausen Einrichtung? Mit dir rede jch nicht."' },
         { wenn: 'tv_aus',
-          antwort: '„Erst Fernseher wieder an. Bei Totenstille bleibe ich sitzen."' }
+          antwort: '„Tz! Bei Totenstille bleibe jch sitzen."' }
       ],
       phasen: [
         { bild: '' },
         { bild: 'bilder/wz-frau-wach.webp', x: 237, y: 97, w: 543, h: 402, texte: [
-          '„Ah! … Tschort. Du schleichst wie Katze und machst Lärm wie Panzer."',
-          '„Nu? Was ist? Ich habe geschlafen, falls du nicht gemerkt hast."',
-          '„Himmel. Mein Herz ist alt, weisst du das?"',
-          '„Schon wieder du. Hast du nichts Besseres?"'
+          '„Ah! … Tschort. Du schleichen wie Katze und machen Lärm wie Panzer."',
+          '„Nu? Was ist? Jch chabe geschlafen, falls du nicht gemerkt hast."',
+          '„Chimmel. Mein Cherz ist alt, weisst du das?"',
+          '„Schon wieder du. Chast du nicht zu tun Besseres?"'
         ] },
         { bild: 'bilder/wz-frau-spricht.webp', x: 238, y: 98, w: 542, h: 402, texte: [
-          '„Was willst du? Hier gibt es nichts für dich."',
-          '„Lass mich in Ruhe. Fernseher läuft."',
-          '„Ich sitze, du gehst. So ist Ordnung in diesem Haus."',
-          '„Suchst du Eier? Anfisa versteckt gut. Anfisa versteckt sehr gut."',
-          '„Frag nicht mich. Frag deine Augen."',
-          '„Geh raus. Draussen ist Luft, hier ist nur ich."',
-          '„Schachtel ist leer seit gestern. Niemand denkt an alte Frau."'
+          '„Was willst du? Chier gibt nichts für dich."',
+          '„Lass mjch in Ruche."',
+          '„Jch sitze, du gehst. So ist Ordnung in diesem Haus."',
+          '„Suchst du Eier? Jch verstecke gut. Jch verstecke sehr gut. Chechecheche."',
+          '„Was fragst du mjch?"',
+          '„Geh! Such Eier. Sonst faulen sie und jch muss suchen."',
+          '„Niemand denkt an alte Frau."'
         ] }
       ] },
     // --- Sessel von nahem ---
@@ -2541,6 +2544,15 @@
         if (t.leer) sag(t.leer, t.sprecher || t.label);
         return;
       case 'phasen': {
+        // dannWeg: die Figur hat schon alles bekommen und verschwindet beim
+        // nächsten Antippen, statt sofort nach der Gabe.
+        if (t.dannWeg && zustand.offen[t.dannWeg.wenn] && !zustand.offen[t.dannWeg.setzt]) {
+          zustand.offen[t.dannWeg.setzt] = true;
+          klang('stoff');
+          renderRaum(); speichern();
+          schweig();
+          return;
+        }
         const anzahl = (t.phasen || []).length || 1;
         let neu = ((Number(zustand.offen[t.zustand]) || 0) + 1) % anzahl;
         // mindestPhase: solange die Bedingung gilt, werden die Phasen darunter
