@@ -338,7 +338,7 @@
 
   // Wird bei jedem Paket neu gesetzt. Steht unten im Startbildschirm, damit man
   // sofort sieht, welche Fassung gerade live ist.
-  const BAUSTAND = '28.10.2026 13:17';
+  const BAUSTAND = '28.10.2026 13:22';
   const SPEICHER_KEY = 'ostern_fortschritt';
   const HINWEISE_GESAMT = 3;
   // Gemeinsamer Faktor für alle Eier. Die Radien in EIER bleiben, hier wird
@@ -2707,18 +2707,90 @@
   // DIALOG, TON, UHR
   // =====================================================================
   let dialogTimer = null;
+  // Jede Figur hat eine eigene Stimme. hoehe ist die Grundtonhöhe in Hertz,
+  // streu die zufällige Abweichung pro Buchstabe, tempo die Millisekunden
+  // zwischen zwei Buchstaben.
+  const STIMMEN = {
+    'Aci':    { hoehe: 420, streu: 90,  tempo: 26, form: 'triangle', laenge: 0.055 },
+    'Anfisa': { hoehe: 190, streu: 45,  tempo: 38, form: 'sawtooth', laenge: 0.075 }
+  };
+  const STIMME_STANDARD = { hoehe: 330, streu: 70, tempo: 30, form: 'triangle', laenge: 0.06 };
+
+  let tippTimer = null;
+  let tippRest = '';          // was noch zu tippen ist, zum Überspringen
+
+  function piep(stimme) {
+    if (!tonAn()) return;
+    const o = actx.createOscillator();
+    const g = actx.createGain();
+    const f = actx.createBiquadFilter();
+    f.type = 'lowpass';
+    f.frequency.value = 2200;
+    o.type = stimme.form;
+    o.frequency.value = stimme.hoehe + (Math.random() * 2 - 1) * stimme.streu;
+    const jetzt = actx.currentTime;
+    g.gain.setValueAtTime(0.0001, jetzt);
+    g.gain.exponentialRampToValueAtTime(0.055 * TON_LAUT * 7, jetzt + 0.008);
+    g.gain.exponentialRampToValueAtTime(0.0001, jetzt + stimme.laenge);
+    o.connect(f); f.connect(g); g.connect(actx.destination);
+    o.start(jetzt); o.stop(jetzt + stimme.laenge + 0.02);
+  }
+
+  function tippenFertig() {
+    clearTimeout(tippTimer);
+    tippTimer = null;
+    if (tippRest) {
+      document.getElementById('dialog-text').textContent += tippRest;
+      tippRest = '';
+    }
+  }
+
   function sag(text, wer) {
     const d = document.getElementById('dialog');
-    document.getElementById('dialog-wer').textContent = wer || 'Aci';
-    document.getElementById('dialog-text').textContent = ' ' + text;
+    const name = wer || 'Aci';
+    const stimme = STIMMEN[name] || STIMME_STANDARD;
+    document.getElementById('dialog-wer').textContent = name;
+    const feld = document.getElementById('dialog-text');
+    feld.textContent = ' ';
     d.classList.add('zeig');
     clearTimeout(dialogTimer);
-    dialogTimer = setTimeout(() => d.classList.remove('zeig'), 4500);
+    clearTimeout(tippTimer);
+
+    const zeichen = Array.from(text);
+    tippRest = text;
+    let i = 0;
+    function weiter() {
+      if (i >= zeichen.length) {
+        tippTimer = null; tippRest = '';
+        // Erst wenn der Satz steht, läuft die Standzeit
+        dialogTimer = setTimeout(() => d.classList.remove('zeig'), 2600 + text.length * 22);
+        return;
+      }
+      const c = zeichen[i];
+      feld.textContent += c;
+      tippRest = zeichen.slice(i + 1).join('');
+      i++;
+      // Leerzeichen und Satzzeichen bekommen keinen Ton, dafür eine Pause
+      let warte = stimme.tempo;
+      if (/[\s]/.test(c)) warte = stimme.tempo * 0.6;
+      else if (/[.,!?…]/.test(c)) { warte = stimme.tempo * 7; }
+      else piep(stimme);
+      tippTimer = setTimeout(weiter, warte);
+    }
+    weiter();
   }
+
   function schweig() {
     clearTimeout(dialogTimer);
+    clearTimeout(tippTimer);
+    tippTimer = null; tippRest = '';
     document.getElementById('dialog').classList.remove('zeig');
   }
+
+  // Auf den Dialog tippen schreibt den Rest sofort hin
+  document.getElementById('dialog').addEventListener('click', () => {
+    if (tippTimer) tippenFertig();
+  });
   let actx = null;
   // =====================================================================
   // KLANG
