@@ -365,7 +365,7 @@
 
   // Wird bei jedem Paket neu gesetzt. Steht unten im Startbildschirm, damit man
   // sofort sieht, welche Fassung gerade live ist.
-  const BAUSTAND = '28.10.2026 15:18';
+  const BAUSTAND = '28.10.2026 16:45';
   const SPEICHER_KEY = 'ostern_fortschritt';
   const HINWEISE_GESAMT = 3;
   // Gemeinsamer Faktor für alle Eier. Die Radien in EIER bleiben, hier wird
@@ -487,6 +487,7 @@
   const GEGENSTAENDE = [
     { id: 'gemaelde',   symbol: '🖼', name: 'Bild',      nah: 'bild_vorn', text: 'Ein Landschaftsbild in einem alten Holzrahmen.' },
     { id: 'schluessel', symbol: '🗝', name: 'Schlüssel', text: 'Ein alter Messingschlüssel. Wozu er passt, weiss ich noch nicht.' },
+    { id: 'kippen_rot', symbol: '🚬', name: 'Rote Schachtel', text: 'Eine rote Schachtel aus der Holzkiste. Nicht ihre Marke.' },
     { id: 'kippen',     symbol: '🚬', name: 'Schachtel', text: 'Eine angebrochene Schachtel Zigaretten.' },
     // Die Taschenlampe nimmt die Batterien entgegen und wird danach zum Schalter.
     { id: 'lampe',      symbol: '🔦', name: 'Lampe',     text: 'Eine Taschenlampe. Ohne Batterien nutzlos.',
@@ -638,8 +639,7 @@
     // --- Holzkiste von nahem ---
     { id: 'tk_tuecher', ansicht: 'th_kiste_nah', x: 550, y: 315, w: 840, h: 465, typ: 'ausschnitt', zustand: 'th_tuecher_weg',
       klang: 'stoff', label: 'Tücher' },
-    { id: 'tk_kippen', ansicht: 'th_kiste_nah', x: 935, y: 625, w: 180, h: 115, typ: 'nehmen', zustand: 'kippen_weg',
-      gibt: 'kippen', sichtbarWenn: 'th_tuecher_weg', bildAus: 'ostern/bilder/th-kiste-ohne-kippen.webp', label: 'Zigarettenschachtel' },
+    { id: 'tk_kippen', ansicht: 'th_kiste_nah', x: 935, y: 625, w: 180, h: 115, typ: 'nehmen', zustand: 'kippen_rot_weg', gibt: 'kippen_rot', sichtbarWenn: 'th_tuecher_weg', bildAus: 'ostern/bilder/th-kiste-ohne-kippen.webp', label: 'Rote Zigarettenschachtel'},
     // --- Wohnzimmer (Koordinaten im Bild 1774 x 887) ---
     // Ist der Hammer genommen, wird das ganze Raumbild getauscht statt nur ein
     // Stück davon. Das Bild ohne Hammer ist neu gerendert und weicht überall
@@ -701,6 +701,8 @@
     { id: 'w_frau', ansicht: 'wohnzimmer', x: 240, y: 95, w: 430, h: 330, typ: 'phasen', zustand: 'frau_phase',
       treffer: { x: 240, y: 192, w: 460, h: 250 },
       nichtWenn: 'anfisa_weg', label: 'Die Frau im Sessel', sprecher: 'Anfisa',
+      // Die rote Schachtel aus der Holzkiste ist nicht ihre Marke
+      lehntAb: { kippen_rot: '„Rote? Pha. Das rauche jch nicht. Meine sind blau."' },
       // Solange der Fernseher aus ist, sitzt sie auf. Weiterklicken darf sie
       // dann nicht in die schlafende Phase 0 zurückfallen lassen.
       mindestPhase: { wenn: ['tv_aus', 'anfisa_kippen', 'anfisa_feuer'], phase: 1 },
@@ -838,22 +840,27 @@
     { id: 'sb_schrank', ansicht: 'schreibtisch_nah', x: 10, y: 585, w: 470, h: 302, typ: 'ausschnitt', klang: 'schranktuer', zustand: 'sb_schrank_offen', label: 'Schrank unter der Tischplatte' },
     { id: 'sb_schublade', ansicht: 'schreibtisch_nah', x: 1240, y: 572, w: 490, h: 275, typ: 'ausschnitt', klang: 'schublade', zustand: 'sb_schublade_offen', label: 'Schublade' },
     // ---- Backzutaten. nurGruppe entscheidet, wer sie sieht. ----
-    { id: 'z_hefe', ansicht: 'koffer_nah', x: 1200, y: 285, w: 110, h: 95, typ: 'nehmen', zustand: 'hefe_weg',
-      gibt: 'hefe', nurGruppe: 'A', sichtbarWenn: 'koffer_offen', label: 'Päckchen im Koffer' },
+    { id: 'z_hefe', ansicht: 'koffer_nah', x: 654, y: 314, w: 92, h: 63, typ: 'nehmen', zustand: 'hefe_weg',
+      gibt: 'hefe', nurGruppe: 'A', sichtbarWenn: 'koffer_offen', label: 'Päckchen im Koffer',
+      ohneMarke: true, zeichnung: liegt('leg-hefe.webp', 654, 314, 92, 63, 'hefe_weg')},
         // Die Butter liegt im zweiten Fach. Nach dem Nehmen wird das ganze Bild
     // getauscht, damit keine Kante zu sehen ist.
     { id: 'kuehl_ohne_butter', ansicht: 'kuehl_nah', x: 0, y: 0, w: 1774, h: 887, typ: 'overlay', zustand: 'butter_weg',
       bildAus: 'ostern/bilder/kuehl-ohne-butter.webp', label: 'Kühlschrank' },
     { id: 'z_butter', ansicht: 'kuehl_nah', x: 530, y: 326, w: 216, h: 86, typ: 'nehmen', zustand: 'butter_weg',
       gibt: 'butter', nurGruppe: 'A', ohneMarke: true, label: 'Butter auf dem Papier' },
-    { id: 'z_safran', ansicht: 'schlafzimmer', x: 855, y: 445, w: 100, h: 80, typ: 'nehmen', zustand: 'safran_weg',
-      gibt: 'safran', nurGruppe: 'A', sichtbarWenn: 'sz_nachttisch_offen', label: 'Döschen in der Schublade' },
-    { id: 'z_mehl', ansicht: 'kue_ober_nah', x: 640, y: 690, w: 150, h: 170, typ: 'nehmen', zustand: 'mehl_weg',
-      gibt: 'mehl', nurGruppe: 'B', label: 'Mehltüte im Schrank' },
-    { id: 'z_kardamom', ansicht: 'schlafzimmer', x: 1400, y: 555, w: 100, h: 80, typ: 'nehmen', zustand: 'kardamom_weg',
-      gibt: 'kardamom', nurGruppe: 'B', sichtbarWenn: 'sz_frisier_offen', label: 'Kapseln in der Schublade' },
-    { id: 'z_rosinen', ansicht: 'dachboden', x: 1330, y: 700, w: 110, h: 90, typ: 'nehmen', zustand: 'rosinen_weg',
-      gibt: 'rosinen', nurGruppe: 'B', sichtbarWenn: 'dach_truhe_offen', label: 'Beutel in der Truhe' },
+    { id: 'z_safran', ansicht: 'schlafzimmer', x: 883, y: 479, w: 58, h: 43, typ: 'nehmen', zustand: 'safran_weg',
+      gibt: 'safran', nurGruppe: 'A', sichtbarWenn: 'sz_nachttisch_offen', label: 'Döschen in der Schublade',
+      ohneMarke: true, zeichnung: liegt('leg-safran.webp', 883, 479, 58, 43, 'safran_weg')},
+    { id: 'z_mehl', ansicht: 'kue_ober_nah', x: 700, y: 687, w: 120, h: 166, typ: 'nehmen', zustand: 'mehl_weg',
+      gibt: 'mehl', nurGruppe: 'B', label: 'Mehltüte im Schrank',
+      ohneMarke: true, zeichnung: liegt('leg-mehl.webp', 700, 687, 120, 166, 'mehl_weg')},
+    { id: 'z_kardamom', ansicht: 'schlafzimmer', x: 1403, y: 585, w: 58, h: 34, typ: 'nehmen', zustand: 'kardamom_weg',
+      gibt: 'kardamom', nurGruppe: 'B', sichtbarWenn: 'sz_frisier_offen', label: 'Kapseln in der Schublade',
+      ohneMarke: true, zeichnung: liegt('leg-kardamom.webp', 1403, 585, 58, 34, 'kardamom_weg')},
+    { id: 'z_rosinen', ansicht: 'dachboden', x: 1342, y: 721, w: 96, h: 54, typ: 'nehmen', zustand: 'rosinen_weg',
+      gibt: 'rosinen', nurGruppe: 'B', sichtbarWenn: 'dach_truhe_offen', label: 'Beutel in der Truhe',
+      ohneMarke: true, zeichnung: liegt('leg-rosinen.webp', 1342, 721, 96, 54, 'rosinen_weg')},
 
     // --- Acis Schreibtisch auf dem Bildschirm ---
     // Die Leiste gehört zum Bild, nicht zum Spiel: overlay fängt keine Klicks.
@@ -1156,6 +1163,11 @@
     // --- Koffer von nahem. Die Schlösser gehen nur mit dem Schlüssel aus dem Bild. ---
     { id: 'kf_offen', ansicht: 'koffer_nah', x: 260, y: 0, w: 1235, h: 595, typ: 'overlay', zustand: 'koffer_offen',
       patch: 'ostern/bilder/koffer-offen.webp', patchX: 252, patchY: 0, patchW: 1251, patchH: 603, label: 'Koffer' },
+    // Die Schachtel liegt bei ihren alten Sachen. Damit muss man erst das Bild
+    // abhängen, den Schlüssel holen und den Koffer aufschliessen, bevor man
+    // Anfisa loswerden kann — und war dafür in ihrem Zimmer.
+    { id: 'kf_kippen', ansicht: 'koffer_nah', x: 925, y: 385, w: 110, h: 95, typ: 'nehmen', zustand: 'kippen_weg',
+      gibt: 'kippen', sichtbarWenn: 'koffer_offen', label: 'Schachtel zwischen den Papieren' },
     { id: 'kf_schloss', ansicht: 'koffer_nah', x: 300, y: 480, w: 1180, h: 280, typ: 'ziel',
       nichtWenn: 'koffer_offen', label: 'Schlösser am Koffer',
       nimmt: 'schluessel', setzt: 'koffer_offen',
@@ -1536,6 +1548,14 @@
     ebene.insertAdjacentHTML('beforeend',
       `<rect id="pc-markierung" x="${t.x - 8}" y="${t.y - 8}" width="${t.w + 16}" height="${t.h + 16}" rx="12"`
       + ` fill="rgba(244,212,132,0.16)" stroke="#f4d484" stroke-width="3" style="pointer-events:none"/>`);
+  }
+
+  // Ein Gegenstand, der sichtbar irgendwo liegt. Verschwindet, sobald er
+  // genommen ist. x und y sind die linke obere Ecke des Bildes.
+  function liegt(datei, x, y, b, h, zustand) {
+    return `<g data-nicht="${zustand}" style="pointer-events:none">`
+      + `<image href="ostern/bilder/${datei}" xlink:href="ostern/bilder/${datei}"`
+      + ` x="${x}" y="${y}" width="${b}" height="${h}"/></g>`;
   }
 
   // Ein Symbol auf Acis Schreibtisch: Ordner oder Textdatei, mit Namen darunter.
@@ -2179,6 +2199,13 @@
   // Gewählten Gegenstand auf ein Teil anwenden.
   // `nimmt` darf eine Liste sein: dann müssen alle davon im Rucksack liegen.
   function benutze(gegenstandId, teil) {
+    // Ausdrücklich abgelehnte Gegenstände bekommen ihren eigenen Satz, statt
+    // mit „Bringt hier nichts" abgefertigt zu werden.
+    if (teil && teil.lehntAb && teil.lehntAb[gegenstandId]) {
+      waehle(null, true); klang('fehler');
+      sag(teil.lehntAb[gegenstandId], teil.sprecher);
+      return false;
+    }
     const noetig = !teil ? [] : (Array.isArray(teil.nimmt) ? teil.nimmt : [teil.nimmt]).filter(Boolean);
     if (!noetig.includes(gegenstandId)) { sag('Bringt hier nichts.'); return false; }
 
