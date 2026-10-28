@@ -362,7 +362,7 @@
 
   // Wird bei jedem Paket neu gesetzt. Steht unten im Startbildschirm, damit man
   // sofort sieht, welche Fassung gerade live ist.
-  const BAUSTAND = '28.10.2026 13:35';
+  const BAUSTAND = '28.10.2026 13:36';
   const SPEICHER_KEY = 'ostern_fortschritt';
   const HINWEISE_GESAMT = 3;
   // Gemeinsamer Faktor für alle Eier. Die Radien in EIER bleiben, hier wird
@@ -374,6 +374,8 @@
   // ?admin=1 zeigt die Backtische. Vorerst nur der eigene, weil es ohne
   // Datenbank keine anderen Spieler gibt.
   const ADMIN = /[?&]admin=1/.test(location.search);
+  // ?abspann=1 spielt nur den Abspann ab, zum Anschauen und Korrekturlesen
+  const ABSPANNTEST = /[?&]abspann=1/.test(location.search);
   // ?neu=1 löscht den Spielstand und fängt von vorn an
   if (/[?&]neu=1/.test(location.search)) {
     try { localStorage.removeItem(SPEICHER_KEY); } catch (e) {}
@@ -3284,6 +3286,7 @@
   document.getElementById('abspann-knopf').onclick = zeigeAbspann;
   document.getElementById('abspann-weg').onclick = () => {
     clearTimeout(abspannLauf);
+    if (ABSPANNTEST) { zeigeAbspann(); return; }   // im Testmodus einfach von vorn
     document.getElementById('screen-abspann').classList.add('hidden');
     document.getElementById('screen-ende').classList.remove('hidden');
   };
@@ -3532,6 +3535,10 @@
   document.getElementById('neu-knopf').onclick = neuNachfragen;
   if (hatte && zustand.fertig) { document.getElementById('screen-intro').classList.add('hidden'); spielEnde(); }
   // ?backen=1 öffnet den Backtisch sofort, zum Anschauen ohne vollständige Suche
+  if (ABSPANNTEST) {
+    document.getElementById('screen-intro').classList.add('hidden');
+    zeigeAbspann();
+  }
   if (ADMIN) {
     document.getElementById('screen-intro').classList.add('hidden');
     document.getElementById('screen-admin').classList.remove('hidden');
