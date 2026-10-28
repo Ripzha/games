@@ -330,7 +330,7 @@
 
   // Wird bei jedem Paket neu gesetzt. Steht unten im Startbildschirm, damit man
   // sofort sieht, welche Fassung gerade live ist.
-  const BAUSTAND = '28.10.2026 08:48';
+  const BAUSTAND = '28.10.2026 09:00';
   const SPEICHER_KEY = 'ostern_fortschritt';
   const HINWEISE_GESAMT = 3;
   // Gemeinsamer Faktor für alle Eier. Die Radien in EIER bleiben, hier wird
@@ -2950,7 +2950,7 @@
   async function tischAuffrischen() {
     if (!tisch) return;
     try {
-      const d = await sbLies('tische?id=eq.' + tisch.id + '&select=*');
+      const d = await sbLies('ostern_tische?id=eq.' + tisch.id + '&select=*');
       if (d && d[0] && (d[0].schritt !== tisch.schritt || d[0].anfisa !== tisch.anfisa)) {
         tisch = d[0];
         zustand.backen = tisch.schritt; zustand.anfisaHilft = !!tisch.anfisa; speichern();
@@ -2965,8 +2965,8 @@
     box.innerHTML = '<div class="admin-tisch"><div class="zeile">Lade …</div></div>';
     try {
       const [tische, leute] = await Promise.all([
-        sbLies('tische?fertig_um=is.null&select=*&order=erstellt'),
-        sbLies('spieler?select=id,name,gruppe,reset_angefordert&order=name')
+        sbLies('ostern_tische?fertig_um=is.null&select=*&order=erstellt'),
+        sbLies('ostern_spieler?select=id,name,gruppe,reset_angefordert&order=name')
       ]);
       const name = id => (leute.find(x => x.id === id) || {}).name || null;
       box.innerHTML = '';
@@ -2989,7 +2989,7 @@
           b.onclick = async () => {
             b.disabled = true;
             try {
-              await fetch(SB_URL + '/rest/v1/tische?id=eq.' + t.id, {
+              await fetch(SB_URL + '/rest/v1/ostern_tische?id=eq.' + t.id, {
                 method: 'PATCH',
                 headers: { 'apikey': SB_KEY, 'Authorization': 'Bearer ' + SB_KEY,
                            'Content-Type': 'application/json' },
