@@ -341,7 +341,7 @@
 
   // Wird bei jedem Paket neu gesetzt. Steht unten im Startbildschirm, damit man
   // sofort sieht, welche Fassung gerade live ist.
-  const BAUSTAND = '28.10.2026 09:35';
+  const BAUSTAND = '28.10.2026 09:38';
   const SPEICHER_KEY = 'ostern_fortschritt';
   const HINWEISE_GESAMT = 3;
   // Gemeinsamer Faktor für alle Eier. Die Radien in EIER bleiben, hier wird
@@ -590,7 +590,7 @@
     { id: 'sp_dose', ansicht: 'spind_nah', x: 245, y: 350, w: 165, h: 320, typ: 'ausschnitt', klang: 'klappe', zustand: 'dose_verschoben', label: 'Spraydose',
       patch: 'ostern/bilder/spind-dose.webp', patchX: 159, patchY: 344, patchW: 387, patchH: 347 },
     // --- Treppenhaus (Koordinaten im Bild 1774 x 887) ---
-    { id: 'th_schalter', ansicht: 'treppenhaus', x: 386, y: 334, w: 58, h: 92, typ: 'toggle', klang: 'metall', zustand: 'th_licht',
+    { id: 'th_schalter', ansicht: 'treppenhaus', x: 386, y: 334, w: 58, h: 92, typ: 'toggle', klang: 'schalter', zustand: 'th_licht',
       setztAuch: 'th_geladen', neuzeichnen: true, label: 'Lichtschalter' },
     // Leuchtschrift an der Wand: lädt sich im Licht auf und leuchtet danach im
     // Dunkeln nach. Sichtbar nur, wenn das Licht schon einmal an war und jetzt aus ist.
@@ -745,7 +745,7 @@
     { id: 'k_tuer', ansicht: 'kueche', x: 0, y: 0, w: 222, h: 800, typ: 'ausschnitt', klang: 'tuer', zustand: 'k_tuer_offen', label: 'Tür zum Flur',
       patch: 'ostern/bilder/kue-tuer-dunkel.webp', patchX: 0, patchY: 0, patchW: 229, patchH: 807,
       patchHell: 'ostern/bilder/kue-tuer-hell.webp', patchHellX: 0, patchHellY: 0, patchHellW: 229, patchHellH: 807 },
-    { id: 'k_sicherung', ansicht: 'kueche', x: 245, y: 212, w: 167, h: 186, klang: 'metall', typ: 'ausschnitt', zustand: 'sicherung_offen', label: 'Wandschränkchen',
+    { id: 'k_sicherung', ansicht: 'kueche', x: 245, y: 212, w: 167, h: 186, klang: 'sicherung', typ: 'ausschnitt', zustand: 'sicherung_offen', label: 'Wandschränkchen',
       patch: 'ostern/bilder/kue-sicherung-dunkel.webp', patchX: 238, patchY: 205, patchW: 181, patchH: 200,
       patchHell: 'ostern/bilder/kue-sicherung-hell.webp', patchHellX: 238, patchHellY: 205, patchHellW: 181, patchHellH: 200 },
     // Die Sicherung selbst, erst sichtbar wenn das Schränkchen offen ist.
@@ -2767,10 +2767,12 @@
     nehmen: 1.1,
     schritt: 0.5,   // beim Raumwechsel nur angedeutet
     tv_aus: 0.8,
-    tv_an: 0.8
+    tv_an: 0.8,
+    sicherung: 0.85,
+    schalter: 0.8
   };
   const TOENE = ['schublade', 'schranktuer', 'kistendeckel', 'tuer', 'klappe', 'metall',
-                 'stoff', 'nehmen', 'ei', 'keramik', 'glas', 'wasser', 'klick', 'schritt', 'tv_aus', 'tv_an'];
+                 'stoff', 'nehmen', 'ei', 'keramik', 'glas', 'wasser', 'klick', 'schritt', 'tv_aus', 'tv_an', 'sicherung', 'schalter'];
   const tonPuffer = {};
   TOENE.forEach(name => {
     const a = new Audio('ostern/toene/' + name + '.mp3');
