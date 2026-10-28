@@ -269,8 +269,8 @@
   <!-- Intro -->
   <div class="screen" id="screen-intro">
     <h1>Acis <em>Eiersuche</em></h1>
-    <p class="untertitel">Zwanzig Eier. Fünf Räume. Keine Gnade.</p>
-    <p class="intro-text">Aci lehnt im Türrahmen und grinst. <em>„Anfisa hat sie versteckt. Alle zwanzig. Und ich sag dir gleich: Sie hat es ernst gemeint. Manche siehst du nur, wenn du ganz nah rangehst. Manche nur, wenn du was öffnest. Und für ein paar musst du nachdenken."</em></p>
+    <p class="untertitel">Dreiunddreissig Eier. Neun Räume. Manche sind wirklich beschissen versteckt.</p>
+    <p class="intro-text">Aci lehnt im Türrahmen. <em>„Mama hat alle dreiunddreissig versteckt. Manche sieht man nur, wenn man nah genug rangeht. Manche sind irgendwo drin. Bei ein paar musst du erst was anderes machen. Ich weiss auch nicht mehr, wo alle sind."</em></p>
     <div class="regeln">
       <b>Zoomen</b> mit zwei Fingern oder Mausrad — die kleinen sind wirklich klein.<br>
       <b>Antippen</b>, was sich öffnen lässt: Schubladen, Türen, Kissen, Vorhänge. Nochmal antippen schliesst wieder.<br>
@@ -349,7 +349,7 @@
   const SPIEL_ID = 'ostern';
   // Wird bei jedem Paket neu gesetzt. Steht unten im Startbildschirm, damit man
   // sofort sieht, welche Fassung gerade live ist.
-  const BAUSTAND = '28.10.2026 08:17';
+  const BAUSTAND = '28.10.2026 08:23';
   const SPEICHER_KEY = 'ostern_fortschritt';
   const HINWEISE_GESAMT = 3;
   // Gemeinsamer Faktor für alle Eier. Die Radien in EIER bleiben, hier wird
@@ -1207,17 +1207,17 @@
   // =====================================================================
   const BACK_SCHRITTE = [
     { zutat: 'hefe',     gruppe: 'A', bild: 'bilder/backen-1-hefe.webp',
-      sagt: 'Hefe zuerst, in die warme Milch. Die muss arbeiten, bevor irgendwas anderes reinkommt.' },
+      sagt: 'Erst die Hefe in die warme Milch. Jetzt warten, bis sie Blasen macht.' },
     { zutat: 'mehl',     gruppe: 'B', bild: 'bilder/backen-2-mehl.webp',
-      sagt: 'Jetzt das Mehl drüber. Nicht rühren, sagt sie, erst schauen ob es blubbert.' },
+      sagt: 'Mehl drauf. Noch nicht rühren. Mama sagt, man soll erst sehen, ob die Hefe arbeitet.' },
     { zutat: 'butter',   gruppe: 'A', bild: 'bilder/backen-3-butter.webp',
-      sagt: 'Butter rein und durchkneten, bis es ein Klumpen ist. Das ist der Teil, der weh tut.' },
+      sagt: 'Jetzt Butter. Dann kneten, bis das ein Teig ist. Dauert länger, als man denkt.' },
     { zutat: 'kardamom', gruppe: 'B', bild: 'bilder/backen-4-kardamom.webp',
-      sagt: 'Kardamom. Nur die Samen, die Schalen wirft man weg. Riecht sofort nach Ostern.' },
+      sagt: 'Kardamom. Nur die Samen. Die Schalen kommen weg.' },
     { zutat: 'safran',   gruppe: 'A', bild: 'bilder/backen-5-safran.webp',
-      sagt: 'Safran. Davon hat sie seit Jahren dasselbe Döschen. Schau, wie der Teig gelb wird.' },
+      sagt: 'Safran. Nicht zu viel. Mama hat das Döschen schon ewig.' },
     { zutat: 'rosinen',  gruppe: 'B', bild: 'bilder/backen-6-rosinen.webp',
-      sagt: 'Rosinen zum Schluss, sonst zerdrückt man sie beim Kneten. Und dann darf er gehen.' }
+      sagt: 'Rosinen erst jetzt. Sonst zerquetscht man sie beim Kneten. Danach muss der Teig stehen.' }
   ];
   // Wo die Zutaten auf dem Tisch liegen. Bewusst nicht in der Reihenfolge.
   const BACK_ZUTATEN = [
@@ -1239,14 +1239,14 @@
   // umgerechnet, damit sie nicht bei jeder neuen Ansicht von Hand nachgezogen
   // werden müssen. Angaben in Prozent des Gesamtbestands.
   const MEILENSTEINE = [
-    [0.04, 'Eins. Nur noch der Rest. Ich hol mir einen Kaffee.'],
-    [0.22, 'Die leichten sind jetzt durch, nehm ich an.'],
-    [0.50, 'Halbzeit. Anfisa hat gesagt, ab hier wird es gemein.'],
-    [0.70, 'Hast du schon mal was geöffnet? Nur so eine Idee.'],
-    [0.95, 'Fast. Das letzte ist das, auf das sie am stolzesten ist.'],
-    [1.00, 'Alle. Anfisa wird sauer sein — sie hatte auf dich gewettet.']
+    [0.04, 'Eins. Das ging schnell.'],
+    [0.22, 'Die offensichtlichen hast du wahrscheinlich langsam.'],
+    [0.50, 'Die Hälfte. Mama meinte, die anderen wären schwieriger.'],
+    [0.70, 'Hast du alles aufgemacht, was sich aufmachen lässt?'],
+    [0.95, 'Fast fertig. Auf das letzte war Mama besonders stolz.'],
+    [1.00, 'Alle. Hätte ich nicht gedacht. Mama schon.']
   ];
-  const ENDE_TEXT = 'Aci trägt die Eier in die Küche und stellt den Korb neben die Schüssel. „So viele. Dann kann ich ja endlich anfangen."';
+  const ENDE_TEXT = 'Aci trägt die Eier in die Küche und stellt den Korb neben die Schüssel. „Gut. Alle da. Dann können wir anfangen."';
 
   // Aus den Prozentwerten feste Zahlen machen. Erst beim Start, weil die Zahl
   // der Eier von der Gruppe abhängt.
@@ -1979,7 +1979,7 @@
       zustand.nah = ansichtId;
     } else {
       const raum = RAEUME.find(r => r.id === ziel.raum);
-      if (raum && raum.gesperrtBis && !zustand.offen[raum.gesperrtBis]) { sag('Zu. Da musst du erst den Weg finden.'); return; }
+      if (raum && raum.gesperrtBis && !zustand.offen[raum.gesperrtBis]) { sag('Geht noch nicht auf. Dir fehlt was.'); return; }
       zustand.ansicht = ansichtId; zustand.nah = null;
     }
     speichern(); renderRaum(); zoomReset(); klang('stoff');
@@ -2118,13 +2118,13 @@
     renderInventar();
     if (id && !still) {
       const g = GEGENSTAENDE.find(x => x.id === id);
-      sag((g ? g.name : 'Gegenstand') + ' in der Hand. Tipp jetzt an, wohin damit.');
+      sag((g ? g.name : 'Das') + ' hast du. Jetzt musst du rausfinden, wo es hingehört.');
     }
   }
 
   // Zwei Gegenstände zusammensetzen (Batterien in die Lampe)
   function kombiniere(gegenstandId, ziel) {
-    if (ziel.nimmt !== gegenstandId) { sag('Das passt nicht zusammen.'); return false; }
+    if (ziel.nimmt !== gegenstandId) { sag('Nein. Die haben nichts miteinander zu tun.'); return false; }
     if (ziel.setzt) zustand.offen[ziel.setzt] = true;
     if (!ziel.behaelt) zustand.inventar = zustand.inventar.filter(x => x !== gegenstandId);
     waehle(null, true);
@@ -2139,7 +2139,7 @@
   // `nimmt` darf eine Liste sein: dann müssen alle davon im Rucksack liegen.
   function benutze(gegenstandId, teil) {
     const noetig = !teil ? [] : (Array.isArray(teil.nimmt) ? teil.nimmt : [teil.nimmt]).filter(Boolean);
-    if (!noetig.includes(gegenstandId)) { sag('Das bringt hier nichts.'); return false; }
+    if (!noetig.includes(gegenstandId)) { sag('Bringt hier nichts.'); return false; }
 
     // Strafen: die erste zutreffende Bedingung verhindert, dass etwas passiert
     const strafen = teil.strafen || (teil.strafeWenn
@@ -2185,7 +2185,7 @@
     // Fehlt noch etwas aus der Liste?
     if (noetig.some(id => !zustand.inventar.includes(id))) {
       waehle(null, true); klang('fehler');
-      sag(teil.fehlt || 'Da fehlt noch etwas.', teil.sprecher || teil.label);
+      sag(teil.fehlt || 'Da fehlt noch was.', teil.sprecher || teil.label);
       return false;
     }
 
@@ -2445,7 +2445,7 @@
         const name = (GEGENSTAENDE.find(g => g.id === zustand.gewaehlt) || {}).name || 'Das';
         waehle(null, true);
         klang('fehler');
-        sag(name + ' wieder im Rucksack. Da war nichts, womit sich das benutzen lässt.');
+        sag('Da ist nichts dafür. ' + name + ' kommt wieder zurück.');
         return;
       }
       benutze(zustand.gewaehlt, t);
@@ -2494,7 +2494,7 @@
         // Offen -> mit Nahaufnahme: näher ran. Ohne Nahaufnahme: zweites Antippen schliesst wieder.
         if (zustand.offen[t.zustand] && t.nah) {
           // nahWenn: ohne diesen Zustand gibt es nichts zu sehen
-          if (t.nahWenn && !zustand.offen[t.nahWenn]) { sag(t.nahFehlt || 'Da gibt es nichts zu sehen.'); return; }
+          if (t.nahWenn && !zustand.offen[t.nahWenn]) { sag(t.nahFehlt || 'Da ist nichts. Wirklich.'); return; }
           geheZu(t.nah);
         } else {
           zustand.offen[t.zustand] = !zustand.offen[t.zustand];
@@ -2520,7 +2520,7 @@
         aktualisiereSichtbarkeit(); speichern();
         break;
       case 'naehe':
-        if (t.nahWenn && !zustand.offen[t.nahWenn]) { sag(t.nahFehlt || 'Da gibt es nichts zu sehen.'); return; }
+        if (t.nahWenn && !zustand.offen[t.nahWenn]) { sag(t.nahFehlt || 'Da ist nichts. Wirklich.'); return; }
         if (t.nah) geheZu(t.nah);
         return;
       case 'klopfen': {
@@ -2678,7 +2678,7 @@
       document.getElementById('raetsel-modal').classList.remove('show');
       klang('nehmen');
       aktualisiereSichtbarkeit(); renderRaumKnoepfe(); speichern();
-      sag(t.antwort || (t.code ? 'Klick. Offen.' : 'Richtig. Anfisa hätte nicht gedacht, dass du das weisst.'));
+      sag(t.antwort || (t.code ? 'Klick. Jetzt ist es offen.' : 'Richtig. Mama dachte, das dauert länger.'));
     } else {
       document.getElementById('raetsel-fehler').textContent = t.fehlerText || (t.code ? 'Bleibt zu.' : 'Nein. Denk nochmal nach.');
       klang('fehler');
@@ -2701,7 +2701,7 @@
     const art = e.ebene === 1 ? 'liegt offen da — nur getarnt. Zoom rein.' : 'steckt in etwas, das sich öffnen lässt.';
     zustand.hinweise--;
     aktualisiereSichtbarkeit(); speichern();
-    sag('Hinweis: Eins im Raum „' + raum + '" ' + art);
+    sag('Im Raum „' + raum + '" ist noch eins. ' + art);
   };
 
   // =====================================================================
@@ -2849,7 +2849,7 @@
     if (fertig) {
       dran.innerHTML = 'Der Kulitsch ist fertig.';
       document.getElementById('back-sagt').textContent =
-        'Aci hält ihn hoch. „Der erste, den ich alleine hingekriegt habe. Also fast alleine."';
+        'Aci hält ihn hoch und schaut ihn kurz von allen Seiten an. „Sieht richtig aus. Der erste, den ich fast alleine gemacht hab."';
     } else {
       const schritt = BACK_SCHRITTE[i];
       const fremd = zustand.gruppe && schritt.gruppe !== zustand.gruppe;
@@ -2857,7 +2857,7 @@
         + ' — dran ist <b>Gruppe ' + schritt.gruppe + '</b>'
         + (!zustand.gruppe ? '' : fremd ? (zustand.anfisaHilft ? ' (Anfisa)' : ' (der andere)') : ' (du)');
       if (!document.getElementById('back-sagt').textContent) {
-        document.getElementById('back-sagt').textContent = 'Aci liest das Rezept. „Also. Der Reihe nach."';
+        document.getElementById('back-sagt').textContent = 'Aci liest das Rezept noch einmal von oben bis unten. „Wir machen einfach genau das, was da steht."';
       }
     }
   }
@@ -2869,7 +2869,7 @@
     if (id !== schritt.zutat) {
       klang('fehler');
       document.getElementById('back-sagt').textContent =
-        'Aci hält deine Hand fest. „' + name + ' noch nicht. Sonst wird das nichts."';
+        'Aci hält deine Hand kurz zurück. „Noch nicht. ' + name + ' kommt später."';
       return;
     }
     // Am echten Tisch entscheidet der Server, ob man dran ist.
@@ -2886,7 +2886,7 @@
         .catch(() => {
           klang('fehler');
           document.getElementById('back-sagt').textContent =
-            'Aci schüttelt den Kopf. „Nicht du. Der andere ist dran."';
+            'Aci schüttelt den Kopf. „Du bist nicht dran. Erst der andere."';
         });
       return;
     }
@@ -3165,7 +3165,7 @@
     zustand.laeuft = true;
     uhrStart();
     klang('holz');
-    setTimeout(() => sag(zustand.gefunden.length ? 'Weiter geht es. ' + zustand.gefunden.length + ' hast du schon.' : 'Fang in der Garage an. Oder wo du willst. Mir egal, ich schau zu.'), 400);
+    setTimeout(() => sag(zustand.gefunden.length ? 'Du hast schon ' + zustand.gefunden.length + '. Fehlen noch ein paar.' : 'Fang in der Garage an. Da bist du sowieso schon.'), 400);
   };
   document.getElementById('reset-knopf').onclick = () => {
     neuAnfangen();
