@@ -231,6 +231,17 @@
   </div>
 
   <!-- Rätsel-Modal -->
+  <div class="modal" id="neu-modal">
+    <div class="modal-box">
+      <h3>Wirklich von vorn?</h3>
+      <p id="neu-text"></p>
+      <div class="knopf-reihe">
+        <button class="knopf sekundaer" id="neu-ja">Ja, alles zurücksetzen</button>
+        <button class="knopf" id="neu-nein">Abbrechen</button>
+      </div>
+    </div>
+  </div>
+
   <div class="modal" id="raetsel-modal">
     <div class="modal-box">
       <h3 id="raetsel-titel">Rätsel</h3>
@@ -330,7 +341,7 @@
 
   // Wird bei jedem Paket neu gesetzt. Steht unten im Startbildschirm, damit man
   // sofort sieht, welche Fassung gerade live ist.
-  const BAUSTAND = '28.10.2026 09:28';
+  const BAUSTAND = '28.10.2026 09:33';
   const SPEICHER_KEY = 'ostern_fortschritt';
   const HINWEISE_GESAMT = 3;
   // Gemeinsamer Faktor für alle Eier. Die Radien in EIER bleiben, hier wird
@@ -644,7 +655,7 @@
     // Der Tassenrand liegt über den Eiern, damit das Ei wirklich in der Tasse steckt
     { id: 'ti_rand', ansicht: 'tisch_nah', x: 139, y: 224, w: 452, h: 132, typ: 'overlay', vorn: true, label: 'Tassenrand',
       patch: 'bilder/tisch-tassenrand.webp', patchX: 139, patchY: 224, patchW: 452, patchH: 132 },
-    { id: 'w_tv', ansicht: 'wohnzimmer', x: 1408, y: 148, w: 217, h: 200, klang: 'metall', typ: 'ausschnitt', zustand: 'tv_aus',
+    { id: 'w_tv', ansicht: 'wohnzimmer', x: 1408, y: 148, w: 217, h: 200, klangAn: 'tv_aus', klangAus: 'tv_an', typ: 'ausschnitt', zustand: 'tv_aus',
       patch: 'bilder/wz-tv-aus.webp', patchX: 1402, patchY: 142, patchW: 229, patchH: 206, label: 'Fernseher',
       // Achtung: der Zustand heisst tv_aus. Gesetzt = Fernseher ist AUS.
       // Sie sitzt dabei wirklich auf: der Schalter setzt Anfisas Phase mit.
@@ -2491,7 +2502,9 @@
           if (t.setztPhase && !(t.setztPhase.nichtWenn && zustand.offen[t.setztPhase.nichtWenn])) {
             zustand.offen[t.setztPhase.zustand] = zustand.offen[t.zustand] ? t.setztPhase.an : t.setztPhase.aus;
           }
-          klang(t.klang || 'holz');
+          // klangAn / klangAus: Schalter klingen in beide Richtungen anders
+          klang(zustand.offen[t.zustand] ? (t.klangAn || t.klang || 'holz')
+                                         : (t.klangAus || t.klang || 'holz'));
           // zurueck: danach die Nahaufnahme verlassen, damit man die Wirkung
           // im Raum sieht (das Wasser läuft ab, während man zurücktritt)
           if (t.zurueck && zustand.nah) { zustand.nah = null; speichern(); renderRaum(); zoomReset(); }
@@ -2752,10 +2765,12 @@
     ei: 1.0,        // der Belohnungston darf vorne bleiben
     stoff: 1.1,     // sehr weich, geht sonst unter
     nehmen: 1.1,
-    schritt: 0.5    // beim Raumwechsel nur angedeutet
+    schritt: 0.5,   // beim Raumwechsel nur angedeutet
+    tv_aus: 0.8,
+    tv_an: 0.8
   };
   const TOENE = ['schublade', 'schranktuer', 'kistendeckel', 'tuer', 'klappe', 'metall',
-                 'stoff', 'nehmen', 'ei', 'keramik', 'glas', 'wasser', 'klick', 'schritt'];
+                 'stoff', 'nehmen', 'ei', 'keramik', 'glas', 'wasser', 'klick', 'schritt', 'tv_aus', 'tv_an'];
   const tonPuffer = {};
   TOENE.forEach(name => {
     const a = new Audio('toene/' + name + '.mp3');
@@ -3149,9 +3164,7 @@
     klang('holz');
     setTimeout(() => sag(zustand.gefunden.length ? 'Du hast schon ' + zustand.gefunden.length + '. Fehlen noch ein paar.' : 'Fang in der Garage an. Da bist du sowieso schon.'), 400);
   };
-  document.getElementById('reset-knopf').onclick = () => {
-    neuAnfangen();
-  };
+  document.getElementById('reset-knopf').onclick = neuNachfragen;
 
   // =====================================================================
   // AUSRICHTEMODUS (?editor=1): Koordinaten anzeigen, alle Eier sichtbar
@@ -3172,6 +3185,24 @@
   // =====================================================================
   // Von vorn anfangen. Name, Kennung und Gruppe bleiben, sonst wechselt man
   // beim Zurücksetzen die Gruppe und fällt aus dem laufenden Tisch.
+  // Vor dem Zurücksetzen fragen. Der Knopf steht direkt neben „Suchen",
+  // da verklickt man sich leicht.
+  function neuNachfragen() {
+    const n = zustand.gefunden.length;
+    document.getElementById('neu-text').textContent =
+      n ? 'Du verlierst ' + n + (n === 1 ? ' gefundenes Ei' : ' gefundene Eier') + ', alle geöffneten '
+          + 'Schränke, deinen Rucksack, die gelösten Rätsel und die Zeit. Dein Name und deine Gruppe bleiben.'
+        : 'Es gibt noch nichts zurückzusetzen. Dein Name und deine Gruppe bleiben.';
+    document.getElementById('neu-modal').classList.add('show');
+  }
+  document.getElementById('neu-ja').onclick = () => {
+    document.getElementById('neu-modal').classList.remove('show');
+    neuAnfangen();
+  };
+  document.getElementById('neu-nein').onclick = () => {
+    document.getElementById('neu-modal').classList.remove('show');
+  };
+
   function neuAnfangen() {
     const behalten = { name: zustand.name, spielerId: zustand.spielerId, gruppe: zustand.gruppe };
     try {
@@ -3225,9 +3256,7 @@
     if (zustand.gefunden.length) document.getElementById('start-knopf').textContent = 'Weitersuchen (' + zustand.gefunden.length + '/' + meineEier().length + ')';
     document.getElementById('neu-knopf').style.display = '';
   }
-  document.getElementById('neu-knopf').onclick = () => {
-    neuAnfangen();
-  };
+  document.getElementById('neu-knopf').onclick = neuNachfragen;
   if (hatte && zustand.fertig) { document.getElementById('screen-intro').classList.add('hidden'); spielEnde(); }
   // ?backen=1 öffnet den Backtisch sofort, zum Anschauen ohne vollständige Suche
   if (ADMIN) {
