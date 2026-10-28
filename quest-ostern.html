@@ -330,7 +330,7 @@
 
   // Wird bei jedem Paket neu gesetzt. Steht unten im Startbildschirm, damit man
   // sofort sieht, welche Fassung gerade live ist.
-  const BAUSTAND = '28.10.2026 09:20';
+  const BAUSTAND = '28.10.2026 09:24';
   const SPEICHER_KEY = 'ostern_fortschritt';
   const HINWEISE_GESAMT = 3;
   // Gemeinsamer Faktor für alle Eier. Die Radien in EIER bleiben, hier wird
@@ -2736,13 +2736,27 @@
   }
   // art: 'holz' | 'metall' | 'stoff' | 'nehmen' | 'fehler' | 'ei'
   // Aufgenommene Töne. Fehlt eine Datei, nimmt klang() den erzeugten Klang.
+  // Grundlautstärke für alle Töne. Eine Zahl zwischen 0 und 1 — hier drehst du
+  // alles auf einmal leiser oder lauter.
+  const TON_LAUT = 0.22;
+  // Einzelne Töne stechen heraus und werden zusätzlich gedämpft. 1 = unverändert.
+  const TON_FEIN = {
+    keramik: 0.7,   // das Zerschlagen ist von sich aus das lauteste
+    glas: 0.75,     // Klopfen ans Aquarium, dreimal hintereinander
+    klick: 0.7,     // hart und spitz
+    metall: 0.8,
+    tuer: 0.9,
+    ei: 1.0,        // der Belohnungston darf vorne bleiben
+    stoff: 1.1,     // sehr weich, geht sonst unter
+    nehmen: 1.1
+  };
   const TOENE = ['schublade', 'schranktuer', 'kistendeckel', 'tuer', 'klappe', 'metall',
                  'stoff', 'nehmen', 'ei', 'keramik', 'glas', 'wasser', 'klick'];
   const tonPuffer = {};
   TOENE.forEach(name => {
     const a = new Audio('toene/' + name + '.mp3');
     a.preload = 'auto';
-    a.volume = 0.55;
+    a.volume = Math.min(1, TON_LAUT * (TON_FEIN[name] || 1));
     a.addEventListener('error', () => { delete tonPuffer[name]; });
     tonPuffer[name] = a;
   });
