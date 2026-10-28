@@ -365,7 +365,7 @@
 
   // Wird bei jedem Paket neu gesetzt. Steht unten im Startbildschirm, damit man
   // sofort sieht, welche Fassung gerade live ist.
-  const BAUSTAND = '28.10.2026 16:45';
+  const BAUSTAND = '28.10.2026 16:51';
   const SPEICHER_KEY = 'ostern_fortschritt';
   const HINWEISE_GESAMT = 3;
   // Gemeinsamer Faktor für alle Eier. Die Radien in EIER bleiben, hier wird
@@ -487,7 +487,7 @@
   const GEGENSTAENDE = [
     { id: 'gemaelde',   symbol: '🖼', name: 'Bild',      nah: 'bild_vorn', text: 'Ein Landschaftsbild in einem alten Holzrahmen.' },
     { id: 'schluessel', symbol: '🗝', name: 'Schlüssel', text: 'Ein alter Messingschlüssel. Wozu er passt, weiss ich noch nicht.' },
-    { id: 'kippen_rot', symbol: '🚬', name: 'Rote Schachtel', text: 'Eine rote Schachtel aus der Holzkiste. Nicht ihre Marke.' },
+    { id: 'kippen_rot', symbol: '🚬', name: 'Rote Schachtel', text: 'Eine rote Schachtel aus der Holzkiste. Noch halb voll.' },
     { id: 'kippen',     symbol: '🚬', name: 'Schachtel', text: 'Eine angebrochene Schachtel Zigaretten.' },
     // Die Taschenlampe nimmt die Batterien entgegen und wird danach zum Schalter.
     { id: 'lampe',      symbol: '🔦', name: 'Lampe',     text: 'Eine Taschenlampe. Ohne Batterien nutzlos.',
@@ -702,7 +702,7 @@
       treffer: { x: 240, y: 192, w: 460, h: 250 },
       nichtWenn: 'anfisa_weg', label: 'Die Frau im Sessel', sprecher: 'Anfisa',
       // Die rote Schachtel aus der Holzkiste ist nicht ihre Marke
-      lehntAb: { kippen_rot: '„Rote? Pha. Das rauche jch nicht. Meine sind blau."' },
+      lehntAb: { kippen_rot: '„Pha. Das rauche jch nicht."' },
       // Solange der Fernseher aus ist, sitzt sie auf. Weiterklicken darf sie
       // dann nicht in die schlafende Phase 0 zurückfallen lassen.
       mindestPhase: { wenn: ['tv_aus', 'anfisa_kippen', 'anfisa_feuer'], phase: 1 },
