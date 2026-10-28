@@ -86,7 +86,9 @@
   @keyframes fund-auf { 0% { opacity: 0; transform: translate(-50%, 0) scale(0.6); } 20% { opacity: 1; transform: translate(-50%, -10px) scale(1.1); } 100% { opacity: 0; transform: translate(-50%, -50px) scale(1); } }
 
   /* ---------- Modale ---------- */
-  .modal { position: absolute; inset: 0; background: rgba(5,10,7,0.78); display: none; align-items: center; justify-content: center; z-index: 30; padding: 20px; }
+  /* Über den Bildschirmen (z-index 40), damit die Rückfrage im Startbildschirm
+     nicht vom Text darunter überlagert wird. */
+  .modal { position: absolute; inset: 0; background: rgba(5,10,7,0.88); display: none; align-items: center; justify-content: center; z-index: 60; padding: 20px; }
   .modal.show { display: flex; }
   .modal-box { background: var(--cream); color: var(--tinte); border-radius: 14px; padding: 22px; max-width: 440px; width: 100%; max-height: 82vh; overflow-y: auto; box-shadow: 0 20px 60px rgba(0,0,0,0.6); }
   .modal-box h3 { font-family: var(--serif); margin: 0 0 8px; font-weight: 500; font-size: 20px; }
@@ -101,6 +103,7 @@
 
   /* ---------- Screens ---------- */
   .screen { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 24px; z-index: 40; text-align: center; background: rgba(10,18,12,0.88); transition: opacity 0.4s, visibility 0.4s; }
+  .screen.verdeckt > *:not(.baustand) { visibility: hidden; }
   .screen.hidden { opacity: 0; visibility: hidden; pointer-events: none; }
   .namensfeld { display: flex; flex-direction: column; align-items: center; gap: 6px; margin: 4px 0 14px; }
   .namensfeld label { font-size: 13.5px; color: var(--sand); }
@@ -341,7 +344,7 @@
 
   // Wird bei jedem Paket neu gesetzt. Steht unten im Startbildschirm, damit man
   // sofort sieht, welche Fassung gerade live ist.
-  const BAUSTAND = '28.10.2026 09:38';
+  const BAUSTAND = '28.10.2026 09:46';
   const SPEICHER_KEY = 'ostern_fortschritt';
   const HINWEISE_GESAMT = 3;
   // Gemeinsamer Faktor für alle Eier. Die Radien in EIER bleiben, hier wird
@@ -3196,14 +3199,15 @@
           + 'Schränke, deinen Rucksack, die gelösten Rätsel und die Zeit. Dein Name und deine Gruppe bleiben.'
         : 'Es gibt noch nichts zurückzusetzen. Dein Name und deine Gruppe bleiben.';
     document.getElementById('neu-modal').classList.add('show');
+    // Der Startbildschirm tritt zurück, damit nichts durchscheint
+    document.getElementById('screen-intro').classList.add('verdeckt');
   }
-  document.getElementById('neu-ja').onclick = () => {
+  function neuAbfrageZu() {
     document.getElementById('neu-modal').classList.remove('show');
-    neuAnfangen();
-  };
-  document.getElementById('neu-nein').onclick = () => {
-    document.getElementById('neu-modal').classList.remove('show');
-  };
+    document.getElementById('screen-intro').classList.remove('verdeckt');
+  }
+  document.getElementById('neu-ja').onclick = () => { neuAbfrageZu(); neuAnfangen(); };
+  document.getElementById('neu-nein').onclick = neuAbfrageZu;
 
   function neuAnfangen() {
     const behalten = { name: zustand.name, spielerId: zustand.spielerId, gruppe: zustand.gruppe };
