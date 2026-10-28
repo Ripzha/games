@@ -362,7 +362,7 @@
 
   // Wird bei jedem Paket neu gesetzt. Steht unten im Startbildschirm, damit man
   // sofort sieht, welche Fassung gerade live ist.
-  const BAUSTAND = '28.10.2026 13:33';
+  const BAUSTAND = '28.10.2026 13:35';
   const SPEICHER_KEY = 'ostern_fortschritt';
   const HINWEISE_GESAMT = 3;
   // Gemeinsamer Faktor für alle Eier. Die Radien in EIER bleiben, hier wird
@@ -3126,54 +3126,123 @@
     { art: 'luft' },
     { art: 'gross', text: 'Acis Eiersuche' },
     { art: 'klein', text: 'Ein Osterspiel für simsforumrpg.de' },
+    { art: 'luft' },
 
     { art: 'titel', text: 'Danke fürs Spielen' },
     { art: 'zeile', text: 'Du hast alle Eier gefunden und den Kulitsch' },
     { art: 'zeile', text: 'mit Aci und Anfisa fertig gebacken.' },
 
-    { art: 'titel', text: 'Idee und Spielentwurf' },
+    { art: 'titel', text: 'Spielleitung' },
     { art: 'zeile', text: 'Ripzha' },
 
-    { art: 'titel', text: 'Bilder und Bildbearbeitung' },
+    { art: 'titel', text: 'Spielentwurf' },
     { art: 'zeile', text: 'Ripzha' },
-    { art: 'klein', text: 'erstellt mit ChatGPT' },
+    { art: 'zeile', text: 'Claude' },
 
-    { art: 'titel', text: 'Figuren und Texte' },
+    { art: 'titel', text: 'Rätselentwurf' },
     { art: 'zeile', text: 'Ripzha' },
+    { art: 'zeile', text: 'Claude' },
+
+    { art: 'titel', text: 'Drehbuch und Dialoge' },
+    { art: 'zeile', text: 'Ripzha' },
+
+    { art: 'titel', text: 'Figurenentwurf' },
+    { art: 'zeile', text: 'Ripzha' },
+
+    { art: 'titel', text: 'Künstlerische Leitung' },
+    { art: 'zeile', text: 'Ripzha' },
+
+    { art: 'titel', text: 'Hintergrundbilder' },
+    { art: 'zeile', text: 'Ripzha' },
+
+    { art: 'titel', text: 'Figurenbilder' },
+    { art: 'zeile', text: 'Ripzha' },
+
+    { art: 'titel', text: 'Bildbearbeitung und Freistellung' },
+    { art: 'zeile', text: 'Ripzha' },
+    { art: 'zeile', text: 'Claude' },
+
+    { art: 'titel', text: 'Gestaltung der Oberfläche' },
+    { art: 'zeile', text: 'Claude' },
 
     { art: 'titel', text: 'Programmierung' },
     { art: 'zeile', text: 'Claude' },
-    { art: 'klein', text: 'Anthropic' },
 
-    { art: 'titel', text: 'Rätsel und Spielablauf' },
-    { art: 'zeile', text: 'Ripzha und Claude' },
+    { art: 'titel', text: 'Spiellogik und Zustandsverwaltung' },
+    { art: 'zeile', text: 'Claude' },
 
-    { art: 'titel', text: 'Tonaufnahmen' },
-    { art: 'zeile', text: 'erstellt mit ElevenLabs' },
-    { art: 'klein', text: 'Fernseher, Kühlschrank, Sicherung,' },
-    { art: 'klein', text: 'Lichtschalter und Stimmen gerechnet' },
+    { art: 'titel', text: 'Mehrspielerteil und Datenbank' },
+    { art: 'zeile', text: 'Claude' },
 
-    { art: 'titel', text: 'Technik' },
-    { art: 'zeile', text: 'HTML, CSS und JavaScript, ohne Baukasten' },
-    { art: 'zeile', text: 'Supabase für Gruppen und Backtische' },
-    { art: 'zeile', text: 'GitHub Pages' },
+    { art: 'titel', text: 'Werkzeuge und Editormodus' },
+    { art: 'zeile', text: 'Claude' },
+
+    { art: 'titel', text: 'Klanggestaltung' },
+    { art: 'zeile', text: 'Ripzha' },
+    { art: 'zeile', text: 'Claude' },
+
+    { art: 'titel', text: 'Figurenstimmen' },
+    { art: 'zeile', text: 'Claude' },
+    { art: 'klein', text: 'gerechnet, nicht gesprochen' },
+
+    { art: 'titel', text: 'Abmischung' },
+    { art: 'zeile', text: 'Claude' },
+
+    { art: 'titel', text: 'Qualitätssicherung' },
+    { art: 'zeile', text: 'Ripzha' },
+
+    { art: 'titel', text: 'Testspiel' },
+    { art: 'zeile', text: 'Ripzha' },
+
+    { art: 'titel', text: 'Betrieb und Veröffentlichung' },
+    { art: 'zeile', text: 'Ripzha' },
 
     { art: 'titel', text: 'Es spielten' },
     { art: 'zeile', text: 'Aci' },
     { art: 'zeile', text: 'Anfisa' },
-    { art: 'klein', text: 'und ein Kater, der nie auftaucht' },
+    { art: 'klein', text: 'in Abwesenheit: Vaas, Pudel und Seth' },
 
     { art: 'titel', text: 'Gebacken wurde' },
     { art: 'zeile', text: 'ein Kulitsch' },
     { art: 'klein', text: 'Hefe, Mehl, Butter, Kardamom, Safran, Rosinen' },
 
-    { art: 'titel', text: 'Für' },
-    { art: 'zeile', text: 'die Community von simsforumrpg.de' },
+    { art: 'titel', text: 'Werkzeuge' },
+    { art: 'zeile', text: 'ChatGPT' },
+    { art: 'klein', text: 'Bilderzeugung' },
+    { art: 'zeile', text: 'ElevenLabs' },
+    { art: 'klein', text: 'Geräusche' },
+    { art: 'zeile', text: 'Claude' },
+    { art: 'klein', text: 'Anthropic' },
 
+    { art: 'titel', text: 'Technik' },
+    { art: 'zeile', text: 'HTML, CSS und JavaScript' },
+    { art: 'klein', text: 'ohne Baukasten, ohne fremde Bibliotheken' },
+    { art: 'zeile', text: 'Supabase' },
+    { art: 'klein', text: 'Gruppen, Backtische und Bestenlisten' },
+    { art: 'zeile', text: 'GitHub Pages' },
+    { art: 'klein', text: 'Veröffentlichung' },
+    { art: 'zeile', text: 'WebP und MP3' },
+    { art: 'klein', text: 'Bilder und Töne' },
+
+    { art: 'titel', text: 'In Zahlen' },
+    { art: 'zeile', text: '33 Eier in 33 Ansichten' },
+    { art: 'zeile', text: '9 Räume und 13 Nahaufnahmen' },
+    { art: 'zeile', text: '135 Bilder und 17 Töne' },
+    { art: 'zeile', text: '27 Dateien auf einem fremden Rechner' },
+
+    { art: 'titel', text: 'Besonderen Dank an' },
+    { art: 'zeile', text: 'die Community von simsforumrpg.de' },
+    { art: 'zeile', text: 'alle, die bis hierher gesucht haben' },
+    { art: 'klein', text: 'und an Anfisa, die alles versteckt hat' },
+
+    { art: 'luft' },
+    { art: 'klein', text: 'Beim Backen wurden keine Eier verschwendet.' },
+    { art: 'klein', text: 'Die vom Dachboden waren schon vorher alt.' },
     { art: 'luft' },
     { art: 'klein', text: 'Ostern 2027' },
     { art: 'luft' }
   ];
+
 
   function abspannBauen() {
     const r = document.getElementById('abspann-rolle');
