@@ -338,7 +338,7 @@
 
   // Wird bei jedem Paket neu gesetzt. Steht unten im Startbildschirm, damit man
   // sofort sieht, welche Fassung gerade live ist.
-  const BAUSTAND = '28.10.2026 13:22';
+  const BAUSTAND = '28.10.2026 13:26';
   const SPEICHER_KEY = 'ostern_fortschritt';
   const HINWEISE_GESAMT = 3;
   // Gemeinsamer Faktor für alle Eier. Die Radien in EIER bleiben, hier wird
@@ -2711,10 +2711,10 @@
   // streu die zufällige Abweichung pro Buchstabe, tempo die Millisekunden
   // zwischen zwei Buchstaben.
   const STIMMEN = {
-    'Aci':    { hoehe: 420, streu: 90,  tempo: 26, form: 'triangle', laenge: 0.055 },
-    'Anfisa': { hoehe: 190, streu: 45,  tempo: 38, form: 'sawtooth', laenge: 0.075 }
+    'Aci':    { hoehe: 260, streu: 55,  tempo: 26, form: 'triangle', laenge: 0.055 },
+    'Anfisa': { hoehe: 120, streu: 28,  tempo: 38, form: 'sawtooth', laenge: 0.075 }
   };
-  const STIMME_STANDARD = { hoehe: 330, streu: 70, tempo: 30, form: 'triangle', laenge: 0.06 };
+  const STIMME_STANDARD = { hoehe: 200, streu: 42, tempo: 30, form: 'triangle', laenge: 0.06 };
 
   let tippTimer = null;
   let tippRest = '';          // was noch zu tippen ist, zum Überspringen
@@ -2725,7 +2725,7 @@
     const g = actx.createGain();
     const f = actx.createBiquadFilter();
     f.type = 'lowpass';
-    f.frequency.value = 2200;
+    f.frequency.value = 1500;
     o.type = stimme.form;
     o.frequency.value = stimme.hoehe + (Math.random() * 2 - 1) * stimme.streu;
     const jetzt = actx.currentTime;
