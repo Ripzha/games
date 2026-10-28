@@ -330,7 +330,7 @@
 
   // Wird bei jedem Paket neu gesetzt. Steht unten im Startbildschirm, damit man
   // sofort sieht, welche Fassung gerade live ist.
-  const BAUSTAND = '28.10.2026 09:24';
+  const BAUSTAND = '28.10.2026 09:28';
   const SPEICHER_KEY = 'ostern_fortschritt';
   const HINWEISE_GESAMT = 3;
   // Gemeinsamer Faktor für alle Eier. Die Radien in EIER bleiben, hier wird
@@ -1966,7 +1966,10 @@
       if (raum && raum.gesperrtBis && !zustand.offen[raum.gesperrtBis]) { sag('Geht noch nicht auf. Dir fehlt was.'); return; }
       zustand.ansicht = ansichtId; zustand.nah = null;
     }
-    speichern(); renderRaum(); zoomReset(); klang('stoff');
+    speichern(); renderRaum(); zoomReset();
+    // Kein Ton beim Wechsel der Ansicht. Das Möbelstück hat beim Öffnen schon
+    // geklungen, ein zweiter Ton beim Hineingehen nervt nur.
+    if (!ziel.istNah) klang('schritt');
   }
 
   // Möbel-Vordergrund: Dinge, die Eier teilweise verdecken (nur Platzhalter)
@@ -2748,10 +2751,11 @@
     tuer: 0.9,
     ei: 1.0,        // der Belohnungston darf vorne bleiben
     stoff: 1.1,     // sehr weich, geht sonst unter
-    nehmen: 1.1
+    nehmen: 1.1,
+    schritt: 0.5    // beim Raumwechsel nur angedeutet
   };
   const TOENE = ['schublade', 'schranktuer', 'kistendeckel', 'tuer', 'klappe', 'metall',
-                 'stoff', 'nehmen', 'ei', 'keramik', 'glas', 'wasser', 'klick'];
+                 'stoff', 'nehmen', 'ei', 'keramik', 'glas', 'wasser', 'klick', 'schritt'];
   const tonPuffer = {};
   TOENE.forEach(name => {
     const a = new Audio('toene/' + name + '.mp3');
@@ -2781,7 +2785,8 @@
       stoff:  { dauer: 0.20, tief: 380,  spitze: 0.20, hoehe: 90,  q: 1.2 },
       nehmen: { dauer: 0.13, tief: 1400, spitze: 0.24, hoehe: 320, q: 3 },
       fehler: { dauer: 0.22, tief: 300,  spitze: 0.26, hoehe: 110, q: 1.5 },
-      ei:     { dauer: 0.12, tief: 2600, spitze: 0.20, hoehe: 900, q: 4 }
+      ei:     { dauer: 0.12, tief: 2600, spitze: 0.20, hoehe: 900, q: 4 },
+      schritt:{ dauer: 0.14, tief: 260,  spitze: 0.07, hoehe: 80,  q: 1 }
     }[art] || { dauer: 0.16, tief: 700, spitze: 0.25, hoehe: 180, q: 2 };
 
     const quelle = actx.createBufferSource();
