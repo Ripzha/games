@@ -338,7 +338,7 @@
 
   // Wird bei jedem Paket neu gesetzt. Steht unten im Startbildschirm, damit man
   // sofort sieht, welche Fassung gerade live ist.
-  const BAUSTAND = '28.10.2026 10:22';
+  const BAUSTAND = '28.10.2026 10:23';
   const SPEICHER_KEY = 'ostern_fortschritt';
   const HINWEISE_GESAMT = 3;
   // Gemeinsamer Faktor für alle Eier. Die Radien in EIER bleiben, hier wird
@@ -794,7 +794,7 @@
       patch: 'ostern/bilder/kue-kuehl-dunkel.webp', patchX: 1361, patchY: 179, patchW: 336, patchH: 513,
       patchHell: 'ostern/bilder/kue-kuehl-hell.webp', patchHellX: 1361, patchHellY: 179, patchHellW: 336, patchHellH: 513 },
     // --- Acis Zimmer ---
-    { id: 'ac_schrank', ansicht: 'acizimmer', x: 620, y: 80,  w: 290, h: 460, typ: 'ausschnitt', klang: 'schranktuer', zustand: 'aci_schrank_offen', label: 'Kleiderschrank' },
+    { id: 'ac_schrank', ansicht: 'acizimmer', x: 620, y: 80,  w: 290, h: 460, typ: 'ausschnitt', klang: 'klappe', zustand: 'aci_schrank_offen', label: 'Kleiderschrank' },
     { id: 'ac_tisch',   ansicht: 'acizimmer', x: 260, y: 548, w: 195, h: 165, typ: 'ausschnitt', klang: 'schublade', zustand: 'aci_tisch_offen',   label: 'Nachttischschublade' },
     { id: 'ac_aquarium', ansicht: 'acizimmer', x: 1255, y: 235, w: 200, h: 155, typ: 'naehe', nah: 'aquarium_nah', label: 'Aquarium' },
     { id: 'ac_schreibtisch', ansicht: 'acizimmer', x: 1430, y: 250, w: 344, h: 290, typ: 'naehe', nah: 'schreibtisch_nah', label: 'Schreibtisch' },
@@ -1093,7 +1093,7 @@
       klang: 'stoff', zurueck: true, label: 'Stöpsel' },
     // --- Anfisas Schlafzimmer ---
     { id: 'sz_schrank', ansicht: 'schlafzimmer', x: 150, y: 30, w: 290, h: 520, typ: 'ausschnitt',
-      zustand: 'sz_schrank_offen', klang: 'schranktuer', label: 'Kleiderschrank',
+      zustand: 'sz_schrank_offen', klang: 'klappe', label: 'Kleiderschrank',
       patch: 'ostern/bilder/sz-schrank.webp', patchX: 138, patchY: 13, patchW: 314, patchH: 549 },
     { id: 'sz_nachttisch', ansicht: 'schlafzimmer', x: 838, y: 455, w: 150, h: 105, typ: 'ausschnitt',
       zustand: 'sz_nachttisch_offen', klang: 'schublade', label: 'Nachttischschublade',
