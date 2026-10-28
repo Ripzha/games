@@ -365,7 +365,7 @@
 
   // Wird bei jedem Paket neu gesetzt. Steht unten im Startbildschirm, damit man
   // sofort sieht, welche Fassung gerade live ist.
-  const BAUSTAND = '28.10.2026 14:18';
+  const BAUSTAND = '28.10.2026 15:13';
   const SPEICHER_KEY = 'ostern_fortschritt';
   const HINWEISE_GESAMT = 3;
   // Gemeinsamer Faktor für alle Eier. Die Radien in EIER bleiben, hier wird
@@ -1171,13 +1171,13 @@
   const EIER = [
     // --- Ebene 1: sichtbar, getarnt ---
     { id: 'e01', ansicht: 'garage1',     x: 1452, y: 243, r: 7,  farbe: '#6f4d37', muster: 'punkte',   ebene: 1, sichtbarWenn: null },  // Regal oben zwischen den Dosen
-    { id: 'e02', ansicht: 'spind_nah',   x: 352,  y: 608, r: 22, farbe: '#4e4337', muster: 'streifen', ebene: 2, sichtbarWenn: 'dose_verschoben' },  // hinter der Spraydose im Spind, steht auf dem Boden
+    { id: 'e02', ansicht: 'spind_nah',   x: 352,  y: 608, r: 22, farbe: '#4e4337', muster: 'streifen', ebene: 2, sichtbarWenn: 'dose_verschoben', hinweis: 'liegt hinter etwas, das man zur Seite schieben muss.'},  // hinter der Spraydose im Spind, steht auf dem Boden
     { id: 'e05', ansicht: 'garage1',     x: 1395, y: 432, r: 6,  farbe: '#27282c', muster: 'zickzack', ebene: 1, sichtbarWenn: null },  // im Schubladenkasten
     { id: 'e08', ansicht: 'kiste_nah',   x: 1010, y: 600, r: 30, farbe: '#7a7a52', muster: 'punkte',   ebene: 2, sichtbarWenn: null },  // in der Blechkiste
     { id: 'e04', ansicht: 'wohnzimmer', x: 1332, y: 712, r: 9,  farbe: '#8a4a3a', muster: 'punkte', ebene: 1, sichtbarWenn: null },  // auf dem Teppich
     { id: 'e03', ansicht: 'kueche',     x: 1318, y: 419, r: 9,  farbe: '#c8703a', muster: 'streifen', ebene: 1, sichtbarWenn: ['kueche_licht'] },  // in der Obstschale
     { id: 'e06', ansicht: 'acizimmer',  x: 566,  y: 650, r: 9,  farbe: '#6a4a2a', muster: 'punkte', ebene: 1, sichtbarWenn: null },  // im dunklen Spalt zwischen Reisetasche und Koffer unter dem Bett
-    { id: 'e07', ansicht: 'bad',        x: 1322, y: 752, r: 13, farbe: '#cfc3ad', muster: 'zickzack', ebene: 2, sichtbarWenn: 'wanne_leer' },  // am Boden der Badewanne
+    { id: 'e07', ansicht: 'bad',        x: 1322, y: 752, r: 13, farbe: '#cfc3ad', muster: 'zickzack', ebene: 2, sichtbarWenn: 'wanne_leer', hinweis: 'liegt in der Wanne. Da müsste erst das Wasser weg.'},  // am Boden der Badewanne
     // --- Ebene 2: nur nach Öffnen sichtbar ---
     { id: 'e09', ansicht: 'garage1',     x: 170,  y: 470, r: 8,  farbe: '#5a5337', muster: 'streifen', ebene: 2, sichtbarWenn: 'akten_offen' },  // in der Aktenschrank-Schublade
     { id: 'e10', ansicht: 'garage1',     x: 618,  y: 618, r: 8,  farbe: '#2a1a12', muster: 'punkte',   ebene: 2, sichtbarWenn: 'blau_offen' },   // in der blauen Schublade
@@ -1190,9 +1190,9 @@
     { id: 'e16', ansicht: 'tisch_nah',  x: 330,  y: 236, r: 31, farbe: '#c9b48a', muster: 'punkte',   ebene: 1, sichtbarWenn: null },  // steht in der Tasse auf dem Couchtisch, Unterkante knapp über dem Tassenrand-Flicken
     { id: 'e17', ansicht: 'kueche',     x: 955,  y: 602, r: 9,  farbe: '#5a4a38', muster: 'punkte', ebene: 2, sichtbarWenn: ['k_ofen_offen', 'kueche_licht'] },  // auf dem Rost im Backofen
     { id: 'e18', ansicht: 'acizimmer',  x: 348,  y: 580, r: 8,  farbe: '#5a4030', muster: 'zickzack', ebene: 2, sichtbarWenn: 'aci_tisch_offen' },  // in der Nachttischschublade
-    { id: 'e19', ansicht: 'dachboden',  x: 545,  y: 676, r: 17, farbe: '#9a8358', muster: 'streifen', ebene: 1, sichtbarWenn: 'dach_koffer_offen' },  // im offenen Koffer
-    { id: 'e20', ansicht: 'dachboden',  x: 1378, y: 742, r: 16, farbe: '#8d7f63', muster: 'punkte', ebene: 1, sichtbarWenn: 'dach_truhe_offen' , nurGruppe: 'A'},  // in der offenen Blechtruhe
-    { id: 'e34', ansicht: 'dachboden',  x: 312,  y: 352, r: 14, farbe: '#c08a7a', muster: 'punkte', ebene: 1, sichtbarWenn: 'schwein_kaputt' },  // zwischen den Scherben des Sparschweins
+    { id: 'e19', ansicht: 'dachboden',  x: 545,  y: 676, r: 17, farbe: '#9a8358', muster: 'streifen', ebene: 1, sichtbarWenn: 'dach_koffer_offen', hinweis: 'liegt in etwas, das man erst aufklappen muss.'},  // im offenen Koffer
+    { id: 'e20', ansicht: 'dachboden',  x: 1378, y: 742, r: 16, farbe: '#8d7f63', muster: 'punkte', ebene: 1, sichtbarWenn: 'dach_truhe_offen' , nurGruppe: 'A', hinweis: 'liegt in etwas, das man erst aufklappen muss.'},  // in der offenen Blechtruhe
+    { id: 'e34', ansicht: 'dachboden',  x: 312,  y: 352, r: 14, farbe: '#c08a7a', muster: 'punkte', ebene: 1, sichtbarWenn: 'schwein_kaputt', hinweis: 'steckt in etwas, das man nicht aufmachen, sondern kaputt machen muss.'},  // zwischen den Scherben des Sparschweins
     { id: 'e35', ansicht: 'dachboden',  x: 836,  y: 306, r: 14, farbe: '#6d6253', muster: 'zickzack', ebene: 1, sichtbarWenn: null },  // getarnt zwischen den Krügen auf dem Tisch
     // --- Bad: getarnt, offen sichtbar ---
     { id: 'e21', ansicht: 'bad', x: 503,  y: 316, r: 10, farbe: '#6d3c12', muster: 'streifen', ebene: 1, sichtbarWenn: null },  // Ablage neben der Seife
@@ -1203,9 +1203,9 @@
     { id: 'e25', ansicht: 'schlafzimmer', x: 900,  y: 482, r: 9,  farbe: '#4c2213', muster: 'streifen', ebene: 2, sichtbarWenn: 'sz_nachttisch_offen' , nurGruppe: 'B'},  // in der Nachttischschublade
     { id: 'e26', ansicht: 'schlafzimmer', x: 1445, y: 592, r: 10, farbe: '#4e2c14', muster: 'zickzack', ebene: 2, sichtbarWenn: 'sz_frisier_offen' , nurGruppe: 'A'},     // in der Schublade am Frisiertisch
     { id: 'e27', ansicht: 'koffer_nah', x: 1245, y: 330, r: 22, farbe: '#c9b08a', muster: 'punkte', ebene: 2, sichtbarWenn: 'koffer_offen' , nurGruppe: 'B'},  // zwischen den Briefen im Koffer
-    { id: 'e28', ansicht: 'aquarium_nah', x: 940, y: 710, r: 11, farbe: '#b8a884', muster: 'punkte', ebene: 2, sichtbarWenn: 'aq_kies' },  // im aufgewirbelten Kies im Aquarium
-    { id: 'e30', ansicht: 'th_kiste_nah', x: 1235, y: 625, r: 23, farbe: '#7a6a4e', muster: 'punkte', ebene: 2, sichtbarWenn: 'th_tuecher_weg' },  // in den Tuchfalten in der Holzkiste
-    { id: 'e32', ansicht: 'pc_nah', x: 1310, y: 545, r: 26, farbe: '#d9c27a', muster: 'zickzack', ebene: 1, sichtbarWenn: 'pc_privat_offen' },  // auf dem Bild im Ordner „privat"
+    { id: 'e28', ansicht: 'aquarium_nah', x: 940, y: 710, r: 11, farbe: '#b8a884', muster: 'punkte', ebene: 2, sichtbarWenn: 'aq_kies', hinweis: 'liegt im Kies vom Aquarium. Die Fische sitzen darauf.'},  // im aufgewirbelten Kies im Aquarium
+    { id: 'e30', ansicht: 'th_kiste_nah', x: 1235, y: 625, r: 23, farbe: '#7a6a4e', muster: 'punkte', ebene: 2, sichtbarWenn: 'th_tuecher_weg', hinweis: 'liegt unter Stoff. Schieb ihn beiseite.'},  // in den Tuchfalten in der Holzkiste
+    { id: 'e32', ansicht: 'pc_nah', x: 1310, y: 545, r: 26, farbe: '#d9c27a', muster: 'zickzack', ebene: 1, sichtbarWenn: 'pc_privat_offen', hinweis: 'liegt hinter einem Passwort.'},  // auf dem Bild im Ordner „privat"
     { id: 'e36', ansicht: 'kue_ober_nah', x: 700, y: 760, r: 18, farbe: '#b9a57e', muster: 'punkte', ebene: 1, sichtbarWenn: null, nurGruppe: 'A' },  // wo Gruppe B das Mehl findet
     { id: 'e33', ansicht: 'gruenkiste_nah', x: 1060, y: 700, r: 20, farbe: '#76704f', muster: 'streifen', ebene: 2, sichtbarWenn: null },  // rechts neben der Sicherung auf dem Kistenboden
     { id: 'e31', ansicht: 'schreibtisch_nah', x: 1700, y: 478, r: 12, farbe: '#3a4c2a', muster: 'streifen', ebene: 1, sichtbarWenn: null },  // getarnt zwischen den Blättern der Zimmerpflanze
@@ -1216,7 +1216,7 @@
   // Bildes, tempo = Bildpunkte je Sekunde, nachLinks = der Fisch schaut im
   // Bild nach links und wird beim Schwimmen nach rechts gespiegelt.
   const FISCHE = [
-    { bild: 'ostern/bilder/fisch-skalar.webp', verhaeltnis: 1.075, hoehe: 150, anzahl: 2, tempo: 40,  nachLinks: true },
+    { bild: 'ostern/bilder/fisch-skalar.webp', verhaeltnis: 1.075, hoehe: 150, anzahl: 2, tempo: 40,  nachLinks: true, hinweis: 'steckt in etwas, das sich öffnen lässt.'},
     { bild: 'ostern/bilder/fisch-guppy.webp',  verhaeltnis: 1.975, hoehe: 70,  anzahl: 3, tempo: 60,  nachLinks: true },
     { bild: 'ostern/bilder/fisch-neon.webp',   verhaeltnis: 1.492, hoehe: 42,  anzahl: 6, tempo: 85,  nachLinks: false }
   ];
@@ -2737,7 +2737,11 @@
     const pool = offen.filter(e => e.ebene < 3).length ? offen.filter(e => e.ebene < 3) : offen;
     const e = pool[Math.floor(Math.random() * pool.length)];
     const raum = (RAEUME.find(r => r.id === raumVon(e.ansicht)) || { name: '?' }).name;
-    const art = e.ebene === 1 ? 'liegt offen da — nur getarnt. Zoom rein.' : 'steckt in etwas, das sich öffnen lässt.';
+    // hinweis am Ei schlägt die allgemeine Einordnung, sonst führt der Hinweis
+    // in die Irre — etwa bei Eiern, die erst nach einer Handlung auftauchen.
+    const art = e.hinweis
+      || (e.ebene === 1 ? 'liegt offen da — nur getarnt. Zoom rein.'
+                        : 'steckt in etwas, das sich öffnen lässt.');
     zustand.hinweise--;
     aktualisiereSichtbarkeit(); speichern();
     sag('Im Raum „' + raum + '" ist noch eins. ' + art);
