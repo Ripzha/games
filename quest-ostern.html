@@ -349,7 +349,7 @@
   const SPIEL_ID = 'ostern';
   // Wird bei jedem Paket neu gesetzt. Steht unten im Startbildschirm, damit man
   // sofort sieht, welche Fassung gerade live ist.
-  const BAUSTAND = '28.10.2026 07:04';
+  const BAUSTAND = '28.10.2026 07:55';
   const SPEICHER_KEY = 'ostern_fortschritt';
   const HINWEISE_GESAMT = 3;
   // Gemeinsamer Faktor für alle Eier. Die Radien in EIER bleiben, hier wird
@@ -2929,6 +2929,13 @@
     try {
       const d = await sbRuf('spieler_anmelden', { p_id: zustand.spielerId, p_name: zustand.name });
       const g = Array.isArray(d) ? d[0] : d;
+      if (g && g.reset_angefordert) {
+        // Der Admin hat zurückgesetzt. Aufräumen und dem Server Bescheid geben.
+        try { await sbRuf('reset_bestaetigt', { p_id: zustand.spielerId }); } catch (e) {}
+        if (g.gruppe) zustand.gruppe = g.gruppe;
+        neuAnfangen();
+        return;
+      }
       if (g && g.gruppe && g.gruppe !== zustand.gruppe) {
         zustand.gruppe = g.gruppe;
         speichern(); baueSprueche(); renderRaum(); renderRaumKnoepfe();
@@ -2963,7 +2970,7 @@
     try {
       const [tische, leute] = await Promise.all([
         sbLies('tische?fertig_um=is.null&select=*&order=erstellt'),
-        sbLies('spieler?select=id,name,gruppe')
+        sbLies('spieler?select=id,name,gruppe,reset_angefordert&order=name')
       ]);
       const name = id => (leute.find(x => x.id === id) || {}).name || null;
       box.innerHTML = '';
@@ -3003,6 +3010,34 @@
         }
         box.appendChild(k);
       });
+      // Spielerliste darunter, jeder einzeln zurücksetzbar
+      const k = document.createElement('div');
+      k.className = 'admin-tisch';
+      k.innerHTML = '<div class="kopf">Spieler (' + leute.length + ')</div>';
+      leute.forEach(sp => {
+        const z = document.createElement('div');
+        z.className = 'zeile';
+        z.textContent = sp.name + ' — Gruppe ' + sp.gruppe
+          + (sp.reset_angefordert ? ' — zurückgesetzt, wartet auf seinen Browser' : '');
+        const b = document.createElement('button');
+        b.className = 'knopf sekundaer';
+        b.textContent = 'zurücksetzen';
+        b.onclick = async () => {
+          b.disabled = true;
+          try {
+            await sbRuf('spieler_zuruecksetzen', { p_id: sp.id });
+            document.getElementById('admin-hinweis').textContent =
+              sp.name + ' fängt beim nächsten Laden von vorn an. Gruppe bleibt ' + sp.gruppe + '.';
+          } catch (e) {
+            document.getElementById('admin-hinweis').textContent = 'Hat nicht geklappt: ' + e.message;
+          }
+          renderAdmin();
+        };
+        z.appendChild(document.createTextNode(' '));
+        z.appendChild(b);
+        k.appendChild(z);
+      });
+      if (leute.length) box.appendChild(k);
       document.getElementById('admin-hinweis').textContent =
         tische.length + (tische.length === 1 ? ' offener Tisch' : ' offene Tische') + ', '
         + leute.length + ' Spieler angemeldet (A: ' + leute.filter(x => x.gruppe === 'A').length
@@ -3130,8 +3165,7 @@
     setTimeout(() => sag(zustand.gefunden.length ? 'Weiter geht es. ' + zustand.gefunden.length + ' hast du schon.' : 'Fang in der Garage an. Oder wo du willst. Mir egal, ich schau zu.'), 400);
   };
   document.getElementById('reset-knopf').onclick = () => {
-    try { localStorage.removeItem(SPEICHER_KEY); } catch (e) {}
-    location.reload();
+    neuAnfangen();
   };
 
   // =====================================================================
@@ -3151,6 +3185,22 @@
   // =====================================================================
   // START
   // =====================================================================
+  // Von vorn anfangen. Name, Kennung und Gruppe bleiben, sonst wechselt man
+  // beim Zurücksetzen die Gruppe und fällt aus dem laufenden Tisch.
+  function neuAnfangen() {
+    const behalten = { name: zustand.name, spielerId: zustand.spielerId, gruppe: zustand.gruppe };
+    try {
+      localStorage.setItem(SPEICHER_KEY, JSON.stringify({
+        gefunden: [], offen: {}, inventar: [], hinweise: HINWEISE_GESAMT, zeit: 0,
+        ansicht: null, nah: null, fertig: false, backen: 0, anfisaHilft: false,
+        name: behalten.name, spielerId: behalten.spielerId, gruppe: behalten.gruppe
+      }));
+    } catch (e) {
+      try { localStorage.removeItem(SPEICHER_KEY); } catch (e2) {}
+    }
+    location.reload();
+  }
+
   // Name: der Spieler tippt ihn einmal ein, danach steht er im Browser.
   // spielerId erkennt denselben Browser wieder, auch wenn der Name sich ändert.
   const namensfeld = document.getElementById('spielername');
@@ -3191,8 +3241,7 @@
     document.getElementById('neu-knopf').style.display = '';
   }
   document.getElementById('neu-knopf').onclick = () => {
-    try { localStorage.removeItem(SPEICHER_KEY); } catch (e) {}
-    location.reload();
+    neuAnfangen();
   };
   if (hatte && zustand.fertig) { document.getElementById('screen-intro').classList.add('hidden'); spielEnde(); }
   // ?backen=1 öffnet den Backtisch sofort, zum Anschauen ohne vollständige Suche
