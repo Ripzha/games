@@ -338,7 +338,7 @@
 
   // Wird bei jedem Paket neu gesetzt. Steht unten im Startbildschirm, damit man
   // sofort sieht, welche Fassung gerade live ist.
-  const BAUSTAND = '28.10.2026 10:24';
+  const BAUSTAND = '28.10.2026 13:17';
   const SPEICHER_KEY = 'ostern_fortschritt';
   const HINWEISE_GESAMT = 3;
   // Gemeinsamer Faktor für alle Eier. Die Radien in EIER bleiben, hier wird
@@ -429,6 +429,7 @@
     { id: 'topf_nah',   istNah: true, name: 'Emailletopf', bild: 'ostern/bilder/topf-batterien.webp', breite: 1536, hoehe: 1024 },
     { id: 'wagen_nah', istNah: true, name: 'Werkstattwagen', bild: 'ostern/bilder/wagen-nah.webp', breite: 1774, hoehe: 887 },
     { id: 'kue_ober_nah', istNah: true, name: 'Oberschrank rechts', bild: 'ostern/bilder/kue-ober-nah.webp', breite: 1774, hoehe: 887 },
+    { id: 'kuehl_nah', istNah: true, name: 'Kühlschrank', bild: 'ostern/bilder/kuehl-nah.webp', breite: 1774, hoehe: 887 },
     // Tücher beiseite = bildOffen, Schachtel genommen = bildAus am Schachtel-Teil
     { id: 'th_kiste_nah', istNah: true, name: 'Holzkiste', bild: 'ostern/bilder/th-kiste-nah.webp',
       bildOffen: 'ostern/bilder/th-kiste-tuecher-weg.webp', breite: 1774, hoehe: 887 },
@@ -792,7 +793,9 @@
     // geöffneten Bild, sonst taucht sie beim Öffnen aus dem Nichts auf.
     { id: 'k_kuehl', ansicht: 'kueche', x: 1374, y: 186, w: 316, h: 500, klang: 'kuehlschrank', typ: 'ausschnitt', zustand: 'k_kuehl_offen', label: 'Kühlschrank',
       patch: 'ostern/bilder/kue-kuehl-dunkel.webp', patchX: 1361, patchY: 179, patchW: 336, patchH: 513,
-      patchHell: 'ostern/bilder/kue-kuehl-hell.webp', patchHellX: 1361, patchHellY: 179, patchHellW: 336, patchHellH: 513 },
+      patchHell: 'ostern/bilder/kue-kuehl-hell.webp', patchHellX: 1361, patchHellY: 179, patchHellW: 336, patchHellH: 513,
+      nah: 'kuehl_nah', nahWenn: 'kueche_licht',
+      nahFehlt: 'Im Kühlschrank ist es dunkel. Ohne Strom geht da auch das Licht nicht an.' },
     // --- Acis Zimmer ---
     { id: 'ac_schrank', ansicht: 'acizimmer', x: 620, y: 80,  w: 290, h: 460, typ: 'ausschnitt', klang: 'klappe', zustand: 'aci_schrank_offen', label: 'Kleiderschrank' },
     { id: 'ac_tisch',   ansicht: 'acizimmer', x: 260, y: 548, w: 195, h: 165, typ: 'ausschnitt', klang: 'schublade', zustand: 'aci_tisch_offen',   label: 'Nachttischschublade' },
@@ -806,8 +809,12 @@
     // ---- Backzutaten. nurGruppe entscheidet, wer sie sieht. ----
     { id: 'z_hefe', ansicht: 'koffer_nah', x: 1200, y: 285, w: 110, h: 95, typ: 'nehmen', zustand: 'hefe_weg',
       gibt: 'hefe', nurGruppe: 'A', sichtbarWenn: 'koffer_offen', label: 'Päckchen im Koffer' },
-    { id: 'z_butter', ansicht: 'kueche', x: 1450, y: 232, w: 100, h: 80, typ: 'nehmen', zustand: 'butter_weg',
-      gibt: 'butter', nurGruppe: 'A', sichtbarWenn: ['k_kuehl_offen', 'kueche_licht'], label: 'Butter im Kühlschrank' },
+        // Die Butter liegt im zweiten Fach. Nach dem Nehmen wird das ganze Bild
+    // getauscht, damit keine Kante zu sehen ist.
+    { id: 'kuehl_ohne_butter', ansicht: 'kuehl_nah', x: 0, y: 0, w: 1774, h: 887, typ: 'overlay', zustand: 'butter_weg',
+      bildAus: 'ostern/bilder/kuehl-ohne-butter.webp', label: 'Kühlschrank' },
+    { id: 'z_butter', ansicht: 'kuehl_nah', x: 530, y: 326, w: 216, h: 86, typ: 'nehmen', zustand: 'butter_weg',
+      gibt: 'butter', nurGruppe: 'A', ohneMarke: true, label: 'Butter auf dem Papier' },
     { id: 'z_safran', ansicht: 'schlafzimmer', x: 855, y: 445, w: 100, h: 80, typ: 'nehmen', zustand: 'safran_weg',
       gibt: 'safran', nurGruppe: 'A', sichtbarWenn: 'sz_nachttisch_offen', label: 'Döschen in der Schublade' },
     { id: 'z_mehl', ansicht: 'kue_ober_nah', x: 640, y: 690, w: 150, h: 170, typ: 'nehmen', zustand: 'mehl_weg',
@@ -1148,7 +1155,7 @@
     { id: 'e11', ansicht: 'garage1',     x: 1195, y: 708, r: 8,  farbe: '#493e36', muster: 'zickzack', ebene: 2, sichtbarWenn: 'steck_offen' },  // zwischen den Steckschlüsseln
     { id: 'e12', ansicht: 'wohnzimmer', x: 1000, y: 440, r: 9,  farbe: '#6a4a30', muster: 'punkte', ebene: 2, sichtbarWenn: 'wz_regal_offen' },  // im Schrank unter dem Regal
     { id: 'e13', ansicht: 'wohnzimmer', x: 1398, y: 452, r: 9,  farbe: '#5a4232', muster: 'streifen', ebene: 2, sichtbarWenn: 'wz_tv_offen' },  // im Fernsehmöbel
-    { id: 'e14', ansicht: 'kueche',     x: 1497, y: 272, r: 8,  farbe: '#e8d8bc', muster: 'punkte', ebene: 2, sichtbarWenn: ['k_kuehl_offen', 'kueche_licht'] , nurGruppe: 'B'},  // in der Eierablage im Kühlschrank
+    { id: 'e14', ansicht: 'kuehl_nah', x: 812, y: 162, r: 13, farbe: '#aa6050', muster: 'punkte', ebene: 1, sichtbarWenn: null, nurGruppe: 'B'},  // in der Eierablage im Kühlschrank
     { id: 'e15', ansicht: 'acizimmer',  x: 778,  y: 405, r: 9,  farbe: '#d08a5a', muster: 'zickzack', ebene: 2, sichtbarWenn: 'aci_schrank_offen' },  // auf dem Wäschestapel im Kleiderschrank
     // --- Ebene 3: nur nach Rätsel sichtbar ---
     { id: 'e16', ansicht: 'tisch_nah',  x: 330,  y: 236, r: 31, farbe: '#c9b48a', muster: 'punkte',   ebene: 1, sichtbarWenn: null },  // steht in der Tasse auf dem Couchtisch, Unterkante knapp über dem Tassenrand-Flicken
