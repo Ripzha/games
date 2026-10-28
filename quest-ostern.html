@@ -136,6 +136,9 @@
                    text-align: center; color: var(--creme); line-height: 1.7; font-size: 15px; }
   .abspann-rolle h3 { font-family: var(--serif); font-size: 15px; font-weight: 500; letter-spacing: 2px;
                       text-transform: uppercase; color: var(--gold); margin: 42px 0 10px; }
+  .abspann-rolle h4 { font-family: var(--serif); font-size: 19px; font-weight: 500; letter-spacing: 4px;
+                      text-transform: uppercase; color: var(--creme); margin: 64px 0 4px;
+                      padding-bottom: 10px; border-bottom: 1px solid rgba(232,224,200,0.25); }
   .abspann-rolle h2 { font-family: var(--serif); font-size: 26px; font-weight: 500; margin: 0 0 8px; }
   .abspann-rolle p { margin: 0 0 4px; }
   .abspann-rolle .klein { font-size: 13px; color: var(--sand); }
@@ -362,7 +365,7 @@
 
   // Wird bei jedem Paket neu gesetzt. Steht unten im Startbildschirm, damit man
   // sofort sieht, welche Fassung gerade live ist.
-  const BAUSTAND = '28.10.2026 13:36';
+  const BAUSTAND = '28.10.2026 13:44';
   const SPEICHER_KEY = 'ostern_fortschritt';
   const HINWEISE_GESAMT = 3;
   // Gemeinsamer Faktor für alle Eier. Die Radien in EIER bleiben, hier wird
@@ -3124,117 +3127,150 @@
   // 'titel' ist eine Überschrift, 'zeile' eine Zeile, 'klein' eine leise
   // Zeile darunter, 'luft' ein Abstand.
   // =====================================================================
+  // Aufbau und Bezeichnungen wie in echten Spieleabspännen: Leitung zuerst,
+  // dann Design, Narrative, Art, Engineering, Audio, QA, Live Operations,
+  // Besetzung, Technik, Dank, Rechtliches.
   const ABSPANN = [
     { art: 'luft' },
     { art: 'gross', text: 'Acis Eiersuche' },
     { art: 'klein', text: 'Ein Osterspiel für simsforumrpg.de' },
     { art: 'luft' },
 
-    { art: 'titel', text: 'Danke fürs Spielen' },
-    { art: 'zeile', text: 'Du hast alle Eier gefunden und den Kulitsch' },
-    { art: 'zeile', text: 'mit Aci und Anfisa fertig gebacken.' },
+    { art: 'abteilung', text: 'Leadership' },
+    { art: 'titel', text: 'Game Director' },
+    { art: 'zeile', text: 'Ripzha' },
+    { art: 'titel', text: 'Creative Director' },
+    { art: 'zeile', text: 'Ripzha' },
+    { art: 'titel', text: 'Producer' },
+    { art: 'zeile', text: 'Ripzha' },
+    { art: 'titel', text: 'Technical Director' },
+    { art: 'zeile', text: 'Claude' },
 
-    { art: 'titel', text: 'Spielleitung' },
+    { art: 'abteilung', text: 'Game Design' },
+    { art: 'titel', text: 'Lead Game Designer' },
+    { art: 'zeile', text: 'Ripzha' },
+    { art: 'titel', text: 'Puzzle Design' },
+    { art: 'zeile', text: 'Ripzha' },
+    { art: 'zeile', text: 'Claude' },
+    { art: 'titel', text: 'Systems Design' },
+    { art: 'zeile', text: 'Claude' },
+    { art: 'titel', text: 'Level Design' },
+    { art: 'zeile', text: 'Ripzha' },
+    { art: 'titel', text: 'Game Balancing' },
     { art: 'zeile', text: 'Ripzha' },
 
-    { art: 'titel', text: 'Spielentwurf' },
+    { art: 'abteilung', text: 'Narrative' },
+    { art: 'titel', text: 'Narrative Director' },
+    { art: 'zeile', text: 'Ripzha' },
+    { art: 'titel', text: 'Writer' },
+    { art: 'zeile', text: 'Ripzha' },
+    { art: 'titel', text: 'Character Design' },
+    { art: 'zeile', text: 'Ripzha' },
+    { art: 'titel', text: 'Editing' },
     { art: 'zeile', text: 'Ripzha' },
     { art: 'zeile', text: 'Claude' },
 
-    { art: 'titel', text: 'Rätselentwurf' },
+    { art: 'abteilung', text: 'Art' },
+    { art: 'titel', text: 'Art Director' },
     { art: 'zeile', text: 'Ripzha' },
+    { art: 'titel', text: 'Character Art' },
+    { art: 'zeile', text: 'Ripzha' },
+    { art: 'titel', text: 'Environment Art' },
+    { art: 'zeile', text: 'Ripzha' },
+    { art: 'titel', text: 'Prop Art' },
+    { art: 'zeile', text: 'Ripzha' },
+    { art: 'titel', text: 'Technical Art' },
+    { art: 'zeile', text: 'Claude' },
+    { art: 'klein', text: 'Freistellung, Flicken, Bildformate' },
+    { art: 'titel', text: 'UI Design' },
     { art: 'zeile', text: 'Claude' },
 
-    { art: 'titel', text: 'Drehbuch und Dialoge' },
+    { art: 'abteilung', text: 'Engineering' },
+    { art: 'titel', text: 'Lead Programmer' },
+    { art: 'zeile', text: 'Claude' },
+    { art: 'titel', text: 'Gameplay Programming' },
+    { art: 'zeile', text: 'Claude' },
+    { art: 'titel', text: 'UI Programming' },
+    { art: 'zeile', text: 'Claude' },
+    { art: 'titel', text: 'Backend Engineering' },
+    { art: 'zeile', text: 'Claude' },
+    { art: 'titel', text: 'Multiplayer Engineering' },
+    { art: 'zeile', text: 'Claude' },
+    { art: 'titel', text: 'Tools Programming' },
+    { art: 'zeile', text: 'Claude' },
+    { art: 'titel', text: 'Build und Deployment' },
     { art: 'zeile', text: 'Ripzha' },
 
-    { art: 'titel', text: 'Figurenentwurf' },
+    { art: 'abteilung', text: 'Audio' },
+    { art: 'titel', text: 'Audio Director' },
     { art: 'zeile', text: 'Ripzha' },
-
-    { art: 'titel', text: 'Künstlerische Leitung' },
-    { art: 'zeile', text: 'Ripzha' },
-
-    { art: 'titel', text: 'Hintergrundbilder' },
-    { art: 'zeile', text: 'Ripzha' },
-
-    { art: 'titel', text: 'Figurenbilder' },
-    { art: 'zeile', text: 'Ripzha' },
-
-    { art: 'titel', text: 'Bildbearbeitung und Freistellung' },
+    { art: 'titel', text: 'Sound Design' },
     { art: 'zeile', text: 'Ripzha' },
     { art: 'zeile', text: 'Claude' },
-
-    { art: 'titel', text: 'Gestaltung der Oberfläche' },
+    { art: 'titel', text: 'Character Voices' },
+    { art: 'zeile', text: 'Claude' },
+    { art: 'klein', text: 'synthetisiert, nicht gesprochen' },
+    { art: 'titel', text: 'Audio Implementation' },
+    { art: 'zeile', text: 'Claude' },
+    { art: 'titel', text: 'Mixing' },
     { art: 'zeile', text: 'Claude' },
 
-    { art: 'titel', text: 'Programmierung' },
-    { art: 'zeile', text: 'Claude' },
-
-    { art: 'titel', text: 'Spiellogik und Zustandsverwaltung' },
-    { art: 'zeile', text: 'Claude' },
-
-    { art: 'titel', text: 'Mehrspielerteil und Datenbank' },
-    { art: 'zeile', text: 'Claude' },
-
-    { art: 'titel', text: 'Werkzeuge und Editormodus' },
-    { art: 'zeile', text: 'Claude' },
-
-    { art: 'titel', text: 'Klanggestaltung' },
+    { art: 'abteilung', text: 'Quality Assurance' },
+    { art: 'titel', text: 'QA Lead' },
     { art: 'zeile', text: 'Ripzha' },
-    { art: 'zeile', text: 'Claude' },
-
-    { art: 'titel', text: 'Figurenstimmen' },
-    { art: 'zeile', text: 'Claude' },
-    { art: 'klein', text: 'gerechnet, nicht gesprochen' },
-
-    { art: 'titel', text: 'Abmischung' },
-    { art: 'zeile', text: 'Claude' },
-
-    { art: 'titel', text: 'Qualitätssicherung' },
+    { art: 'titel', text: 'Playtesting' },
+    { art: 'zeile', text: '— Namen folgen —' },
+    { art: 'titel', text: 'Final Pass' },
     { art: 'zeile', text: 'Ripzha' },
 
-    { art: 'titel', text: 'Testspiel' },
+    { art: 'abteilung', text: 'Live Operations' },
+    { art: 'titel', text: 'Release Management' },
+    { art: 'zeile', text: 'Ripzha' },
+    { art: 'titel', text: 'Community Management' },
     { art: 'zeile', text: 'Ripzha' },
 
-    { art: 'titel', text: 'Betrieb und Veröffentlichung' },
-    { art: 'zeile', text: 'Ripzha' },
+    { art: 'abteilung', text: 'Cast' },
+    { art: 'titel', text: 'Aci' },
+    { art: 'klein', text: 'Hauptfigur' },
+    { art: 'titel', text: 'Anfisa' },
+    { art: 'klein', text: 'seine Mutter' },
+    { art: 'titel', text: 'Featuring' },
+    { art: 'zeile', text: 'Vaas, Pudel und Seth' },
+    { art: 'klein', text: 'nur auf Fotos zu sehen' },
 
-    { art: 'titel', text: 'Es spielten' },
-    { art: 'zeile', text: 'Aci' },
-    { art: 'zeile', text: 'Anfisa' },
-    { art: 'klein', text: 'in Abwesenheit: Vaas, Pudel und Seth' },
+    { art: 'abteilung', text: 'Music' },
+    { art: 'titel', text: 'Unsere Geschichten' },
+    { art: 'klein', text: 'Hymne des Sims Rollenspiels' },
 
-    { art: 'titel', text: 'Gebacken wurde' },
-    { art: 'zeile', text: 'ein Kulitsch' },
-    { art: 'klein', text: 'Hefe, Mehl, Butter, Kardamom, Safran, Rosinen' },
+    { art: 'abteilung', text: 'Technology' },
+    { art: 'zeile', text: 'HTML, CSS, JavaScript' },
+    { art: 'klein', text: 'kein Framework, keine fremden Bibliotheken' },
+    { art: 'zeile', text: 'Supabase' },
+    { art: 'klein', text: 'Gruppen, Backtische, Bestenlisten' },
+    { art: 'zeile', text: 'GitHub Pages' },
+    { art: 'klein', text: 'Hosting' },
+    { art: 'zeile', text: 'WebP, MP3, Web Audio API' },
 
-    { art: 'titel', text: 'Werkzeuge' },
+    { art: 'abteilung', text: 'Produced With' },
     { art: 'zeile', text: 'ChatGPT' },
-    { art: 'klein', text: 'Bilderzeugung' },
+    { art: 'klein', text: 'Bildgenerierung' },
     { art: 'zeile', text: 'ElevenLabs' },
-    { art: 'klein', text: 'Geräusche' },
+    { art: 'klein', text: 'Sound Effects' },
     { art: 'zeile', text: 'Claude' },
     { art: 'klein', text: 'Anthropic' },
 
-    { art: 'titel', text: 'Technik' },
-    { art: 'zeile', text: 'HTML, CSS und JavaScript' },
-    { art: 'klein', text: 'ohne Baukasten, ohne fremde Bibliotheken' },
-    { art: 'zeile', text: 'Supabase' },
-    { art: 'klein', text: 'Gruppen, Backtische und Bestenlisten' },
-    { art: 'zeile', text: 'GitHub Pages' },
-    { art: 'klein', text: 'Veröffentlichung' },
-    { art: 'zeile', text: 'WebP und MP3' },
-    { art: 'klein', text: 'Bilder und Töne' },
-
-    { art: 'titel', text: 'In Zahlen' },
+    { art: 'abteilung', text: 'By The Numbers' },
     { art: 'zeile', text: '33 Eier in 33 Ansichten' },
     { art: 'zeile', text: '9 Räume und 13 Nahaufnahmen' },
     { art: 'zeile', text: '135 Bilder und 17 Töne' },
-    { art: 'zeile', text: '27 Dateien auf einem fremden Rechner' },
+    { art: 'zeile', text: '6 Zutaten und ein Kulitsch' },
 
-    { art: 'titel', text: 'Besonderen Dank an' },
-    { art: 'zeile', text: 'die Community von simsforumrpg.de' },
-    { art: 'zeile', text: 'alle, die bis hierher gesucht haben' },
+    { art: 'abteilung', text: 'Special Thanks' },
+    { art: 'titel', text: 'An die Testspieler' },
+    { art: 'zeile', text: '— Namen folgen —' },
+    { art: 'titel', text: 'An die Community' },
+    { art: 'zeile', text: 'simsforumrpg.de' },
+    { art: 'titel', text: 'An alle, die bis hierher gesucht haben' },
     { art: 'klein', text: 'und an Anfisa, die alles versteckt hat' },
 
     { art: 'luft' },
@@ -3246,15 +3282,57 @@
   ];
 
 
+
+
   function abspannBauen() {
     const r = document.getElementById('abspann-rolle');
     r.innerHTML = ABSPANN.map(e => {
       if (e.art === 'luft')  return '<div class="luft"></div>';
+      if (e.art === 'abteilung') return '<h4>' + e.text + '</h4>';
       if (e.art === 'titel') return '<h3>' + e.text + '</h3>';
       if (e.art === 'gross') return '<h2>' + e.text + '</h2>';
       if (e.art === 'klein') return '<p class="klein">' + e.text + '</p>';
       return '<p>' + e.text + '</p>';
     }).join('');
+  }
+
+  // Musik im Abspann. Fehlt die Datei, bleibt es still — das Spiel merkt es
+  // selbst und meldet nichts.
+  const ABSPANN_MUSIK = 'ostern/toene/abspann.mp3';
+  // Länge der Hymne in Sekunden. Die Rolle richtet sich danach, damit der
+  // letzte Satz steht, wenn der letzte Ton verklingt. Auf 0 setzen, wenn
+  // keine Musik laufen soll.
+  const ABSPANN_DAUER = 290;
+  let musik = null;
+  function musikAn() {
+    try {
+      if (!musik) {
+        musik = new Audio(ABSPANN_MUSIK);
+        musik.preload = 'auto';
+        musik.addEventListener('error', () => { musik = null; });
+      }
+      musik.currentTime = 0;
+      musik.volume = 0;
+      const ziel = 0.5;
+      musik.play().then(() => {
+        // über zwei Sekunden aufblenden
+        let v = 0;
+        const t = setInterval(() => {
+          v += ziel / 40;
+          if (!musik || v >= ziel) { if (musik) musik.volume = ziel; clearInterval(t); return; }
+          musik.volume = v;
+        }, 50);
+      }).catch(() => {});
+    } catch (e) { musik = null; }
+  }
+  function musikAus() {
+    if (!musik) return;
+    const m = musik;
+    const schritt = m.volume / 30;
+    const t = setInterval(() => {
+      m.volume = Math.max(0, m.volume - schritt);
+      if (m.volume <= 0.001) { clearInterval(t); m.pause(); }
+    }, 50);
   }
 
   let abspannLauf = null;
@@ -3263,6 +3341,7 @@
     bild.style.backgroundImage = 'url(' + BACK_FERTIG + ')';
     document.getElementById('abspann-schleier').classList.remove('dunkel');
     abspannBauen();
+    musikAn();
     document.getElementById('screen-backen').classList.add('hidden');
     document.getElementById('screen-abspann').classList.remove('hidden');
 
@@ -3270,9 +3349,10 @@
     const fenster = document.getElementById('abspann-fenster');
     r.style.transition = 'none';
     r.style.top = fenster.clientHeight + 'px';
-    // Tempo: rund 60 Pixel je Sekunde, unabhängig von der Textlänge
+    // Die Rolle läuft so lange wie die Hymne, damit beides zusammen endet.
+    // Ohne Musik bleibt es bei rund 60 Punkten je Sekunde.
     const weg = r.scrollHeight + fenster.clientHeight;
-    const dauer = Math.round(weg / 60);
+    const dauer = Math.max(30, Math.round(ABSPANN_DAUER || weg / 60));
     requestAnimationFrame(() => {
       r.style.transition = 'top ' + dauer + 's linear';
       r.style.top = (-r.scrollHeight) + 'px';
@@ -3281,11 +3361,13 @@
     // Kurz vor Schluss wird das Bild schwarz
     abspannLauf = setTimeout(() => {
       document.getElementById('abspann-schleier').classList.add('dunkel');
+      musikAus();
     }, Math.max(1000, (dauer - 7) * 1000));
   }
   document.getElementById('abspann-knopf').onclick = zeigeAbspann;
   document.getElementById('abspann-weg').onclick = () => {
     clearTimeout(abspannLauf);
+    musikAus();
     if (ABSPANNTEST) { zeigeAbspann(); return; }   // im Testmodus einfach von vorn
     document.getElementById('screen-abspann').classList.add('hidden');
     document.getElementById('screen-ende').classList.remove('hidden');
