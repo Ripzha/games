@@ -127,6 +127,20 @@
   .back-zutat.weg { opacity: 0; pointer-events: none; transition: opacity 0.4s, transform 0.4s;
                     transform: translate(-50%, -50%) scale(0.3); }
   .back-sagt { max-width: 700px; margin: 16px auto 0; font-size: 15px; line-height: 1.6; min-height: 3em; }
+  #screen-abspann { padding: 0; overflow: hidden; }
+  .abspann-bild { position: absolute; inset: 0; background-size: cover; background-position: center; }
+  .abspann-schleier { position: absolute; inset: 0; background: #05080a; opacity: 0.55; }
+  .abspann-schleier.dunkel { opacity: 1; transition: opacity 6s ease-in; }
+  .abspann-fenster { position: absolute; inset: 0; overflow: hidden; }
+  .abspann-rolle { position: absolute; left: 50%; transform: translateX(-50%); width: min(560px, 86vw);
+                   text-align: center; color: var(--creme); line-height: 1.7; font-size: 15px; }
+  .abspann-rolle h3 { font-family: var(--serif); font-size: 15px; font-weight: 500; letter-spacing: 2px;
+                      text-transform: uppercase; color: var(--gold); margin: 42px 0 10px; }
+  .abspann-rolle h2 { font-family: var(--serif); font-size: 26px; font-weight: 500; margin: 0 0 8px; }
+  .abspann-rolle p { margin: 0 0 4px; }
+  .abspann-rolle .klein { font-size: 13px; color: var(--sand); }
+  .abspann-rolle .luft { height: 46vh; }
+  .abspann-weg { position: absolute; right: 14px; bottom: 14px; z-index: 5; }
   .admin-liste { display: flex; flex-direction: column; gap: 10px; max-width: 640px; margin: 0 auto 16px; }
   .admin-tisch { background: rgba(255,255,255,0.05); border: 1px solid #4a5568; border-radius: 10px;
                  padding: 12px 14px; text-align: left; }
@@ -288,6 +302,15 @@
   </div>
 
   <!-- Ende -->
+  <div class="screen hidden" id="screen-abspann">
+    <div class="abspann-bild" id="abspann-bild"></div>
+    <div class="abspann-schleier" id="abspann-schleier"></div>
+    <div class="abspann-fenster" id="abspann-fenster">
+      <div class="abspann-rolle" id="abspann-rolle"></div>
+    </div>
+    <button class="knopf sekundaer abspann-weg" id="abspann-weg">Überspringen</button>
+  </div>
+
   <div class="screen hidden" id="screen-admin">
     <h2 class="back-titel">Backtische</h2>
     <p class="back-dran">Nur für dich. Hier siehst du, wer wartet, und kannst Anfisa dazusetzen.</p>
@@ -307,6 +330,7 @@
     <div class="back-tisch" id="back-tisch"></div>
     <p class="back-sagt" id="back-sagt"></p>
     <div class="knopf-reihe">
+      <button class="knopf hidden" id="abspann-knopf">Abspann</button>
       <button class="knopf sekundaer" id="back-zurueck">Zurück zum Ergebnis</button>
     </div>
   </div>
@@ -338,7 +362,7 @@
 
   // Wird bei jedem Paket neu gesetzt. Steht unten im Startbildschirm, damit man
   // sofort sieht, welche Fassung gerade live ist.
-  const BAUSTAND = '28.10.2026 13:27';
+  const BAUSTAND = '28.10.2026 13:32';
   const SPEICHER_KEY = 'ostern_fortschritt';
   const HINWEISE_GESAMT = 3;
   // Gemeinsamer Faktor für alle Eier. Die Radien in EIER bleiben, hier wird
@@ -2968,6 +2992,7 @@
     if (wer) wer.textContent = (zustand.name || 'Du') + ' backt mit Aci'
       + (zustand.anfisaHilft ? ' und Anfisa.' : '.');
     const dran = document.getElementById('back-dran');
+    document.getElementById('abspann-knopf').classList.toggle('hidden', !fertig);
     if (fertig) {
       dran.innerHTML = 'Der Kulitsch ist fertig.';
       document.getElementById('back-sagt').textContent =
@@ -3087,6 +3112,109 @@
       }
     } catch (e) { /* egal, nächster Versuch */ }
   }
+
+  // =====================================================================
+  // ABSPANN
+  // Der Text steht als Liste hier, damit du ihn ohne HTML ändern kannst.
+  // 'titel' ist eine Überschrift, 'zeile' eine Zeile, 'klein' eine leise
+  // Zeile darunter, 'luft' ein Abstand.
+  // =====================================================================
+  const ABSPANN = [
+    { art: 'luft' },
+    { art: 'gross', text: 'Acis Eiersuche' },
+    { art: 'klein', text: 'Ein Osterspiel für simsforumrpg.de' },
+
+    { art: 'titel', text: 'Danke fürs Spielen' },
+    { art: 'zeile', text: 'Du hast alle Eier gefunden und den Kulitsch' },
+    { art: 'zeile', text: 'mit Aci und Anfisa fertig gebacken.' },
+
+    { art: 'titel', text: 'Idee und Spielentwurf' },
+    { art: 'zeile', text: 'Ripzha' },
+
+    { art: 'titel', text: 'Bilder und Bildbearbeitung' },
+    { art: 'zeile', text: 'Ripzha' },
+    { art: 'klein', text: 'erstellt mit ChatGPT' },
+
+    { art: 'titel', text: 'Figuren und Texte' },
+    { art: 'zeile', text: 'Ripzha' },
+
+    { art: 'titel', text: 'Programmierung' },
+    { art: 'zeile', text: 'Claude' },
+    { art: 'klein', text: 'Anthropic' },
+
+    { art: 'titel', text: 'Rätsel und Spielablauf' },
+    { art: 'zeile', text: 'Ripzha und Claude' },
+
+    { art: 'titel', text: 'Tonaufnahmen' },
+    { art: 'zeile', text: 'erstellt mit ElevenLabs' },
+    { art: 'klein', text: 'Fernseher, Kühlschrank, Sicherung,' },
+    { art: 'klein', text: 'Lichtschalter und Stimmen gerechnet' },
+
+    { art: 'titel', text: 'Technik' },
+    { art: 'zeile', text: 'HTML, CSS und JavaScript, ohne Baukasten' },
+    { art: 'zeile', text: 'Supabase für Gruppen und Backtische' },
+    { art: 'zeile', text: 'GitHub Pages' },
+
+    { art: 'titel', text: 'Es spielten' },
+    { art: 'zeile', text: 'Aci' },
+    { art: 'zeile', text: 'Anfisa' },
+    { art: 'klein', text: 'und ein Kater, der nie auftaucht' },
+
+    { art: 'titel', text: 'Gebacken wurde' },
+    { art: 'zeile', text: 'ein Kulitsch' },
+    { art: 'klein', text: 'Hefe, Mehl, Butter, Kardamom, Safran, Rosinen' },
+
+    { art: 'titel', text: 'Für' },
+    { art: 'zeile', text: 'die Community von simsforumrpg.de' },
+
+    { art: 'luft' },
+    { art: 'klein', text: 'Ostern 2027' },
+    { art: 'luft' }
+  ];
+
+  function abspannBauen() {
+    const r = document.getElementById('abspann-rolle');
+    r.innerHTML = ABSPANN.map(e => {
+      if (e.art === 'luft')  return '<div class="luft"></div>';
+      if (e.art === 'titel') return '<h3>' + e.text + '</h3>';
+      if (e.art === 'gross') return '<h2>' + e.text + '</h2>';
+      if (e.art === 'klein') return '<p class="klein">' + e.text + '</p>';
+      return '<p>' + e.text + '</p>';
+    }).join('');
+  }
+
+  let abspannLauf = null;
+  function zeigeAbspann() {
+    const bild = document.getElementById('abspann-bild');
+    bild.style.backgroundImage = 'url(' + BACK_FERTIG + ')';
+    document.getElementById('abspann-schleier').classList.remove('dunkel');
+    abspannBauen();
+    document.getElementById('screen-backen').classList.add('hidden');
+    document.getElementById('screen-abspann').classList.remove('hidden');
+
+    const r = document.getElementById('abspann-rolle');
+    const fenster = document.getElementById('abspann-fenster');
+    r.style.transition = 'none';
+    r.style.top = fenster.clientHeight + 'px';
+    // Tempo: rund 60 Pixel je Sekunde, unabhängig von der Textlänge
+    const weg = r.scrollHeight + fenster.clientHeight;
+    const dauer = Math.round(weg / 60);
+    requestAnimationFrame(() => {
+      r.style.transition = 'top ' + dauer + 's linear';
+      r.style.top = (-r.scrollHeight) + 'px';
+    });
+    clearTimeout(abspannLauf);
+    // Kurz vor Schluss wird das Bild schwarz
+    abspannLauf = setTimeout(() => {
+      document.getElementById('abspann-schleier').classList.add('dunkel');
+    }, Math.max(1000, (dauer - 7) * 1000));
+  }
+  document.getElementById('abspann-knopf').onclick = zeigeAbspann;
+  document.getElementById('abspann-weg').onclick = () => {
+    clearTimeout(abspannLauf);
+    document.getElementById('screen-abspann').classList.add('hidden');
+    document.getElementById('screen-ende').classList.remove('hidden');
+  };
 
   // ---- Adminansicht ----
   async function renderAdmin() {
