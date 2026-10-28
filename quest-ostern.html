@@ -344,7 +344,7 @@
 
   // Wird bei jedem Paket neu gesetzt. Steht unten im Startbildschirm, damit man
   // sofort sieht, welche Fassung gerade live ist.
-  const BAUSTAND = '28.10.2026 09:59';
+  const BAUSTAND = '28.10.2026 10:00';
   const SPEICHER_KEY = 'ostern_fortschritt';
   const HINWEISE_GESAMT = 3;
   // Gemeinsamer Faktor für alle Eier. Die Radien in EIER bleiben, hier wird
@@ -2548,7 +2548,7 @@
         // nächsten Antippen, statt sofort nach der Gabe.
         if (t.dannWeg && zustand.offen[t.dannWeg.wenn] && !zustand.offen[t.dannWeg.setzt]) {
           zustand.offen[t.dannWeg.setzt] = true;
-          klang('stoff');
+          klang('schritt');   // sie steht auf und geht
           renderRaum(); speichern();
           schweig();
           return;
@@ -2562,7 +2562,8 @@
           if (bed.some(k => zustand.offen[k]) && neu < t.mindestPhase.phase) neu = t.mindestPhase.phase;
         }
         zustand.offen[t.zustand] = neu;
-        klang('stoff');
+        // Figuren bekommen beim Antippen keinen Ton. Sie reden ja.
+        if (t.klang) klang(t.klang);
         aktualisiereSichtbarkeit(); speichern();
         const ph = t.phasen[neu] || {};
         let spruch = ph.text;
