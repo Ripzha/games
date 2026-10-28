@@ -365,7 +365,7 @@
 
   // Wird bei jedem Paket neu gesetzt. Steht unten im Startbildschirm, damit man
   // sofort sieht, welche Fassung gerade live ist.
-  const BAUSTAND = '28.10.2026 14:03';
+  const BAUSTAND = '28.10.2026 14:18';
   const SPEICHER_KEY = 'ostern_fortschritt';
   const HINWEISE_GESAMT = 3;
   // Gemeinsamer Faktor für alle Eier. Die Radien in EIER bleiben, hier wird
@@ -2244,12 +2244,23 @@
       document.body.appendChild(box);
     }
     const fehlt = meineEier().filter(e => !zustand.gefunden.includes(e.id));
+    const zutaten = TEILE.filter(t => t.gibt && fuerMich(t)
+      && ['hefe', 'butter', 'safran', 'mehl', 'kardamom', 'rosinen'].includes(t.gibt)
+      && !zustand.offen[t.zustand]);
     box.innerHTML = '<b>Gruppe ' + zustand.gruppe + ' — noch offen: ' + fehlt.length + ' von ' + meineEier().length + '</b><br>'
       + fehlt.map(e => {
           const a = ANSICHTEN.find(x => x.id === e.ansicht) || {};
           const bed = e.sichtbarWenn ? ' [' + [].concat(e.sichtbarWenn).join('+') + ']' : '';
           return e.id + ' — ' + (a.name || e.ansicht) + ' ' + e.x + ',' + e.y + bed;
-        }).join('<br>');
+        }).join('<br>')
+      + (zutaten.length
+          ? '<br><b>Zutaten: ' + zutaten.length + ' offen</b><br>'
+            + zutaten.map(t => {
+                const a = ANSICHTEN.find(x => x.id === t.ansicht) || {};
+                const bed = t.sichtbarWenn ? ' [' + [].concat(t.sichtbarWenn).join('+') + ']' : '';
+                return t.gibt + ' — ' + (a.name || t.ansicht) + ' ' + t.x + ',' + t.y + bed;
+              }).join('<br>')
+          : '<br><b>Zutaten: alle gefunden</b>');
   }
 
 
@@ -2617,11 +2628,12 @@
         pcMarkiere(t.id);
         klang('klick');
         if (!schonInDerHand) {
-          sag(zustand.offen.pc_gelernt
-            ? t.label + ' in der Hand.'
-            : t.label + ' in der Hand. Auf einen Ordner ziehen oder den Ordner antippen. Nochmal antippen zeigt, was drinsteht.');
-          zustand.offen.pc_gelernt = true;
-          speichern();
+          // Einmal erklären, danach schweigen
+          if (!zustand.offen.pc_gelernt) {
+            sag(t.label + ' in der Hand. Auf einen Ordner ziehen oder den Ordner antippen. Nochmal antippen zeigt, was drinsteht.');
+            zustand.offen.pc_gelernt = true;
+            speichern();
+          } else schweig();
           return;
         }
         dateiFenster(t);
@@ -2643,11 +2655,10 @@
         const rest = TEILE.filter(x => x.ansicht === t.ansicht && x.typ === 'datei' && !zustand.offen[x.zustand]);
         if (!rest.length && t.fertig) zustand.offen[t.fertig] = true;
         renderRaum(); speichern();
-        sag(rest.length
-          ? (rest.length === 1
-              ? 'Einsortiert. Noch eine Datei liegt herum.'
-              : 'Einsortiert. Noch ' + rest.length + ' Dateien liegen herum.')
-          : 'Schreibtisch leer. Darunter liegt eine Datei, die vorher niemand gesehen hat.');
+        // Nur der letzte Griff wird kommentiert. Vorher sagt Aci nichts, das
+        // Verschwinden der Datei ist Rückmeldung genug.
+        if (!rest.length) sag('Schreibtisch leer. Darunter liegt eine Datei, die vorher niemand gesehen hat.');
+        else schweig();
         return;
       }
       case 'info':
