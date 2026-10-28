@@ -102,6 +102,8 @@
   /* ---------- Screens ---------- */
   .screen { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 24px; z-index: 40; text-align: center; background: rgba(10,18,12,0.88); transition: opacity 0.4s, visibility 0.4s; }
   .screen.hidden { opacity: 0; visibility: hidden; pointer-events: none; }
+  .baustand { position: absolute; bottom: 10px; right: 14px; margin: 0; font-size: 11px;
+              color: rgba(230,224,200,0.45); font-family: monospace; letter-spacing: 0.3px; }
   .screen h1 { font-family: var(--serif); font-size: clamp(26px, 5vw, 38px); font-weight: 500; margin: 0 0 6px; }
   .screen h1 em { font-style: italic; color: var(--gold-hell); }
   .untertitel { color: var(--himmel-text); font-size: 14px; margin: 0 0 20px; }
@@ -273,6 +275,7 @@
       <button class="knopf" id="start-knopf">Suchen</button>
       <button class="knopf sekundaer" id="neu-knopf" style="display:none">Von vorn anfangen</button>
     </div>
+    <p class="baustand" id="baustand"></p>
   </div>
 
   <!-- Ende -->
@@ -281,6 +284,7 @@
     <p class="back-dran">Nur für dich. Hier siehst du, wer wartet, und kannst Anfisa dazusetzen.</p>
     <div class="admin-liste" id="admin-liste"></div>
     <p class="back-sagt" id="admin-hinweis"></p>
+    <p class="baustand" id="baustand-admin"></p>
     <div class="knopf-reihe">
       <button class="knopf sekundaer" id="admin-neu">Neu laden</button>
       <a class="knopf sekundaer" href="quest-ostern.html">Zum Spiel</a>
@@ -325,6 +329,9 @@
   // =====================================================================
   const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwxKRKsfh_2YFkS5a5kpDYWSQImA1lEq3ndnVJj4YpPqWcLrqmUinp-l4WA93e5U79MPA/exec';
   const SPIEL_ID = 'ostern';
+  // Wird bei jedem Paket neu gesetzt. Steht unten im Startbildschirm, damit man
+  // sofort sieht, welche Fassung gerade live ist.
+  const BAUSTAND = '28.10.2026 06:52';
   const SPEICHER_KEY = 'ostern_fortschritt';
   const HINWEISE_GESAMT = 3;
   // Gemeinsamer Faktor für alle Eier. Die Radien in EIER bleiben, hier wird
@@ -2856,7 +2863,7 @@
     k.innerHTML = '<div class="kopf">Tisch 1 — du als Gruppe ' + meine + '</div>'
       + '<div class="zeile">' + (fertig ? 'Teig fertig.' : 'Schritt ' + (i + 1) + ' von ' + BACK_SCHRITTE.length
           + ', dran ist Gruppe ' + BACK_SCHRITTE[i].gruppe + '.')
-      + ' Gruppe ' + andere + ': ' + (zustand.anfisaHilft ? 'Anfisa übernimmt.' : 'niemand da.') + '</div>';
+      + ' Mitspieler für Gruppe ' + andere + ': ' + (zustand.anfisaHilft ? 'Anfisa übernimmt.' : 'noch niemand.') + '</div>';
     if (!zustand.anfisaHilft) {
       const b = document.createElement('button');
       b.className = 'knopf sekundaer';
@@ -2983,6 +2990,10 @@
   // =====================================================================
   // START
   // =====================================================================
+  ['baustand', 'baustand-admin'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.textContent = 'Stand ' + BAUSTAND;
+  });
   const hatte = fortschrittLaden();
   // Gruppe steht ab dem ersten Start fest. Später kommt sie aus der Datenbank,
   // damit A und B gleichmässig verteilt werden.
