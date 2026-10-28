@@ -362,7 +362,7 @@
 
   // Wird bei jedem Paket neu gesetzt. Steht unten im Startbildschirm, damit man
   // sofort sieht, welche Fassung gerade live ist.
-  const BAUSTAND = '28.10.2026 13:32';
+  const BAUSTAND = '28.10.2026 13:33';
   const SPEICHER_KEY = 'ostern_fortschritt';
   const HINWEISE_GESAMT = 3;
   // Gemeinsamer Faktor für alle Eier. Die Radien in EIER bleiben, hier wird
@@ -2179,7 +2179,7 @@
         renderRaum();
       }
       waehle(null, true); klang('fehler'); speichern();
-      sag(greift.antwort || 'So nicht.', teil.sprecher || teil.label);
+      sag(greift.antwort || 'So nicht.', teil.sprecher);
       return false;
     }
     // Teil mit code: Der Gegenstand allein reicht nicht, erst kommt die Abfrage.
@@ -2203,14 +2203,14 @@
       renderRaum();
       speichern();
       const text = fehltNoch ? gabe.antwort : teil.antwort;
-      if (text) sag(text, teil.sprecher || teil.label);
+      if (text) sag(text, teil.sprecher);
       return true;
     }
 
     // Fehlt noch etwas aus der Liste?
     if (noetig.some(id => !zustand.inventar.includes(id))) {
       waehle(null, true); klang('fehler');
-      sag(teil.fehlt || 'Da fehlt noch was.', teil.sprecher || teil.label);
+      sag(teil.fehlt || 'Da fehlt noch was.', teil.sprecher);
       return false;
     }
 
@@ -2222,7 +2222,7 @@
     klang('nehmen');
     renderRaum();
     speichern();
-    if (teil.antwort) sag(teil.antwort, teil.sprecher || teil.label);
+    if (teil.antwort) sag(teil.antwort, teil.sprecher);
     return true;
   }
 
@@ -2551,7 +2551,7 @@
       case 'overlay':
       case 'ziel':
         // Ohne Gegenstand in der Hand sagt das Ziel, was ihm fehlt
-        if (t.leer) sag(t.leer, t.sprecher || t.label);
+        if (t.leer) sag(t.leer, t.sprecher);
         return;
       case 'phasen': {
         // dannWeg: die Figur hat schon alles bekommen und verschwindet beim
@@ -2589,7 +2589,7 @@
           spruchZaehler[schluessel] = i + 1;
           spruch = ph.texte[i];
         }
-        if (spruch) sag(spruch, t.sprecher || t.label); else schweig();
+        if (spruch) sag(spruch, t.sprecher); else schweig();
         break;
       }
       case 'toggle':
@@ -2660,7 +2660,7 @@
   function kommentar(t) {
     if (t.sagtNichtWenn && zustand.offen[t.sagtNichtWenn]) return;
     const satz = zustand.offen[t.zustand] ? t.sagtAn : t.sagtAus;
-    if (satz) sag(satz, t.sprecher || t.label);
+    if (satz) sag(satz, t.sprecher);
   }
 
   let aktivesRaetsel = null;
@@ -2771,6 +2771,9 @@
 
   function sag(text, wer) {
     const d = document.getElementById('dialog');
+    // Ohne ausdrücklichen Sprecher redet Aci. Gegenstände reden nicht —
+    // ein „Nagel in der Wand: Hängt wieder gerade" klang nach Möbelstück
+    // mit Meinung.
     const name = wer || 'Aci';
     const stimme = STIMMEN[name] || STIMME_STANDARD;
     document.getElementById('dialog-wer').textContent = name;
