@@ -344,7 +344,7 @@
 
   // Wird bei jedem Paket neu gesetzt. Steht unten im Startbildschirm, damit man
   // sofort sieht, welche Fassung gerade live ist.
-  const BAUSTAND = '28.10.2026 09:46';
+  const BAUSTAND = '28.10.2026 09:58';
   const SPEICHER_KEY = 'ostern_fortschritt';
   const HINWEISE_GESAMT = 3;
   // Gemeinsamer Faktor für alle Eier. Die Radien in EIER bleiben, hier wird
@@ -2760,6 +2760,7 @@
   const TON_LAUT = 0.22;
   // Einzelne Töne stechen heraus und werden zusätzlich gedämpft. 1 = unverändert.
   const TON_FEIN = {
+    schranktuer: 0.4,  // kleine Schranktüren hört man sonst aus jedem Zimmer
     keramik: 0.7,   // das Zerschlagen ist von sich aus das lauteste
     glas: 0.75,     // Klopfen ans Aquarium, dreimal hintereinander
     klick: 0.7,     // hart und spitz
@@ -2774,8 +2775,12 @@
     sicherung: 0.85,
     schalter: 0.8
   };
+  // Hier stehen die Töne, die als Aufnahme abgespielt werden. Wer heraus-
+  // fliegt, bekommt wieder den erzeugten Klang — einfach aus der Liste nehmen.
   const TOENE = ['schublade', 'schranktuer', 'kistendeckel', 'tuer', 'klappe', 'metall',
-                 'stoff', 'nehmen', 'ei', 'keramik', 'glas', 'wasser', 'klick', 'schritt', 'tv_aus', 'tv_an', 'sicherung', 'schalter'];
+                 'stoff', 'ei', 'keramik', 'glas', 'wasser', 'klick', 'schritt',
+                 'tv_aus', 'tv_an', 'sicherung', 'schalter'];
+  // 'nehmen' ist bewusst nicht dabei: das Aufsammeln klingt erzeugt besser.
   const tonPuffer = {};
   TOENE.forEach(name => {
     const a = new Audio('ostern/toene/' + name + '.mp3');
