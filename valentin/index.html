@@ -1342,7 +1342,8 @@ function schritt() {
 
   const tippt = document.activeElement === satzfeld;
   const redet = Date.now() < blasenBis;
-  const untaetig = !tippt && !redet && !offenerPunkt && (Date.now() - letzteBewegung > UNTAETIG_NACH);
+  const untaetig = !tippt && !redet && !offenerPunkt && !editModus &&
+                   (Date.now() - letzteBewegung > UNTAETIG_NACH);
 
   malen(untaetig);
   requestAnimationFrame(schritt);
@@ -1437,6 +1438,7 @@ function malen(untaetig) {
   }
 
   umrissMalen();
+  editMalen();
 
   document.getElementById("kopf").textContent = weite > 0.5
     ? "Übersicht"
@@ -1663,7 +1665,98 @@ function umrissMalen() {
   });
 }
 
+// ======================================================================
+// Einrichtmodus: Seite mit ?edit aufrufen.
+// Rote Linie = Standlinie, blaue Linien = linker und rechter Anschlag.
+// Mit der Maus ziehen. Unten steht die Liste zum Weitergeben.
+// ======================================================================
+const editModus = new URLSearchParams(location.search).has("edit");
+let zieht = null;
+let editFeld = null;
+
+if (editModus) {
+  document.getElementById("hilfe").innerHTML =
+    "Einrichtmodus<br>rote Linie = Standlinie<br>blaue Linien = Anschläge<br>A und D wechseln den Raum";
+
+  editFeld = document.createElement("textarea");
+  editFeld.readOnly = true;
+  editFeld.style.cssText = "width:100%;height:150px;margin-top:12px;background:#0f0e0c;" +
+    "color:#a9d6a0;border:1px solid #332f24;border-radius:6px;padding:10px;" +
+    "font-family:ui-monospace,Menlo,monospace;font-size:12px";
+  document.getElementById("huelle").appendChild(editFeld);
+
+  const stelle = (e) => {
+    const r = leinwand.getBoundingClientRect();
+    const L = lage();
+    const px = ((e.clientX - r.left) / r.width) * leinwand.width;
+    const py = ((e.clientY - r.top) / r.height) * leinwand.height;
+    const weltPx = px - leinwand.width / 2 + (L.x[raumNr] + L.breit[raumNr] / 2);
+    return {
+      x: ((weltPx - L.x[raumNr]) / L.breit[raumNr]) * 100,
+      y: (py / leinwand.height) * 100
+    };
+  };
+
+  leinwand.addEventListener("mousedown", (e) => {
+    const raum = RAEUME[raumNr];
+    const s = stelle(e);
+    const abstand = [
+      ["boden", Math.abs(s.y - raum.boden) * 2],
+      ["links", Math.abs(s.x - raum.links)],
+      ["rechts", Math.abs(s.x - raum.rechts)]
+    ].sort((a, b) => a[1] - b[1])[0];
+    if (abstand[1] < 6) zieht = abstand[0];
+  });
+  addEventListener("mousemove", (e) => {
+    if (!zieht) return;
+    const raum = RAEUME[raumNr];
+    const s = stelle(e);
+    if (zieht === "boden") raum.boden = Math.round(Math.max(5, Math.min(100, s.y)) * 10) / 10;
+    else raum[zieht] = Math.round(Math.max(0, Math.min(100, s.x)) * 10) / 10;
+    editAusgeben();
+  });
+  addEventListener("mouseup", () => { zieht = null; });
+}
+
+function editAusgeben() {
+  if (!editFeld) return;
+  editFeld.value = RAEUME
+    .filter((r) => r.bild)
+    .map((r) => '"' + r.name + '": { "boden": ' + r.boden +
+                ', "links": ' + r.links + ', "rechts": ' + r.rechts + ' },')
+    .join("\n");
+}
+
+function editMalen() {
+  if (!editModus) return;
+  const raum = RAEUME[raumNr];
+  const B = leinwand.width, H = leinwand.height;
+  const L = lage();
+  const links = B / 2 - L.breit[raumNr] / 2;
+  const pxX = (pct) => links + (pct / 100) * L.breit[raumNr];
+
+  stift.setTransform(1, 0, 0, 1, 0, 0);
+  // Standlinie
+  stift.strokeStyle = "#ff4d4d"; stift.lineWidth = 3;
+  stift.beginPath();
+  stift.moveTo(0, (raum.boden / 100) * H); stift.lineTo(B, (raum.boden / 100) * H);
+  stift.stroke();
+  // Anschläge
+  stift.strokeStyle = "#4dd2ff";
+  [raum.links, raum.rechts].forEach((pct) => {
+    stift.beginPath();
+    stift.moveTo(pxX(pct), 0); stift.lineTo(pxX(pct), H);
+    stift.stroke();
+  });
+  // Werte anschreiben
+  stift.fillStyle = "#ffe08a";
+  stift.font = Math.round(H * 0.035) + "px -apple-system, sans-serif";
+  stift.fillText(raum.name + "   boden " + raum.boden +
+                 "   links " + raum.links + "   rechts " + raum.rechts, 16, H * 0.95);
+}
+
 groesseAnpassen();
+if (editModus) editAusgeben();
 schritt();
 </script>
 </body>
