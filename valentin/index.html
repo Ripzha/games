@@ -91,7 +91,7 @@ const RAEUME = [
     "etage": 0,
     "spalte": 0,
     "bild": "bilder/salon.jpg",
-    "boden": 88,
+    "boden": 94.3,
     "links": 8,
     "rechts": 92,
     "vordergrundbild": "",
@@ -299,7 +299,7 @@ const RAEUME = [
     "etage": 0,
     "spalte": 2,
     "bild": "bilder/bad.jpg",
-    "boden": 88,
+    "boden": 85.6,
     "links": 8,
     "rechts": 92,
     "vordergrundbild": "",
@@ -500,7 +500,7 @@ const RAEUME = [
     "etage": 1,
     "spalte": 0,
     "bild": "bilder/spielzimmer.jpg",
-    "boden": 93,
+    "boden": 94.9,
     "links": 8,
     "rechts": 92,
     "vordergrundbild": "",
@@ -527,7 +527,7 @@ const RAEUME = [
     "etage": 1,
     "spalte": 2,
     "bild": "bilder/schlafzimmer.jpg",
-    "boden": 92,
+    "boden": 93.1,
     "links": 8,
     "rechts": 92,
     "vordergrundbild": "",
@@ -612,7 +612,7 @@ const RAEUME = [
     "etage": 2,
     "spalte": 0,
     "bild": "bilder/bambusbad.jpg",
-    "boden": 92,
+    "boden": 93.8,
     "links": 8,
     "rechts": 92,
     "vordergrundbild": "",
@@ -761,68 +761,11 @@ const RAEUME = [
     "etage": 3,
     "spalte": 0,
     "bild": "bilder/dachterrasse.png",
-    "boden": 78,
+    "boden": 78.2,
     "links": 8,
     "rechts": 92,
     "vordergrundbild": "",
-    "vorne": [
-      {
-        "umriss": [
-          [
-            0,
-            58
-          ],
-          [
-            8,
-            60
-          ],
-          [
-            16,
-            63
-          ],
-          [
-            26,
-            66
-          ],
-          [
-            38,
-            67.5
-          ],
-          [
-            50,
-            68
-          ],
-          [
-            62,
-            67.5
-          ],
-          [
-            74,
-            66
-          ],
-          [
-            84,
-            63
-          ],
-          [
-            92,
-            60
-          ],
-          [
-            100,
-            58
-          ],
-          [
-            100,
-            100
-          ],
-          [
-            0,
-            100
-          ]
-        ]
-      }
-    ],
+    "vorne": [],
     "punkte": [
       {
         "von": 73.9,
@@ -855,7 +798,7 @@ const RAEUME = [
     "etage": 0,
     "spalte": 3,
     "bild": "bilder/garten.jpg",
-    "boden": 92,
+    "boden": 87,
     "links": 8,
     "rechts": 92,
     "vordergrundbild": "",
@@ -884,7 +827,7 @@ const RAEUME = [
     "etage": 0,
     "spalte": 4,
     "bild": "bilder/kueche.jpg",
-    "boden": 93,
+    "boden": 79.5,
     "links": 8,
     "rechts": 92,
     "vorne": [
@@ -954,7 +897,7 @@ const RAEUME = [
     "spalte": 4,
     "geheim": true,
     "bild": "bilder/geheimraum.jpg",
-    "boden": 93,
+    "boden": 88.9,
     "links": 8,
     "rechts": 92,
     "vorne": [],
@@ -974,7 +917,7 @@ const RAEUME = [
     "etage": 3,
     "spalte": 4,
     "bild": "bilder/vampirzimmer.jpg",
-    "boden": 92,
+    "boden": 81.8,
     "links": 8,
     "rechts": 92,
     "vorne": [],
@@ -1208,6 +1151,7 @@ let blenden = 0, blendZiel = null;
 let letzteBewegung = Date.now();
 let weite = 0;
 let kameraMerk = 0;              // letzte Kameramitte, für den Himmel
+let massstabMerk = 1;            // letzter Massstab, für den Einrichtmodus
 let offenerPunkt = null;
 let geheimOffen = false;         // wird wahr, sobald das Rätsel gelöst ist
 
@@ -1385,6 +1329,7 @@ function malen(untaetig) {
   }
   const kameraX = mitteNah + ((L.min + L.max) / 2 - mitteNah) * weite;
   kameraMerk = kameraX;
+  massstabMerk = massstab;
   const kameraY = (weltY(raumNr) + H / 2) + ((ZEILEN * H) / 2 - (weltY(raumNr) + H / 2)) * weite;
 
   himmelMalen(massstab, kameraX, kameraY);
@@ -1690,7 +1635,7 @@ if (editModus) {
     const L = lage();
     const px = ((e.clientX - r.left) / r.width) * leinwand.width;
     const py = ((e.clientY - r.top) / r.height) * leinwand.height;
-    const weltPx = px - leinwand.width / 2 + (L.x[raumNr] + L.breit[raumNr] / 2);
+    const weltPx = (px - leinwand.width / 2) / massstabMerk + kameraMerk;
     return {
       x: ((weltPx - L.x[raumNr]) / L.breit[raumNr]) * 100,
       y: (py / leinwand.height) * 100
@@ -1732,8 +1677,8 @@ function editMalen() {
   const raum = RAEUME[raumNr];
   const B = leinwand.width, H = leinwand.height;
   const L = lage();
-  const links = B / 2 - L.breit[raumNr] / 2;
-  const pxX = (pct) => links + (pct / 100) * L.breit[raumNr];
+  const pxX = (pct) =>
+    (L.x[raumNr] + (pct / 100) * L.breit[raumNr] - kameraMerk) * massstabMerk + B / 2;
 
   stift.setTransform(1, 0, 0, 1, 0, 0);
   // Standlinie
