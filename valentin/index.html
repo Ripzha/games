@@ -80,35 +80,1224 @@
 //    links/rechts= wie weit die Figur laufen darf, in Prozent
 //    punkte      = Stellen zum Ansprechen
 // ======================================================================
+// etage 0 = Erdgeschoss, 1 = erster Stock. Innerhalb einer Etage liegen die
+// Räume in der Reihenfolge nebeneinander, in der sie hier stehen.
+// etage 0 = Erdgeschoss. Alle Prozentangaben beziehen sich auf das
+// zugeschnittene Raumbild: boden = Standlinie, links/rechts = Laufbereich,
+// vorne = Umrisse vor der Figur, punkte = Stellen zum Ansprechen.
 const RAEUME = [
   {
-    name: "Salon",
-    bild: "bilder/salon.jpg",
-    boden: 74,
-    links: 6, rechts: 95,
-    vorne: [
-      { x: 4.6, y: 53.5, b: 19, h: 23 }      // das Klavier samt Hocker
+    "name": "Salon",
+    "etage": 0,
+    "spalte": 0,
+    "bild": "bilder/salon.jpg",
+    "boden": 94,
+    "links": 5.2,
+    "rechts": 95.7,
+    "vordergrundbild": "",
+    "vorne": [
+      {
+        "umriss": [
+          [
+            4.8,
+            72.8
+          ],
+          [
+            5.2,
+            72.3
+          ],
+          [
+            5.7,
+            71.6
+          ],
+          [
+            6.1,
+            70.4
+          ],
+          [
+            6.5,
+            68.9
+          ],
+          [
+            6.9,
+            68
+          ],
+          [
+            7.3,
+            67.4
+          ],
+          [
+            7.7,
+            66.7
+          ],
+          [
+            8.1,
+            66.2
+          ],
+          [
+            8.5,
+            66.7
+          ],
+          [
+            8.9,
+            66.3
+          ],
+          [
+            9.3,
+            66.2
+          ],
+          [
+            9.7,
+            65.8
+          ],
+          [
+            10.1,
+            65.8
+          ],
+          [
+            10.5,
+            65.6
+          ],
+          [
+            10.9,
+            65.5
+          ],
+          [
+            11.3,
+            65.5
+          ],
+          [
+            11.8,
+            65.5
+          ],
+          [
+            12.2,
+            65.6
+          ],
+          [
+            12.6,
+            65.8
+          ],
+          [
+            13,
+            66.3
+          ],
+          [
+            13.4,
+            66.8
+          ],
+          [
+            13.8,
+            67.5
+          ],
+          [
+            14.2,
+            68.2
+          ],
+          [
+            14.6,
+            68.5
+          ],
+          [
+            15,
+            69.1
+          ],
+          [
+            15.4,
+            69.4
+          ],
+          [
+            15.8,
+            69.7
+          ],
+          [
+            16.2,
+            70.1
+          ],
+          [
+            16.6,
+            70.2
+          ],
+          [
+            17,
+            70.4
+          ],
+          [
+            17.4,
+            70.9
+          ],
+          [
+            17.9,
+            70.9
+          ],
+          [
+            18.3,
+            70.9
+          ],
+          [
+            18.7,
+            70.9
+          ],
+          [
+            19.1,
+            70.9
+          ],
+          [
+            19.5,
+            70.9
+          ],
+          [
+            19.9,
+            70.9
+          ],
+          [
+            20.3,
+            72.6
+          ],
+          [
+            20.7,
+            74.7
+          ],
+          [
+            21.1,
+            74.7
+          ],
+          [
+            21.8,
+            76
+          ],
+          [
+            21.8,
+            100
+          ],
+          [
+            4.8,
+            100
+          ]
+        ]
+      }
     ],
-    punkte: [
-      { x: 13, taste: "s", zeichen: "♪", titel: "Das Klavier",
-        text: "Die Tasten sind verstimmt, aber es geht noch. Auf dem Pult liegt ein Stück, " +
-              "das für vier Hände geschrieben ist — allein kommst du nicht durch.<br><br>" +
-              "<i>Hier kommt das Klavierspiel. Zwei Leute müssen die Tasten abwechselnd " +
-              "im Takt treffen.</i>" },
-      { x: 31, taste: "w", zeichen: "!", titel: "Hinter der Bar",
-        text: "Jemand räumt Gläser ein und schaut nicht auf.<br><br>" +
-              "<i>Hier kommt der Dialog mit dem NPC. Porträt links, Text darunter, " +
-              "ein paar feste Antworten.</i>" }
+    "punkte": [
+      {
+        "x": 12.4,
+        "taste": "s",
+        "zeichen": "♪",
+        "titel": "Das Klavier",
+        "text": "Die Tasten sind verstimmt, aber es geht noch. Auf dem Pult liegt ein Stück, das für vier Hände geschrieben ist — allein kommst du nicht durch.<br><br><i>Hier kommt das Klavierspiel. Zwei Leute müssen die Tasten abwechselnd im Takt treffen.</i>"
+      },
+      {
+        "x": 30.7,
+        "taste": "w",
+        "zeichen": "!",
+        "titel": "Hinter der Bar",
+        "text": "Jemand räumt Gläser ein und schaut nicht auf.<br><br><i>Hier kommt der Dialog mit dem NPC. Porträt links, Text darunter, ein paar feste Antworten.</i>"
+      }
     ]
   },
-  { name: "Bibliothek",   bild: "", boden: 80, links: 5, rechts: 95, vorne: [], punkte: [], ton: "#333a28" },
-  { name: "Speisezimmer", bild: "", boden: 80, links: 5, rechts: 95, vorne: [], punkte: [], ton: "#3a2a2c" }
+  {
+    "name": "Bad",
+    "etage": 0,
+    "spalte": 2,
+    "bild": "bilder/bad.jpg",
+    "boden": 87.5,
+    "links": 15.2,
+    "rechts": 91.8,
+    "vordergrundbild": "",
+    "vorne": [
+      {
+        "umriss": [
+          [
+            83.4,
+            78.4
+          ],
+          [
+            83.9,
+            73.5
+          ],
+          [
+            84.4,
+            67.9
+          ],
+          [
+            84.9,
+            62.3
+          ],
+          [
+            85.5,
+            61.2
+          ],
+          [
+            86,
+            60.8
+          ],
+          [
+            86.5,
+            60.7
+          ],
+          [
+            87,
+            60.6
+          ],
+          [
+            87.6,
+            60.7
+          ],
+          [
+            88.1,
+            61.2
+          ],
+          [
+            88.6,
+            58.8
+          ],
+          [
+            89.1,
+            56.3
+          ],
+          [
+            89.7,
+            51.6
+          ],
+          [
+            90.2,
+            50.3
+          ],
+          [
+            90.7,
+            49.4
+          ],
+          [
+            91.2,
+            50.7
+          ],
+          [
+            91.8,
+            50.7
+          ],
+          [
+            92.3,
+            49.6
+          ],
+          [
+            92.8,
+            48.3
+          ],
+          [
+            93.3,
+            48.3
+          ],
+          [
+            93.9,
+            49.2
+          ],
+          [
+            94.4,
+            50.7
+          ],
+          [
+            94.9,
+            59.5
+          ],
+          [
+            95.4,
+            58.4
+          ],
+          [
+            96,
+            61.6
+          ],
+          [
+            96,
+            92.2
+          ],
+          [
+            83.4,
+            92.2
+          ]
+        ]
+      }
+    ],
+    "punkte": [
+      {
+        "x": 39.3,
+        "taste": "w",
+        "zeichen": "?",
+        "titel": "Der Spiegel",
+        "text": "Du siehst aus, als hättest du auf dem Boden geschlafen. Am Kragen klebt etwas, das du nicht zuordnen kannst.<br><br><i>Hier kommt ein Hinweis aus der eigenen Kette.</i>"
+      },
+      {
+        "x": 70.8,
+        "taste": "s",
+        "zeichen": "♦",
+        "titel": "Der Hocker",
+        "text": "Ein Kinderhocker steht mitten im Raum, weit weg von allem. Jemand hat ihn hierher gezogen und ist nicht zurückgekommen.<br><br><i>Platzhalter für eine Aufgabe.</i>"
+      }
+    ]
+  },
+  {
+    "name": "Treppenhaus",
+    "etage": 0,
+    "spalte": 1,
+    "treppenhaus": true,
+    "breite": 0.11,
+    "bild": "",
+    "boden": 80,
+    "links": 14,
+    "rechts": 86,
+    "vorne": [],
+    "punkte": [
+      {
+        "von": 40,
+        "bis": 60,
+        "taste": "w",
+        "zeichen": "↑",
+        "titel": "Nach oben",
+        "treppe": {
+          "raum": 3,
+          "x": 50
+        }
+      }
+    ]
+  },
+  {
+    "name": "Treppenhaus",
+    "etage": 1,
+    "spalte": 1,
+    "treppenhaus": true,
+    "breite": 0.11,
+    "bild": "",
+    "boden": 80,
+    "links": 14,
+    "rechts": 86,
+    "vorne": [],
+    "punkte": [
+      {
+        "von": 40,
+        "bis": 60,
+        "taste": "s",
+        "zeichen": "↓",
+        "titel": "Nach unten",
+        "treppe": {
+          "raum": 2,
+          "x": 50
+        }
+      },
+      {
+        "von": 40,
+        "bis": 60,
+        "taste": "w",
+        "zeichen": "↑",
+        "titel": "Nach oben",
+        "treppe": {
+          "raum": 7,
+          "x": 50
+        }
+      }
+    ]
+  },
+  {
+    "name": "Spielzimmer",
+    "etage": 1,
+    "spalte": 0,
+    "bild": "bilder/spielzimmer.jpg",
+    "boden": 92.7,
+    "links": 4.9,
+    "rechts": 95.2,
+    "vordergrundbild": "",
+    "vorne": [],
+    "punkte": [
+      {
+        "x": 17.2,
+        "taste": "w",
+        "zeichen": "●",
+        "titel": "Die Tischtennisplatte",
+        "text": "Zwei Schläger liegen da, einer auf jeder Seite. Der Ball ist unter die Platte gerollt.<br><br><i>Platzhalter für eine Aufgabe zu zweit.</i>"
+      },
+      {
+        "x": 89,
+        "taste": "w",
+        "zeichen": "★",
+        "titel": "Der Automat",
+        "text": "Er läuft noch. Auf dem Bildschirm steht ein Name aus drei Buchstaben, und die Punktzahl ist von heute Nacht.<br><br><i>Platzhalter für einen Hinweis.</i>"
+      }
+    ]
+  },
+  {
+    "name": "Schlafzimmer",
+    "etage": 1,
+    "spalte": 2,
+    "bild": "bilder/schlafzimmer.jpg",
+    "boden": 92.1,
+    "links": 4.1,
+    "rechts": 88.5,
+    "vordergrundbild": "",
+    "vorne": [],
+    "punkte": [
+      {
+        "von": 39.4,
+        "bis": 58.6,
+        "taste": "w",
+        "zeichen": "♥",
+        "titel": "Das Bett",
+        "text": "Das Bett ist gemacht, aber nur auf einer Seite. Auf der anderen liegt eine Decke, als hätte jemand darauf gesessen statt darin geschlafen.<br><br><i>Platzhalter für einen Hinweis.</i>"
+      },
+      {
+        "x": 34,
+        "taste": "s",
+        "zeichen": "♦",
+        "titel": "Der Nachttisch",
+        "text": "Zwei Kerzen, heruntergebrannt bis auf den Halter. Daneben ein Glas, das nach dem Punsch riecht.<br><br><i>Platzhalter für einen Hinweis.</i>"
+      }
+    ]
+  },
+  {
+    "name": "Sauna",
+    "etage": 2,
+    "spalte": 2,
+    "bild": "bilder/sauna.jpg",
+    "boden": 92.1,
+    "links": 8.4,
+    "rechts": 91.7,
+    "vordergrundbild": "",
+    "vorne": [],
+    "punkte": [
+      {
+        "von": 41.9,
+        "bis": 58.2,
+        "taste": "w",
+        "zeichen": "♨",
+        "titel": "Das Becken",
+        "text": "Das Wasser ist längst kalt. Auf dem Rand steht ein Glas, halb voll.<br><br><i>Platzhalter für einen Hinweis.</i>"
+      },
+      {
+        "von": 44,
+        "bis": 56.1,
+        "taste": "w",
+        "zeichen": "⇞",
+        "titel": "Die Leiter",
+        "treppe": {
+          "raum": 9,
+          "x": 50
+        }
+      }
+    ]
+  },
+  {
+    "name": "Treppenhaus",
+    "etage": 2,
+    "spalte": 1,
+    "treppenhaus": true,
+    "breite": 0.11,
+    "bild": "",
+    "boden": 80,
+    "links": 14,
+    "rechts": 86,
+    "vorne": [],
+    "punkte": [
+      {
+        "von": 40,
+        "bis": 60,
+        "taste": "s",
+        "zeichen": "↓",
+        "titel": "Nach unten",
+        "treppe": {
+          "raum": 3,
+          "x": 50
+        }
+      }
+    ]
+  },
+  {
+    "name": "Bambusbad",
+    "etage": 2,
+    "spalte": 0,
+    "bild": "bilder/bambusbad.jpg",
+    "boden": 92.4,
+    "links": 3.9,
+    "rechts": 86.5,
+    "vordergrundbild": "",
+    "vorne": [
+      {
+        "umriss": [
+          [
+            43.1,
+            12.1
+          ],
+          [
+            43.6,
+            19.7
+          ],
+          [
+            44.1,
+            19
+          ],
+          [
+            44.7,
+            18.7
+          ],
+          [
+            45.2,
+            12.5
+          ],
+          [
+            45.7,
+            9.6
+          ],
+          [
+            46.3,
+            6.8
+          ],
+          [
+            46.8,
+            3.2
+          ],
+          [
+            47.9,
+            4.1
+          ],
+          [
+            48.4,
+            25.2
+          ],
+          [
+            49,
+            24.1
+          ],
+          [
+            49.5,
+            44.8
+          ],
+          [
+            50,
+            23.6
+          ],
+          [
+            50.6,
+            23.1
+          ],
+          [
+            51.1,
+            2.7
+          ],
+          [
+            52.2,
+            5.1
+          ],
+          [
+            53.2,
+            7.6
+          ],
+          [
+            53.8,
+            7.1
+          ],
+          [
+            54.9,
+            6.8
+          ],
+          [
+            55.4,
+            4.4
+          ],
+          [
+            55.9,
+            3.2
+          ],
+          [
+            56.5,
+            1.2
+          ],
+          [
+            57,
+            9.6
+          ],
+          [
+            57.5,
+            11.4
+          ],
+          [
+            58.1,
+            12.1
+          ],
+          [
+            58.6,
+            5.9
+          ],
+          [
+            59.1,
+            5.7
+          ],
+          [
+            59.1,
+            97.9
+          ],
+          [
+            43.1,
+            97.9
+          ]
+        ]
+      }
+    ],
+    "punkte": [
+      {
+        "von": 62.9,
+        "bis": 77.9,
+        "taste": "w",
+        "zeichen": "~",
+        "titel": "Die Wanne",
+        "text": "Noch halb voll, das Wasser kalt. Auf dem Rand ein Handtuch, das jemand ordentlich zusammengelegt hat.<br><br><i>Platzhalter für einen Hinweis.</i>"
+      },
+      {
+        "x": 23.2,
+        "taste": "s",
+        "zeichen": "♦",
+        "titel": "Der Hocker",
+        "text": "Drei Becher stehen darauf, alle drei leer.<br><br><i>Platzhalter für einen Hinweis.</i>"
+      }
+    ]
+  },
+  {
+    "name": "Dachterrasse",
+    "etage": 3,
+    "spalte": 0,
+    "bild": "bilder/dachterrasse.png",
+    "boden": 78,
+    "links": 8.6,
+    "rechts": 91.3,
+    "vordergrundbild": "",
+    "vorne": [
+      {
+        "umriss": [
+          [
+            30.4,
+            12.2
+          ],
+          [
+            30.9,
+            11.1
+          ],
+          [
+            31.5,
+            9.5
+          ],
+          [
+            32,
+            8.1
+          ],
+          [
+            32.6,
+            6.3
+          ],
+          [
+            33.1,
+            5
+          ],
+          [
+            33.6,
+            3.3
+          ],
+          [
+            34.2,
+            2.3
+          ],
+          [
+            34.7,
+            0.4
+          ],
+          [
+            35.3,
+            0
+          ],
+          [
+            64.7,
+            0
+          ],
+          [
+            65.8,
+            1.3
+          ],
+          [
+            66.3,
+            2.9
+          ],
+          [
+            66.8,
+            4.2
+          ],
+          [
+            67.4,
+            5.9
+          ],
+          [
+            67.9,
+            7.7
+          ],
+          [
+            68.5,
+            9
+          ],
+          [
+            69,
+            10.7
+          ],
+          [
+            69.6,
+            11.9
+          ],
+          [
+            70.1,
+            13.4
+          ],
+          [
+            70.1,
+            76
+          ],
+          [
+            30.4,
+            76
+          ]
+        ]
+      },
+      {
+        "umriss": [
+          [
+            0,
+            55
+          ],
+          [
+            6.4,
+            52
+          ],
+          [
+            17.3,
+            52
+          ],
+          [
+            26,
+            54
+          ],
+          [
+            31.5,
+            59
+          ],
+          [
+            39.1,
+            63
+          ],
+          [
+            50,
+            63.5
+          ],
+          [
+            60.9,
+            63
+          ],
+          [
+            68.5,
+            59
+          ],
+          [
+            73.9,
+            54
+          ],
+          [
+            82.6,
+            52
+          ],
+          [
+            93.5,
+            52
+          ],
+          [
+            100,
+            55
+          ],
+          [
+            100,
+            92
+          ],
+          [
+            0,
+            92
+          ]
+        ]
+      }
+    ],
+    "punkte": [
+      {
+        "von": 73.9,
+        "bis": 87,
+        "taste": "w",
+        "zeichen": "☾",
+        "titel": "Über dem Garten",
+        "text": "Von hier sieht man den ganzen Garten. Im Kies unten liegt etwas, das von hier oben gefallen sein muss.<br><br><i>Platzhalter für einen Hinweis.</i>"
+      },
+      {
+        "von": 44.5,
+        "bis": 55.4,
+        "taste": "s",
+        "zeichen": "⇟",
+        "titel": "Die Leiter",
+        "treppe": {
+          "raum": 6,
+          "x": 50.1
+        }
+      }
+    ],
+    "ausrichten": {
+      "raum": 7,
+      "meinX": 50.3,
+      "dortX": 50
+    }
+  },
+  {
+    "name": "Garten",
+    "etage": 0,
+    "spalte": 3,
+    "bild": "bilder/garten.jpg",
+    "boden": 84.2,
+    "links": 10,
+    "rechts": 88,
+    "vordergrundbild": "",
+    "vorne": [],
+    "punkte": [
+      {
+        "von": 28,
+        "bis": 44,
+        "taste": "w",
+        "zeichen": "☕",
+        "titel": "Tisch und Stühle",
+        "text": "Zwei Stühle stehen einander zugewandt, nah beieinander. Auf dem Tisch zwei Gläser, eines umgekippt.<br><br><i>Platzhalter für einen Hinweis.</i>"
+      },
+      {
+        "von": 64,
+        "bis": 74,
+        "taste": "s",
+        "zeichen": "⌂",
+        "titel": "Das Tor",
+        "text": "Dahinter liegt das Nebengebäude. Von hier führt der Weg weiter nach rechts."
+      }
+    ]
+  },
+  {
+    "name": "Küche",
+    "etage": 0,
+    "spalte": 4,
+    "bild": "bilder/kueche.jpg",
+    "boden": 88,
+    "links": 8,
+    "rechts": 90,
+    "vorne": [
+      {
+        "umriss": [
+          [
+            32,
+            60
+          ],
+          [
+            36,
+            55
+          ],
+          [
+            65,
+            53
+          ],
+          [
+            66,
+            57
+          ],
+          [
+            66,
+            88
+          ],
+          [
+            32,
+            88
+          ]
+        ]
+      }
+    ],
+    "punkte": [
+      {
+        "von": 30,
+        "bis": 48,
+        "taste": "w",
+        "zeichen": "☕",
+        "titel": "Die Kücheninsel",
+        "text": "Zwei Hocker stehen nebeneinander. Auf der Platte klebt ein Ring, als hätte dort ein Topf gestanden.<br><br><i>Platzhalter für einen Hinweis.</i>"
+      }
+    ]
+  },
+  {
+    "name": "Rotes Zimmer",
+    "etage": 1,
+    "spalte": 4,
+    "bild": "bilder/rotes-zimmer.jpg",
+    "boden": 85.6,
+    "links": 7.6,
+    "rechts": 90.4,
+    "vorne": [],
+    "punkte": [
+      {
+        "von": 46,
+        "bis": 66.1,
+        "taste": "w",
+        "zeichen": "♥",
+        "titel": "Das Himmelbett",
+        "text": "Die Decke ist glatt, aber die Kissen liegen auf dem Boden.<br><br><i>Platzhalter für einen Hinweis.</i>"
+      }
+    ]
+  },
+  {
+    "name": "Geheimraum",
+    "etage": 2,
+    "spalte": 4,
+    "geheim": true,
+    "bild": "bilder/geheimraum.jpg",
+    "boden": 86.5,
+    "links": 7.5,
+    "rechts": 90.7,
+    "vorne": [],
+    "punkte": [
+      {
+        "von": 29.9,
+        "bis": 44.1,
+        "taste": "w",
+        "zeichen": "▣",
+        "titel": "Die Bildschirme",
+        "text": "Alle dunkel bis auf einen. Darauf steht eine Uhrzeit von heute Nacht.<br><br><i>Platzhalter für einen Hinweis.</i>"
+      }
+    ]
+  },
+  {
+    "name": "Vampirzimmer",
+    "etage": 3,
+    "spalte": 4,
+    "bild": "bilder/vampirzimmer.jpg",
+    "boden": 88,
+    "links": 8,
+    "rechts": 90,
+    "vorne": [],
+    "punkte": [
+      {
+        "von": 36,
+        "bis": 56,
+        "taste": "w",
+        "zeichen": "✦",
+        "titel": "Die Truhe",
+        "text": "Zu lang für eine Truhe und zu schmal für einen Tisch. Der Deckel ist angelehnt.<br><br><i>Platzhalter für einen Hinweis.</i>"
+      }
+    ]
+  },
+  {
+    "name": "Treppenhaus",
+    "etage": 0,
+    "spalte": 5,
+    "treppenhaus": true,
+    "breite": 0.11,
+    "bild": "",
+    "boden": 80,
+    "links": 14,
+    "rechts": 86,
+    "vorne": [],
+    "punkte": [
+      {
+        "von": 40,
+        "bis": 60,
+        "taste": "w",
+        "zeichen": "↑",
+        "titel": "Nach oben",
+        "treppe": {
+          "raum": 16,
+          "x": 50
+        }
+      }
+    ]
+  },
+  {
+    "name": "Treppenhaus",
+    "etage": 1,
+    "spalte": 5,
+    "treppenhaus": true,
+    "breite": 0.11,
+    "bild": "",
+    "boden": 80,
+    "links": 14,
+    "rechts": 86,
+    "vorne": [],
+    "punkte": [
+      {
+        "von": 40,
+        "bis": 60,
+        "taste": "s",
+        "zeichen": "↓",
+        "titel": "Nach unten",
+        "treppe": {
+          "raum": 15,
+          "x": 50
+        }
+      },
+      {
+        "von": 40,
+        "bis": 60,
+        "taste": "w",
+        "zeichen": "↑",
+        "titel": "Nach oben",
+        "treppe": {
+          "raum": 17,
+          "x": 50
+        }
+      }
+    ]
+  },
+  {
+    "name": "Treppenhaus",
+    "etage": 2,
+    "spalte": 5,
+    "treppenhaus": true,
+    "breite": 0.11,
+    "bild": "",
+    "boden": 80,
+    "links": 14,
+    "rechts": 86,
+    "vorne": [],
+    "punkte": [
+      {
+        "von": 40,
+        "bis": 60,
+        "taste": "s",
+        "zeichen": "↓",
+        "titel": "Nach unten",
+        "treppe": {
+          "raum": 16,
+          "x": 50
+        }
+      },
+      {
+        "von": 40,
+        "bis": 60,
+        "taste": "w",
+        "zeichen": "↑",
+        "titel": "Nach oben",
+        "treppe": {
+          "raum": 18,
+          "x": 50
+        }
+      }
+    ],
+    "geheim": true
+  },
+  {
+    "name": "Treppenhaus",
+    "etage": 3,
+    "spalte": 5,
+    "treppenhaus": true,
+    "breite": 0.11,
+    "bild": "",
+    "boden": 80,
+    "links": 14,
+    "rechts": 86,
+    "vorne": [],
+    "punkte": [
+      {
+        "von": 40,
+        "bis": 60,
+        "taste": "s",
+        "zeichen": "↓",
+        "titel": "Nach unten",
+        "treppe": {
+          "raum": 17,
+          "x": 50
+        }
+      }
+    ]
+  }
 ];
 
-const FIGURHOEHE    = 50;      // Höhe der Figur in Prozent der Bildhöhe
+const FIGURHOEHE    = 30;      // Höhe der Figur in Prozent der Bildhöhe
 const TEMPO         = 0.38;    // Prozent der Bildbreite pro Bildschritt
 const NAEHE         = 5;       // wie nah man an einem Punkt stehen muss
 const UNTAETIG_NACH = 12000;
+
+// ======================================================================
+// Lage der Räume im Gebäude
+// ======================================================================
+const ETAGEN = [...new Set(RAEUME.map((r) => r.etage || 0))].sort((a, b) => a - b);
+const OBEN = Math.max(...ETAGEN);
+const SPALTE = {};            // Raumnummer -> Spalte im Gebäude
+RAEUME.forEach((r, i) => { SPALTE[i] = r.spalte; });
+const SPALTEN = Math.max(...Object.values(SPALTE)) + 1;
+const ZEILEN = ETAGEN.length;
+
+// Alle Räume sind gleich hoch — so hoch wie die Bühne. Die Breite ergibt
+// sich aus dem Seitenverhältnis des Bildes. Räume ohne Bild nehmen "breite".
+function raumBreite(i) {
+  const raum = RAEUME[i];
+  const b = bildHolen(raum.bild);
+  if (b && b.complete && b.naturalWidth) {
+    return leinwand.height * (b.naturalWidth / b.naturalHeight);
+  }
+  return (raum.breite || 1) * leinwand.width;
+}
+
+// ----------------------------------------------------------------------
+// Anordnung: das Treppenhaus ist der Anker. Die Räume einer Etage hängen
+// links und rechts lückenlos daran. Das Nebengebäude hat sein eigenes
+// Treppenhaus als zweiten Anker.
+// ----------------------------------------------------------------------
+function lage() {
+  const x = new Array(RAEUME.length).fill(0);
+  const breit = RAEUME.map((_, i) => raumBreite(i));
+  const finde = (etage, spalte) =>
+    RAEUME.findIndex((r) => (r.etage || 0) === etage && r.spalte === spalte);
+  const etagen = [...new Set(RAEUME.map((r) => r.etage || 0))];
+
+  // Hauptgebäude: Treppenhaus in Spalte 1 steht bei 0
+  etagen.forEach((e) => {
+    const t = finde(e, 1);
+    if (t >= 0) x[t] = 0;
+    const l = finde(e, 0);
+    if (l >= 0) x[l] = 0 - breit[l];
+    let kante = (t >= 0 ? breit[t] : 0.11 * leinwand.width);
+    [2, 3].forEach((c) => {
+      const k = finde(e, c);
+      if (k >= 0) { x[k] = kante; kante += breit[k]; }
+    });
+  });
+
+  // Nebengebäude: sein Treppenhaus steht rechts hinter dem Garten
+  const garten = RAEUME.findIndex((r) => r.spalte === 3);
+  const kueche = finde(0, 4);
+  let XA = 0;
+  if (garten >= 0 && kueche >= 0) XA = x[garten] + breit[garten] + breit[kueche];
+  etagen.forEach((e) => {
+    const t = finde(e, 5);
+    if (t >= 0) x[t] = XA;
+    const l = finde(e, 4);
+    if (l >= 0) x[l] = XA - breit[l];
+  });
+
+  // Räume, die sich an einem anderen Raum ausrichten (Turm über der Leiter)
+  RAEUME.forEach((r, i) => {
+    if (!r.ausrichten) return;
+    const z = r.ausrichten.raum;
+    x[i] = x[z] + (r.ausrichten.dortX / 100) * breit[z] - (r.ausrichten.meinX / 100) * breit[i];
+  });
+
+  let min = Infinity, max = -Infinity;
+  RAEUME.forEach((_, i) => { min = Math.min(min, x[i]); max = Math.max(max, x[i] + breit[i]); });
+  return { x, breit, min, max };
+}
+
+function weltX(i) { return lage().x[i]; }
+function weltY(i) { return (OBEN - (RAEUME[i].etage || 0)) * leinwand.height; }
+
+// Nachbar in derselben Etage
+function nachbar(i, richtung) {
+  const e = RAEUME[i].etage || 0;
+  const ziel = SPALTE[i] + richtung;
+  return RAEUME.findIndex((r, k) => (r.etage || 0) === e && SPALTE[k] === ziel);
+}
 
 // ======================================================================
 // Zustand
@@ -118,7 +1307,9 @@ const figur = { x: 50, blickt: 1, schritt: 0 };
 let blenden = 0, blendZiel = null;
 let letzteBewegung = Date.now();
 let weite = 0;
+let kameraMerk = 0;              // letzte Kameramitte, für den Himmel
 let offenerPunkt = null;
+let geheimOffen = false;         // wird wahr, sobald das Rätsel gelöst ist
 
 const tasten = {};
 addEventListener("keydown", (e) => {
@@ -126,17 +1317,48 @@ addEventListener("keydown", (e) => {
   const t = e.key.toLowerCase();
   tasten[t] = true;
   if (offenerPunkt) { if (t === "escape") fensterZu(); return; }
-  const p = naherPunkt();
-  if (p && t === p.taste) { punktOeffnen(p); e.preventDefault(); }
+  const p = nahePunkte().find((k) => k.taste === t);
+  if (p) { punktOeffnen(p); e.preventDefault(); }
 });
 addEventListener("keyup", (e) => { tasten[e.key.toLowerCase()] = false; });
 
-function naherPunkt() {
+// Alle Punkte, die man von hier aus ansprechen kann. Auf- und Abgang
+// liegen im Treppenhaus übereinander, deshalb eine Liste statt eines Punkts.
+function nahePunkte() {
   const raum = RAEUME[raumNr];
-  return (raum.punkte || []).find((p) => Math.abs(p.x - figur.x) < NAEHE) || null;
+  return (raum.punkte || []).filter((p) =>
+    p.von !== undefined
+      ? (figur.x >= p.von && figur.x <= p.bis)
+      : Math.abs(p.x - figur.x) < NAEHE
+  );
+}
+function naherPunkt() { return nahePunkte()[0] || null; }
+
+function punktMitte(p) {
+  return p.von !== undefined ? (p.von + p.bis) / 2 : p.x;
 }
 
 function punktOeffnen(p) {
+  if (p.treppe) {
+    const ziel = RAEUME[p.treppe.raum];
+    if (ziel.geheim && !geheimOffen) {   // noch verschlossen
+      offenerPunkt = p;
+      document.getElementById("tafel").innerHTML =
+        "<h2>Verschlossen</h2><p>Dahinter liegt ein Raum, aber die Tür gibt nicht nach. " +
+        "Irgendwo im Haus steht, wie sie aufgeht.</p>" +
+        "<p><i>Platzhalter — hier kommt das Rätsel.</i></p>" +
+        "<button id='loesen'>Rätsel lösen (Platzhalter)</button> " +
+        "<button id='zu'>Zurück</button>";
+      document.getElementById("fenster").classList.add("auf");
+      document.getElementById("zu").onclick = fensterZu;
+      document.getElementById("loesen").onclick = () => { geheimOffen = true; fensterZu(); };
+      letzteBewegung = Date.now();
+      return;
+    }
+    blendZiel = { nr: p.treppe.raum, x: p.treppe.x };
+    letzteBewegung = Date.now();
+    return;
+  }
   offenerPunkt = p;
   document.getElementById("tafel").innerHTML =
     "<h2>" + p.titel + "</h2><p>" + p.text + "</p><button id='zu'>Zurück</button>";
@@ -159,7 +1381,7 @@ function bildHolen(pfad) {
   if (!bilder[pfad]) { const b = new Image(); b.src = pfad; bilder[pfad] = b; }
   return bilder[pfad];
 }
-RAEUME.forEach((r) => bildHolen(r.bild));
+RAEUME.forEach((r) => { bildHolen(r.bild); bildHolen(r.vordergrundbild); });
 
 // ======================================================================
 // Sprechblase
@@ -200,12 +1422,15 @@ function schritt() {
     if (tasten["a"]) dx -= 1;
     if (tasten["d"]) dx += 1;
     if (dx) {
-      figur.x += dx * TEMPO;
+      // Tempo in Bildpunkten, damit die Figur in schmalen Räumen
+      // nicht langsamer läuft als in breiten
+      figur.x += dx * TEMPO * (leinwand.width / raumBreite(raumNr));   // gleiches Tempo in allen Räumen
       figur.blickt = dx > 0 ? 1 : -1;
       figur.schritt += 0.22;
       letzteBewegung = Date.now();
-      if (figur.x < raum.links && raumNr > 0) blendZiel = { nr: raumNr - 1, x: RAEUME[raumNr - 1].rechts - 3 };
-      else if (figur.x > raum.rechts && raumNr < RAEUME.length - 1) blendZiel = { nr: raumNr + 1, x: RAEUME[raumNr + 1].links + 3 };
+      const links = nachbar(raumNr, -1), rechts = nachbar(raumNr, 1);
+      if (figur.x < raum.links && links >= 0) blendZiel = { nr: links, x: RAEUME[links].rechts - 3 };
+      else if (figur.x > raum.rechts && rechts >= 0) blendZiel = { nr: rechts, x: RAEUME[rechts].links + 3 };
       figur.x = Math.max(raum.links, Math.min(raum.rechts, figur.x));
     }
   }
@@ -223,6 +1448,18 @@ function schritt() {
   requestAnimationFrame(schritt);
 }
 
+// Wohin das Raumbild gezeichnet wird. Jedes Bild behält sein Seitenverhältnis,
+// es wird in die Bühne eingepasst und mittig gesetzt. Alle Prozentangaben eines
+// Raums beziehen sich auf dieses Rechteck, nicht auf die ganze Bühne.
+function bereich(raum) {
+  const H = leinwand.height;
+  const b = bildHolen(raum.bild);
+  if (b && b.complete && b.naturalWidth) {
+    return { x: 0, y: 0, b: H * (b.naturalWidth / b.naturalHeight), h: H };
+  }
+  return { x: 0, y: 0, b: (raum.breite || 1) * leinwand.width, h: H };
+}
+
 function malen(untaetig) {
   const B = leinwand.width, H = leinwand.height;
   stift.setTransform(1, 0, 0, 1, 0, 0);
@@ -232,20 +1469,38 @@ function malen(untaetig) {
 
   weite += ((untaetig ? 1 : 0) - weite) * 0.06;
 
-  const anzahl = RAEUME.length;
-  const massstab = 1 - weite * (1 - 1 / anzahl);
-  const kameraNah = raumNr * B + B / 2;
-  const kameraWeit = (anzahl * B) / 2;
-  const kameraX = kameraNah + (kameraWeit - kameraNah) * weite;
+  const L = lage();
+  const ganz = L.max - L.min;
+  const passend = Math.min(B / ganz, 1 / ZEILEN);
+  const massstab = 1 + weite * (passend - 1);
+  // Ist der Raum breiter als die Bühne, folgt die Kamera der Figur und
+  // bleibt dabei innerhalb des Raums.
+  const rbJetzt = L.breit[raumNr];
+  const xJetzt = L.x[raumNr];
+  let mitteNah = xJetzt + rbJetzt / 2;
+  if (rbJetzt > B) {
+    const figurWelt = xJetzt + (figur.x / 100) * rbJetzt;
+    mitteNah = Math.max(xJetzt + B / 2, Math.min(xJetzt + rbJetzt - B / 2, figurWelt));
+  }
+  const kameraX = mitteNah + ((L.min + L.max) / 2 - mitteNah) * weite;
+  kameraMerk = kameraX;
+  const kameraY = (weltY(raumNr) + H / 2) + ((ZEILEN * H) / 2 - (weltY(raumNr) + H / 2)) * weite;
+
+  himmelMalen(massstab, kameraX, kameraY);
 
   stift.setTransform(massstab, 0, 0, massstab,
-                     B / 2 - kameraX * massstab, H / 2 - (H / 2) * massstab);
+                     B / 2 - kameraX * massstab, H / 2 - kameraY * massstab);
 
   RAEUME.forEach((raum, i) => {
-    if (weite <= 0.02 && i !== raumNr) return;
+    // Alles malen, was gerade im Bild liegt
+    const links = (L.x[i] - kameraX) * massstab + B / 2;
+    const rechts = links + L.breit[i] * massstab;
+    const hoch = (weltY(i) - kameraY) * massstab + H / 2;
+    if (rechts < -2 || links > B + 2 || hoch > H + 2 || hoch + H * massstab < -2) return;
     stift.save();
-    stift.translate(i * B, 0);
-    stift.beginPath(); stift.rect(0, 0, B, H); stift.clip();
+    stift.translate(L.x[i], weltY(i));
+    const rb = L.breit[i];
+    stift.beginPath(); stift.rect(0, 0, rb, H); stift.clip();
     if (blendZiel && i === raumNr) stift.globalAlpha = 1 - blenden;
 
     hintergrundMalen(raum);
@@ -257,7 +1512,7 @@ function malen(untaetig) {
     if (weite > 0.02) {
       stift.strokeStyle = i === raumNr ? "rgba(240,193,115,0.5)" : "rgba(255,255,255,0.08)";
       stift.lineWidth = 3 / massstab;
-      stift.strokeRect(0, 0, B, H);
+      stift.strokeRect(0, 0, rb, H);
     }
     stift.restore();
   });
@@ -270,54 +1525,134 @@ function malen(untaetig) {
 
   if (Date.now() < blasenBis && !blendZiel && weite < 0.3) {
     const r = leinwand.getBoundingClientRect();
-    const weltX = raumNr * B + (figur.x / 100) * B;
-    const weltY = ((RAEUME[raumNr].boden - FIGURHOEHE) / 100) * H;
+    const f = bereich(RAEUME[raumNr]);
+    const bx = L.x[raumNr] + f.x + (figur.x / 100) * f.b;
+    const by = weltY(raumNr) + f.y + ((RAEUME[raumNr].boden - FIGURHOEHE) / 100) * f.h;
     blase.style.display = "block";
-    blase.style.left = (B / 2 - kameraX * massstab + weltX * massstab) / B * r.width + "px";
-    blase.style.top = ((H / 2 - (H / 2) * massstab + weltY * massstab) / H * r.height - 8) + "px";
+    blase.style.left = (B / 2 - kameraX * massstab + bx * massstab) / B * r.width + "px";
+    blase.style.top = ((H / 2 - kameraY * massstab + by * massstab) / H * r.height - 8) + "px";
     blase.textContent = blasenText;
   } else {
     blase.style.display = "none";
   }
 
-  document.getElementById("kopf").textContent =
-    weite > 0.5 ? "Übersicht" : RAEUME[raumNr].name;
+  umrissMalen();
+
+  document.getElementById("kopf").textContent = weite > 0.5
+    ? "Übersicht"
+    : RAEUME[raumNr].name + "  ·  " +
+      ((RAEUME[raumNr].etage || 0) === 0 ? "Erdgeschoss" : (RAEUME[raumNr].etage) + ". Stock");
+}
+
+// Landschaft hinter dem Haus. Sie reicht nur so weit wie das Gebäude —
+// nichts ragt über die oberste Etage hinaus und nichts unter die unterste.
+const himmel = new Image();
+himmel.src = "bilder/himmel.jpg";
+function himmelMalen(massstab, kameraX, kameraY) {
+  if (!himmel.complete || !himmel.naturalWidth) return;
+  const B = leinwand.width, H = leinwand.height;
+
+  // Oberkante und Unterkante des Gebäudes auf dem Bildschirm
+  const oben  = H / 2 - kameraY * massstab + 0 * massstab;
+  const unten = H / 2 - kameraY * massstab + (ZEILEN * H) * massstab;
+  if (unten <= 0 || oben >= H) return;
+
+  stift.save();
+  stift.beginPath();
+  stift.rect(0, Math.max(0, oben), B, Math.min(H, unten) - Math.max(0, oben));
+  stift.clip();
+
+  const verh = himmel.naturalWidth / himmel.naturalHeight;
+  let hh = Math.min(H, unten) - Math.max(0, oben);
+  let bb = hh * verh;
+  if (bb < B) { bb = B; hh = bb / verh; }
+  const L = lage();
+  const mitte = (L.min + L.max) / 2;
+  const schub = ((kameraX - mitte) / Math.max(1, L.max - L.min)) * (bb - B) * 0.6;
+  stift.drawImage(himmel, (B - bb) / 2 - schub, Math.max(0, oben), bb, hh);
+  stift.fillStyle = "rgba(10,9,8,0.3)";
+  stift.fillRect(0, Math.max(0, oben), B, Math.min(H, unten) - Math.max(0, oben));
+  stift.restore();
 }
 
 function hintergrundMalen(raum) {
-  const B = leinwand.width, H = leinwand.height;
+  const H = leinwand.height;
+  const B = (raum.breite || 1) * leinwand.width;
   const b = bildHolen(raum.bild);
-  if (b && b.complete && b.naturalWidth) { stift.drawImage(b, 0, 0, B, H); return; }
+  if (b && b.complete && b.naturalWidth) {
+    const f = bereich(raum);
+    stift.drawImage(b, f.x, f.y, f.b, f.h);
+    return;
+  }
   stift.fillStyle = "#1e1a14";
   stift.fillRect(0, 0, B, H * (raum.boden / 100));
   stift.fillStyle = raum.ton || "#332a20";
   stift.fillRect(0, H * (raum.boden / 100), B, H);
+  if (raum.treppenhaus) {
+    // einfache Stufen, bis es ein Bild gibt
+    stift.fillStyle = "#2b241a";
+    for (let i = 0; i < 9; i++) {
+      const bb = B * 0.5, hh = H * 0.055;
+      stift.fillRect(B * 0.12 + i * bb * 0.09, H * (raum.boden / 100) - (i + 1) * hh, bb, hh);
+    }
+    stift.strokeStyle = "rgba(240,193,115,0.18)";
+    stift.lineWidth = 2;
+    stift.strokeRect(B * 0.06, H * 0.14, B * 0.88, H * (raum.boden / 100) - H * 0.14);
+  }
   stift.fillStyle = "rgba(240,193,115,0.25)";
   stift.font = Math.round(H * 0.06) + "px -apple-system, sans-serif";
   stift.fillText(raum.name, B * 0.04, H * 0.14);
 }
 
-// Die Ausschnitte aus demselben Bild noch einmal darüber malen
+// Den Vordergrund darüber malen: entweder ein eigenes Bild oder
+// Ausschnitte aus dem Raumbild, die einem Umriss folgen.
 function vordergrundMalen(raum) {
-  const B = leinwand.width, H = leinwand.height;
+  const H = leinwand.height;
+  const f = bereich(raum);
+  const eigen = bildHolen(raum.vordergrundbild);
+  if (eigen && eigen.complete && eigen.naturalWidth) {
+    stift.drawImage(eigen, f.x, f.y, f.b, f.h);
+    return;
+  }
   const b = bildHolen(raum.bild);
   if (!b || !b.complete || !b.naturalWidth) return;
   (raum.vorne || []).forEach((v) => {
-    const qx = (v.x / 100) * b.naturalWidth, qy = (v.y / 100) * b.naturalHeight;
-    const qb = (v.b / 100) * b.naturalWidth, qh = (v.h / 100) * b.naturalHeight;
-    stift.drawImage(b, qx, qy, qb, qh,
-                    (v.x / 100) * B, (v.y / 100) * H, (v.b / 100) * B, (v.h / 100) * H);
+    if (!v.umriss || v.umriss.length < 3) return;
+    stift.save();
+    stift.beginPath();
+    v.umriss.forEach(([x, y], i) => {
+      const px = f.x + (x / 100) * f.b, py = f.y + (y / 100) * f.h;
+      if (i === 0) stift.moveTo(px, py); else stift.lineTo(px, py);
+    });
+    stift.closePath();
+    stift.clip();
+    stift.drawImage(b, f.x, f.y, f.b, f.h);
+    stift.restore();
   });
 }
 
 function zeichenMalen(raum) {
-  const B = leinwand.width, H = leinwand.height;
-  const nah = naherPunkt();
+  const H = leinwand.height;
+  const f = bereich(raum);
+  const nahe = nahePunkte();
   (raum.punkte || []).forEach((p) => {
-    const x = (p.x / 100) * B;
-    const y = ((raum.boden - FIGURHOEHE - 6) / 100) * H;
+    // Streifen auf dem Boden sichtbar machen
+    if (p.von !== undefined) {
+      const sx = f.x + (p.von / 100) * f.b;
+      const sb = ((p.bis - p.von) / 100) * f.b;
+      const sy = f.y + ((raum.boden - 1.5) / 100) * f.h;
+      stift.fillStyle = nahe.indexOf(p) >= 0 ? "rgba(240,193,115,0.22)" : "rgba(240,193,115,0.10)";
+      stift.fillRect(sx, sy, sb, f.h * 0.03);
+    }
+    // Liegen mehrere Punkte in derselben Zone, nebeneinander zeichnen
+    const zusammen = (raum.punkte || []).filter((k) =>
+      Math.abs(punktMitte(k) - punktMitte(p)) < 1);
+    const stelle = zusammen.indexOf(p);
+    const versatz = (stelle - (zusammen.length - 1) / 2) * H * 0.075;
+    const x = f.x + (punktMitte(p) / 100) * f.b + versatz;
+    const y = f.y + ((raum.boden - FIGURHOEHE - 6) / 100) * f.h;
     const puls = 1 + Math.sin(Date.now() / 400) * 0.08;
-    const gross = p === nah;
+    const gross = nahe.indexOf(p) >= 0;
     stift.globalAlpha = gross ? 1 : 0.55;
     stift.fillStyle = "rgba(10,9,7,0.8)";
     stift.beginPath();
@@ -340,11 +1675,11 @@ function zeichenMalen(raum) {
 }
 
 function figurMalen(raum) {
-  const B = leinwand.width, H = leinwand.height;
-  const h = H * (FIGURHOEHE / 100);
+  const f = bereich(raum);
+  const h = f.h * (FIGURHOEHE / 100);
   const br = h * 0.38;
-  const x = B * (figur.x / 100);
-  const y = H * (raum.boden / 100);
+  const x = f.x + f.b * (figur.x / 100);
+  const y = f.y + f.h * (raum.boden / 100);
   const wackeln = Math.sin(figur.schritt) * h * 0.035;
 
   stift.fillStyle = "rgba(0,0,0,0.45)";
@@ -363,6 +1698,69 @@ function figurMalen(raum) {
   stift.fillRect(x + br / 2 - h * 0.13, y - h * 0.2 - wackeln, h * 0.09, h * 0.2);
   stift.fillStyle = "#2a1d16";
   stift.fillRect(x + figur.blickt * h * 0.07 - h * 0.02, y - h * 0.86, h * 0.04, h * 0.04);
+}
+
+// ======================================================================
+// Umriss-Modus: Seite mit ?umriss aufrufen, dann die Ecken anklicken.
+// Enter schliesst den Umriss und schreibt ihn unten hin, Rücktaste nimmt
+// den letzten Punkt zurück, Escape fängt von vorn an.
+// ======================================================================
+const umrissModus = new URLSearchParams(location.search).has("umriss");
+let neueEcken = [];
+
+if (umrissModus) {
+  document.getElementById("hilfe").innerHTML =
+    "Umriss-Modus<br>klicken = Ecke setzen<br>Enter = fertig, Rücktaste = zurück";
+  const ausgabe = document.createElement("textarea");
+  ausgabe.id = "umrissfeld";
+  ausgabe.readOnly = true;
+  ausgabe.style.cssText = "width:100%;height:90px;margin-top:12px;background:#0f0e0c;" +
+    "color:#a9d6a0;border:1px solid #332f24;border-radius:6px;padding:10px;" +
+    "font-family:ui-monospace,Menlo,monospace;font-size:13px";
+  document.getElementById("huelle").appendChild(ausgabe);
+
+  leinwand.addEventListener("click", (e) => {
+    const r = leinwand.getBoundingClientRect();
+    const f = bereich(RAEUME[raumNr]);
+    const px = ((e.clientX - r.left) / r.width) * leinwand.width;
+    const py = ((e.clientY - r.top) / r.height) * leinwand.height;
+    neueEcken.push([
+      Math.round(((px - f.x) / f.b) * 1000) / 10,
+      Math.round(((py - f.y) / f.h) * 1000) / 10
+    ]);
+  });
+  addEventListener("keydown", (e) => {
+    if (document.activeElement === satzfeld) return;
+    if (e.key === "Enter") {
+      ausgabe.value += (ausgabe.value ? "\n" : "") +
+        "{ umriss: [" + neueEcken.map(([x, y]) => "[" + x + "," + y + "]").join(",") + "] },";
+      neueEcken = [];
+    }
+    if (e.key === "Backspace") { neueEcken.pop(); e.preventDefault(); }
+    if (e.key === "Escape") neueEcken = [];
+  });
+}
+
+function umrissMalen() {
+  if (!umrissModus || neueEcken.length === 0) return;
+  const B = leinwand.width, H = leinwand.height;
+  stift.setTransform(1, 0, 0, 1, 0, 0);
+  stift.strokeStyle = "#00e5ff";
+  stift.fillStyle = "rgba(0,229,255,0.2)";
+  stift.lineWidth = 2;
+  stift.beginPath();
+  const f = bereich(RAEUME[raumNr]);
+  neueEcken.forEach(([x, y], i) => {
+    const px = f.x + (x / 100) * f.b, py = f.y + (y / 100) * f.h;
+    if (i === 0) stift.moveTo(px, py); else stift.lineTo(px, py);
+  });
+  stift.closePath(); stift.fill(); stift.stroke();
+  neueEcken.forEach(([x, y]) => {
+    stift.fillStyle = "#00e5ff";
+    stift.beginPath();
+    stift.arc(f.x + (x / 100) * f.b, f.y + (y / 100) * f.h, 4, 0, Math.PI * 2);
+    stift.fill();
+  });
 }
 
 groesseAnpassen();
