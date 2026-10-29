@@ -1,0 +1,372 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Chateau Le Baux — Prototyp</title>
+<style>
+  :root { color-scheme: dark; }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: #0d0c0b; color: #e8e4da;
+         font-family: -apple-system, BlinkMacSystemFont, "Helvetica Neue", sans-serif; }
+  #huelle { max-width: 1400px; margin: 0 auto; padding: 16px; }
+  h1 { font-size: 19px; font-weight: 500; margin: 0 0 4px; }
+  p.unter { color: #8a857a; font-size: 14px; margin: 0 0 14px; }
+  #buehne { position: relative; width: 100%; aspect-ratio: 16 / 9;
+            background: #0a0908; border: 1px solid #2a2720; border-radius: 10px;
+            overflow: hidden; }
+  canvas { display: block; width: 100%; height: 100%; }
+  #kopf { position: absolute; left: 14px; top: 12px; font-size: 13px; color: #c9a06a;
+          background: rgba(10,9,7,0.7); padding: 6px 12px; border-radius: 16px;
+          pointer-events: none; }
+  #hilfe { position: absolute; right: 14px; top: 12px; font-size: 12px; color: #8a857a;
+           background: rgba(10,9,7,0.7); padding: 6px 12px; border-radius: 16px;
+           pointer-events: none; text-align: right; line-height: 1.5; }
+  #blase { position: absolute; display: none; transform: translate(-50%, -100%);
+           background: rgba(246,240,228,0.95); color: #1a1510; padding: 6px 12px;
+           border-radius: 12px; font-size: 13px; max-width: 240px; pointer-events: none; }
+
+  /* Fenster für Klavier, Gespräch und alles Weitere */
+  #fenster { position: absolute; inset: 0; display: none; align-items: center;
+             justify-content: center; background: rgba(8,7,6,0.72); padding: 24px; }
+  #fenster.auf { display: flex; animation: auf .25s ease both; }
+  @keyframes auf { from { opacity: 0 } to { opacity: 1 } }
+  #tafel { max-width: 520px; width: 100%; background: rgba(16,14,11,0.96);
+           border: 1px solid #5a4a1c; border-radius: 12px; padding: 22px 24px; }
+  #tafel h2 { margin: 0 0 10px; font-size: 19px; font-weight: 500; color: #f0c173; }
+  #tafel p { margin: 0 0 12px; font-size: 15px; line-height: 1.55; color: #ded6c2; }
+  #tafel button { padding: 9px 18px; background: #3a2f12; color: #f0c173;
+    border: 1px solid #5a4a1c; border-radius: 6px; font-size: 15px; cursor: pointer; }
+
+  #eingabe { margin-top: 12px; display: flex; gap: 8px; }
+  #eingabe input { flex: 1; max-width: 420px; padding: 10px 14px; background: #131210;
+    color: #e8e4da; border: 1px solid #332f24; border-radius: 6px; font-size: 15px; }
+  #eingabe button { padding: 10px 18px; background: #3a2f12; color: #f0c173;
+    border: 1px solid #5a4a1c; border-radius: 6px; font-size: 15px; cursor: pointer; }
+  .hinweis { margin-top: 10px; font-size: 13px; color: #8a857a; line-height: 1.6; }
+</style>
+</head>
+<body>
+<div id="huelle">
+  <h1>Chateau Le Baux — Prototyp</h1>
+  <p class="unter">Der Salon mit echtem Bild. Hinter dem Klavier kann man durchlaufen.</p>
+
+  <div id="buehne">
+    <canvas id="bild"></canvas>
+    <div id="kopf"></div>
+    <div id="hilfe">A und D zum Laufen<br>am Zeichen stehen, dann W oder S</div>
+    <div id="blase"></div>
+    <div id="fenster"><div id="tafel"></div></div>
+  </div>
+
+  <div id="eingabe">
+    <input id="satzfeld" placeholder="Etwas sagen und Enter drücken" autocomplete="off">
+    <button id="sagen">Sagen</button>
+  </div>
+
+  <div class="hinweis">
+    Am Klavier und hinter der Bar erscheint ein Zeichen, sobald du nah genug stehst.
+    Die beiden Spiele dahinter sind noch leer — hier geht es nur darum, ob sich das Ansprechen gut anfühlt.
+  </div>
+</div>
+
+<script>
+// ======================================================================
+// 1. Die Räume
+//    bild        = das Raumbild, 16 zu 9
+//    vorne       = Ausschnitte aus demselben Bild, die vor der Figur liegen
+//                  (x, y, b, h in Prozent) — hinter diesen läuft die Figur durch
+//    boden       = Höhe, auf der die Figur steht, in Prozent
+//    links/rechts= wie weit die Figur laufen darf, in Prozent
+//    punkte      = Stellen zum Ansprechen
+// ======================================================================
+const RAEUME = [
+  {
+    name: "Salon",
+    bild: "bilder/salon.jpg",
+    boden: 74,
+    links: 6, rechts: 95,
+    vorne: [
+      { x: 4.6, y: 53.5, b: 19, h: 23 }      // das Klavier samt Hocker
+    ],
+    punkte: [
+      { x: 13, taste: "s", zeichen: "♪", titel: "Das Klavier",
+        text: "Die Tasten sind verstimmt, aber es geht noch. Auf dem Pult liegt ein Stück, " +
+              "das für vier Hände geschrieben ist — allein kommst du nicht durch.<br><br>" +
+              "<i>Hier kommt das Klavierspiel. Zwei Leute müssen die Tasten abwechselnd " +
+              "im Takt treffen.</i>" },
+      { x: 31, taste: "w", zeichen: "!", titel: "Hinter der Bar",
+        text: "Jemand räumt Gläser ein und schaut nicht auf.<br><br>" +
+              "<i>Hier kommt der Dialog mit dem NPC. Porträt links, Text darunter, " +
+              "ein paar feste Antworten.</i>" }
+    ]
+  },
+  { name: "Bibliothek",   bild: "", boden: 80, links: 5, rechts: 95, vorne: [], punkte: [], ton: "#333a28" },
+  { name: "Speisezimmer", bild: "", boden: 80, links: 5, rechts: 95, vorne: [], punkte: [], ton: "#3a2a2c" }
+];
+
+const FIGURHOEHE    = 17;      // Höhe der Figur in Prozent der Bildhöhe
+const TEMPO         = 0.38;    // Prozent der Bildbreite pro Bildschritt
+const NAEHE         = 5;       // wie nah man an einem Punkt stehen muss
+const UNTAETIG_NACH = 12000;
+
+// ======================================================================
+// Zustand
+// ======================================================================
+let raumNr = 0;
+const figur = { x: 50, blickt: 1, schritt: 0 };
+let blenden = 0, blendZiel = null;
+let letzteBewegung = Date.now();
+let weite = 0;
+let offenerPunkt = null;
+
+const tasten = {};
+addEventListener("keydown", (e) => {
+  if (document.activeElement === satzfeld) return;
+  const t = e.key.toLowerCase();
+  tasten[t] = true;
+  if (offenerPunkt) { if (t === "escape") fensterZu(); return; }
+  const p = naherPunkt();
+  if (p && t === p.taste) { punktOeffnen(p); e.preventDefault(); }
+});
+addEventListener("keyup", (e) => { tasten[e.key.toLowerCase()] = false; });
+
+function naherPunkt() {
+  const raum = RAEUME[raumNr];
+  return (raum.punkte || []).find((p) => Math.abs(p.x - figur.x) < NAEHE) || null;
+}
+
+function punktOeffnen(p) {
+  offenerPunkt = p;
+  document.getElementById("tafel").innerHTML =
+    "<h2>" + p.titel + "</h2><p>" + p.text + "</p><button id='zu'>Zurück</button>";
+  document.getElementById("fenster").classList.add("auf");
+  document.getElementById("zu").onclick = fensterZu;
+  letzteBewegung = Date.now();
+}
+function fensterZu() {
+  offenerPunkt = null;
+  document.getElementById("fenster").classList.remove("auf");
+  letzteBewegung = Date.now();
+}
+
+// ======================================================================
+// Bilder
+// ======================================================================
+const bilder = {};
+function bildHolen(pfad) {
+  if (!pfad) return null;
+  if (!bilder[pfad]) { const b = new Image(); b.src = pfad; bilder[pfad] = b; }
+  return bilder[pfad];
+}
+RAEUME.forEach((r) => bildHolen(r.bild));
+
+// ======================================================================
+// Sprechblase
+// ======================================================================
+const satzfeld = document.getElementById("satzfeld");
+const blase = document.getElementById("blase");
+let blasenText = "", blasenBis = 0;
+
+function sagen() {
+  const t = satzfeld.value.trim();
+  if (!t) return;
+  blasenText = t; blasenBis = Date.now() + 5000;
+  satzfeld.value = ""; satzfeld.blur();
+}
+document.getElementById("sagen").onclick = sagen;
+satzfeld.onkeydown = (e) => { letzteBewegung = Date.now(); if (e.key === "Enter") sagen(); };
+satzfeld.onfocus = () => { letzteBewegung = Date.now(); };
+
+// ======================================================================
+// Ablauf
+// ======================================================================
+const leinwand = document.getElementById("bild");
+const stift = leinwand.getContext("2d");
+
+function groesseAnpassen() {
+  const r = leinwand.getBoundingClientRect();
+  const d = window.devicePixelRatio || 1;
+  leinwand.width = Math.round(r.width * d);
+  leinwand.height = Math.round(r.height * d);
+}
+addEventListener("resize", groesseAnpassen);
+
+function schritt() {
+  const raum = RAEUME[raumNr];
+
+  if (!blendZiel && !offenerPunkt) {
+    let dx = 0;
+    if (tasten["a"]) dx -= 1;
+    if (tasten["d"]) dx += 1;
+    if (dx) {
+      figur.x += dx * TEMPO;
+      figur.blickt = dx > 0 ? 1 : -1;
+      figur.schritt += 0.22;
+      letzteBewegung = Date.now();
+      if (figur.x < raum.links && raumNr > 0) blendZiel = { nr: raumNr - 1, x: RAEUME[raumNr - 1].rechts - 3 };
+      else if (figur.x > raum.rechts && raumNr < RAEUME.length - 1) blendZiel = { nr: raumNr + 1, x: RAEUME[raumNr + 1].links + 3 };
+      figur.x = Math.max(raum.links, Math.min(raum.rechts, figur.x));
+    }
+  }
+
+  if (blendZiel) {
+    blenden += 0.06;
+    if (blenden >= 1) { raumNr = blendZiel.nr; figur.x = blendZiel.x; blendZiel = null; blenden = 0; }
+  }
+
+  const tippt = document.activeElement === satzfeld;
+  const redet = Date.now() < blasenBis;
+  const untaetig = !tippt && !redet && !offenerPunkt && (Date.now() - letzteBewegung > UNTAETIG_NACH);
+
+  malen(untaetig);
+  requestAnimationFrame(schritt);
+}
+
+function malen(untaetig) {
+  const B = leinwand.width, H = leinwand.height;
+  stift.setTransform(1, 0, 0, 1, 0, 0);
+  stift.clearRect(0, 0, B, H);
+  stift.fillStyle = "#0a0908";
+  stift.fillRect(0, 0, B, H);
+
+  weite += ((untaetig ? 1 : 0) - weite) * 0.06;
+
+  const anzahl = RAEUME.length;
+  const massstab = 1 - weite * (1 - 1 / anzahl);
+  const kameraNah = raumNr * B + B / 2;
+  const kameraWeit = (anzahl * B) / 2;
+  const kameraX = kameraNah + (kameraWeit - kameraNah) * weite;
+
+  stift.setTransform(massstab, 0, 0, massstab,
+                     B / 2 - kameraX * massstab, H / 2 - (H / 2) * massstab);
+
+  RAEUME.forEach((raum, i) => {
+    if (weite <= 0.02 && i !== raumNr) return;
+    stift.save();
+    stift.translate(i * B, 0);
+    stift.beginPath(); stift.rect(0, 0, B, H); stift.clip();
+    if (blendZiel && i === raumNr) stift.globalAlpha = 1 - blenden;
+
+    hintergrundMalen(raum);
+    if (i === raumNr) { figurMalen(raum); }
+    vordergrundMalen(raum);
+    if (i === raumNr && !untaetig) zeichenMalen(raum);
+
+    stift.globalAlpha = 1;
+    if (weite > 0.02) {
+      stift.strokeStyle = i === raumNr ? "rgba(240,193,115,0.5)" : "rgba(255,255,255,0.08)";
+      stift.lineWidth = 3 / massstab;
+      stift.strokeRect(0, 0, B, H);
+    }
+    stift.restore();
+  });
+
+  stift.setTransform(1, 0, 0, 1, 0, 0);
+  if (blendZiel) {
+    stift.fillStyle = "rgba(10,9,8," + blenden + ")";
+    stift.fillRect(0, 0, B, H);
+  }
+
+  if (Date.now() < blasenBis && !blendZiel && weite < 0.3) {
+    const r = leinwand.getBoundingClientRect();
+    const weltX = raumNr * B + (figur.x / 100) * B;
+    const weltY = ((RAEUME[raumNr].boden - FIGURHOEHE) / 100) * H;
+    blase.style.display = "block";
+    blase.style.left = (B / 2 - kameraX * massstab + weltX * massstab) / B * r.width + "px";
+    blase.style.top = ((H / 2 - (H / 2) * massstab + weltY * massstab) / H * r.height - 8) + "px";
+    blase.textContent = blasenText;
+  } else {
+    blase.style.display = "none";
+  }
+
+  document.getElementById("kopf").textContent =
+    weite > 0.5 ? "Übersicht" : RAEUME[raumNr].name;
+}
+
+function hintergrundMalen(raum) {
+  const B = leinwand.width, H = leinwand.height;
+  const b = bildHolen(raum.bild);
+  if (b && b.complete && b.naturalWidth) { stift.drawImage(b, 0, 0, B, H); return; }
+  stift.fillStyle = "#1e1a14";
+  stift.fillRect(0, 0, B, H * (raum.boden / 100));
+  stift.fillStyle = raum.ton || "#332a20";
+  stift.fillRect(0, H * (raum.boden / 100), B, H);
+  stift.fillStyle = "rgba(240,193,115,0.25)";
+  stift.font = Math.round(H * 0.06) + "px -apple-system, sans-serif";
+  stift.fillText(raum.name, B * 0.04, H * 0.14);
+}
+
+// Die Ausschnitte aus demselben Bild noch einmal darüber malen
+function vordergrundMalen(raum) {
+  const B = leinwand.width, H = leinwand.height;
+  const b = bildHolen(raum.bild);
+  if (!b || !b.complete || !b.naturalWidth) return;
+  (raum.vorne || []).forEach((v) => {
+    const qx = (v.x / 100) * b.naturalWidth, qy = (v.y / 100) * b.naturalHeight;
+    const qb = (v.b / 100) * b.naturalWidth, qh = (v.h / 100) * b.naturalHeight;
+    stift.drawImage(b, qx, qy, qb, qh,
+                    (v.x / 100) * B, (v.y / 100) * H, (v.b / 100) * B, (v.h / 100) * H);
+  });
+}
+
+function zeichenMalen(raum) {
+  const B = leinwand.width, H = leinwand.height;
+  const nah = naherPunkt();
+  (raum.punkte || []).forEach((p) => {
+    const x = (p.x / 100) * B;
+    const y = ((raum.boden - FIGURHOEHE - 6) / 100) * H;
+    const puls = 1 + Math.sin(Date.now() / 400) * 0.08;
+    const gross = p === nah;
+    stift.globalAlpha = gross ? 1 : 0.55;
+    stift.fillStyle = "rgba(10,9,7,0.8)";
+    stift.beginPath();
+    stift.arc(x, y, H * 0.035 * (gross ? puls : 1), 0, Math.PI * 2);
+    stift.fill();
+    stift.strokeStyle = gross ? "#f0c173" : "rgba(240,193,115,0.5)";
+    stift.lineWidth = 2;
+    stift.stroke();
+    stift.fillStyle = "#f0c173";
+    stift.font = Math.round(H * 0.04) + "px -apple-system, sans-serif";
+    stift.textAlign = "center"; stift.textBaseline = "middle";
+    stift.fillText(p.zeichen, x, y + H * 0.002);
+    if (gross) {
+      stift.font = Math.round(H * 0.022) + "px -apple-system, sans-serif";
+      stift.fillText(p.taste.toUpperCase(), x, y + H * 0.062);
+    }
+    stift.textAlign = "start"; stift.textBaseline = "alphabetic";
+    stift.globalAlpha = 1;
+  });
+}
+
+function figurMalen(raum) {
+  const B = leinwand.width, H = leinwand.height;
+  const h = H * (FIGURHOEHE / 100);
+  const br = h * 0.38;
+  const x = B * (figur.x / 100);
+  const y = H * (raum.boden / 100);
+  const wackeln = Math.sin(figur.schritt) * h * 0.035;
+
+  stift.fillStyle = "rgba(0,0,0,0.45)";
+  stift.beginPath();
+  stift.ellipse(x, y + h * 0.02, br * 0.6, h * 0.05, 0, 0, Math.PI * 2);
+  stift.fill();
+
+  stift.fillStyle = "#c86a7a";
+  stift.fillRect(x - br / 2, y - h * 0.72, br, h * 0.52);
+  stift.fillStyle = "#f0d2b8";
+  stift.beginPath();
+  stift.arc(x, y - h * 0.82, h * 0.18, 0, Math.PI * 2);
+  stift.fill();
+  stift.fillStyle = "#5a3f2c";
+  stift.fillRect(x - br / 2 + h * 0.04, y - h * 0.2 + wackeln, h * 0.09, h * 0.2);
+  stift.fillRect(x + br / 2 - h * 0.13, y - h * 0.2 - wackeln, h * 0.09, h * 0.2);
+  stift.fillStyle = "#2a1d16";
+  stift.fillRect(x + figur.blickt * h * 0.07 - h * 0.02, y - h * 0.86, h * 0.04, h * 0.04);
+}
+
+groesseAnpassen();
+schritt();
+</script>
+</body>
+</html>
