@@ -365,7 +365,7 @@
 
   // Wird bei jedem Paket neu gesetzt. Steht unten im Startbildschirm, damit man
   // sofort sieht, welche Fassung gerade live ist.
-  const BAUSTAND = '30.10.2026 17:25';
+  const BAUSTAND = '30.10.2026 17:39';
   const SPEICHER_KEY = 'ostern_fortschritt';
   const HINWEISE_GESAMT = 3;
   // Gemeinsamer Faktor für alle Eier. Die Radien in EIER bleiben, hier wird
@@ -488,7 +488,7 @@
     { id: 'gemaelde',   symbol: '🖼', name: 'Bild',      nah: 'bild_vorn', text: 'Ein Landschaftsbild in einem alten Holzrahmen.' },
     { id: 'schluessel', symbol: '🗝', name: 'Schlüssel', text: 'Ein alter Messingschlüssel. Wozu er passt, weiss ich noch nicht.' },
     { id: 'kippen_rot', symbol: '🚬', name: 'Rote Schachtel', text: 'Eine rote Schachtel aus der Holzkiste. Noch halb voll.' },
-    { id: 'kippen',     symbol: '🚬', name: 'Schachtel', text: 'Eine angebrochene Schachtel Zigaretten.' },
+    { id: 'kippen',     symbol: '🚬', name: 'Blaue Schachtel', text: 'Eine angebrochene Schachtel aus dem Koffer.' },
     // Die Taschenlampe nimmt die Batterien entgegen und wird danach zum Schalter.
     { id: 'lampe',      symbol: '🔦', name: 'Lampe',     text: 'Eine Taschenlampe. Ohne Batterien nutzlos.',
       nimmt: 'batterien', setzt: 'lampe_bereit',
@@ -847,12 +847,12 @@
     { id: 'kuehl_ohne_butter', ansicht: 'kuehl_nah', x: 0, y: 0, w: 1774, h: 887, typ: 'overlay', zustand: 'butter_weg',
       bildAus: 'ostern/bilder/kuehl-ohne-butter.webp', label: 'Kühlschrank' },
     { id: 'z_butter', ansicht: 'kuehl_nah', x: 530, y: 326, w: 216, h: 86, typ: 'nehmen', zustand: 'butter_weg',
-      gibt: 'butter', nurGruppe: 'A', ohneMarke: true, label: 'Butter auf dem Papier' },
+      gibt: 'butter', nurGruppe: 'B', ohneMarke: true, label: 'Butter auf dem Papier' },
     { id: 'z_safran', ansicht: 'schlafzimmer', x: 883, y: 479, w: 58, h: 43, typ: 'nehmen', zustand: 'safran_weg',
       gibt: 'safran', nurGruppe: 'A', sichtbarWenn: 'sz_nachttisch_offen', label: 'Döschen in der Schublade',
       ohneMarke: true, zeichnung: liegt('leg-safran.webp', 883, 479, 58, 43, 'safran_weg')},
     { id: 'z_mehl', ansicht: 'kue_ober_nah', x: 700, y: 687, w: 120, h: 166, typ: 'nehmen', zustand: 'mehl_weg',
-      gibt: 'mehl', nurGruppe: 'B', label: 'Mehltüte im Schrank',
+      gibt: 'mehl', nurGruppe: 'A', label: 'Mehltüte im Schrank',
       ohneMarke: true, zeichnung: liegt('leg-mehl.webp', 700, 687, 120, 166, 'mehl_weg')},
     { id: 'z_kardamom', ansicht: 'schlafzimmer', x: 1403, y: 585, w: 58, h: 34, typ: 'nehmen', zustand: 'kardamom_weg',
       gibt: 'kardamom', nurGruppe: 'B', sichtbarWenn: 'sz_frisier_offen', label: 'Kapseln in der Schublade',
@@ -1192,7 +1192,7 @@
     // ist der von der roten Schachtel aus dem Treppenhaus schon gesetzt, und
     // die blaue wäre dann von Anfang an unsichtbar.
     { id: 'kf_kippen', ansicht: 'koffer_nah', x: 560, y: 290, w: 230, h: 116, typ: 'nehmen', zustand: 'kippen_blau_weg',
-      gibt: 'kippen', sichtbarWenn: 'koffer_offen', label: 'Schachtel zwischen den Papieren', ohneMarke: true},
+      gibt: 'kippen', sichtbarWenn: 'koffer_offen', label: 'Blaue Schachtel', ohneMarke: true},
     { id: 'kf_schloss', ansicht: 'koffer_nah', x: 300, y: 480, w: 1180, h: 280, typ: 'ziel',
       nichtWenn: 'koffer_offen', label: 'Schlösser am Koffer',
       nimmt: 'schluessel', setzt: 'koffer_offen',
@@ -1232,7 +1232,7 @@
     { id: 'e11', ansicht: 'garage1',     x: 1195, y: 708, r: 8,  farbe: '#493e36', muster: 'zickzack', ebene: 2, sichtbarWenn: 'steck_offen' },  // zwischen den Steckschlüsseln
     { id: 'e12', ansicht: 'wohnzimmer', x: 1000, y: 440, r: 9,  farbe: '#6a4a30', muster: 'punkte', ebene: 2, sichtbarWenn: 'wz_regal_offen' },  // im Schrank unter dem Regal
     { id: 'e13', ansicht: 'wohnzimmer', x: 1398, y: 452, r: 9,  farbe: '#5a4232', muster: 'streifen', ebene: 2, sichtbarWenn: 'wz_tv_offen' },  // im Fernsehmöbel
-    { id: 'e14', ansicht: 'kuehl_nah', x: 812, y: 162, r: 13, farbe: '#aa6050', muster: 'punkte', ebene: 1, sichtbarWenn: null, nurGruppe: 'B'},  // in der Eierablage im Kühlschrank
+    { id: 'e14', ansicht: 'kuehl_nah', x: 812, y: 162, r: 13, farbe: '#aa6050', muster: 'punkte', ebene: 1, sichtbarWenn: null, nurGruppe: 'A'},  // in der Eierablage im Kühlschrank
     { id: 'e15', ansicht: 'acizimmer',  x: 778,  y: 405, r: 9,  farbe: '#d08a5a', muster: 'zickzack', ebene: 2, sichtbarWenn: 'aci_schrank_offen' },  // auf dem Wäschestapel im Kleiderschrank
     // --- Ebene 3: nur nach Rätsel sichtbar ---
     { id: 'e16', ansicht: 'tisch_nah',  x: 330,  y: 236, r: 31, farbe: '#c9b48a', muster: 'punkte',   ebene: 1, sichtbarWenn: null },  // steht in der Tasse auf dem Couchtisch, Unterkante knapp über dem Tassenrand-Flicken
@@ -1254,7 +1254,7 @@
     { id: 'e28', ansicht: 'aquarium_nah', x: 940, y: 710, r: 11, farbe: '#b8a884', muster: 'punkte', ebene: 2, sichtbarWenn: 'aq_kies', hinweis: 'liegt im Kies vom Aquarium. Die Fische sitzen darauf.'},  // im aufgewirbelten Kies im Aquarium
     { id: 'e30', ansicht: 'th_kiste_nah', x: 1235, y: 625, r: 23, farbe: '#7a6a4e', muster: 'punkte', ebene: 2, sichtbarWenn: 'th_tuecher_weg', hinweis: 'liegt unter Stoff. Schieb ihn beiseite.'},  // in den Tuchfalten in der Holzkiste
     { id: 'e32', ansicht: 'pc_nah', x: 1310, y: 545, r: 26, farbe: '#d9c27a', muster: 'zickzack', ebene: 1, sichtbarWenn: 'pc_privat_offen', hinweis: 'liegt hinter einem Passwort.', nichtWenn: 'pc_bild_zu'},  // auf dem Bild im Ordner „privat"
-    { id: 'e36', ansicht: 'kue_ober_nah', x: 700, y: 760, r: 18, farbe: '#b9a57e', muster: 'punkte', ebene: 1, sichtbarWenn: null, nurGruppe: 'A' },  // wo Gruppe B das Mehl findet
+    { id: 'e36', ansicht: 'kue_ober_nah', x: 700, y: 760, r: 18, farbe: '#b9a57e', muster: 'punkte', ebene: 1, sichtbarWenn: null, nurGruppe: 'B' },  // wo Gruppe B das Mehl findet
     { id: 'e33', ansicht: 'gruenkiste_nah', x: 1060, y: 700, r: 20, farbe: '#76704f', muster: 'streifen', ebene: 2, sichtbarWenn: null },  // rechts neben der Sicherung auf dem Kistenboden
     { id: 'e31', ansicht: 'schreibtisch_nah', x: 1700, y: 478, r: 12, farbe: '#3a4c2a', muster: 'streifen', ebene: 1, sichtbarWenn: null },  // getarnt zwischen den Blättern der Zimmerpflanze
     { id: 'e29', ansicht: 'schreibtisch_nah', x: 196, y: 702, r: 12, farbe: '#5f4a33', muster: 'streifen', ebene: 2, sichtbarWenn: 'sb_schrank_offen' }  // in der dunklen Ecke neben den Büchern im Schreibtischschrank
@@ -1281,12 +1281,14 @@
   // Schüsselbild. Die Zutaten liegen verstreut auf dem Tisch, nicht in der
   // Reihenfolge — man muss also wissen oder raten, was als nächstes kommt.
   // =====================================================================
+  // Die Reihenfolge der Gruppen ist bewusst unregelmässig (A A B B A B),
+  // damit nicht einfach abwechselnd getippt werden kann.
   const BACK_SCHRITTE = [
     { zutat: 'hefe',     gruppe: 'A', bild: 'ostern/bilder/backen-1-hefe.webp',
       sagt: 'Erst die Hefe in die warme Milch. Jetzt warten, bis sie Blasen macht.' },
-    { zutat: 'mehl',     gruppe: 'B', bild: 'ostern/bilder/backen-2-mehl.webp',
+    { zutat: 'mehl',     gruppe: 'A', bild: 'ostern/bilder/backen-2-mehl.webp',
       sagt: 'Mehl drauf. Noch nicht rühren. Mama sagt, man soll erst sehen, ob die Hefe arbeitet.' },
-    { zutat: 'butter',   gruppe: 'A', bild: 'ostern/bilder/backen-3-butter.webp',
+    { zutat: 'butter',   gruppe: 'B', bild: 'ostern/bilder/backen-3-butter.webp',
       sagt: 'Jetzt Butter. Dann kneten, bis das ein Teig ist. Dauert länger, als man denkt.' },
     { zutat: 'kardamom', gruppe: 'B', bild: 'ostern/bilder/backen-4-kardamom.webp',
       sagt: 'Kardamom. Nur die Samen. Die Schalen kommen weg.' },
@@ -3117,6 +3119,14 @@
         'Aci hält deine Hand kurz zurück. „Noch nicht. ' + name + ' kommt später."';
       return;
     }
+    // Nur wer die Zutat im Haus gefunden hat, darf sie auch einrühren.
+    // Ist gerade die andere Gruppe dran, prüfen wir nichts — die hat sie.
+    if (schritt.gruppe === zustand.gruppe && !(zustand.inventar || []).includes(id)) {
+      klang('fehler');
+      document.getElementById('back-sagt').textContent =
+        'Aci sucht auf dem Tisch. „' + name + ' haben wir gar nicht. Die liegt noch irgendwo im Haus."';
+      return;
+    }
     // Am echten Tisch entscheidet der Server, ob man dran ist.
     if (tisch) {
       sbRuf('schritt_setzen', { p_id: zustand.spielerId, p_tisch: tisch.id, p_schritt: i + 1 })
@@ -3308,7 +3318,7 @@
     { art: 'titel', text: 'QA Lead' },
     { art: 'zeile', text: 'Ripzha' },
     { art: 'titel', text: 'Playtesting' },
-    { art: 'zeile', text: '— Namen folgen —' },
+    { art: 'zeile', text: 'CysteK' },
     { art: 'titel', text: 'Final Pass' },
     { art: 'zeile', text: 'Ripzha' },
 
@@ -3357,7 +3367,7 @@
 
     { art: 'abteilung', text: 'Special Thanks' },
     { art: 'titel', text: 'An die Testspieler' },
-    { art: 'zeile', text: '— Namen folgen —' },
+    { art: 'zeile', text: 'CysteK' },
     { art: 'titel', text: 'An die Community' },
     { art: 'zeile', text: 'simsforumrpg.de' },
     { art: 'titel', text: 'An alle, die bis hierher geschaut haben' },
