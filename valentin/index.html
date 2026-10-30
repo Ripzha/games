@@ -282,6 +282,7 @@ const RAEUME = [
         "x": 12.4,
         "taste": "s",
         "zeichen": "♪",
+        "klavier": true,
         "titel": "Das Klavier",
         "text": "Die Tasten sind verstimmt, aber es geht noch. Auf dem Pult liegt ein Stück, das für vier Hände geschrieben ist — allein kommst du nicht durch.<br><br><i>Hier kommt das Klavierspiel. Zwei Leute müssen die Tasten abwechselnd im Takt treffen.</i>"
       },
@@ -1160,6 +1161,7 @@ addEventListener("keydown", (e) => {
   if (document.activeElement === satzfeld) return;
   const t = e.key.toLowerCase();
   tasten[t] = true;
+  if (klavierOffen) return;                    // das Klavier hört selbst zu
   if (offenerPunkt) { if (t === "escape") fensterZu(); return; }
   const p = nahePunkte().find((k) => k.taste === t);
   if (p) { punktOeffnen(p); e.preventDefault(); }
@@ -1183,6 +1185,12 @@ function punktMitte(p) {
 }
 
 function punktOeffnen(p) {
+  if (p.klavier) {                       // das Klavierspiel im Salon
+    offenerPunkt = p;
+    klavierStarten();
+    letzteBewegung = Date.now();
+    return;
+  }
   if (p.treppe) {
     const ziel = RAEUME[p.treppe.raum];
     if (ziel.geheim && !geheimOffen) {   // noch verschlossen
@@ -1703,6 +1711,591 @@ function editMalen() {
 groesseAnpassen();
 if (editModus) editAusgeben();
 schritt();
+
+// ======================================================================
+// 9. Das Klavier im Salon — die erste Aufgabe zu zweit
+//
+//    Zwei Leute spielen ein Stück gemeinsam. Die Melodie wechselt in
+//    kurzen Phrasen zwischen beiden hin und her. Jeder sieht den ganzen
+//    Strom fallender Noten, aber nur die eigenen sind hell und tragen
+//    einen Buchstaben. Gewertet wird gemeinsam: ab 80 Prozent über das
+//    ganze Stück gilt es als geschafft, darunter nochmal.
+//
+//    Mehrspieler ist noch nicht gebaut. Solange steht ein Übungspartner
+//    daneben, der seine Phrasen selbst spielt. Er hängt hinter PARTNER
+//    und wird später gegen den echten Mitspieler getauscht, ohne dass
+//    am Rest etwas geändert werden muss.
+// ======================================================================
+
+let klavierOffen   = false;
+let klavierGeloest = false;    // wird wahr, sobald das Stück geschafft ist
+
+// ----------------------------------------------------------------------
+// Die Klaviatur. Weiss C4 bis F5, schwarz dazwischen.
+// kuerzel = die Taste am Rechner (Grundreihe weiss, obere Reihe schwarz).
+// ----------------------------------------------------------------------
+const KL_WEISS = [
+  { note: "C4",  freq: 261.63, kuerzel: "A" },
+  { note: "D4",  freq: 293.66, kuerzel: "S" },
+  { note: "E4",  freq: 329.63, kuerzel: "D" },
+  { note: "F4",  freq: 349.23, kuerzel: "F" },
+  { note: "G4",  freq: 392.00, kuerzel: "G" },
+  { note: "A4",  freq: 440.00, kuerzel: "H" },
+  { note: "H4",  freq: 493.88, kuerzel: "J" },
+  { note: "C5",  freq: 523.25, kuerzel: "K" },
+  { note: "D5",  freq: 587.33, kuerzel: "L" },
+  { note: "E5",  freq: 659.25, kuerzel: "Ö" },
+  { note: "F5",  freq: 698.46, kuerzel: "Ä" }
+];
+const KL_SCHWARZ = [
+  { note: "Cis4", freq: 277.18, kuerzel: "W", nach: 0 },
+  { note: "Dis4", freq: 311.13, kuerzel: "E", nach: 1 },
+  { note: "Fis4", freq: 369.99, kuerzel: "T", nach: 3 },
+  { note: "Gis4", freq: 415.30, kuerzel: "Z", nach: 4 },
+  { note: "Ais4", freq: 466.16, kuerzel: "U", nach: 5 },
+  { note: "Cis5", freq: 554.37, kuerzel: "O", nach: 7 },
+  { note: "Dis5", freq: 622.25, kuerzel: "P", nach: 8 }
+];
+
+const KL_ALLE = {};
+KL_WEISS.forEach((t)   => (KL_ALLE[t.note] = t));
+KL_SCHWARZ.forEach((t) => (KL_ALLE[t.note] = t));
+
+const KL_VON_TASTE = {};
+KL_WEISS.forEach((t)   => (KL_VON_TASTE[t.kuerzel.toLowerCase()] = t.note));
+KL_SCHWARZ.forEach((t) => (KL_VON_TASTE[t.kuerzel.toLowerCase()] = t.note));
+
+// ----------------------------------------------------------------------
+// Das Stück. Greensleeves, England, 16. Jahrhundert, gemeinfrei.
+//
+// ACHTUNG: aus dem Gedächtnis geschrieben, nicht aus Noten abgeschrieben.
+// Der Knopf "Erst mal anhören" spielt es vor — wer einen falschen Ton
+// hört, ändert ihn hier. Die Zahl hinter dem Ton ist die Länge in
+// Zählern, ein Zähler ist KL_ZAEHLER Millisekunden.
+//
+// wer: 0 = der Spieler an diesem Rechner, 1 = der Mitspieler.
+// Die Phrasen wechseln sich ab, damit niemand lange nichts zu tun hat.
+// ----------------------------------------------------------------------
+const KL_ZAEHLER = 340;      // Millisekunden pro Zähler
+const KL_PAUSE   = 1.5;      // Zähler Pause zwischen zwei Phrasen
+
+const KL_PHRASEN = [
+  { wer: 0, noten: [["A4", 1], ["C5", 2], ["D5", 1], ["E5", 2], ["F5", 1], ["E5", 3]] },
+  { wer: 1, noten: [["D5", 2], ["H4", 1], ["G4", 2], ["A4", 1], ["H4", 3]] },
+  { wer: 0, noten: [["C5", 2], ["A4", 3], ["Gis4", 1], ["A4", 2], ["H4", 1]] },
+  { wer: 1, noten: [["Gis4", 3], ["E4", 3]] },
+  // Beim Wiederholungsteil tauschen die beiden die Rollen, damit jeder
+  // ungefähr gleich viele Noten bekommt.
+  { wer: 1, noten: [["A4", 1], ["C5", 2], ["D5", 1], ["E5", 2], ["F5", 1], ["E5", 3]] },
+  { wer: 0, noten: [["D5", 2], ["H4", 1], ["G4", 2], ["A4", 1], ["H4", 3]] },
+  { wer: 1, noten: [["C5", 2], ["H4", 1], ["A4", 2], ["Gis4", 1], ["Fis4", 2], ["Gis4", 1]] },
+  { wer: 0, noten: [["A4", 3], ["A4", 3]] }
+];
+
+// ----------------------------------------------------------------------
+// Zeiten und Schwellen
+// ----------------------------------------------------------------------
+const KL_FALLZEIT = 2600;    // Millisekunden von oben bis zur Treffleiste
+const KL_PERFEKT  = 150;     // plus/minus Millisekunden für die volle Wertung
+const KL_GUT      = 300;     // plus/minus Millisekunden, sonst verpasst
+const KL_VORLAUF  = 1600;    // Ruhe vor dem ersten Ton
+const KL_SCHWELLE = 80;      // Prozent, ab denen es geschafft ist
+
+// ----------------------------------------------------------------------
+// Der Mitspieler.
+//
+// Heute ein Übungspartner im selben Browser. Später kommt hier die
+// Verbindung über Supabase hinein. Was ausgetauscht werden muss, ist
+// wenig: ein gemeinsamer Startzeitpunkt und pro Note ein Ergebnis.
+// Der Tastendruck selbst geht nie über die Leitung — jeder bewertet
+// bei sich, sonst entscheidet die Verzögerung über das Spiel.
+//
+//   starten(song, melden)  wird beim Start gerufen. melden(index, gut)
+//                          meldet einen Treffer des Mitspielers.
+//   beenden()              räumt auf.
+// ----------------------------------------------------------------------
+const KL_PARTNER = {
+  name: "Übungspartner",
+  _uhren: [],
+  starten(song, melden, startZeit) {
+    this._uhren = [];
+    song.noten.forEach((n, i) => {
+      if (n.wer !== 1) return;
+      // Der Partner trifft nicht auf die Millisekunde genau.
+      const versatz = (Math.random() - 0.5) * 220;
+      const daneben = Math.random() > 0.92;          // ab und zu ein Fehler
+      const wann = startZeit + n.zeit + versatz - performance.now();
+      this._uhren.push(
+        setTimeout(() => {
+          if (daneben) melden(i, null);
+          else melden(i, Math.abs(versatz) <= KL_PERFEKT);
+        }, Math.max(0, wann))
+      );
+    });
+  },
+  beenden() {
+    this._uhren.forEach(clearTimeout);
+    this._uhren = [];
+  }
+};
+
+// ----------------------------------------------------------------------
+// Ton
+// ----------------------------------------------------------------------
+let klAudio = null;
+function klTonWerk() {
+  if (!klAudio) {
+    try { klAudio = new (window.AudioContext || window.webkitAudioContext)(); }
+    catch (e) { return null; }
+  }
+  if (klAudio.state === "suspended") klAudio.resume();
+  return klAudio;
+}
+function klTon(freq, dauerMs, leise) {
+  const c = klTonWerk();
+  if (!c) return;
+  const jetzt = c.currentTime;
+  const dauer = Math.max(0.5, (dauerMs || 500) / 1000 + 0.35);
+  const filter = c.createBiquadFilter();
+  filter.type = "lowpass";
+  filter.frequency.value = 3200;
+  filter.Q.value = 0.5;
+  filter.connect(c.destination);
+  const laut = leise ? 0.45 : 1;
+  // Grundton und zwei Obertöne, das klingt nach Klavier genug
+  [[1, 0.20], [2, 0.07], [3, 0.025]].forEach(([mal, staerke]) => {
+    const o = c.createOscillator(), g = c.createGain();
+    o.type = "sine";
+    o.frequency.value = freq * mal;
+    g.gain.setValueAtTime(0, jetzt);
+    g.gain.linearRampToValueAtTime(staerke * laut, jetzt + 0.008);
+    g.gain.exponentialRampToValueAtTime(0.001, jetzt + dauer);
+    o.connect(g).connect(filter);
+    o.start(jetzt);
+    o.stop(jetzt + dauer);
+  });
+}
+
+// ----------------------------------------------------------------------
+// Das Stück in eine Notenliste mit Zeiten umrechnen
+// ----------------------------------------------------------------------
+function klSongBauen() {
+  const noten = [];
+  let t = 0;
+  KL_PHRASEN.forEach((phrase) => {
+    let ende = 0;
+    phrase.noten.forEach(([note, laenge]) => {
+      noten.push({
+        zeit: t + ende * KL_ZAEHLER,
+        dauer: laenge * KL_ZAEHLER,
+        note: note,
+        wer: phrase.wer,
+        stand: "offen"
+      });
+      ende += laenge;
+    });
+    t += (ende + KL_PAUSE) * KL_ZAEHLER;
+  });
+  return { noten, laenge: t };
+}
+
+// ----------------------------------------------------------------------
+// Die Oberfläche. Sie wird beim ersten Aufruf gebaut und danach nur noch
+// ein- und ausgeblendet.
+// ----------------------------------------------------------------------
+let klBau = null;
+
+function klStil() {
+  if (document.getElementById("klavier-stil")) return;
+  const s = document.createElement("style");
+  s.id = "klavier-stil";
+  s.textContent = `
+  #klavier { position: absolute; inset: 0; display: none; flex-direction: column;
+             background: rgba(8,7,6,0.94); z-index: 5; }
+  #klavier.auf { display: flex; }
+  #kl-kopf { display: flex; justify-content: space-between; align-items: baseline;
+             padding: 10px 16px; font-size: 13px; color: #8a857a; flex: none; }
+  #kl-kopf b { color: #f0c173; font-weight: 500; }
+  #kl-feld { position: relative; flex: 1; overflow: hidden; }
+  #kl-leiste { position: absolute; left: 0; right: 0; bottom: 0; height: 2px;
+               background: #c9a06a; opacity: .8; }
+  .kl-note { position: absolute; border-radius: 4px; display: flex;
+             align-items: center; justify-content: center;
+             font-size: 12px; font-weight: 600; color: #1a1510;
+             background: #f0c173; box-shadow: 0 0 14px rgba(240,193,115,.35); }
+  .kl-note.fremd { background: #3b352a; color: #6d6659; box-shadow: none; }
+  .kl-note.getroffen { background: #8fd49a; transition: opacity .3s; opacity: 0; }
+  .kl-note.verpasst  { background: #7a4040; color: #d8b0b0; }
+  #kl-tasten { position: relative; flex: none; height: 26%; min-height: 76px;
+               display: flex; padding: 0 10px 10px; }
+  .kl-weiss { position: relative; flex: 1; margin: 0 1px; border-radius: 0 0 5px 5px;
+              background: linear-gradient(#f6f0e4, #ded6c2); color: #4a4335;
+              display: flex; align-items: flex-end; justify-content: center;
+              padding-bottom: 6px; font-size: 12px; font-weight: 600; cursor: pointer;
+              user-select: none; -webkit-user-select: none; }
+  .kl-schwarz { position: absolute; top: 0; height: 58%; border-radius: 0 0 4px 4px;
+                background: linear-gradient(#2a2720, #15130f); color: #a39b8a;
+                display: flex; align-items: flex-end; justify-content: center;
+                padding-bottom: 5px; font-size: 11px; font-weight: 600; cursor: pointer;
+                user-select: none; -webkit-user-select: none; z-index: 2; }
+  .kl-weiss.an   { background: linear-gradient(#f0c173, #d9a85c); }
+  .kl-schwarz.an { background: linear-gradient(#6b5420, #4a3a16); color: #f0c173; }
+  #kl-urteil { position: absolute; left: 0; right: 0; top: 14%; text-align: center;
+               font-size: 22px; font-weight: 500; opacity: 0; pointer-events: none; }
+  #kl-urteil.zeig { animation: kl-auf .5s ease both; }
+  @keyframes kl-auf { 0% { opacity: 0; transform: translateY(8px) }
+                      35% { opacity: 1; transform: none }
+                      100% { opacity: 0 } }
+  #kl-tafel { position: absolute; inset: 0; display: flex; align-items: center;
+              justify-content: center; padding: 24px; background: rgba(8,7,6,0.9); z-index: 6; }
+  #kl-tafel.weg { display: none; }
+  #kl-karte { max-width: 480px; width: 100%; background: rgba(16,14,11,0.98);
+              border: 1px solid #5a4a1c; border-radius: 12px; padding: 22px 24px; }
+  #kl-karte h2 { margin: 0 0 10px; font-size: 19px; font-weight: 500; color: #f0c173; }
+  #kl-karte p  { margin: 0 0 12px; font-size: 15px; line-height: 1.55; color: #ded6c2; }
+  #kl-karte button { padding: 9px 18px; margin: 4px 6px 0 0; background: #3a2f12;
+              color: #f0c173; border: 1px solid #5a4a1c; border-radius: 6px;
+              font-size: 15px; cursor: pointer; }
+  `;
+  document.head.appendChild(s);
+}
+
+function klOberflaeche() {
+  if (klBau) return klBau;
+  klStil();
+
+  const wurzel = document.createElement("div");
+  wurzel.id = "klavier";
+  wurzel.innerHTML =
+    '<div id="kl-kopf"><span id="kl-stand"></span><span id="kl-wer"></span></div>' +
+    '<div id="kl-feld"><div id="kl-urteil"></div><div id="kl-leiste"></div></div>' +
+    '<div id="kl-tasten"></div>' +
+    '<div id="kl-tafel"><div id="kl-karte"></div></div>';
+  document.getElementById("buehne").appendChild(wurzel);
+
+  const reihe = wurzel.querySelector("#kl-tasten");
+  const tastenEl = {};
+
+  KL_WEISS.forEach((t) => {
+    const el = document.createElement("div");
+    el.className = "kl-weiss";
+    el.textContent = t.kuerzel;
+    reihe.appendChild(el);
+    tastenEl[t.note] = el;
+    el.addEventListener("pointerdown", (e) => { e.preventDefault(); klEingabe(t.note); });
+  });
+  KL_SCHWARZ.forEach((t) => {
+    const el = document.createElement("div");
+    el.className = "kl-schwarz";
+    el.textContent = t.kuerzel;
+    reihe.appendChild(el);
+    tastenEl[t.note] = el;
+    el.addEventListener("pointerdown", (e) => { e.preventDefault(); klEingabe(t.note); });
+  });
+
+  klBau = {
+    wurzel,
+    feld:   wurzel.querySelector("#kl-feld"),
+    stand:  wurzel.querySelector("#kl-stand"),
+    wer:    wurzel.querySelector("#kl-wer"),
+    urteil: wurzel.querySelector("#kl-urteil"),
+    tafel:  wurzel.querySelector("#kl-tafel"),
+    karte:  wurzel.querySelector("#kl-karte"),
+    tastenEl
+  };
+  klSchwarzeSetzen();
+  window.addEventListener("resize", klSchwarzeSetzen);
+  return klBau;
+}
+
+// Die schwarzen Tasten sitzen auf der Fuge zwischen zwei weissen.
+function klSchwarzeSetzen() {
+  if (!klBau) return;
+  const weiss = KL_WEISS.map((t) => klBau.tastenEl[t.note]);
+  if (!weiss[0] || !weiss[0].offsetWidth) return;
+  const reihe = klBau.wurzel.querySelector("#kl-tasten");
+  const links0 = reihe.getBoundingClientRect().left;
+  KL_SCHWARZ.forEach((t) => {
+    const w = weiss[t.nach].getBoundingClientRect();
+    const breite = w.width * 0.62;
+    const el = klBau.tastenEl[t.note];
+    el.style.width = breite + "px";
+    el.style.left = (w.right - links0 - breite / 2) + "px";
+  });
+}
+
+// ----------------------------------------------------------------------
+// Spielzustand
+// ----------------------------------------------------------------------
+let klSong = null;
+let klLaeuft = false, klVorspiel = false;
+let klStart = 0, klSchleife = null;
+let klPunkte = 0, klMoeglich = 0;
+
+function klUrteil(text, farbe) {
+  const el = klBau.urteil;
+  el.textContent = text;
+  el.style.color = farbe;
+  el.classList.remove("zeig");
+  void el.offsetWidth;
+  el.classList.add("zeig");
+}
+function klBlitz(note) {
+  const el = klBau.tastenEl[note];
+  if (!el) return;
+  el.classList.add("an");
+  setTimeout(() => el.classList.remove("an"), 150);
+}
+
+// ----------------------------------------------------------------------
+// Öffnen und schliessen
+// ----------------------------------------------------------------------
+function klavierStarten() {
+  klOberflaeche();
+  klavierOffen = true;
+  klBau.wurzel.classList.add("auf");
+  klSchwarzeSetzen();
+  klTafelStart();
+}
+
+function klavierSchliessen() {
+  klAbbrechen();
+  klavierOffen = false;
+  if (klBau) klBau.wurzel.classList.remove("auf");
+  fensterZu();
+}
+
+function klAbbrechen() {
+  klLaeuft = false;
+  KL_PARTNER.beenden();
+  if (klSchleife) cancelAnimationFrame(klSchleife);
+  klSchleife = null;
+  if (klBau) klBau.feld.querySelectorAll(".kl-note").forEach((n) => n.remove());
+}
+
+// ----------------------------------------------------------------------
+// Die Tafeln davor und danach
+// ----------------------------------------------------------------------
+function klTafelZeigen(html, knoepfe) {
+  klBau.karte.innerHTML = html;
+  const leiste = document.createElement("div");
+  knoepfe.forEach(([text, tun]) => {
+    const b = document.createElement("button");
+    b.textContent = text;
+    b.onclick = tun;
+    leiste.appendChild(b);
+  });
+  klBau.karte.appendChild(leiste);
+  klBau.tafel.classList.remove("weg");
+}
+
+function klTafelStart() {
+  klTafelZeigen(
+    "<h2>Das Klavier</h2>" +
+    "<p>Auf dem Pult liegt ein Stück für vier Hände. Die Melodie springt " +
+    "zwischen euch hin und her — deine Noten sind hell und tragen einen " +
+    "Buchstaben, die des anderen bleiben dunkel.</p>" +
+    "<p>Drück die Taste, wenn die Note unten ankommt. Gewertet wird " +
+    "gemeinsam über das ganze Stück. Ab " + KL_SCHWELLE + " Prozent geht es auf.</p>" +
+    "<p style='color:#8a857a;font-size:13px'>Mitspieler: " + KL_PARTNER.name + "</p>",
+    [
+      ["Erst mal anhören", () => klSpielStarten(true)],
+      ["Spielen",          () => klSpielStarten(false)],
+      ["Zurück",           klavierSchliessen]
+    ]
+  );
+}
+
+function klTafelEnde(prozent) {
+  if (prozent >= KL_SCHWELLE) {
+    klavierGeloest = true;
+    klTafelZeigen(
+      "<h2>Es klingt</h2>" +
+      "<p>Ihr seid zusammen durchgekommen — " + prozent + " Prozent.</p>" +
+      "<p><i>Platzhalter — hier kommt, was das gelöste Klavier auswirft. " +
+      "Noch nicht entschieden.</i></p>",
+      [["Zurück", klavierSchliessen]]
+    );
+  } else {
+    klTafelZeigen(
+      "<h2>Das war daneben</h2>" +
+      "<p>" + prozent + " Prozent. Es braucht " + KL_SCHWELLE + ".</p>" +
+      "<p>Nichts geht verloren, ihr könnt es so oft versuchen, wie ihr wollt.</p>",
+      [
+        ["Nochmal",         () => klSpielStarten(false)],
+        ["Erst mal anhören", () => klSpielStarten(true)],
+        ["Zurück",          klavierSchliessen]
+      ]
+    );
+  }
+}
+
+// ----------------------------------------------------------------------
+// Der Durchgang
+// ----------------------------------------------------------------------
+function klSpielStarten(nurHoeren) {
+  klTonWerk();
+  klAbbrechen();
+  klSong = klSongBauen();
+  klVorspiel = !!nurHoeren;
+  klLaeuft = true;
+  klPunkte = 0;
+  klMoeglich = klSong.noten.length * 100;
+  klBau.tafel.classList.add("weg");
+  klBau.stand.textContent = "";
+  klBau.wer.textContent = nurHoeren ? "Vorspiel" : "";
+
+  klSong.noten.forEach((n) => {
+    const el = document.createElement("div");
+    el.className = "kl-note" + (n.wer === 1 ? " fremd" : "");
+    el.textContent = n.wer === 0 ? KL_ALLE[n.note].kuerzel : "";
+    el.style.display = "none";
+    klBau.feld.appendChild(el);
+    n.el = el;
+    n.stand = "offen";
+  });
+
+  klStart = performance.now() + KL_VORLAUF;
+  if (!nurHoeren) KL_PARTNER.starten(klSong, klPartnerMeldet, klStart);
+  klSchleife = requestAnimationFrame(klSchritt);
+}
+
+// Der Mitspieler meldet ein Ergebnis für seine Note.
+// gut === true  perfekt, gut === false knapp, gut === null daneben.
+function klPartnerMeldet(index, gut) {
+  if (!klLaeuft) return;
+  const n = klSong.noten[index];
+  if (!n || n.stand !== "offen") return;
+  if (gut === null) {
+    n.stand = "verpasst";
+    n.el.classList.add("verpasst");
+    setTimeout(() => { n.el.style.display = "none"; }, 500);
+    return;
+  }
+  n.stand = "getroffen";
+  n.el.classList.add("getroffen");
+  setTimeout(() => { n.el.style.display = "none"; }, 320);
+  klTon(KL_ALLE[n.note].freq, n.dauer);
+  klBlitz(n.note);
+  klPunkte += gut ? 100 : 80;
+  klStandAnzeigen();
+}
+
+function klStandAnzeigen() {
+  const bisher = klSong.noten.filter((n) => n.stand !== "offen").length;
+  if (!bisher) { klBau.stand.textContent = ""; return; }
+  const prozent = Math.round((klPunkte / (bisher * 100)) * 100);
+  klBau.stand.innerHTML = "zusammen <b>" + prozent + " %</b>";
+}
+
+function klSchritt(jetzt) {
+  if (!klLaeuft) return;
+  const t = jetzt - klStart;
+  const hoehe = klBau.feld.clientHeight;
+  const breite = klBau.feld.clientWidth;
+  const feldLinks = klBau.feld.getBoundingClientRect().left;
+
+  klSong.noten.forEach((n) => {
+    const dt = n.zeit - t;                       // Millisekunden bis zum Treffpunkt
+    if (dt < KL_FALLZEIT && dt > -600 &&
+        (n.stand === "offen" || n.stand === "verpasst")) {
+      const taste = klBau.tastenEl[n.note];
+      if (taste) {
+        const r = taste.getBoundingClientRect();
+        const b = Math.min(r.width - 4, 58);
+        const h = Math.max(24, n.dauer / 14);
+        const x = r.left - feldLinks + (r.width - b) / 2;
+        const y = hoehe - (dt / KL_FALLZEIT) * (hoehe + 80) - h;
+        n.el.style.display = "flex";
+        n.el.style.width = b + "px";
+        n.el.style.height = h + "px";
+        n.el.style.transform = "translate(" + x + "px," + y + "px)";
+      }
+    }
+
+    // Vorspiel: alles läuft von selbst
+    if (klVorspiel && n.stand === "offen" && dt <= 0) {
+      n.stand = "auto";
+      klTon(KL_ALLE[n.note].freq, n.dauer);
+      klBlitz(n.note);
+      n.el.classList.add("getroffen");
+    }
+
+    // Verpasst — nur die eigenen Noten, die des Partners meldet der Partner
+    if (!klVorspiel && n.wer === 0 && n.stand === "offen" && dt < -KL_GUT) {
+      n.stand = "verpasst";
+      n.el.classList.add("verpasst");
+      klUrteil("Verpasst", "#e08a8a");
+      klStandAnzeigen();
+      setTimeout(() => { n.el.style.display = "none"; }, 500);
+    }
+    if (n.stand === "verpasst" && dt < -700) n.el.style.display = "none";
+  });
+
+  // Wessen Phrase läuft gerade
+  if (!klVorspiel) {
+    const naechste = klSong.noten.find((n) => n.zeit > t - 200);
+    klBau.wer.textContent = naechste
+      ? (naechste.wer === 0 ? "du bist dran" : "der andere ist dran")
+      : "";
+  }
+
+  if (t > klSong.laenge + 900) { klBeenden(); return; }
+  klSchleife = requestAnimationFrame(klSchritt);
+}
+
+function klEingabe(note) {
+  if (!klavierOffen) return;
+  klBlitz(note);
+  if (!klLaeuft || klVorspiel) { klTon(KL_ALLE[note].freq, 400, true); return; }
+
+  const t = performance.now() - klStart;
+  let beste = null, abstand = Infinity;
+  klSong.noten.forEach((n) => {
+    if (n.stand !== "offen" || n.wer !== 0 || n.note !== note) return;
+    const d = Math.abs(n.zeit - t);
+    if (d > KL_GUT) return;
+    if (d < abstand) { beste = n; abstand = d; }   // die nächstgelegene gewinnt
+  });
+
+  if (beste) {
+    beste.stand = "getroffen";
+    beste.el.classList.add("getroffen");
+    setTimeout(() => { beste.el.style.display = "none"; }, 320);
+    klTon(KL_ALLE[note].freq, beste.dauer);
+    if (abstand <= KL_PERFEKT) { klPunkte += 100; klUrteil("Perfekt", "#8fd49a"); }
+    else                       { klPunkte += 80;  klUrteil("Gut", "#f0c173"); }
+    klStandAnzeigen();
+  } else {
+    // Danebengegriffen: der Ton kommt trotzdem, leise — man hört den Fehler
+    klTon(KL_ALLE[note].freq, 350, true);
+  }
+}
+
+function klBeenden() {
+  klLaeuft = false;
+  KL_PARTNER.beenden();
+  if (klSchleife) cancelAnimationFrame(klSchleife);
+  klSchleife = null;
+  klBau.feld.querySelectorAll(".kl-note").forEach((n) => n.remove());
+  klBau.wer.textContent = "";
+  if (klVorspiel) { klTafelStart(); return; }
+  klTafelEnde(Math.round((klPunkte / klMoeglich) * 100));
+}
+
+// ----------------------------------------------------------------------
+// Tasten. Läuft vor dem Laufen der Figur, weil bei offenem Klavier
+// offenerPunkt gesetzt ist und die Figur ohnehin stillsteht.
+// ----------------------------------------------------------------------
+addEventListener("keydown", (e) => {
+  if (!klavierOffen) return;
+  if (document.activeElement === satzfeld) return;     // im Chat tippen geht vor
+  if (e.repeat) return;
+  const t = e.key.toLowerCase();
+  if (t === "escape") { klavierSchliessen(); e.preventDefault(); return; }
+  const note = KL_VON_TASTE[t];
+  if (note) { klEingabe(note); e.preventDefault(); }
+});
 </script>
 </body>
 </html>
