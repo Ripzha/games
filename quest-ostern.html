@@ -365,7 +365,7 @@
 
   // Wird bei jedem Paket neu gesetzt. Steht unten im Startbildschirm, damit man
   // sofort sieht, welche Fassung gerade live ist.
-  const BAUSTAND = '28.10.2026 16:51';
+  const BAUSTAND = '30.10.2026 17:18';
   const SPEICHER_KEY = 'ostern_fortschritt';
   const HINWEISE_GESAMT = 3;
   // Gemeinsamer Faktor für alle Eier. Die Radien in EIER bleiben, hier wird
@@ -585,8 +585,6 @@
     { id: 'wn_kiste', ansicht: 'wagen_nah', x: 925, y: 585, w: 350, h: 145, typ: 'naehe', nah: 'gruenkiste_nah', label: 'Grüne Werkzeugkiste' },
     { id: 'gk_sicherung', ansicht: 'gruenkiste_nah', x: 600, y: 530, w: 320, h: 200, typ: 'nehmen', zustand: 'sicherung_genommen',
       gibt: 'sicherung', bildAus: 'ostern/bilder/kiste-gruen-leer.webp', label: 'Sicherung' },
-    { id: 'g_zettel',  ansicht: 'garage1', x: 1055, y: 12,  w: 180, h: 112, typ: 'info', label: 'Zeichnung an der Wand',
-      titel: 'Notiz am Rand der Zeichnung', text: '„Aci — den Code für die Luke hab ich an die Wand geschrieben. Mit der Farbe, die im Dunkeln leuchtet. Du weisst schon, wo." — Anfisa' },
     // --- Garage, Ansicht 2: Türseite (Koordinaten im Bild 1774 x 887) ---
     { id: 'g2_regalwand', ansicht: 'garage2', x: 60, y: 60, w: 300, h: 230, typ: 'naehe', nah: 'regalwand_nah', label: 'Regalwand mit dem Helm' },
     // --- Regalwand von nahem ---
@@ -699,7 +697,8 @@
     { id: 'bi_schluessel', ansicht: 'bild_hinten', x: 535, y: 622, w: 268, h: 136, typ: 'nehmen', zustand: 'schluessel_weg',
       gibt: 'schluessel', bildAus: 'ostern/bilder/bild-hinten-leer.webp', sichtbarWenn: 'fach_offen', label: 'Schlüssel im Fach' },
     { id: 'w_frau', ansicht: 'wohnzimmer', x: 240, y: 95, w: 430, h: 330, typ: 'phasen', zustand: 'frau_phase',
-      treffer: { x: 240, y: 192, w: 460, h: 250 },
+      // Die ganze Figur ist anklickbar, nicht nur Kopf und Schulter.
+      treffer: { x: 240, y: 192, w: 520, h: 310 },
       nichtWenn: 'anfisa_weg', label: 'Die Frau im Sessel', sprecher: 'Anfisa',
       // Die rote Schachtel aus der Holzkiste ist nicht ihre Marke
       lehntAb: { kippen_rot: '„Pha. Das rauche jch nicht."' },
@@ -840,9 +839,9 @@
     { id: 'sb_schrank', ansicht: 'schreibtisch_nah', x: 10, y: 585, w: 470, h: 302, typ: 'ausschnitt', klang: 'schranktuer', zustand: 'sb_schrank_offen', label: 'Schrank unter der Tischplatte' },
     { id: 'sb_schublade', ansicht: 'schreibtisch_nah', x: 1240, y: 572, w: 490, h: 275, typ: 'ausschnitt', klang: 'schublade', zustand: 'sb_schublade_offen', label: 'Schublade' },
     // ---- Backzutaten. nurGruppe entscheidet, wer sie sieht. ----
-    { id: 'z_hefe', ansicht: 'koffer_nah', x: 654, y: 314, w: 92, h: 63, typ: 'nehmen', zustand: 'hefe_weg',
+    { id: 'z_hefe', ansicht: 'koffer_nah', x: 935, y: 369, w: 90, h: 62, typ: 'nehmen', zustand: 'hefe_weg',
       gibt: 'hefe', nurGruppe: 'A', sichtbarWenn: 'koffer_offen', label: 'Päckchen im Koffer',
-      ohneMarke: true, zeichnung: liegt('leg-hefe.webp', 654, 314, 92, 63, 'hefe_weg')},
+      ohneMarke: true, zeichnung: liegt('leg-hefe.webp', 935, 369, 90, 62, 'hefe_weg')},
         // Die Butter liegt im zweiten Fach. Nach dem Nehmen wird das ganze Bild
     // getauscht, damit keine Kante zu sehen ist.
     { id: 'kuehl_ohne_butter', ansicht: 'kuehl_nah', x: 0, y: 0, w: 1774, h: 887, typ: 'overlay', zustand: 'butter_weg',
@@ -1035,6 +1034,19 @@
       bildgross: 'ostern/bilder/pc-marlin.webp',
       label: 'marlin.jpg', titel: 'marlin.jpg' },
 
+    { id: 'pc_f14', ansicht: 'pc_nah', x: 1070, y: 95, w: 92, h: 110, typ: 'datei', ordner: 'fische', zustand: 'pc_f14_weg',
+      nichtWenn: 'pc_f14_weg', zeichnung: pcSymbol(1070, 95, 'foto', 'skalar.jpg', 'ostern/bilder/pc-skalar.webp', -5),
+      bildgross: 'ostern/bilder/pc-skalar.webp',
+      label: 'skalar.jpg', titel: 'skalar.jpg' },
+    { id: 'pc_f15', ansicht: 'pc_nah', x: 425, y: 95, w: 92, h: 110, typ: 'datei', ordner: 'fische', zustand: 'pc_f15_weg',
+      nichtWenn: 'pc_f15_weg', zeichnung: pcSymbol(425, 95, 'foto', 'guppy.jpg', 'ostern/bilder/pc-guppy.webp', 7),
+      bildgross: 'ostern/bilder/pc-guppy.webp',
+      label: 'guppy.jpg', titel: 'guppy.jpg' },
+    { id: 'pc_f16', ansicht: 'pc_nah', x: 1210, y: 245, w: 92, h: 110, typ: 'datei', ordner: 'fische', zustand: 'pc_f16_weg',
+      nichtWenn: 'pc_f16_weg', zeichnung: pcSymbol(1210, 245, 'foto', 'neon.jpg', 'ostern/bilder/pc-neon.webp', -9),
+      bildgross: 'ostern/bilder/pc-neon.webp',
+      label: 'neon.jpg', titel: 'neon.jpg' },
+
     // Zwei Zielordner. Was kein Fisch ist, ist Kram.
     { id: 'pc_o_fische', ansicht: 'pc_nah', x: 110, y: 580, w: 92, h: 110, typ: 'ordner', ordner: 'fische',
       fertig: 'pc_sortiert', zeichnung: pcSymbol(110, 580, 'ordner', 'fische'), label: 'fische' },
@@ -1043,11 +1055,21 @@
 
     // Das geöffnete Bild aus dem Ordner. Reines Beiwerk, fängt keine Klicks ab —
     // das Ei darin wird wie jedes andere angetippt.
-    { id: 'pc_fenster', ansicht: 'pc_nah', x: 1000, y: 380, w: 620, h: 330, typ: 'overlay', sichtbarWenn: 'pc_privat_offen',
+    // Das Bildfenster lässt sich schliessen, sonst liegt es über den Dateien.
+    // Nochmal auf den Ordner tippen holt es zurück.
+    { id: 'pc_fenster_zu', ansicht: 'pc_nah', x: 1562, y: 373, w: 52, h: 52, typ: 'toggle',
+      zustand: 'pc_bild_zu', klang: 'klick', sichtbarWenn: 'pc_privat_offen', nichtWenn: 'pc_bild_zu',
+      label: 'Fenster schliessen' },
+    { id: 'pc_fenster', ansicht: 'pc_nah', x: 1000, y: 380, w: 620, h: 330, typ: 'overlay',
+      sichtbarWenn: 'pc_privat_offen', nichtWenn: 'pc_bild_zu',
       label: 'ostern.jpg', zeichnung: `<g style="pointer-events:none">
         <rect x="1000" y="380" width="620" height="330" rx="8" fill="#1b2230" stroke="#8d9aad" stroke-width="3"/>
         <rect x="1000" y="380" width="620" height="38" rx="8" fill="#2c3648"/>
         <text x="1016" y="407" font-size="21" fill="#d6dde8" font-family="sans-serif">ostern.jpg</text>
+        <g transform="translate(1588,399)">
+          <circle r="13" fill="#8a4a44"/>
+          <path d="M-5 -5 L5 5 M5 -5 L-5 5" stroke="#f0e4de" stroke-width="2.5" stroke-linecap="round"/>
+        </g>
         <rect x="1016" y="432" width="588" height="262" fill="#6f8f5e"/>
         <path d="M1016 630 L1140 560 L1250 620 L1360 540 L1480 626 L1604 566 L1604 694 L1016 694 Z" fill="#54734a"/>
       </g>` },
@@ -1067,7 +1089,7 @@
       titel: 'Passwort', code: '7392',
       frage: 'Der Ordner will ein Passwort. Vier Ziffern.',
       fehlerText: 'Falsch. Der Ordner bleibt zu.',
-      antwort: 'Der Ordner geht auf. Ein einziges Bild liegt darin.' },
+      antwort: 'Der Ordner geht auf. Ein einziges Bild liegt darin.', wiederAuf: 'pc_bild_zu'},
 
     { id: 'aq_scheibe', ansicht: 'aquarium_nah', x: 310, y: 210, w: 1160, h: 460, typ: 'klopfen',
       klang: 'glas', label: 'Aquarium', gelernt: 'aq_gelernt',
@@ -1166,8 +1188,8 @@
     // Die Schachtel liegt bei ihren alten Sachen. Damit muss man erst das Bild
     // abhängen, den Schlüssel holen und den Koffer aufschliessen, bevor man
     // Anfisa loswerden kann — und war dafür in ihrem Zimmer.
-    { id: 'kf_kippen', ansicht: 'koffer_nah', x: 925, y: 385, w: 110, h: 95, typ: 'nehmen', zustand: 'kippen_weg',
-      gibt: 'kippen', sichtbarWenn: 'koffer_offen', label: 'Schachtel zwischen den Papieren' },
+    { id: 'kf_kippen', ansicht: 'koffer_nah', x: 560, y: 290, w: 230, h: 116, typ: 'nehmen', zustand: 'kippen_weg',
+      gibt: 'kippen', sichtbarWenn: 'koffer_offen', label: 'Schachtel zwischen den Papieren', ohneMarke: true},
     { id: 'kf_schloss', ansicht: 'koffer_nah', x: 300, y: 480, w: 1180, h: 280, typ: 'ziel',
       nichtWenn: 'koffer_offen', label: 'Schlösser am Koffer',
       nimmt: 'schluessel', setzt: 'koffer_offen',
@@ -1228,7 +1250,7 @@
     { id: 'e27', ansicht: 'koffer_nah', x: 1245, y: 330, r: 22, farbe: '#c9b08a', muster: 'punkte', ebene: 2, sichtbarWenn: 'koffer_offen' , nurGruppe: 'B'},  // zwischen den Briefen im Koffer
     { id: 'e28', ansicht: 'aquarium_nah', x: 940, y: 710, r: 11, farbe: '#b8a884', muster: 'punkte', ebene: 2, sichtbarWenn: 'aq_kies', hinweis: 'liegt im Kies vom Aquarium. Die Fische sitzen darauf.'},  // im aufgewirbelten Kies im Aquarium
     { id: 'e30', ansicht: 'th_kiste_nah', x: 1235, y: 625, r: 23, farbe: '#7a6a4e', muster: 'punkte', ebene: 2, sichtbarWenn: 'th_tuecher_weg', hinweis: 'liegt unter Stoff. Schieb ihn beiseite.'},  // in den Tuchfalten in der Holzkiste
-    { id: 'e32', ansicht: 'pc_nah', x: 1310, y: 545, r: 26, farbe: '#d9c27a', muster: 'zickzack', ebene: 1, sichtbarWenn: 'pc_privat_offen', hinweis: 'liegt hinter einem Passwort.'},  // auf dem Bild im Ordner „privat"
+    { id: 'e32', ansicht: 'pc_nah', x: 1310, y: 545, r: 26, farbe: '#d9c27a', muster: 'zickzack', ebene: 1, sichtbarWenn: 'pc_privat_offen', hinweis: 'liegt hinter einem Passwort.', nichtWenn: 'pc_bild_zu'},  // auf dem Bild im Ordner „privat"
     { id: 'e36', ansicht: 'kue_ober_nah', x: 700, y: 760, r: 18, farbe: '#b9a57e', muster: 'punkte', ebene: 1, sichtbarWenn: null, nurGruppe: 'A' },  // wo Gruppe B das Mehl findet
     { id: 'e33', ansicht: 'gruenkiste_nah', x: 1060, y: 700, r: 20, farbe: '#76704f', muster: 'streifen', ebene: 2, sichtbarWenn: null },  // rechts neben der Sicherung auf dem Kistenboden
     { id: 'e31', ansicht: 'schreibtisch_nah', x: 1700, y: 478, r: 12, farbe: '#3a4c2a', muster: 'streifen', ebene: 1, sichtbarWenn: null },  // getarnt zwischen den Blättern der Zimmerpflanze
@@ -2065,6 +2087,7 @@
 
   function eiSichtbar(ei) {
     if (ei && !fuerMich(ei)) return false;
+    if (ei && ei.nichtWenn && zustand.offen[ei.nichtWenn]) return false;
     if (!ei || !ei.sichtbarWenn) return true;
     const noetig = Array.isArray(ei.sichtbarWenn) ? ei.sichtbarWenn : [ei.sichtbarWenn];
     return noetig.every(k => zustand.offen[k]);
@@ -2633,11 +2656,15 @@
         let spruch = ph.text;
         // sagtStatt: Steht gerade etwas Bestimmtes an, sagt sie das statt eines
         // Zufallsspruchs. So merkt man beim Antippen, was noch fehlt.
+        // Eine zutreffende Absage geht allem vor. Sonst beschwert sie sich
+        // nicht über das fehlende Bild, solange sie noch auf etwas wartet.
+        const sauer = (t.strafen || []).find(x => zustand.offen[x.wenn]);
         const lage = (t.sagtStatt || []).find(e =>
           (e.wenn || []).every(k => zustand.offen[k]) &&
           (e.nicht || []).every(k => !zustand.offen[k]));
-        if (lage) spruch = lage.text;
-        else if (ph.texte && ph.texte.length) {
+        if (sauer && sauer.antwort) spruch = sauer.antwort;
+        else if (lage) spruch = lage.text;
+        else if (!sauer && ph.texte && ph.texte.length) {
           const schluessel = t.id + ':' + neu;
           const i = (spruchZaehler[schluessel] || 0) % ph.texte.length;
           spruchZaehler[schluessel] = i + 1;
@@ -2704,6 +2731,13 @@
         break;
       case 'raetsel':
       case 'code':
+        // Schon gelöst und nur zugeklappt? Dann wieder aufmachen.
+        if (zustand.offen[t.zustand] && t.wiederAuf && zustand.offen[t.wiederAuf]) {
+          zustand.offen[t.wiederAuf] = false;
+          klang('klick');
+          renderRaum(); speichern();
+          return;
+        }
         if (zustand.offen[t.zustand]) return;
         oeffneRaetsel(t);
         break;
