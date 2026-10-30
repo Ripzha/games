@@ -365,7 +365,7 @@
 
   // Wird bei jedem Paket neu gesetzt. Steht unten im Startbildschirm, damit man
   // sofort sieht, welche Fassung gerade live ist.
-  const BAUSTAND = '30.10.2026 17:18';
+  const BAUSTAND = '30.10.2026 17:25';
   const SPEICHER_KEY = 'ostern_fortschritt';
   const HINWEISE_GESAMT = 3;
   // Gemeinsamer Faktor für alle Eier. Die Radien in EIER bleiben, hier wird
@@ -1188,7 +1188,10 @@
     // Die Schachtel liegt bei ihren alten Sachen. Damit muss man erst das Bild
     // abhängen, den Schlüssel holen und den Koffer aufschliessen, bevor man
     // Anfisa loswerden kann — und war dafür in ihrem Zimmer.
-    { id: 'kf_kippen', ansicht: 'koffer_nah', x: 560, y: 290, w: 230, h: 116, typ: 'nehmen', zustand: 'kippen_weg',
+    // Der Merker heisst bewusst nicht mehr kippen_weg: in alten Spielständen
+    // ist der von der roten Schachtel aus dem Treppenhaus schon gesetzt, und
+    // die blaue wäre dann von Anfang an unsichtbar.
+    { id: 'kf_kippen', ansicht: 'koffer_nah', x: 560, y: 290, w: 230, h: 116, typ: 'nehmen', zustand: 'kippen_blau_weg',
       gibt: 'kippen', sichtbarWenn: 'koffer_offen', label: 'Schachtel zwischen den Papieren', ohneMarke: true},
     { id: 'kf_schloss', ansicht: 'koffer_nah', x: 300, y: 480, w: 1180, h: 280, typ: 'ziel',
       nichtWenn: 'koffer_offen', label: 'Schlösser am Koffer',
