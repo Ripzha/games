@@ -2331,6 +2331,46 @@ const MEINE_FIGUR = "figur1";     // später kommt das vom Mitspieler
 const FIGUR_TAKT  = 2.0;          // kleiner heisst schnellerer Laufzyklus
 const FIGUR_STEHT_NACH = 140;     // Millisekunden ohne Schritt, dann steht sie
 
+// ----------------------------------------------------------------------
+// Hüpfen. Die Leertaste hebt die Figur an, der Schatten bleibt am Boden.
+// Es ändert nichts an der Etage — dafür sind Treppe und Leiter da.
+// Solange es kein eigenes Sprungbild gibt, wird eines der Gehbilder
+// gezeigt; SPRUNG_BILD sagt welches.
+// ----------------------------------------------------------------------
+const SPRUNG_HOEHE = 0.55;        // Anteil der Figurenhöhe
+const SPRUNG_DAUER = 520;         // Millisekunden für hoch und wieder runter
+const SPRUNG_BILD  = 0;           // Nummer in gehen[], später "springen"
+
+let sprungStart = -99999;
+
+function springt() {
+  return performance.now() - sprungStart < SPRUNG_DAUER;
+}
+
+// 0 am Boden, 1 am höchsten Punkt. Ein Sinusbogen steigt und fällt weich,
+// ohne dass es in der Luft hängt.
+function sprungAnteil() {
+  if (!springt()) return 0;
+  return Math.sin(((performance.now() - sprungStart) / SPRUNG_DAUER) * Math.PI);
+}
+
+addEventListener("keydown", (e) => {
+  if (e.key !== " " && e.key !== "Spacebar") return;
+  if (document.activeElement === satzfeld) return;   // im Chat tippen geht vor
+  if (klavierOffen || offenerPunkt) return;
+  e.preventDefault();                                 // sonst scrollt die Seite
+  if (springt() || blendZiel) return;                 // kein zweiter Sprung in der Luft
+  sprungStart = performance.now();
+  letzteBewegung = Date.now();
+});
+
+// Die Hilfe oben rechts um die Leertaste ergänzen
+if (!editModus && !umrissModus) {
+  const hilfe = document.getElementById("hilfe");
+  hilfe.innerHTML = "A und D zum Laufen, Leertaste zum Hüpfen<br>" +
+                    "am Zeichen stehen, dann W oder S";
+}
+
 // Der Zyklus wechselt zwischen Schritt und Durchgangsstellung:
 // gehen[0], stehen, gehen[1], stehen.
 function figurBildJetzt(satz, laeuft) {
@@ -2361,7 +2401,9 @@ figurMalen = function (raum) {
     figurZuletztBewegt = performance.now();
   }
   const laeuft = performance.now() - figurZuletztBewegt < FIGUR_STEHT_NACH;
-  const bild = satz && figurBildJetzt(satz, laeuft);
+  const hoch = sprungAnteil();
+  const bild = satz && (springt() ? bildHolen(satz.gehen[SPRUNG_BILD])
+                                  : figurBildJetzt(satz, laeuft));
 
   if (!bild || !bild.complete || !bild.naturalWidth) {
     figurPlatzhalter(raum);              // Bilder noch nicht da
@@ -2374,14 +2416,16 @@ figurMalen = function (raum) {
   const x = f.x + f.b * (figur.x / 100);
   const y = f.y + f.h * (raum.boden / 100);
 
-  // Schatten unter den Füssen
-  stift.fillStyle = "rgba(0,0,0,0.42)";
+  // Schatten unter den Füssen. Er bleibt am Boden und wird beim Hüpfen
+  // kleiner und blasser — daran sieht man die Höhe.
+  stift.fillStyle = "rgba(0,0,0," + (0.42 - hoch * 0.24).toFixed(3) + ")";
   stift.beginPath();
-  stift.ellipse(x, y, b * 0.17, h * 0.022, 0, 0, Math.PI * 2);
+  stift.ellipse(x, y, b * 0.17 * (1 - hoch * 0.3), h * 0.022 * (1 - hoch * 0.3),
+                0, 0, Math.PI * 2);
   stift.fill();
 
   stift.save();
-  stift.translate(x, y);
+  stift.translate(x, y - hoch * h * SPRUNG_HOEHE);
   if (figur.blickt > 0) stift.scale(-1, 1);   // die Bilder schauen nach links
   stift.drawImage(bild, -satz.anker * b, -h, b, h);
   stift.restore();

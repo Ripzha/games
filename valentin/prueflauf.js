@@ -55,7 +55,8 @@ const umgebung = {
   addEventListener() {}, removeEventListener() {},
   requestAnimationFrame() { return 1; }, cancelAnimationFrame() {},
   setTimeout() { return 1; }, clearTimeout() {}, setInterval() { return 1; },
-  performance: { now: () => 0 },
+  performance: { now: () => umgebung.__uhr },
+  __uhr: 0,
   matchMedia: () => ({ matches: false, addEventListener() {} }),
   AudioContext: function () {
     this.state = "running"; this.currentTime = 0;
@@ -74,7 +75,9 @@ umgebung.globalThis = umgebung;
 const einsammeln = `
 globalThis.__aus = { KL_WEISS, KL_SCHWARZ, KL_ALLE, KL_VON_TASTE, KL_PHRASEN,
                      KL_GUT, klSongBauen, RAEUME, klavierStarten, klavierGeloest,
-                     FIGUREN, MEINE_FIGUR, figurMalen };
+                     FIGUREN, MEINE_FIGUR, figurMalen,
+                     springt, sprungAnteil, SPRUNG_DAUER, SPRUNG_HOEHE, SPRUNG_BILD,
+                     starteSprung: () => { sprungStart = performance.now(); } };
 `;
 const kasten = vm.createContext(umgebung);
 try {
@@ -201,6 +204,25 @@ if (FIGUREN && FIGUREN[MEINE]) {
   }
   pruefe(satz.anker > 0 && satz.anker < 1, "anker liegt im Bild (" + satz.anker + ")");
 }
+
+// ---------- Hüpfen ----------
+console.log("Hüpfen");
+umgebung.__uhr = 100000;
+pruefe(aus.sprungAnteil() === 0 && !aus.springt(), "am Boden ist die Höhe null");
+aus.starteSprung();
+const D = aus.SPRUNG_DAUER;
+const mitte = (() => { umgebung.__uhr = 100000 + D / 2; return aus.sprungAnteil(); })();
+pruefe(Math.abs(mitte - 1) < 0.001, "in der Mitte ist der höchste Punkt (" + mitte.toFixed(3) + ")");
+umgebung.__uhr = 100000 + D * 0.02;
+const frueh = aus.sprungAnteil();
+umgebung.__uhr = 100000 + D * 0.98;
+const spaet = aus.sprungAnteil();
+pruefe(frueh < 0.1 && spaet < 0.1, "Abflug und Landung liegen am Boden");
+umgebung.__uhr = 100000 + D + 1;
+pruefe(aus.sprungAnteil() === 0 && !aus.springt(), "nach der Dauer steht sie wieder");
+const satz2 = aus.FIGUREN[aus.MEINE_FIGUR];
+pruefe(satz2 && satz2.gehen[aus.SPRUNG_BILD] !== undefined,
+       "das Sprungbild gibt es (gehen[" + aus.SPRUNG_BILD + "])");
 
 console.log(fehler === 0 ? "\nAlles in Ordnung." : "\n" + fehler + " Fehler.");
 process.exit(fehler === 0 ? 0 : 1);
