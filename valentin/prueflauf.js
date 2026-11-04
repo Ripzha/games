@@ -77,7 +77,12 @@ globalThis.__aus = { KL_WEISS, KL_SCHWARZ, KL_ALLE, KL_VON_TASTE, KL_PHRASEN,
                      KL_GUT, klSongBauen, RAEUME, klavierStarten, klavierGeloest,
                      FIGUREN, MEINE_FIGUR, figurMalen,
                      springt, sprungAnteil, SPRUNG_DAUER, SPRUNG_HOEHE, SPRUNG_BILD,
-                     starteSprung: () => { sprungStart = performance.now(); } };
+                     starteSprung: () => { sprungStart = performance.now(); },
+                     TT_ZIEL, TT_SCHLAEGER_B, TT_BALL, TT_UEBERLAPP, TT_SCHLAEGER_Y,
+                     TT_TEMPO_START, TT_TEMPO_MAX, TT_PARTNER, TT_UNTEN,
+                     ttBall, ttAufschlag, ttBallSchritt, ttGrenzen, ttOberflaeche,
+                     setzeMeinX: (v) => { ttMeinX = v; }, holeMeinX: () => ttMeinX,
+                     holeTreffer: () => ttTreffer, holeServiert: () => ttServiert };
 `;
 const kasten = vm.createContext(umgebung);
 try {
@@ -223,6 +228,49 @@ pruefe(aus.sprungAnteil() === 0 && !aus.springt(), "nach der Dauer steht sie wie
 const satz2 = aus.FIGUREN[aus.MEINE_FIGUR];
 pruefe(satz2 && satz2.gehen[aus.SPRUNG_BILD] !== undefined,
        "das Sprungbild gibt es (gehen[" + aus.SPRUNG_BILD + "])");
+
+// ---------- Tischtennis ----------
+console.log("Tischtennis");
+aus.ttOberflaeche();
+
+// Die beiden Haelften muessen sich in der Mitte ueberschneiden, sonst
+// faellt der Ball durch die Luecke.
+const [ll, lr] = aus.ttGrenzen(true), [rl, rr] = aus.ttGrenzen(false);
+const deckeLinks  = lr + aus.TT_SCHLAEGER_B / 2;
+const deckeRechts = rl - aus.TT_SCHLAEGER_B / 2;
+pruefe(deckeLinks >= 50 && deckeRechts <= 50,
+       "die Haelften treffen sich in der Mitte (links bis " + deckeLinks.toFixed(1) +
+       ", rechts ab " + deckeRechts.toFixed(1) + ")");
+pruefe(lr >= ll && rr >= rl, "beide Schlaeger haben Platz zum Fahren");
+
+// Ein Ballwechsel mit einem Spieler, der immer richtig steht.
+function ballwechsel(schritte) {
+  aus.ttAufschlag(0);
+  let raus = false, tiefstes = 0;
+  for (let i = 0; i < schritte; i++) {
+    const dt = 1 / 60;
+    aus.setzeMeinX(Math.max(ll, Math.min(lr, aus.ttBall.x)));
+    aus.TT_PARTNER.schritt(dt, aus.ttBall);
+    aus.ttBallSchritt(dt);
+    if (aus.ttBall.x < -1 || aus.ttBall.x > 101 || aus.ttBall.y < -1) raus = true;
+    tiefstes = Math.max(tiefstes, aus.ttBall.y);
+    if (!aus.holeServiert()) break;          // runtergefallen
+    if (aus.holeTreffer() >= aus.TT_ZIEL) break;
+  }
+  return { raus, tiefstes, treffer: aus.holeTreffer(), laeuft: aus.holeServiert() };
+}
+
+const lauf = ballwechsel(60 * 90);
+pruefe(!lauf.raus, "der Ball bleibt im Feld");
+pruefe(lauf.treffer >= aus.TT_ZIEL,
+       "mit sicherem Spiel ist das Ziel erreichbar (" + lauf.treffer + " von " + aus.TT_ZIEL + ")");
+
+// Der Ball darf pro Bild nicht weiter springen als der Schlaeger dick ist,
+// sonst fliegt er bei hohem Tempo durch ihn hindurch.
+const proBild = aus.TT_TEMPO_MAX / 60;
+pruefe(proBild < aus.TT_BALL * 2,
+       "beim hoechsten Tempo kein Durchschlupf (" + proBild.toFixed(2) +
+       " gegen " + (aus.TT_BALL * 2).toFixed(2) + " je Bild)");
 
 console.log(fehler === 0 ? "\nAlles in Ordnung." : "\n" + fehler + " Fehler.");
 process.exit(fehler === 0 ? 0 : 1);
