@@ -1162,7 +1162,7 @@ addEventListener("keydown", (e) => {
   if (document.activeElement === satzfeld) return;
   const t = e.key.toLowerCase();
   tasten[t] = true;
-  if (klavierOffen || ttOffen) return;         // die Spiele hören selbst zu
+  if (klavierOffen || ttOffen || lobbyOffen) return;   // die hören selbst zu
   if (offenerPunkt) { if (t === "escape") fensterZu(); return; }
   const p = nahePunkte().find((k) => k.taste === t);
   if (p) { punktOeffnen(p); e.preventDefault(); }
@@ -2379,7 +2379,7 @@ function sprungAnteil() {
 addEventListener("keydown", (e) => {
   if (e.key !== " " && e.key !== "Spacebar") return;
   if (document.activeElement === satzfeld) return;   // im Chat tippen geht vor
-  if (klavierOffen || ttOffen || offenerPunkt) return;
+  if (klavierOffen || ttOffen || lobbyOffen || offenerPunkt) return;
   e.preventDefault();                                 // sonst scrollt die Seite
   if (springt() || blendZiel) return;                 // kein zweiter Sprung in der Luft
   sprungStart = performance.now();
@@ -2852,6 +2852,202 @@ function ttZeigen(e) {
 ["pointerdown", "pointermove"].forEach((art) =>
   document.addEventListener(art, ttZeigen, { passive: true })
 );
+
+// ======================================================================
+// 12. Die Lobby vor jeder Aufgabe
+//
+//    Vor jedem Spiel zu zweit steht ein Warteraum. Man sieht, wer da ist,
+//    setzt sich auf bereit, und sobald alle bereit sind, geht es los.
+//
+//    Mehrspieler ist noch nicht gebaut. Solange meldet LOBBY_QUELLE
+//    niemanden, und es gibt den Knopf "Mit Übungspartner anfangen", der
+//    das Warten überspringt. Wenn Supabase dran ist, wird nur die Quelle
+//    ausgetauscht: betreten() hängt sich an die Anwesenheit des Raums und
+//    ruft melden() mit der Liste der anderen, bereitSetzen() schreibt den
+//    eigenen Stand hinein. Am Rest ändert sich nichts.
+//
+//    Zum Ansehen des Ablaufs die Seite mit ?lobbytest aufrufen — dann
+//    tritt nach vier Sekunden ein erfundener Mitspieler bei und setzt
+//    sich zwei Sekunden später auf bereit.
+// ======================================================================
+
+let lobbyOffen = false;
+
+const lobbyProbe = new URLSearchParams(location.search).has("lobbytest");
+
+const LOBBY_QUELLE = {
+  _uhren: [],
+  betreten(raum, melden) {
+    this.verlassen();
+    melden([]);                       // heute ist ausser dir niemand da
+    if (lobbyProbe) {
+      this._uhren.push(setTimeout(() => melden([{ name: "Zyn", bereit: false }]), 4000));
+      this._uhren.push(setTimeout(() => melden([{ name: "Zyn", bereit: true }]), 6000));
+    }
+  },
+  verlassen() {
+    this._uhren.forEach(clearTimeout);
+    this._uhren = [];
+  },
+  bereitSetzen(ja) {
+    // Später: den eigenen Stand in den Raum schreiben.
+  }
+};
+
+let lobbyBau = null, lobbyZustand = null;
+
+function lobbyStil() {
+  if (document.getElementById("lobby-stil")) return;
+  const s = document.createElement("style");
+  s.id = "lobby-stil";
+  s.textContent = `
+  #lobby { position: absolute; inset: 0; display: none; align-items: center;
+           justify-content: center; padding: 24px; background: rgba(8,7,6,0.94); z-index: 7; }
+  #lobby.auf { display: flex; }
+  #lobby-karte { max-width: 460px; width: 100%; background: rgba(16,14,11,0.98);
+           border: 1px solid #5a4a1c; border-radius: 12px; padding: 22px 24px; }
+  #lobby-karte h2 { margin: 0 0 6px; font-size: 19px; font-weight: 500; color: #f0c173; }
+  #lobby-karte p { margin: 0 0 14px; font-size: 14px; line-height: 1.55; color: #ded6c2; }
+  #lobby-leute { list-style: none; margin: 0 0 16px; padding: 0; }
+  #lobby-leute li { display: flex; justify-content: space-between; align-items: center;
+           padding: 9px 12px; margin-bottom: 6px; border-radius: 8px;
+           background: #131210; border: 1px solid #262218; font-size: 15px; color: #ded6c2; }
+  #lobby-leute li.ich { border-color: #5a4a1c; }
+  #lobby-leute li.warten { color: #6d6659; font-style: italic;
+           border-style: dashed; background: transparent; }
+  #lobby-leute .stand { font-size: 13px; color: #8a857a; }
+  #lobby-leute .stand.ja { color: #8fd49a; }
+  #lobby-karte button { padding: 9px 18px; margin: 4px 6px 0 0; background: #3a2f12;
+           color: #f0c173; border: 1px solid #5a4a1c; border-radius: 6px;
+           font-size: 15px; cursor: pointer; }
+  #lobby-karte button.still { background: transparent; color: #8a857a; border-color: #332f24; }
+  `;
+  document.head.appendChild(s);
+}
+
+function lobbyAufbau() {
+  if (lobbyBau) return lobbyBau;
+  lobbyStil();
+  const wurzel = document.createElement("div");
+  wurzel.id = "lobby";
+  wurzel.innerHTML = '<div id="lobby-karte"></div>';
+  document.getElementById("buehne").appendChild(wurzel);
+  lobbyBau = { wurzel, karte: wurzel.querySelector("#lobby-karte") };
+  return lobbyBau;
+}
+
+// titel       Name der Aufgabe
+// erklaerung  ein, zwei Sätze darüber
+// beiStart    wird gerufen, wenn es losgeht; bekommt true bei Übungspartner
+// beiZurueck  wird gerufen, wenn abgebrochen wird
+function lobbyOeffnen(titel, erklaerung, beiStart, beiZurueck) {
+  lobbyAufbau();
+  lobbyZustand = { titel, erklaerung, beiStart, beiZurueck,
+                   meinBereit: false, andere: [] };
+  lobbyOffen = true;
+  lobbyBau.wurzel.classList.add("auf");
+  LOBBY_QUELLE.betreten(titel, (andere) => {
+    if (!lobbyZustand) return;
+    lobbyZustand.andere = andere || [];
+    lobbyMalen();
+    lobbyPruefen();
+  });
+  lobbyMalen();
+}
+
+function lobbySchliessen() {
+  LOBBY_QUELLE.verlassen();
+  lobbyZustand = null;
+  lobbyOffen = false;
+  if (lobbyBau) lobbyBau.wurzel.classList.remove("auf");
+}
+
+function lobbyPruefen() {
+  const z = lobbyZustand;
+  if (!z) return;
+  if (z.andere.length === 0 || !z.meinBereit) return;
+  if (!z.andere.every((a) => a.bereit)) return;
+  const los = z.beiStart;
+  lobbySchliessen();
+  los(false);                          // false = echter Mitspieler
+}
+
+function lobbyBereit(ja) {
+  if (!lobbyZustand) return;
+  lobbyZustand.meinBereit = ja;
+  LOBBY_QUELLE.bereitSetzen(ja);
+  lobbyMalen();
+  lobbyPruefen();
+}
+
+function lobbyMalen() {
+  const z = lobbyZustand;
+  if (!z) return;
+  const zeile = (name, bereit, ich) =>
+    '<li class="' + (ich ? "ich" : "") + '"><span>' + name + '</span>' +
+    '<span class="stand' + (bereit ? " ja" : "") + '">' +
+    (bereit ? "bereit" : "noch nicht") + "</span></li>";
+
+  let leute = zeile(z.meinBereit ? "Du" : "Du", z.meinBereit, true);
+  if (z.andere.length) {
+    z.andere.forEach((a) => { leute += zeile(a.name, a.bereit, false); });
+  } else {
+    leute += '<li class="warten">wartet auf einen zweiten …</li>';
+  }
+
+  const knoepfe =
+    (z.meinBereit
+      ? '<button id="lobby-doch">Doch nicht bereit</button>'
+      : '<button id="lobby-bereit">Bereit</button>') +
+    '<button id="lobby-uebung" class="still">Mit Übungspartner anfangen</button>' +
+    '<button id="lobby-weg" class="still">Zurück</button>';
+
+  lobbyBau.karte.innerHTML =
+    "<h2>" + z.titel + "</h2><p>" + z.erklaerung + "</p>" +
+    '<ul id="lobby-leute">' + leute + "</ul>" + knoepfe;
+
+  const k = (id, tun) => { const b = document.getElementById(id); if (b) b.onclick = tun; };
+  k("lobby-bereit", () => lobbyBereit(true));
+  k("lobby-doch",   () => lobbyBereit(false));
+  k("lobby-uebung", () => { const los = z.beiStart; lobbySchliessen(); los(true); });
+  k("lobby-weg",    () => { const zurueck = z.beiZurueck; lobbySchliessen(); zurueck(); });
+}
+
+addEventListener("keydown", (e) => {
+  if (!lobbyOffen) return;
+  if (document.activeElement === satzfeld) return;
+  e.preventDefault();
+  if (e.key === "Escape") {
+    const zurueck = lobbyZustand && lobbyZustand.beiZurueck;
+    lobbySchliessen();
+    if (zurueck) zurueck();
+  }
+});
+
+// ----------------------------------------------------------------------
+// Die beiden Aufgaben gehen jetzt durch die Lobby.
+// ----------------------------------------------------------------------
+const klavierDirekt = klavierStarten;
+klavierStarten = function () {
+  lobbyOeffnen(
+    "Das Klavier",
+    "Ein Stück für vier Hände. Die Melodie springt zwischen euch hin und her, " +
+    "gewertet wird zusammen.",
+    () => klavierDirekt(),
+    () => fensterZu()
+  );
+};
+
+const ttDirekt = ttStarten;
+ttStarten = function () {
+  lobbyOeffnen(
+    "Die Tischtennisplatte",
+    "Zwei Schläger, einer für jeden. Der Ball darf nicht auf den Boden, " +
+    "gezählt wird zusammen.",
+    () => ttDirekt(),
+    () => fensterZu()
+  );
+};
 </script>
 </body>
 </html>

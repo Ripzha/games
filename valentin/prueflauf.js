@@ -81,6 +81,8 @@ globalThis.__aus = { KL_WEISS, KL_SCHWARZ, KL_ALLE, KL_VON_TASTE, KL_PHRASEN,
                      TT_ZIEL, TT_SCHLAEGER_B, TT_BALL, TT_UEBERLAPP, TT_SCHLAEGER_Y,
                      TT_TEMPO_START, TT_TEMPO_MAX, TT_PARTNER, TT_UNTEN,
                      ttBall, ttAufschlag, ttBallSchritt, ttGrenzen, ttOberflaeche,
+                     LOBBY_QUELLE, lobbyOeffnen, lobbyBereit, lobbySchliessen,
+                     lobbyIstOffen: () => lobbyOffen, lobbyKarte: () => lobbyBau.karte.innerHTML,
                      setzeMeinX: (v) => { ttMeinX = v; }, holeMeinX: () => ttMeinX,
                      holeTreffer: () => ttTreffer, holeServiert: () => ttServiert };
 `;
@@ -300,6 +302,35 @@ const quote = proben.filter((v) => v >= aus.TT_ZIEL).length / proben.length;
 pruefe(quote > 0.08 && quote < 0.6,
        "Schwierigkeit im Rahmen: " + Math.round(quote * 100) +
        " von 100 Anläufen geschafft (Schläger " + aus.TT_SCHLAEGER_B + " breit)");
+
+// ---------- Lobby ----------
+console.log("Lobby");
+let gestartet = null, zurueck = 0, melden = null;
+const echtesBetreten = aus.LOBBY_QUELLE.betreten;
+aus.LOBBY_QUELLE.betreten = function (raum, m) { melden = m; m([]); };
+
+aus.lobbyOeffnen("Probe", "Text", (uebung) => { gestartet = uebung; }, () => { zurueck++; });
+pruefe(aus.lobbyIstOffen(), "die Lobby geht auf");
+pruefe(gestartet === null, "allein startet nichts");
+
+aus.lobbyBereit(true);
+pruefe(gestartet === null, "nur ich bereit startet nichts");
+
+melden([{ name: "Zweiter", bereit: false }]);
+pruefe(gestartet === null, "ein Zweiter ohne bereit startet nichts");
+
+melden([{ name: "Zweiter", bereit: true }]);
+pruefe(gestartet === false, "beide bereit startet mit echtem Mitspieler");
+pruefe(!aus.lobbyIstOffen(), "danach ist die Lobby zu");
+
+gestartet = null;
+aus.lobbyOeffnen("Probe", "Text", (u) => { gestartet = u; }, () => { zurueck++; });
+const karte = aus.lobbyKarte();
+["lobby-bereit", "lobby-uebung", "lobby-weg"].forEach((id) =>
+  pruefe(karte.indexOf(id) >= 0, "der Knopf " + id + " ist da"));
+pruefe(karte.indexOf("wartet auf einen zweiten") >= 0, "der Wartehinweis steht da");
+aus.lobbySchliessen();
+aus.LOBBY_QUELLE.betreten = echtesBetreten;
 
 console.log(fehler === 0 ? "\nAlles in Ordnung." : "\n" + fehler + " Fehler.");
 process.exit(fehler === 0 ? 0 : 1);
