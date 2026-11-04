@@ -166,49 +166,51 @@ RAEUME.forEach((r, i) => {
   }));
 });
 
-// ---------- Die Figur ----------
+// ---------- Die Figuren ----------
 const path = require("path");
-console.log("Figur");
+console.log("Figuren");
 const FIGUREN = aus.FIGUREN, MEINE = aus.MEINE_FIGUR;
 pruefe(FIGUREN && FIGUREN[MEINE], "die eingestellte Figur \"" + MEINE + "\" ist angelegt");
-if (FIGUREN && FIGUREN[MEINE]) {
-  const satz = FIGUREN[MEINE];
+
+function bildMass(d) {
+  if (!fs.existsSync(d)) return null;
+  const b = fs.readFileSync(d);
+  if (b.slice(0,4).toString() === "RIFF" && b.slice(8,12).toString() === "WEBP") {
+    const art = b.slice(12,16).toString();
+    if (art === "VP8X") return [1 + b.readUIntLE(24,3), 1 + b.readUIntLE(27,3)];
+    if (art === "VP8L") { const v = b.readUInt32LE(21);
+      return [1 + (v & 0x3fff), 1 + ((v >> 14) & 0x3fff)]; }
+    if (art === "VP8 ") return [b.readUInt16LE(26) & 0x3fff, b.readUInt16LE(28) & 0x3fff];
+  }
+  if (b.slice(1,4).toString() === "PNG") return [b.readUInt32BE(16), b.readUInt32BE(20)];
+  return null;
+}
+
+const wurzel = path.dirname(path.resolve(datei));
+Object.keys(FIGUREN || {}).forEach((name) => {
+  const satz = FIGUREN[name];
   const pfade = [satz.stehen, ...satz.gehen];
-  const wurzel = path.dirname(path.resolve(datei));
+  console.log("  " + name + (name === MEINE ? "  (eingestellt)" : ""));
   const fehlend = pfade.filter((p) => !fs.existsSync(path.join(wurzel, p)));
-  pruefe(fehlend.length === 0,
-         pfade.length + " Bilder liegen am richtigen Ort" +
+  pruefe(fehlend.length === 0, "  " + pfade.length + " Bilder liegen am richtigen Ort" +
          (fehlend.length ? " — fehlt: " + fehlend.join(", ") : ""));
-  // Alle Bilder muessen gleich gross sein, sonst springt die Figur
-  const groessen = pfade.map((p) => {
-    const d = path.join(wurzel, p);
-    if (!fs.existsSync(d)) return null;
-    const b = fs.readFileSync(d);
-    if (b.slice(0, 4).toString() === "RIFF" && b.slice(8, 12).toString() === "WEBP") {
-      const art = b.slice(12, 16).toString();
-      if (art === "VP8X") return [1 + b.readUIntLE(24, 3), 1 + b.readUIntLE(27, 3)];
-      if (art === "VP8L") {
-        const v = b.readUInt32LE(21);
-        return [1 + (v & 0x3fff), 1 + ((v >> 14) & 0x3fff)];
-      }
-      if (art === "VP8 ") return [b.readUInt16LE(26) & 0x3fff, b.readUInt16LE(28) & 0x3fff];
-    }
-    if (b.slice(1, 4).toString() === "PNG") return [b.readUInt32BE(16), b.readUInt32BE(20)];
-    return null;
-  });
-  const echte = groessen.filter(Boolean);
-  pruefe(echte.length === pfade.length, "alle Bilder lesbar");
-  const gleich = echte.every((g) => g[0] === echte[0][0] && g[1] === echte[0][1]);
-  pruefe(gleich, "alle Bilder gleich gross" +
-         (echte.length ? " (" + echte.map((g) => g.join("x")).join(", ") + ")" : ""));
-  if (gleich && echte.length) {
+  const masse = pfade.map((p) => bildMass(path.join(wurzel, p)));
+  const echte = masse.filter(Boolean);
+  pruefe(echte.length === pfade.length, "  alle Bilder lesbar");
+  const gleich = echte.length > 0 &&
+        echte.every((g) => g[0] === echte[0][0] && g[1] === echte[0][1]);
+  pruefe(gleich, "  alle Bilder gleich gross" +
+         (echte.length ? " (" + echte[0].join("x") + ")" : ""));
+  if (gleich) {
     const soll = echte[0][0] / echte[0][1];
     pruefe(Math.abs(soll - satz.seiten) < 0.01,
-           "seiten stimmt mit den Bildern (" + soll.toFixed(4) +
+           "  seiten stimmt mit den Bildern (" + soll.toFixed(4) +
            " gegen " + satz.seiten.toFixed(4) + ")");
   }
-  pruefe(satz.anker > 0 && satz.anker < 1, "anker liegt im Bild (" + satz.anker + ")");
-}
+  pruefe(satz.anker > 0 && satz.anker < 1, "  anker liegt im Bild (" + satz.anker + ")");
+  pruefe(satz.gehen[aus.SPRUNG_BILD] !== undefined,
+         "  das Sprungbild gibt es (gehen[" + aus.SPRUNG_BILD + "])");
+});
 
 // ---------- Hüpfen ----------
 console.log("Hüpfen");
@@ -225,9 +227,6 @@ const spaet = aus.sprungAnteil();
 pruefe(frueh < 0.1 && spaet < 0.1, "Abflug und Landung liegen am Boden");
 umgebung.__uhr = 100000 + D + 1;
 pruefe(aus.sprungAnteil() === 0 && !aus.springt(), "nach der Dauer steht sie wieder");
-const satz2 = aus.FIGUREN[aus.MEINE_FIGUR];
-pruefe(satz2 && satz2.gehen[aus.SPRUNG_BILD] !== undefined,
-       "das Sprungbild gibt es (gehen[" + aus.SPRUNG_BILD + "])");
 
 // ---------- Tischtennis ----------
 console.log("Tischtennis");
@@ -271,6 +270,36 @@ const proBild = aus.TT_TEMPO_MAX / 60;
 pruefe(proBild < aus.TT_BALL * 2,
        "beim hoechsten Tempo kein Durchschlupf (" + proBild.toFixed(2) +
        " gegen " + (aus.TT_BALL * 2).toFixed(2) + " je Bild)");
+
+// Wie schwer ist es? Ein Spieler, der den Ball erst nach 170 Millisekunden
+// sieht und etwas zittert. Das ist kein Beweis, nur ein Mass zum Vergleichen,
+// wenn an Breite, Tempo oder Ziel gedreht wird.
+function ttVersuch() {
+  aus.ttAufschlag(0);
+  let x = 25, sp = [], n = 0, best = 0;
+  const [l, r] = aus.ttGrenzen(true);
+  while (aus.holeServiert() && n < 60 * 300) {
+    const dt = 1 / 60;
+    sp.push(aus.ttBall.x);
+    const alt = sp[Math.max(0, sp.length - 10)];
+    const ziel = Math.max(l, Math.min(r, alt + (Math.random() - 0.5) * 7));
+    const max = 95 * dt;
+    x += Math.max(-max, Math.min(max, ziel - x));
+    aus.setzeMeinX(x);
+    aus.TT_PARTNER.schritt(dt, aus.ttBall);
+    aus.ttBallSchritt(dt);
+    best = Math.max(best, aus.holeTreffer());
+    n++;
+    if (best >= aus.TT_ZIEL) break;
+  }
+  return best;
+}
+const proben = [];
+for (let i = 0; i < 120; i++) proben.push(ttVersuch());
+const quote = proben.filter((v) => v >= aus.TT_ZIEL).length / proben.length;
+pruefe(quote > 0.08 && quote < 0.6,
+       "Schwierigkeit im Rahmen: " + Math.round(quote * 100) +
+       " von 100 Anläufen geschafft (Schläger " + aus.TT_SCHLAEGER_B + " breit)");
 
 console.log(fehler === 0 ? "\nAlles in Ordnung." : "\n" + fehler + " Fehler.");
 process.exit(fehler === 0 ? 0 : 1);

@@ -2330,11 +2330,26 @@ const FIGUREN = {
       "bilder/figuren/figur1-gehen2.webp"
     ],
     anker:  0.456,
-    seiten: 319 / 480
+    seiten: 319 / 480,
+    groesse: 1            // zum Angleichen, falls eine Figur zu gross wirkt
+  },
+  figur2: {
+    stehen: "bilder/figuren/figur2-stehen.webp",
+    gehen: [
+      "bilder/figuren/figur2-gehen1.webp",
+      "bilder/figuren/figur2-gehen2.webp"
+    ],
+    anker:  0.393,
+    seiten: 235 / 480,
+    groesse: 1
   }
 };
 
-const MEINE_FIGUR = "figur1";     // später kommt das vom Mitspieler
+// Zum Ausprobieren lässt sich die Figur über die Adresse umschalten:
+// ?figur=figur2. Später kommt sie vom Mitspieler.
+const MEINE_FIGUR =
+  FIGUREN[new URLSearchParams(location.search).get("figur")] ? 
+    new URLSearchParams(location.search).get("figur") : "figur1";
 const FIGUR_TAKT  = 2.0;          // kleiner heisst schnellerer Laufzyklus
 const FIGUR_STEHT_NACH = 140;     // Millisekunden ohne Schritt, dann steht sie
 
@@ -2418,7 +2433,7 @@ figurMalen = function (raum) {
   }
 
   const f = bereich(raum);
-  const h = f.h * (FIGURHOEHE / 100);
+  const h = f.h * (FIGURHOEHE / 100) * (satz.groesse || 1);
   const b = h * satz.seiten;
   const x = f.x + f.b * (figur.x / 100);
   const y = f.y + f.h * (raum.boden / 100);
@@ -2467,7 +2482,7 @@ let ttGeloest = false;          // wird wahr, sobald das Ziel erreicht ist
 // Bildschirmgrösse gleich spielt.
 // ----------------------------------------------------------------------
 const TT_ZIEL        = 15;      // so viele Treffer zusammen
-const TT_SCHLAEGER_B = 17;      // Breite des Schlägers
+const TT_SCHLAEGER_B = 13;      // Breite des Schlägers
 const TT_SCHLAEGER_H = 2.4;
 const TT_SCHLAEGER_Y = 94;      // Höhe, auf der die Schläger liegen
 const TT_UEBERLAPP   = 4;       // wie weit jeder über die Mitte darf
@@ -2679,6 +2694,7 @@ function ttSpielStarten() {
   ttGroesse();
   TT_PARTNER.neu();
   ttMeinX = 25;
+  ttZielX = null;
   ttTreffer = 0;
   ttServiert = false;
   ttBall.x = 50; ttBall.y = 50; ttBall.dx = 0; ttBall.dy = 0;
@@ -2699,7 +2715,12 @@ function ttSchritt(jetzt) {
   let dx = 0;
   if (ttTasten["a"]) dx -= 1;
   if (ttTasten["d"]) dx += 1;
-  if (dx) ttMeinX += dx * TT_SCHLAEGER_TEMPO * dt;
+  if (dx) { ttMeinX += dx * TT_SCHLAEGER_TEMPO * dt; ttZielX = null; }
+  else if (ttZielX !== null) {
+    const weg = ttZielX - ttMeinX;
+    const max = TT_SCHLAEGER_TEMPO * dt;
+    ttMeinX += Math.max(-max, Math.min(max, weg));
+  }
   const [ml, mr] = ttGrenzen(true);
   ttMeinX = Math.max(ml, Math.min(mr, ttMeinX));
 
@@ -2817,13 +2838,16 @@ addEventListener("keyup", (e) => {
   ttTasten[e.key.toLowerCase()] = false;
 });
 
-// Maus und Finger: der Schläger folgt, bleibt aber in seiner Hälfte
+// Maus und Finger setzen nur ein Ziel. Der Schläger fährt mit derselben
+// Geschwindigkeit dorthin wie mit den Tasten — sonst wäre er mit der Maus
+// sofort überall und die Breite spielte keine Rolle mehr.
+let ttZielX = null;
 function ttZeigen(e) {
   if (!ttOffen || !ttLaeuft) return;
   const r = ttBau.feld.getBoundingClientRect();
   const x = ((e.clientX - r.left) / r.width) * 100;
   const [l, re] = ttGrenzen(true);
-  ttMeinX = Math.max(l, Math.min(re, x));
+  ttZielX = Math.max(l, Math.min(re, x));
 }
 ["pointerdown", "pointermove"].forEach((art) =>
   document.addEventListener(art, ttZeigen, { passive: true })
