@@ -1,4 +1,4 @@
-// Testlauf für das Klavierspiel, ohne Browser.
+// Prüflauf für das Valentinsspiel, ohne Browser.
 // Lädt das Skript aus der HTML-Datei mit Attrappen und prüft:
 //  - läuft das Skript überhaupt durch
 //  - stehen alle Noten der Melodie auf der Klaviatur
@@ -6,7 +6,7 @@
 //  - wechseln sich die Phrasen wirklich ab
 //  - überschneiden sich zwei Noten derselben Taste im Trefferfenster
 //
-// Aufruf:  node klaviertest.js index.html
+// Aufruf:  node prueflauf.js index.html
 
 const fs = require("fs");
 const vm = require("vm");
@@ -73,7 +73,8 @@ umgebung.globalThis = umgebung;
 // const-Namen landen nicht auf dem Kontext — deshalb am Ende einsammeln
 const einsammeln = `
 globalThis.__aus = { KL_WEISS, KL_SCHWARZ, KL_ALLE, KL_VON_TASTE, KL_PHRASEN,
-                     KL_GUT, klSongBauen, RAEUME, klavierStarten, klavierGeloest };
+                     KL_GUT, klSongBauen, RAEUME, klavierStarten, klavierGeloest,
+                     FIGUREN, MEINE_FIGUR, figurMalen };
 `;
 const kasten = vm.createContext(umgebung);
 try {
@@ -156,6 +157,50 @@ RAEUME.forEach((r, i) => {
                   b.titel + "\" liegen beide auf " + a.taste);
   }));
 });
+
+// ---------- Die Figur ----------
+const path = require("path");
+console.log("Figur");
+const FIGUREN = aus.FIGUREN, MEINE = aus.MEINE_FIGUR;
+pruefe(FIGUREN && FIGUREN[MEINE], "die eingestellte Figur \"" + MEINE + "\" ist angelegt");
+if (FIGUREN && FIGUREN[MEINE]) {
+  const satz = FIGUREN[MEINE];
+  const pfade = [satz.stehen, ...satz.gehen];
+  const wurzel = path.dirname(path.resolve(datei));
+  const fehlend = pfade.filter((p) => !fs.existsSync(path.join(wurzel, p)));
+  pruefe(fehlend.length === 0,
+         pfade.length + " Bilder liegen am richtigen Ort" +
+         (fehlend.length ? " — fehlt: " + fehlend.join(", ") : ""));
+  // Alle Bilder muessen gleich gross sein, sonst springt die Figur
+  const groessen = pfade.map((p) => {
+    const d = path.join(wurzel, p);
+    if (!fs.existsSync(d)) return null;
+    const b = fs.readFileSync(d);
+    if (b.slice(0, 4).toString() === "RIFF" && b.slice(8, 12).toString() === "WEBP") {
+      const art = b.slice(12, 16).toString();
+      if (art === "VP8X") return [1 + b.readUIntLE(24, 3), 1 + b.readUIntLE(27, 3)];
+      if (art === "VP8L") {
+        const v = b.readUInt32LE(21);
+        return [1 + (v & 0x3fff), 1 + ((v >> 14) & 0x3fff)];
+      }
+      if (art === "VP8 ") return [b.readUInt16LE(26) & 0x3fff, b.readUInt16LE(28) & 0x3fff];
+    }
+    if (b.slice(1, 4).toString() === "PNG") return [b.readUInt32BE(16), b.readUInt32BE(20)];
+    return null;
+  });
+  const echte = groessen.filter(Boolean);
+  pruefe(echte.length === pfade.length, "alle Bilder lesbar");
+  const gleich = echte.every((g) => g[0] === echte[0][0] && g[1] === echte[0][1]);
+  pruefe(gleich, "alle Bilder gleich gross" +
+         (echte.length ? " (" + echte.map((g) => g.join("x")).join(", ") + ")" : ""));
+  if (gleich && echte.length) {
+    const soll = echte[0][0] / echte[0][1];
+    pruefe(Math.abs(soll - satz.seiten) < 0.01,
+           "seiten stimmt mit den Bildern (" + soll.toFixed(4) +
+           " gegen " + satz.seiten.toFixed(4) + ")");
+  }
+  pruefe(satz.anker > 0 && satz.anker < 1, "anker liegt im Bild (" + satz.anker + ")");
+}
 
 console.log(fehler === 0 ? "\nAlles in Ordnung." : "\n" + fehler + " Fehler.");
 process.exit(fehler === 0 ? 0 : 1);

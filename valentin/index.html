@@ -2296,6 +2296,96 @@ addEventListener("keydown", (e) => {
   const note = KL_VON_TASTE[t];
   if (note) { klEingabe(note); e.preventDefault(); }
 });
+
+// ======================================================================
+// 10. Die Figur als Chibi
+//
+//    Ersetzt die gezeichnete Platzhalterfigur durch Bilder. Solange die
+//    Bilder noch nicht geladen sind, zeichnet weiter der Platzhalter —
+//    es bricht also nichts, wenn eine Datei fehlt.
+//
+//    Alle Bilder einer Figur haben denselben Ausschnitt und dieselbe
+//    Grösse, damit beim Wechsel nur die Beine springen und nicht die
+//    ganze Figur. Wenn neue Bilder dazukommen, denselben Weg gehen:
+//    gemeinsamen Ausschnitt über alle Bilder legen, dann erst verkleinern.
+//
+//    anker  = wo die Füsse in der Bildbreite stehen, als Anteil von links.
+//             Danach richtet sich die Figur auf der Standlinie aus.
+//    seiten = Breite geteilt durch Höhe des Bildes.
+//    Die Bilder schauen nach links und werden für rechts gespiegelt.
+// ======================================================================
+
+const FIGUREN = {
+  figur1: {
+    stehen: "bilder/figuren/figur1-stehen.webp",
+    gehen: [
+      "bilder/figuren/figur1-gehen1.webp",
+      "bilder/figuren/figur1-gehen2.webp"
+    ],
+    anker:  0.459,
+    seiten: 321 / 480
+  }
+};
+
+const MEINE_FIGUR = "figur1";     // später kommt das vom Mitspieler
+const FIGUR_TAKT  = 2.0;          // kleiner heisst schnellerer Laufzyklus
+const FIGUR_STEHT_NACH = 140;     // Millisekunden ohne Schritt, dann steht sie
+
+// Der Zyklus wechselt zwischen Schritt und Durchgangsstellung:
+// gehen[0], stehen, gehen[1], stehen.
+function figurBildJetzt(satz, laeuft) {
+  if (!laeuft) return bildHolen(satz.stehen);
+  const schrank = Math.floor(figur.schritt / FIGUR_TAKT) % 4;
+  if (schrank === 0) return bildHolen(satz.gehen[0]);
+  if (schrank === 2) return bildHolen(satz.gehen[1]);
+  return bildHolen(satz.stehen);
+}
+
+// Bilder gleich laden, damit beim ersten Schritt nichts flackert
+Object.values(FIGUREN).forEach((s) => {
+  bildHolen(s.stehen);
+  s.gehen.forEach(bildHolen);
+});
+
+// Läuft die Figur gerade? schritt() zählt figur.schritt nur beim Laufen
+// hoch, also reicht es, auf eine Änderung zu schauen.
+let figurLetzterSchritt = -1;
+let figurZuletztBewegt  = 0;
+
+const figurPlatzhalter = figurMalen;   // die alte Fassung als Rückfall
+
+figurMalen = function (raum) {
+  const satz = FIGUREN[MEINE_FIGUR];
+  if (figur.schritt !== figurLetzterSchritt) {
+    figurLetzterSchritt = figur.schritt;
+    figurZuletztBewegt = performance.now();
+  }
+  const laeuft = performance.now() - figurZuletztBewegt < FIGUR_STEHT_NACH;
+  const bild = satz && figurBildJetzt(satz, laeuft);
+
+  if (!bild || !bild.complete || !bild.naturalWidth) {
+    figurPlatzhalter(raum);              // Bilder noch nicht da
+    return;
+  }
+
+  const f = bereich(raum);
+  const h = f.h * (FIGURHOEHE / 100);
+  const b = h * satz.seiten;
+  const x = f.x + f.b * (figur.x / 100);
+  const y = f.y + f.h * (raum.boden / 100);
+
+  // Schatten unter den Füssen
+  stift.fillStyle = "rgba(0,0,0,0.42)";
+  stift.beginPath();
+  stift.ellipse(x, y, b * 0.17, h * 0.022, 0, 0, Math.PI * 2);
+  stift.fill();
+
+  stift.save();
+  stift.translate(x, y);
+  if (figur.blickt > 0) stift.scale(-1, 1);   // die Bilder schauen nach links
+  stift.drawImage(bild, -satz.anker * b, -h, b, h);
+  stift.restore();
+};
 </script>
 </body>
 </html>
