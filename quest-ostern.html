@@ -365,7 +365,7 @@
 
   // Wird bei jedem Paket neu gesetzt. Steht unten im Startbildschirm, damit man
   // sofort sieht, welche Fassung gerade live ist.
-  const BAUSTAND = '30.10.2026 17:39';
+  const BAUSTAND = '05.11.2026 16:22';
   const SPEICHER_KEY = 'ostern_fortschritt';
   const HINWEISE_GESAMT = 3;
   // Gemeinsamer Faktor für alle Eier. Die Radien in EIER bleiben, hier wird
@@ -1135,12 +1135,8 @@
     { id: 'ba_deckel', ansicht: 'bad', x: 800, y: 480, w: 200, h: 175, typ: 'ausschnitt', zustand: 'klodeckel_auf',
       klang: 'kistendeckel', label: 'Klodeckel',
       patch: 'ostern/bilder/bad-deckel-zu.webp', patchNicht: true, patchX: 809, patchY: 419, patchW: 182, patchH: 237 },
-    // Die leere Wanne im Raumbild. Der Zustand wird in der Nahaufnahme gesetzt.
-    { id: 'ba_wanne_leer', ansicht: 'bad', x: 1090, y: 525, w: 380, h: 340, typ: 'overlay', zustand: 'wanne_leer',
-      patch: 'ostern/bilder/bad-wanne-leer.webp', patchX: 1078, patchY: 513, patchW: 399, patchH: 374, label: 'Badewanne' },
-    // Solange Wasser drin ist, kommt man näher heran
     { id: 'ba_wanne', ansicht: 'bad', x: 1090, y: 525, w: 380, h: 340, typ: 'naehe', nah: 'wanne_nah',
-      nichtWenn: 'wanne_leer', label: 'Badewanne' },
+      label: 'Badewanne' },
     // --- Badewanne von nahem ---
     // In den Bauch der Ente sind zwei Ziffern geritzt: der Anfang des Lukencodes.
     // Die zweite Hälfte steht auf dem Zettel unter dem Sitzkissen.
@@ -1156,16 +1152,6 @@
       // Grundbild zeigt die Ente. Der Flicken ist das Wasser OHNE sie und kommt
       // erst, wenn man sie genommen hat — also kein patchNicht.
       patch: 'ostern/bilder/wanne-ohne-ente.webp', patchX: 762, patchY: 322, patchW: 356, patchH: 256 },
-    // Der Stöpsel war eine unsichtbare Fläche — niemand kam darauf, dort zu
-    // ziehen. Jetzt liegt eine Marke auf der Kette, und die Klickfläche sitzt
-    // auf dem Stöpsel statt auf dem halben Wannenrand.
-    { id: 'wn_stoepsel', ansicht: 'wanne_nah', x: 330, y: 505, w: 150, h: 140, typ: 'ausschnitt',
-      zustand: 'wanne_leer', klang: 'wasser', zurueck: true, label: 'Stöpsel',
-      antwort: 'Du ziehst am Kettchen. Der Stöpsel kommt hoch und das Wasser läuft gurgelnd ab.',
-      zeichnung: `<g data-nicht="wanne_leer" class="nimm-marke" transform="translate(402,578)">
-        <circle r="22" fill="rgba(10,18,12,0.5)" stroke="#f4d484" stroke-width="2"/>
-        <path d="M0 -9 L0 7 M-6 1 L0 7 L6 1" stroke="#f4d484" stroke-width="2.5" fill="none" stroke-linecap="round"/>
-      </g>` },
 
     // --- Anfisas Schlafzimmer ---
     { id: 'sz_schrank', ansicht: 'schlafzimmer', x: 150, y: 30, w: 290, h: 520, typ: 'ausschnitt',
@@ -1183,8 +1169,14 @@
       zustand: 'sz_koffer_vor', klang: 'keiner', label: 'Koffer unter dem Bett', nah: 'koffer_nah',
       patch: 'ostern/bilder/sz-koffer.webp', patchX: 338, patchY: 698, patchW: 361, patchH: 189 },
     // --- Koffer von nahem. Die Schlösser gehen nur mit dem Schlüssel aus dem Bild. ---
+    // Offener Koffer mit der blauen Schachtel. Ist sie genommen, zeigt der
+    // zweite Flicken denselben Koffer ohne sie.
     { id: 'kf_offen', ansicht: 'koffer_nah', x: 260, y: 0, w: 1235, h: 595, typ: 'overlay', zustand: 'koffer_offen',
+      nichtWenn: 'kippen_blau_weg',
       patch: 'ostern/bilder/koffer-offen.webp', patchX: 252, patchY: 0, patchW: 1251, patchH: 603, label: 'Koffer' },
+    { id: 'kf_offen_leer', ansicht: 'koffer_nah', x: 260, y: 0, w: 1235, h: 595, typ: 'overlay', zustand: 'koffer_offen',
+      sichtbarWenn: ['koffer_offen', 'kippen_blau_weg'],
+      patch: 'ostern/bilder/koffer-ohne-kippen.webp', patchX: 252, patchY: 0, patchW: 1251, patchH: 603, label: 'Koffer' },
     // Die Schachtel liegt bei ihren alten Sachen. Damit muss man erst das Bild
     // abhängen, den Schlüssel holen und den Koffer aufschliessen, bevor man
     // Anfisa loswerden kann — und war dafür in ihrem Zimmer.
@@ -1192,7 +1184,8 @@
     // ist der von der roten Schachtel aus dem Treppenhaus schon gesetzt, und
     // die blaue wäre dann von Anfang an unsichtbar.
     { id: 'kf_kippen', ansicht: 'koffer_nah', x: 560, y: 290, w: 230, h: 116, typ: 'nehmen', zustand: 'kippen_blau_weg',
-      gibt: 'kippen', sichtbarWenn: 'koffer_offen', label: 'Blaue Schachtel', ohneMarke: true},
+      gibt: 'kippen', sichtbarWenn: 'koffer_offen', label: 'Blaue Schachtel', ohneMarke: true
+},
     { id: 'kf_schloss', ansicht: 'koffer_nah', x: 300, y: 480, w: 1180, h: 280, typ: 'ziel',
       nichtWenn: 'koffer_offen', label: 'Schlösser am Koffer',
       nimmt: 'schluessel', setzt: 'koffer_offen',
@@ -1225,7 +1218,7 @@
     { id: 'e04', ansicht: 'wohnzimmer', x: 1332, y: 712, r: 9,  farbe: '#8a4a3a', muster: 'punkte', ebene: 1, sichtbarWenn: null },  // auf dem Teppich
     { id: 'e03', ansicht: 'kueche',     x: 1318, y: 419, r: 9,  farbe: '#c8703a', muster: 'streifen', ebene: 1, sichtbarWenn: ['kueche_licht'] },  // in der Obstschale
     { id: 'e06', ansicht: 'acizimmer',  x: 566,  y: 650, r: 9,  farbe: '#6a4a2a', muster: 'punkte', ebene: 1, sichtbarWenn: null },  // im dunklen Spalt zwischen Reisetasche und Koffer unter dem Bett
-    { id: 'e07', ansicht: 'bad',        x: 1322, y: 752, r: 13, farbe: '#cfc3ad', muster: 'zickzack', ebene: 2, sichtbarWenn: 'wanne_leer', hinweis: 'liegt in der Wanne. Da müsste erst das Wasser weg.'},  // am Boden der Badewanne
+    { id: 'e07', ansicht: 'bad', x: 893, y: 628, r: 11, farbe: '#cfc3ad', muster: 'zickzack', ebene: 2, sichtbarWenn: 'klodeckel_auf' },  // in der Kloschüssel
     // --- Ebene 2: nur nach Öffnen sichtbar ---
     { id: 'e09', ansicht: 'garage1',     x: 170,  y: 470, r: 8,  farbe: '#5a5337', muster: 'streifen', ebene: 2, sichtbarWenn: 'akten_offen' },  // in der Aktenschrank-Schublade
     { id: 'e10', ansicht: 'garage1',     x: 618,  y: 618, r: 8,  farbe: '#2a1a12', muster: 'punkte',   ebene: 2, sichtbarWenn: 'blau_offen' },   // in der blauen Schublade
