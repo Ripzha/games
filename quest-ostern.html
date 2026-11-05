@@ -347,7 +347,7 @@
     <p class="eintrag-fehler" id="ende-zutaten"></p>
     <div class="knopf-reihe">
       <button class="knopf" id="backen-knopf">Kuchen backen</button>
-      <a class="knopf sekundaer" href="index.html">Zurück</a>
+      <button class="knopf sekundaer" id="ende-weiter">Zurück ins Haus</button>
       <button class="knopf sekundaer" id="reset-knopf">Nochmal von vorn</button>
     </div>
   </div>
@@ -367,7 +367,7 @@
 
   // Wird bei jedem Paket neu gesetzt. Steht unten im Startbildschirm, damit man
   // sofort sieht, welche Fassung gerade live ist.
-  const BAUSTAND = '05.11.2026 16:38';
+  const BAUSTAND = '05.11.2026 16:46';
   const SPEICHER_KEY = 'ostern_fortschritt';
   const HINWEISE_GESAMT = 3;
   // Gemeinsamer Faktor für alle Eier. Die Radien in EIER bleiben, hier wird
@@ -3612,6 +3612,13 @@
     return meineZutaten().filter(z => !habe.includes(z))
       .map(z => (BACK_ZUTATEN.find(x => x.id === z) || {}).name || z);
   }
+  // Zurück ins Haus: der Endbildschirm verschwindet, das Spiel läuft weiter.
+  // Praktisch, wenn noch Zutaten fehlen.
+  document.getElementById('ende-weiter').onclick = () => {
+    document.getElementById('ende-zutaten').textContent = '';
+    document.getElementById('screen-ende').classList.add('hidden');
+    renderRaum();
+  };
   document.getElementById('backen-knopf').onclick = () => {
     if (!zustand.gruppe) { zustand.gruppe = Math.random() < 0.5 ? 'A' : 'B'; speichern(); }
     // Ohne die eigenen Zutaten geht es nicht an den Tisch.
