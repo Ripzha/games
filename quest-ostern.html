@@ -367,7 +367,7 @@
 
   // Wird bei jedem Paket neu gesetzt. Steht unten im Startbildschirm, damit man
   // sofort sieht, welche Fassung gerade live ist.
-  const BAUSTAND = '05.11.2026 16:50';
+  const BAUSTAND = '05.11.2026 16:52';
   const SPEICHER_KEY = 'ostern_fortschritt';
   const HINWEISE_GESAMT = 3;
   // Gemeinsamer Faktor für alle Eier. Die Radien in EIER bleiben, hier wird
@@ -1131,6 +1131,12 @@
       patch: 'ostern/bilder/flur-leiter.webp', patchX: 648, patchY: 0, patchW: 374, patchH: 852,
       patchHell: 'ostern/bilder/flur-leiter-tuer.webp', patchHellX: 648, patchHellY: 0, patchHellW: 374, patchHellH: 852 },
     // --- Bad ---
+    // Die Leiter steht vor Anfisas Tür. Zum Hochklappen tippt man auf die
+    // Leiter selbst — oben an der Luke sucht das niemand, und dort liegt
+    // ausserdem der Pfeil nach oben.
+    { id: 'fl_leiter_zu', ansicht: 'flur', x: 700, y: 500, w: 260, h: 300, typ: 'ausschnitt',
+      zustand: 'luke_offen', sichtbarWenn: 'luke_offen', klang: 'tuer',
+      label: 'Leiter hochklappen' },
     { id: 'ba_becken', ansicht: 'bad', x: 245, y: 430, w: 355, h: 195, typ: 'naehe', nah: 'becken_nah',
       label: 'Waschbecken' },
     // Grundbild zeigt den Deckel OFFEN. Der Flicken liegt darauf, solange er zu ist.
