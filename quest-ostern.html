@@ -367,7 +367,7 @@
 
   // Wird bei jedem Paket neu gesetzt. Steht unten im Startbildschirm, damit man
   // sofort sieht, welche Fassung gerade live ist.
-  const BAUSTAND = '05.11.2026 16:46';
+  const BAUSTAND = '05.11.2026 16:50';
   const SPEICHER_KEY = 'ostern_fortschritt';
   const HINWEISE_GESAMT = 3;
   // Gemeinsamer Faktor für alle Eier. Die Radien in EIER bleiben, hier wird
@@ -841,9 +841,9 @@
     { id: 'sb_schrank', ansicht: 'schreibtisch_nah', x: 10, y: 585, w: 470, h: 302, typ: 'ausschnitt', klang: 'schranktuer', zustand: 'sb_schrank_offen', label: 'Schrank unter der Tischplatte' },
     { id: 'sb_schublade', ansicht: 'schreibtisch_nah', x: 1240, y: 572, w: 490, h: 275, typ: 'ausschnitt', klang: 'schublade', zustand: 'sb_schublade_offen', label: 'Schublade' },
     // ---- Backzutaten. nurGruppe entscheidet, wer sie sieht. ----
-    { id: 'z_hefe', ansicht: 'koffer_nah', x: 897, y: 341, w: 156, h: 118, typ: 'nehmen', zustand: 'hefe_weg',
-      gibt: 'hefe', nurGruppe: 'A', sichtbarWenn: 'koffer_offen', label: 'Päckchen im Koffer',
-      ohneMarke: true, zeichnung: liegt('leg-hefe.webp', 897, 341, 156, 118, 'hefe_weg')},
+    { id: 'z_hefe', ansicht: 'dachboden', x: 459, y: 648, w: 136, h: 105, typ: 'nehmen', zustand: 'hefe_weg',
+      gibt: 'hefe', nurGruppe: 'A', sichtbarWenn: 'dach_koffer_offen', label: 'Päckchen im Dachbodenkoffer',
+      ohneMarke: true, zeichnung: liegt('leg-hefe.webp', 459, 648, 136, 105, 'hefe_weg')},
         // Die Butter liegt im zweiten Fach. Nach dem Nehmen wird das ganze Bild
     // getauscht, damit keine Kante zu sehen ist.
     { id: 'kuehl_ohne_butter', ansicht: 'kuehl_nah', x: 0, y: 0, w: 1774, h: 887, typ: 'overlay', zustand: 'butter_weg',
@@ -1233,7 +1233,7 @@
     { id: 'e16', ansicht: 'tisch_nah',  x: 330,  y: 236, r: 31, farbe: '#c9b48a', muster: 'punkte',   ebene: 1, sichtbarWenn: null },  // steht in der Tasse auf dem Couchtisch, Unterkante knapp über dem Tassenrand-Flicken
     { id: 'e17', ansicht: 'kueche',     x: 955,  y: 602, r: 9,  farbe: '#5a4a38', muster: 'punkte', ebene: 2, sichtbarWenn: ['k_ofen_offen', 'kueche_licht'] },  // auf dem Rost im Backofen
     { id: 'e18', ansicht: 'acizimmer',  x: 348,  y: 580, r: 8,  farbe: '#5a4030', muster: 'zickzack', ebene: 2, sichtbarWenn: 'aci_tisch_offen' },  // in der Nachttischschublade
-    { id: 'e19', ansicht: 'dachboden',  x: 545,  y: 676, r: 17, farbe: '#9a8358', muster: 'streifen', ebene: 1, sichtbarWenn: 'dach_koffer_offen', hinweis: 'liegt in etwas, das man erst aufklappen muss.'},  // im offenen Koffer
+    { id: 'e19', ansicht: 'dachboden',  x: 700, y: 742, r: 17, farbe: '#9a8358', muster: 'streifen', ebene: 1, sichtbarWenn: 'dach_koffer_offen', hinweis: 'liegt neben etwas, das man erst aufklappen muss.'},  // im offenen Koffer
     { id: 'e20', ansicht: 'dachboden',  x: 1378, y: 742, r: 16, farbe: '#8d7f63', muster: 'punkte', ebene: 1, sichtbarWenn: 'dach_truhe_offen' , nurGruppe: 'A', hinweis: 'liegt in etwas, das man erst aufklappen muss.'},  // in der offenen Blechtruhe
     { id: 'e34', ansicht: 'dachboden',  x: 312,  y: 352, r: 14, farbe: '#c08a7a', muster: 'punkte', ebene: 1, sichtbarWenn: 'schwein_kaputt', hinweis: 'steckt in etwas, das man nicht aufmachen, sondern kaputt machen muss.'},  // zwischen den Scherben des Sparschweins
     { id: 'e35', ansicht: 'dachboden',  x: 836,  y: 306, r: 14, farbe: '#6d6253', muster: 'zickzack', ebene: 1, sichtbarWenn: null },  // getarnt zwischen den Krügen auf dem Tisch
