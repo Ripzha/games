@@ -367,7 +367,7 @@
 
   // Wird bei jedem Paket neu gesetzt. Steht unten im Startbildschirm, damit man
   // sofort sieht, welche Fassung gerade live ist.
-  const BAUSTAND = '05.11.2026 16:52';
+  const BAUSTAND = '05.11.2026 16:54';
   const SPEICHER_KEY = 'ostern_fortschritt';
   const HINWEISE_GESAMT = 3;
   // Gemeinsamer Faktor für alle Eier. Die Radien in EIER bleiben, hier wird
@@ -1351,6 +1351,7 @@
     ansicht: 'garage1',    // aktuelle Ansicht (nicht der Raum)
     nah: null,             // ID der Nahansicht, die gerade offen ist
     laeuft: false,
+    weitersuchen: false,
     fertig: false,
     backen: 0,
     gruppe: null,
@@ -1365,7 +1366,7 @@
   function speichern() {
     try {
       localStorage.setItem(SPEICHER_KEY, JSON.stringify({
-        gefunden: zustand.gefunden, offen: zustand.offen, inventar: zustand.inventar, hinweise: zustand.hinweise, zeit: zustand.zeit, ansicht: zustand.ansicht, nah: zustand.nah, fertig: zustand.fertig, backen: zustand.backen, gruppe: zustand.gruppe, anfisaHilft: zustand.anfisaHilft, name: zustand.name, spielerId: zustand.spielerId
+        gefunden: zustand.gefunden, offen: zustand.offen, inventar: zustand.inventar, hinweise: zustand.hinweise, zeit: zustand.zeit, ansicht: zustand.ansicht, nah: zustand.nah, fertig: zustand.fertig, weitersuchen: zustand.weitersuchen, backen: zustand.backen, gruppe: zustand.gruppe, anfisaHilft: zustand.anfisaHilft, name: zustand.name, spielerId: zustand.spielerId
       }));
     } catch (e) {}
   }
@@ -1388,6 +1389,8 @@
     zustand.inventar = Array.isArray(s.inventar) ? s.inventar : [];
     zustand.nah = ANSICHTEN.some(a => a.id === s.nah) ? s.nah : null;
     zustand.fertig = !!s.fertig;
+    // Gesetzt, wenn man nach dem Endbildschirm zurück ins Haus gegangen ist
+    zustand.weitersuchen = !!s.weitersuchen;
     zustand.backen = Number(s.backen) || 0;
     zustand.gruppe = s.gruppe || null;
     zustand.anfisaHilft = !!s.anfisaHilft;
@@ -3623,6 +3626,12 @@
   document.getElementById('ende-weiter').onclick = () => {
     document.getElementById('ende-zutaten').textContent = '';
     document.getElementById('screen-ende').classList.add('hidden');
+    // Das Spiel muss wieder laufen, sonst nimmt die Bühne keine Tipps an
+    // und weder Pfeile noch Möbel reagieren.
+    zustand.laeuft = true;
+    zustand.weitersuchen = true;
+    speichern();
+    uhrStart();
     renderRaum();
   };
   document.getElementById('backen-knopf').onclick = () => {
@@ -3637,6 +3646,7 @@
       return;
     }
     document.getElementById('ende-zutaten').textContent = '';
+    zustand.weitersuchen = false; speichern();
     document.getElementById('back-sagt').textContent = '';
     zeigeBacken();
   };
@@ -3761,7 +3771,12 @@
     document.getElementById('neu-knopf').style.display = '';
   }
   document.getElementById('neu-knopf').onclick = neuNachfragen;
-  if (hatte && zustand.fertig) { document.getElementById('screen-intro').classList.add('hidden'); spielEnde(); }
+  // Nach dem Durchspielen direkt in den Endbildschirm, ausser man ist
+  // zurück ins Haus gegangen, um fehlende Zutaten zu holen.
+  if (hatte && zustand.fertig && !zustand.weitersuchen) {
+    document.getElementById('screen-intro').classList.add('hidden');
+    spielEnde();
+  }
   // ?backen=1 öffnet den Backtisch sofort, zum Anschauen ohne vollständige Suche
   if (ABSPANNTEST) {
     document.getElementById('screen-intro').classList.add('hidden');
