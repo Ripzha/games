@@ -111,6 +111,7 @@
   .screen h1 { font-family: var(--serif); font-size: clamp(26px, 5vw, 38px); font-weight: 500; margin: 0 0 6px; }
   .screen h1 em { font-style: italic; color: var(--gold-hell); }
   .untertitel { color: var(--himmel-text); font-size: 14px; margin: 0 0 20px; }
+  .eintrag-fehler { color: var(--rot); font-size: 14px; min-height: 18px; margin: 0 0 8px; }
   .intro-text { max-width: 460px; font-size: 14.5px; line-height: 1.65; margin: 0 0 22px; }
   .intro-text em { font-family: var(--serif); font-style: italic; color: var(--gold-hell); }
   .regeln { max-width: 460px; font-size: 13px; color: var(--himmel-text); line-height: 1.6; text-align: left; margin: 0 0 22px; }
@@ -343,6 +344,7 @@
     <p class="ergebnis-zahl" id="ende-zeit">00:00</p>
     <p class="ergebnis-label" id="ende-label">für alle Eier</p>
     <p class="intro-text" id="ende-text"></p>
+    <p class="eintrag-fehler" id="ende-zutaten"></p>
     <div class="knopf-reihe">
       <button class="knopf" id="backen-knopf">Kuchen backen</button>
       <a class="knopf sekundaer" href="index.html">Zurück</a>
@@ -365,7 +367,7 @@
 
   // Wird bei jedem Paket neu gesetzt. Steht unten im Startbildschirm, damit man
   // sofort sieht, welche Fassung gerade live ist.
-  const BAUSTAND = '05.11.2026 16:22';
+  const BAUSTAND = '05.11.2026 16:38';
   const SPEICHER_KEY = 'ostern_fortschritt';
   const HINWEISE_GESAMT = 3;
   // Gemeinsamer Faktor für alle Eier. Die Radien in EIER bleiben, hier wird
@@ -839,27 +841,27 @@
     { id: 'sb_schrank', ansicht: 'schreibtisch_nah', x: 10, y: 585, w: 470, h: 302, typ: 'ausschnitt', klang: 'schranktuer', zustand: 'sb_schrank_offen', label: 'Schrank unter der Tischplatte' },
     { id: 'sb_schublade', ansicht: 'schreibtisch_nah', x: 1240, y: 572, w: 490, h: 275, typ: 'ausschnitt', klang: 'schublade', zustand: 'sb_schublade_offen', label: 'Schublade' },
     // ---- Backzutaten. nurGruppe entscheidet, wer sie sieht. ----
-    { id: 'z_hefe', ansicht: 'koffer_nah', x: 935, y: 369, w: 90, h: 62, typ: 'nehmen', zustand: 'hefe_weg',
+    { id: 'z_hefe', ansicht: 'koffer_nah', x: 897, y: 341, w: 156, h: 118, typ: 'nehmen', zustand: 'hefe_weg',
       gibt: 'hefe', nurGruppe: 'A', sichtbarWenn: 'koffer_offen', label: 'Päckchen im Koffer',
-      ohneMarke: true, zeichnung: liegt('leg-hefe.webp', 935, 369, 90, 62, 'hefe_weg')},
+      ohneMarke: true, zeichnung: liegt('leg-hefe.webp', 897, 341, 156, 118, 'hefe_weg')},
         // Die Butter liegt im zweiten Fach. Nach dem Nehmen wird das ganze Bild
     // getauscht, damit keine Kante zu sehen ist.
     { id: 'kuehl_ohne_butter', ansicht: 'kuehl_nah', x: 0, y: 0, w: 1774, h: 887, typ: 'overlay', zustand: 'butter_weg',
       bildAus: 'ostern/bilder/kuehl-ohne-butter.webp', label: 'Kühlschrank' },
     { id: 'z_butter', ansicht: 'kuehl_nah', x: 530, y: 326, w: 216, h: 86, typ: 'nehmen', zustand: 'butter_weg',
       gibt: 'butter', nurGruppe: 'B', ohneMarke: true, label: 'Butter auf dem Papier' },
-    { id: 'z_safran', ansicht: 'schlafzimmer', x: 883, y: 479, w: 58, h: 43, typ: 'nehmen', zustand: 'safran_weg',
+    { id: 'z_safran', ansicht: 'schlafzimmer', x: 835, y: 442, w: 140, h: 112, typ: 'nehmen', zustand: 'safran_weg',
       gibt: 'safran', nurGruppe: 'A', sichtbarWenn: 'sz_nachttisch_offen', label: 'Döschen in der Schublade',
-      ohneMarke: true, zeichnung: liegt('leg-safran.webp', 883, 479, 58, 43, 'safran_weg')},
-    { id: 'z_mehl', ansicht: 'kue_ober_nah', x: 700, y: 687, w: 120, h: 166, typ: 'nehmen', zustand: 'mehl_weg',
+      ohneMarke: true, zeichnung: liegt('leg-safran.webp', 835, 442, 140, 112, 'safran_weg')},
+    { id: 'z_mehl', ansicht: 'kue_ober_nah', x: 672, y: 645, w: 176, h: 230, typ: 'nehmen', zustand: 'mehl_weg',
       gibt: 'mehl', nurGruppe: 'A', label: 'Mehltüte im Schrank',
-      ohneMarke: true, zeichnung: liegt('leg-mehl.webp', 700, 687, 120, 166, 'mehl_weg')},
-    { id: 'z_kardamom', ansicht: 'schlafzimmer', x: 1403, y: 585, w: 58, h: 34, typ: 'nehmen', zustand: 'kardamom_weg',
+      ohneMarke: true, zeichnung: liegt('leg-mehl.webp', 672, 645, 176, 230, 'mehl_weg')},
+    { id: 'z_kardamom', ansicht: 'schlafzimmer', x: 1362, y: 553, w: 136, h: 94, typ: 'nehmen', zustand: 'kardamom_weg',
       gibt: 'kardamom', nurGruppe: 'B', sichtbarWenn: 'sz_frisier_offen', label: 'Kapseln in der Schublade',
-      ohneMarke: true, zeichnung: liegt('leg-kardamom.webp', 1403, 585, 58, 34, 'kardamom_weg')},
-    { id: 'z_rosinen', ansicht: 'dachboden', x: 1342, y: 721, w: 96, h: 54, typ: 'nehmen', zustand: 'rosinen_weg',
+      ohneMarke: true, zeichnung: liegt('leg-kardamom.webp', 1362, 553, 136, 94, 'kardamom_weg')},
+    { id: 'z_rosinen', ansicht: 'dachboden', x: 1310, y: 690, w: 160, h: 105, typ: 'nehmen', zustand: 'rosinen_weg',
       gibt: 'rosinen', nurGruppe: 'B', sichtbarWenn: 'dach_truhe_offen', label: 'Beutel in der Truhe',
-      ohneMarke: true, zeichnung: liegt('leg-rosinen.webp', 1342, 721, 96, 54, 'rosinen_weg')},
+      ohneMarke: true, zeichnung: liegt('leg-rosinen.webp', 1310, 690, 160, 105, 'rosinen_weg')},
 
     // --- Acis Schreibtisch auf dem Bildschirm ---
     // Die Leiste gehört zum Bild, nicht zum Spiel: overlay fängt keine Klicks.
@@ -3478,6 +3480,12 @@
     musikAus(0.8);
     if (ABSPANNTEST) { zeigeAbspann(); return; }   // im Testmodus einfach von vorn
     document.getElementById('screen-abspann').classList.add('hidden');
+    if (zustand.gruppe) {
+      const fehlt = fehlendeZutaten();
+      document.getElementById('ende-zutaten').textContent = fehlt.length
+        ? 'Dir fehlen noch: ' + fehlt.join(', ')
+        : '';
+    }
     document.getElementById('screen-ende').classList.remove('hidden');
   };
 
@@ -3595,10 +3603,27 @@
   }
   document.getElementById('admin-neu').onclick = renderAdmin;
 
+  // Welche Zutaten meine Gruppe beisteuern muss und was davon fehlt
+  function meineZutaten() {
+    return BACK_SCHRITTE.filter(x => x.gruppe === zustand.gruppe).map(x => x.zutat);
+  }
+  function fehlendeZutaten() {
+    const habe = zustand.inventar || [];
+    return meineZutaten().filter(z => !habe.includes(z))
+      .map(z => (BACK_ZUTATEN.find(x => x.id === z) || {}).name || z);
+  }
   document.getElementById('backen-knopf').onclick = () => {
-    // Gruppe wird hier nur gewürfelt. Später kommt sie aus der Datenbank,
-    // damit A und B abwechselnd vergeben werden.
     if (!zustand.gruppe) { zustand.gruppe = Math.random() < 0.5 ? 'A' : 'B'; speichern(); }
+    // Ohne die eigenen Zutaten geht es nicht an den Tisch.
+    const fehlt = fehlendeZutaten();
+    if (fehlt.length) {
+      klang('fehler');
+      document.getElementById('ende-zutaten').textContent =
+        'Aci: „Ohne ' + (fehlt.length === 1 ? fehlt[0] : fehlt.slice(0, -1).join(', ') + ' und ' + fehlt.at(-1))
+        + ' brauchen wir gar nicht anfangen. Das liegt noch im Haus."';
+      return;
+    }
+    document.getElementById('ende-zutaten').textContent = '';
     document.getElementById('back-sagt').textContent = '';
     zeigeBacken();
   };
