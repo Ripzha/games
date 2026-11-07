@@ -89,7 +89,7 @@ globalThis.__aus = { KL_WEISS, KL_SCHWARZ, KL_ALLE, KL_VON_TASTE, KL_PHRASEN,
                      figurBelegen, figurUebernehmen, belegungLaden,
                      NETZ_URL, NETZ_SCHLUESSEL, NETZ_TAKT, HOERWEITE,
                      netzStarten, netzSenden, netzAndereImRaum, netzVergeben,
-                     LOBBY_QUELLE, lobbyOeffnen, lobbyBereit, lobbySchliessen,
+                     LOBBY_QUELLE, lobbyOeffnen, lobbyWaehlen, lobbySchliessen,
                      lobbyIstOffen: () => lobbyOffen, lobbyKarte: () => lobbyBau.karte.innerHTML,
                      setzeMeinX: (v) => { ttMeinX = v; }, holeMeinX: () => ttMeinX,
                      holeTreffer: () => ttTreffer, holeServiert: () => ttServiert };
@@ -323,32 +323,27 @@ pruefe(quote > 0.08 && quote < 0.6,
 console.log("Lobby");
 let gestartet = null, zurueck = 0, melden = null;
 const echtesBetreten = aus.LOBBY_QUELLE.betreten;
-aus.LOBBY_QUELLE.betreten = function (raum, m) { melden = m; m([]); };
+aus.LOBBY_QUELLE.betreten = function (raum, seite, m) { melden = m; m([]); };
 
-aus.lobbyOeffnen("Probe", "Text", (uebung) => { gestartet = uebung; }, () => { zurueck++; });
+aus.lobbyOeffnen("Probe", "Text", (uebung) => { gestartet = uebung; },
+                 () => { zurueck++; }, "probe", "laeufer");
 pruefe(aus.lobbyIstOffen(), "die Lobby geht auf");
 pruefe(gestartet === null, "allein startet nichts");
 
-aus.lobbyBereit(true);
-pruefe(gestartet === null, "nur ich bereit startet nichts");
+melden([{ id: "fremd", name: "Zweiter", seite: "monitor", bereit: false, partner: null }]);
+pruefe(gestartet === null, "ein Zweiter allein startet nichts");
 
-melden([{ name: "Zweiter", bereit: false }]);
-pruefe(gestartet === null, "ein Zweiter ohne bereit startet nichts");
+aus.lobbyWaehlen("fremd");
+pruefe(gestartet === null, "nur ich habe gew\u00e4hlt — das reicht nicht");
 
-melden([{ name: "Zweiter", bereit: true }]);
-pruefe(gestartet === false, "beide bereit startet mit echtem Mitspieler");
-pruefe(!aus.lobbyIstOffen(), "danach ist die Lobby zu");
-
-gestartet = null;
-aus.lobbyOeffnen("Probe", "Text", (u) => { gestartet = u; }, () => { zurueck++; });
 const karte = aus.lobbyKarte();
-["lobby-bereit", "lobby-uebung", "lobby-weg"].forEach((id) =>
-  pruefe(karte.indexOf(id) >= 0, "der Knopf " + id + " ist da"));
-pruefe(karte.indexOf("wartet auf einen zweiten") >= 0, "der Wartehinweis steht da");
+pruefe(karte.indexOf("oben auf dem Dach") >= 0,
+       "bei zwei Seiten steht dabei, wer wo wartet");
+pruefe(karte.indexOf("lobby-uebung") >= 0, "der Knopf f\u00fcr den \u00dcbungspartner ist da");
+pruefe(karte.indexOf("lobby-bereit") < 0,
+       "statt eines Bereit-Knopfes w\u00e4hlt man jemanden aus");
 aus.lobbySchliessen();
 aus.LOBBY_QUELLE.betreten = echtesBetreten;
-
-// ---------- Der Automat ----------
 console.log("Automat");
 const roh = fs.readFileSync(datei, "utf8");
 let automatPunkte = 0;
@@ -553,6 +548,14 @@ if (fs.existsSync(labPfad)) {
 pruefe(roh.includes('"?rolle=" + rolle'), "das Haus gibt die Rolle mit");
 pruefe(roh.includes("function labyrinthLobby(rolle)") && roh.includes("labyrinthLobby(p.labyrinth);"),
        "hinein geht es \u00fcber die Lobby, nicht direkt");
+pruefe(roh.includes('inventarKlient.channel("lobby-" + raum'),
+       "die Lobby h\u00e4ngt an einem Kanal je Aufgabe");
+pruefe(roh.includes("if (!er || er.partner !== netzIch) return;"),
+       "es geht erst los, wenn zwei einander gew\u00e4hlt haben");
+["klavier", "tischtennis", "labyrinth"].forEach((raum) =>
+  pruefe(roh.indexOf('"' + raum + '"') >= 0, "die Aufgabe \"" + raum + "\" hat einen eigenen Raum"));
+pruefe(roh.includes('"labyrinth",\n    rolle'),
+       "beim Labyrinth wird die Seite mitgemeldet");
 if (fs.existsSync(labPfad)) {
   const lab2 = fs.readFileSync(labPfad, "utf8");
   pruefe(lab2.includes("if (ROLLE === 'monitor') return;"),

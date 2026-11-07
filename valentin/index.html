@@ -2972,32 +2972,75 @@ function ttZeigen(e) {
 //    ruft melden() mit der Liste der anderen, bereitSetzen() schreibt den
 //    eigenen Stand hinein. Am Rest ändert sich nichts.
 //
-//    Zum Ansehen des Ablaufs die Seite mit ?lobbytest aufrufen — dann
-//    tritt nach vier Sekunden ein erfundener Mitspieler bei und setzt
-//    sich zwei Sekunden später auf bereit.
 // ======================================================================
 
 let lobbyOffen = false;
 
-const lobbyProbe = new URLSearchParams(location.search).has("lobbytest");
-
+// Die Anwesenheit in einer Lobby läuft über einen eigenen Kanal je
+// Aufgabe. Jeder meldet Name, Figur und — wo es zwei Seiten gibt — auf
+// welcher er steht. Wer wen gewählt hat, steht ebenfalls darin: Sobald
+// zwei einander gewählt haben, geht es für beide los.
+//
+// Ohne Schlüssel oder ohne Verbindung bleibt die Lobby leer, und es
+// geht nur mit dem Übungspartner weiter.
 const LOBBY_QUELLE = {
-  _uhren: [],
-  betreten(raum, melden) {
+  _kanal: null,
+  _melden: null,
+  _ich: { bereit: false, partner: null },
+
+  betreten(raum, seite, melden) {
     this.verlassen();
-    melden([]);                       // heute ist ausser dir niemand da
-    if (lobbyProbe) {
-      this._uhren.push(setTimeout(() => melden([{ name: "Zyn", bereit: false }]), 4000));
-      this._uhren.push(setTimeout(() => melden([{ name: "Zyn", bereit: true }]), 6000));
-    }
+    this._melden = melden;
+    this._ich = { bereit: false, partner: null };
+    melden([]);
+    if (!inventarKlient) return;
+    try {
+      this._kanal = inventarKlient.channel("lobby-" + raum, {
+        config: { presence: { key: netzIch } }
+      });
+      this._kanal.on("presence", { event: "sync" }, () => {
+        const stand = this._kanal.presenceState();
+        const andere = [];
+        Object.keys(stand).forEach((id) => {
+          if (id === netzIch) return;
+          const d = stand[id][0] || {};
+          andere.push({ id: id, name: d.name, figur: d.figur, seite: d.seite,
+                        bereit: !!d.bereit, partner: d.partner || null });
+        });
+        if (this._melden) this._melden(andere);
+      });
+      this._kanal.subscribe((s) => {
+        if (s !== "SUBSCRIBED") return;
+        this._seite = seite;
+        this._senden();
+      });
+    } catch (e) { this._kanal = null; }
   },
+
+  _senden() {
+    if (!this._kanal) return;
+    const satz = FIGUREN[MEINE_FIGUR];
+    try {
+      this._kanal.track({
+        id: netzIch,
+        name: (satz && satz.name) || MEINE_FIGUR,
+        figur: MEINE_FIGUR,
+        seite: this._seite || null,
+        bereit: this._ich.bereit,
+        partner: this._ich.partner
+      });
+    } catch (e) {}
+  },
+
   verlassen() {
-    this._uhren.forEach(clearTimeout);
-    this._uhren = [];
+    if (this._kanal) { try { this._kanal.unsubscribe(); } catch (e) {} }
+    this._kanal = null;
+    this._melden = null;
   },
-  bereitSetzen(ja) {
-    // Später: den eigenen Stand in den Raum schreiben.
-  }
+
+  bereitSetzen(ja) { this._ich.bereit = ja; this._senden(); },
+  partnerSetzen(id) { this._ich.partner = id; this._ich.bereit = !!id; this._senden(); },
+  meinPartner() { return this._ich.partner; }
 };
 
 let lobbyBau = null, lobbyZustand = null;
@@ -3046,13 +3089,14 @@ function lobbyAufbau() {
 // erklaerung  ein, zwei Sätze darüber
 // beiStart    wird gerufen, wenn es losgeht; bekommt true bei Übungspartner
 // beiZurueck  wird gerufen, wenn abgebrochen wird
-function lobbyOeffnen(titel, erklaerung, beiStart, beiZurueck) {
+function lobbyOeffnen(titel, erklaerung, beiStart, beiZurueck, raum, seite) {
   lobbyAufbau();
   lobbyZustand = { titel, erklaerung, beiStart, beiZurueck,
+                   raum: raum || titel, seite: seite || null,
                    meinBereit: false, andere: [] };
   lobbyOffen = true;
   lobbyBau.wurzel.classList.add("auf");
-  LOBBY_QUELLE.betreten(titel, (andere) => {
+  LOBBY_QUELLE.betreten(lobbyZustand.raum, lobbyZustand.seite, (andere) => {
     if (!lobbyZustand) return;
     lobbyZustand.andere = andere || [];
     lobbyMalen();
@@ -3068,20 +3112,25 @@ function lobbySchliessen() {
   if (lobbyBau) lobbyBau.wurzel.classList.remove("auf");
 }
 
+// Es geht los, sobald zwei einander gewählt haben. Mit mehr als zwei
+// Wartenden bilden sich dadurch von selbst Paare.
 function lobbyPruefen() {
   const z = lobbyZustand;
   if (!z) return;
-  if (z.andere.length === 0 || !z.meinBereit) return;
-  if (!z.andere.every((a) => a.bereit)) return;
+  const meiner = LOBBY_QUELLE.meinPartner();
+  if (!meiner) return;
+  const er = z.andere.find((a) => a.id === meiner);
+  if (!er || er.partner !== netzIch) return;
   const los = z.beiStart;
   lobbySchliessen();
-  los(false);                          // false = echter Mitspieler
+  los(false, er);                      // false = echter Mitspieler
 }
 
-function lobbyBereit(ja) {
+function lobbyWaehlen(id) {
   if (!lobbyZustand) return;
-  lobbyZustand.meinBereit = ja;
-  LOBBY_QUELLE.bereitSetzen(ja);
+  const vorher = LOBBY_QUELLE.meinPartner();
+  LOBBY_QUELLE.partnerSetzen(vorher === id ? null : id);
+  lobbyZustand.meinBereit = !!LOBBY_QUELLE.meinPartner();
   lobbyMalen();
   lobbyPruefen();
 }
@@ -3089,32 +3138,48 @@ function lobbyBereit(ja) {
 function lobbyMalen() {
   const z = lobbyZustand;
   if (!z) return;
-  const zeile = (name, bereit, ich) =>
-    '<li class="' + (ich ? "ich" : "") + '"><span>' + name + '</span>' +
-    '<span class="stand' + (bereit ? " ja" : "") + '">' +
-    (bereit ? "bereit" : "noch nicht") + "</span></li>";
+  const meiner = LOBBY_QUELLE.meinPartner();
 
-  let leute = zeile(z.meinBereit ? "Du" : "Du", z.meinBereit, true);
+  const seiteName = (s) => (s === "laeufer" ? "unten im Labyrinth"
+                          : s === "monitor" ? "oben auf dem Dach" : "");
+
+  let leute = '<li class="ich"><span>Du' +
+    (z.seite ? " — " + seiteName(z.seite) : "") + "</span>" +
+    '<span class="stand' + (meiner ? " ja" : "") + '">' +
+    (meiner ? "gewählt" : "wartet") + "</span></li>";
+
   if (z.andere.length) {
-    z.andere.forEach((a) => { leute += zeile(a.name, a.bereit, false); });
+    z.andere.forEach((a) => {
+      const gewaehlt = meiner === a.id;
+      const willMich = a.partner === netzIch;
+      leute += '<li data-id="' + a.id + '" class="waehlbar' +
+        (gewaehlt ? " ich" : "") + '">' +
+        "<span>" + a.name + (a.seite ? " — " + seiteName(a.seite) : "") + "</span>" +
+        '<span class="stand' + (gewaehlt || willMich ? " ja" : "") + '">' +
+        (gewaehlt ? "ausgewählt" : willMich ? "will mit dir" : "anklicken") +
+        "</span></li>";
+    });
   } else {
     leute += '<li class="warten">wartet auf einen zweiten …</li>';
   }
 
   const knoepfe =
-    (z.meinBereit
-      ? '<button id="lobby-doch">Doch nicht bereit</button>'
-      : '<button id="lobby-bereit">Bereit</button>') +
     '<button id="lobby-uebung" class="still">Mit Übungspartner anfangen</button>' +
     '<button id="lobby-weg" class="still">Zurück</button>';
 
   lobbyBau.karte.innerHTML =
     "<h2>" + z.titel + "</h2><p>" + z.erklaerung + "</p>" +
-    '<ul id="lobby-leute">' + leute + "</ul>" + knoepfe;
+    '<ul id="lobby-leute">' + leute + "</ul>" +
+    '<p style="font-size:13px;color:#6d6659;margin:0 0 10px">' +
+    "Jemanden anklicken heisst, mit ihm spielen zu wollen. Sobald ihr " +
+    "euch gegenseitig gewählt habt, geht es los.</p>" + knoepfe;
+
+  lobbyBau.karte.querySelectorAll("li.waehlbar").forEach((el) => {
+    el.style.cursor = "pointer";
+    el.onclick = () => lobbyWaehlen(el.getAttribute("data-id"));
+  });
 
   const k = (id, tun) => { const b = document.getElementById(id); if (b) b.onclick = tun; };
-  k("lobby-bereit", () => lobbyBereit(true));
-  k("lobby-doch",   () => lobbyBereit(false));
   k("lobby-uebung", () => { const los = z.beiStart; lobbySchliessen(); los(true); });
   k("lobby-weg",    () => { const zurueck = z.beiZurueck; lobbySchliessen(); zurueck(); });
 }
@@ -3140,7 +3205,8 @@ klavierStarten = function () {
     "Ein Stück für vier Hände. Die Melodie springt zwischen euch hin und her, " +
     "gewertet wird zusammen.",
     () => klavierDirekt(),
-    () => fensterZu()
+    () => fensterZu(),
+    "klavier"
   );
 };
 
@@ -3151,7 +3217,8 @@ ttStarten = function () {
     "Zwei Schläger, einer für jeden. Der Ball darf nicht auf den Boden, " +
     "gezählt wird zusammen.",
     () => ttDirekt(),
-    () => fensterZu()
+    () => fensterZu(),
+    "tischtennis"
   );
 };
 
@@ -4147,7 +4214,9 @@ function labyrinthLobby(rolle) {
       : "Von hier oben liegt das Labyrinth offen vor dir. Wer unten " +
         "steht, sieht nichts davon.",
     () => labyrinthStarten(rolle),
-    () => fensterZu()
+    () => fensterZu(),
+    "labyrinth",
+    rolle
   );
 }
 </script>
