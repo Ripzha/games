@@ -330,7 +330,7 @@
   // unter dem Bild, die jüngste Nachricht des anderen zusätzlich gross
   // im Bild, damit man sie beim Laufen nicht übersieht.
   const VERLAUF_LAENGE = 20;
-  let verlauf = [];                       // { wer: 'ich' | 'er' | 'ereignis', text }
+  let verlauf = [];                       // { wer, name, text }
   let durchsage = { text: '', bis: 0 };   // die jüngste Nachricht des anderen
   let zuruf = { text: '', bis: 0 };       // dieselbe auf der Monitorseite
   let versuche = 0, gestartet = 0, laeuft = false;
@@ -1028,7 +1028,7 @@
       if (!el) return;
       el.innerHTML = verlauf.map((z) =>
         '<div class="' + z.wer + '">' +
-        (z.wer === 'ereignis' ? '' : '<b>' + (z.wer === 'ich' ? 'Du' : 'Er') + '</b>') +
+        (z.wer === 'ereignis' ? '' : '<b>' + text(z.name) + '</b>') +
         text(z.text) + '</div>').join('');
       el.scrollTop = el.scrollHeight;
     });
@@ -1039,8 +1039,9 @@
       ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[z]);
   }
 
-  function eintragen(wer, t) {
-    verlauf.push({ wer: wer, text: t });
+  function eintragen(wer, t, name) {
+    verlauf.push({ wer: wer, text: t,
+                   name: wer === 'ich' ? 'Du' : (name || 'Der andere') });
     if (verlauf.length > VERLAUF_LAENGE) verlauf.shift();
     verlaufMalen();
     if (wer === 'er') {
@@ -1067,7 +1068,10 @@
       kanal = klient.channel(KANAL_NAME);
       kanal.on('broadcast', { event: 'sagt' }, ({ payload }) => {
         if (!payload || payload.von === ICH) return;
-        eintragen('er', String(payload.text).slice(0, 120));
+        // Der Name kommt mit der Nachricht, nicht aus der Adresse —
+        // so stimmt er auch für Figuren, die diese Seite nicht kennt.
+        eintragen('er', String(payload.text).slice(0, 120),
+                  payload.name ? String(payload.name).slice(0, 20) : null);
       });
       kanal.subscribe();
     } catch (e) { kanal = null; }
@@ -1079,7 +1083,8 @@
     if (!kanal) { return; }
     try {
       kanal.send({ type: 'broadcast', event: 'sagt',
-                   payload: { von: ICH, text: t } });
+                   payload: { von: ICH, text: t,
+                              name: (FIGUREN[WER] && FIGUREN[WER].name) || WER } });
     } catch (e) {}
   }
 
