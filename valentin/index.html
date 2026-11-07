@@ -3422,8 +3422,7 @@ function netzSagen(text) {
 // Die anderen zeichnen. Läuft nach dem eigenen Bild, damit nichts
 // am bestehenden Zeichnen geändert werden muss.
 // ----------------------------------------------------------------------
-function netzFigurMalen(a) {
-  const raum = RAEUME[a.raum];
+function netzFigurMalen(a, raum) {
   if (!raum) return;
   const satz = FIGUREN[a.figur] || FIGUREN[MEINE_FIGUR];
   const f = bereich(raum);
@@ -3467,14 +3466,14 @@ function netzFigurMalen(a) {
   // Sprechblase, nur wenn man in Hörweite ist
   if (a.satz && Date.now() < a.satzBis &&
       a.raum === raumNr && Math.abs(a.x - figur.x) < HOERWEITE) {
-    netzBlaseMalen(a.satz, x, y - h * 1.12);
+    netzBlaseMalen(a.satz, x, y - h * 1.12, h);
   }
 }
 
-function netzBlaseMalen(text, x, y) {
-  const groesse = Math.max(11, Math.round(stift.canvas.height * 0.018));
+function netzBlaseMalen(text, x, y, h) {
+  const groesse = h * 0.1;
   stift.font = groesse + "px -apple-system, sans-serif";
-  const breite = Math.min(stift.measureText(text).width, stift.canvas.width * 0.4);
+  const breite = Math.min(stift.measureText(text).width, h * 3.2);
   const pb = groesse * 0.7, ph = groesse * 0.5;
   stift.fillStyle = "rgba(16,14,11,0.92)";
   stift.strokeStyle = "rgba(90,74,28,0.9)";
@@ -3490,9 +3489,17 @@ function netzBlaseMalen(text, x, y) {
   stift.fillText(text, x, by + bh - ph - groesse * 0.15, breite);
 }
 
-function netzAndereMalen() {
+// Jeder Raum wird in sein eigenes Koordinatensystem verschoben und
+// zugeschnitten. Deshalb müssen die anderen innerhalb dieser Verschiebung
+// gezeichnet werden — danach klebten sie am Bildschirm statt im Haus.
+function netzAndereImRaum(raum) {
   if (!netzAn) return;
-  Object.values(netzAndere).forEach(netzFigurMalen);
+  const nr = RAEUME.indexOf(raum);
+  if (nr < 0) return;
+  Object.values(netzAndere).forEach((a) => {
+    if (a.raum !== nr) return;
+    netzFigurMalen(a, raum);
+  });
 }
 
 // ----------------------------------------------------------------------
@@ -3502,7 +3509,15 @@ const malenAllein = malen;
 malen = function (untaetig) {
   malenAllein(untaetig);
   netzSenden();
-  netzAndereMalen();
+};
+
+// Der Vordergrund wird für jeden sichtbaren Raum gezeichnet, innerhalb
+// der Verschiebung und des Zuschnitts. Davor passen die anderen Figuren
+// genau hin: hinter den Vordergrund, aber im richtigen Raum.
+const vordergrundAllein = vordergrundMalen;
+vordergrundMalen = function (raum) {
+  netzAndereImRaum(raum);
+  vordergrundAllein(raum);
 };
 
 const sagenAllein = sagen;

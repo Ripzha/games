@@ -83,7 +83,7 @@ globalThis.__aus = { KL_WEISS, KL_SCHWARZ, KL_ALLE, KL_VON_TASTE, KL_PHRASEN,
                      ttBall, ttAufschlag, ttBallSchritt, ttGrenzen, ttOberflaeche,
                      AUTOMAT_SPIEL, automatStarten, figurWahlOeffnen,
                      NETZ_URL, NETZ_SCHLUESSEL, NETZ_TAKT, HOERWEITE,
-                     netzStarten, netzSenden, netzAndereMalen, netzVergeben,
+                     netzStarten, netzSenden, netzAndereImRaum, netzVergeben,
                      LOBBY_QUELLE, lobbyOeffnen, lobbyBereit, lobbySchliessen,
                      lobbyIstOffen: () => lobbyOffen, lobbyKarte: () => lobbyBau.karte.innerHTML,
                      setzeMeinX: (v) => { ttMeinX = v; }, holeMeinX: () => ttMeinX,
@@ -391,7 +391,7 @@ if (!aus.NETZ_SCHLUESSEL) {
          "der Schl\u00fcssel hat die erwartete Form");
 }
 pruefe(roh.includes("supabase-js@2.45.4"), "die Bibliothek ist auf eine Fassung festgenagelt");
-pruefe(typeof aus.netzStarten === "function" && typeof aus.netzAndereMalen === "function",
+pruefe(typeof aus.netzStarten === "function" && typeof aus.netzAndereImRaum === "function",
        "die Netzfunktionen sind da");
 pruefe(aus.NETZ_TAKT >= 50 && aus.NETZ_TAKT <= 250,
        "der Sendetakt liegt im Rahmen (" + aus.NETZ_TAKT + " ms)");
@@ -406,6 +406,10 @@ const gehoert  = [...roh.matchAll(/"broadcast", \{ event: "([a-z]+)" \}/g)].map(
 pruefe(gehoert.length >= 2, gehoert.length + " Arten von Rundruf (" + gehoert.join(", ") + ")");
 pruefe(roh.includes("const malenAllein = malen;") && roh.includes("const sagenAllein = sagen;"),
        "Zeichnen und Sprechen sind eingehängt, ohne das Bestehende zu \u00e4ndern");
+pruefe(roh.includes("vordergrundMalen = function (raum) {\n  netzAndereImRaum(raum);"),
+       "die anderen werden im Raum gezeichnet, nicht auf dem Bildschirm");
+pruefe(roh.includes("function netzFigurMalen(a, raum)"),
+       "die fremde Figur bekommt den Raum mitgegeben");
 pruefe(roh.includes("if (!NETZ_SCHLUESSEL ||"),
        "ohne Schl\u00fcssel startet nichts und das Spiel l\u00e4uft allein weiter");
 
