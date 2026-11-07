@@ -103,7 +103,7 @@ KL_SCHWARZ.forEach((t) => (KL_VON_TASTE[t.kuerzel.toLowerCase()] = t.note));
 // wer: 0 = der Spieler an diesem Rechner, 1 = der Mitspieler.
 // Die Phrasen wechseln sich ab, damit niemand lange nichts zu tun hat.
 // ----------------------------------------------------------------------
-const KL_ZAEHLER = 340;      // Millisekunden pro Zähler
+const KL_ZAEHLER = 200;      // Millisekunden pro Sechzehntel
 const KL_PAUSE   = 1.5;      // Zähler Pause zwischen zwei Phrasen
 
 // Pachelbels Kanon in D, nach C-Dur versetzt, damit er in den Umfang
@@ -120,40 +120,53 @@ const KL_PAUSE   = 1.5;      // Zähler Pause zwischen zwei Phrasen
 // kommen sich auf keiner Taste in die Quere.
 //
 // Zwei Stimmen, jede eine Folge von [Note, Länge in Zählzeiten].
-// Beide spielen beides. Zur Hälfte des Stücks tauschen sie die Stimmen:
-// Wer den Bass angefangen hat, übernimmt dann die Melodie und umgekehrt.
-// Gleich viele Noten allein wäre nicht gleich schwer — der Bass ist ein
-// Pulsschlag, die Melodie ein Stück. Nur wenn beide beides spielen, ist
-// es für beide dasselbe.
-const KL_TAUSCH = 48;        // Zählzeiten bis zum Stimmentausch
+// Beethovens „Für Elise", der erste Teil, zweimal durch.
+//
+// Beide spielen beides: Zur Hälfte tauschen sie die Stimmen, wer die
+// rechte Hand angefangen hat, übernimmt dann die linke. Gleich viele
+// Noten allein wäre nicht gleich schwer — die rechte Hand hat die
+// Melodie, die linke die Begleitung.
+//
+// In jeder Stimme stehen Griffe: zwei Töne, die gleichzeitig kommen.
+// Dafür braucht man beide Hände, und das ist der Unterschied zu einer
+// Melodie, die man mit einem Finger abarbeiten kann.
+//
+// Eine Länge ist ein Sechzehntel. null ist eine Pause — bei Für Elise
+// spielen die Hände abwechselnd, ohne Pausen ginge das nicht.
+const KL_TAUSCH = 58;        // Zählzeiten bis zum Stimmentausch
 
-const KL_BASS = [
-  // Die Basslinie des Kanons: C G A E F C F G. An sechs Stellen steht
-  // ein anderer Ton desselben Akkords, weil dort sonst dieselbe Note
-  // gleichzeitig in der Melodie läge und beide auf einer Taste wären.
-  ["C4", 4], ["G4", 4], ["A4", 4], ["E4", 4],
-  ["F4", 4], ["C4", 4], ["F4", 4], ["G4", 4],
-  ["C4", 4], ["G4", 4], ["C4", 4], ["E4", 4],
-  ["A4", 4], ["C4", 4], ["A4", 4], ["G4", 4],
-  ["C4", 2], ["G4", 2], ["A4", 2], ["E4", 2],
-  ["F4", 2], ["C4", 2], ["F4", 2], ["H4", 2],
-  ["C4", 2], ["G4", 2], ["A4", 2], ["G4", 2],
-  ["A4", 2], ["C4", 2], ["F4", 2], ["G4", 2]
+// Die linke Hand liegt im Original zwei Oktaven tiefer. So tief reicht
+// die Klaviatur nicht, deshalb sind die Arpeggien umgelegt: Statt zum
+// Spitzenton hinauf gehen sie wieder zurück. Sonst läge dieselbe Note
+// gleichzeitig in beiden Stimmen und beide wären auf einer Taste.
+const KL_LINKS_TEIL = (schluss) => [
+  [null, 8],
+  ["C4", 1], ["E4", 1], ["C4", 1], [null, 3],
+  ["E4", 1], ["Gis4", 1], ["E4", 1], [null, 3],
+  [["A4", "C4"], 1], [null, 5],
+  [null, 8],
+  ["C4", 1], ["E4", 1], ["C4", 1], [null, 3],
+  ["E4", 1], ["Gis4", 1], ["E4", 1], [null, 3],
+  ["F4", 1], ["D4", 1], ["F4", 1], [null, 3],
+  [schluss, 4], [null, 2]
 ];
 
-const KL_MELODIE = [
-  // Die Violinlinie des Kanons — der Teil, den jeder kennt. Erst die
-  // absteigende Linie in ganzen Noten, dann dieselbe Harmonie in der
-  // bewegteren Fassung.
-  ["E5", 4], ["D5", 4], ["C5", 4], ["H4", 4],
-  ["A4", 4], ["G4", 4], ["A4", 4], ["H4", 4],
-  ["C5", 4], ["H4", 4], ["A4", 4], ["G4", 4],
-  ["F4", 4], ["E4", 4], ["F4", 4], ["D4", 4],
-  ["E5", 2], ["C5", 2], ["D5", 2], ["H4", 2],
-  ["C5", 2], ["A4", 2], ["H4", 2], ["G4", 2],
-  ["A4", 2], ["F4", 2], ["G4", 2], ["E4", 2],
-  ["F4", 2], ["D4", 2], ["E4", 2], ["C4", 2]
+const KL_RECHTS_TEIL = (schluss) => [
+  ["E5", 1], ["Dis5", 1], ["E5", 1], ["Dis5", 1],
+  ["E5", 1], ["H4", 1], ["D5", 1], ["C5", 1],
+  [["A4", "E5"], 2], [null, 4],
+  ["H4", 2], [null, 4],
+  ["C5", 2], [null, 4],
+  ["E5", 1], ["Dis5", 1], ["E5", 1], ["Dis5", 1],
+  ["E5", 1], ["H4", 1], ["D5", 1], ["C5", 1],
+  [["A4", "E5"], 2], [null, 4],
+  ["H4", 2], [null, 2], ["C5", 1], ["E5", 1],
+  [schluss, 4], [null, 8]
 ];
+
+const KL_RECHTS = KL_RECHTS_TEIL(["A4", "C5"]).concat(KL_RECHTS_TEIL(["A4", "C5"]));
+const KL_LINKS  = KL_LINKS_TEIL(["D4", "F4"]).concat(KL_LINKS_TEIL(["C4", "E4"]));
+
 
 
 
@@ -163,8 +176,11 @@ const KL_MELODIE = [
 // Zeiten und Schwellen
 // ----------------------------------------------------------------------
 const KL_FALLZEIT = 2600;    // Millisekunden von oben bis zur Treffleiste
-const KL_PERFEKT  = 150;     // plus/minus Millisekunden für die volle Wertung
-const KL_GUT      = 300;     // plus/minus Millisekunden, sonst verpasst
+const KL_PERFEKT  = 80;      // plus/minus Millisekunden für die volle Wertung
+// Das Trefferfenster muss schmaler sein als der Abstand zwischen zwei
+// gleichen Noten, sonst wertet ein Druck die falsche. Bei Sechzehnteln
+// sind das 400 Millisekunden, also höchstens 200 nach jeder Seite.
+const KL_GUT      = 160;     // plus/minus Millisekunden, sonst verpasst
 const KL_VORLAUF  = 1600;    // Ruhe vor dem ersten Ton
 const KL_SCHWELLE = 80;      // Prozent, ab denen es geschafft ist
 
@@ -270,15 +286,21 @@ function klTon(freq, dauerMs, leise) {
 function klStimmeBauen(stimme, wer, noten) {
   let t = 0;
   stimme.forEach(([note, laenge]) => {
-    noten.push({
-      zeit: t * KL_ZAEHLER,
-      dauer: laenge * KL_ZAEHLER,
-      note: note,
+    if (note) {
       // Nach dem Tausch gehört die Stimme dem anderen
-      wer: t < KL_TAUSCH ? wer : (wer === 0 ? 1 : 0),
-      stand: "offen"
-    });
-    t += laenge;
+      const wessen = t < KL_TAUSCH ? wer : (wer === 0 ? 1 : 0);
+      const gleichzeitig = Array.isArray(note) ? note : [note];
+      gleichzeitig.forEach((einzeln) => {
+        noten.push({
+          zeit: t * KL_ZAEHLER,
+          dauer: laenge * KL_ZAEHLER,
+          note: einzeln,
+          wer: wessen,
+          stand: "offen"
+        });
+      });
+    }
+    t += laenge;                        // null ist eine Pause
   });
   return t * KL_ZAEHLER;
 }
@@ -287,8 +309,8 @@ function klSongBauen() {
   const noten = [];
   // Beide Stimmen beginnen zur selben Zeit. Wer welche spielt, steht
   // in KL_BASS_WER — das entscheidet sich aus den Kennungen.
-  const a = klStimmeBauen(KL_BASS, 0, noten);
-  const b = klStimmeBauen(KL_MELODIE, 1, noten);
+  const a = klStimmeBauen(KL_LINKS, 0, noten);
+  const b = klStimmeBauen(KL_RECHTS, 1, noten);
   noten.sort((x, y) => x.zeit - y.zeit);
   return { noten, laenge: Math.max(a, b) };
 }
@@ -485,23 +507,23 @@ function klTafelZeigen(html, knoepfe) {
 function klTafelStart() {
   klTafelZeigen(
     "<h2>Das Klavier</h2>" +
-    "<p>Auf dem Pult liegt Pachelbels Kanon, gesetzt für vier Hände. Ihr spielt " +
-    "gleichzeitig: Einer nimmt die Basslinie, der andere die Melodie — und zur " +
-    "Hälfte tauscht ihr. " +
-    "Deine Noten sind hell und tragen einen Buchstaben, die des anderen bleiben " +
-    "dunkel.</p>" +
+    "<p>Auf dem Pult liegt Für Elise, gesetzt für vier Hände. Ihr spielt " +
+    "gleichzeitig: Einer nimmt die rechte Hand, der andere die linke — und zur " +
+    "Hälfte tauscht ihr. Wo zwei Noten nebeneinander kommen, brauchst du beide " +
+    "Hände. Deine Noten sind hell und tragen einen Buchstaben, die des anderen " +
+    "bleiben dunkel.</p>" +
     "<p>Drück die Taste, wenn die Note unten ankommt. Gewertet wird " +
     "gemeinsam über das ganze Stück. Ab " + KL_SCHWELLE + " Prozent geht es auf.</p>" +
     "<p style='color:#8a857a;font-size:13px'>Mitspieler: " + KL_PARTNER.name +
     (klDarfWaehlen()
       ? " &nbsp;·&nbsp; du f\u00e4ngst mit " +
-        (klIchBin === 0 ? "dem Bass" : "der Melodie") + " an"
+        (klIchBin === 0 ? "der linken Hand" : "der rechten Hand") + " an"
       : "") + "</p>",
     klDarfWaehlen()
       ? [
           ["Erst mal anhören", () => klSpielStarten(true)],
           ["Spielen",          () => klSpielStarten(false)],
-          [klIchBin === 0 ? "Lieber mit der Melodie" : "Lieber mit dem Bass",
+          [klIchBin === 0 ? "Lieber die linke Hand" : "Lieber die rechte Hand",
                                klSeiteWechseln],
           ["Zurück",           klavierSchliessen]
         ]

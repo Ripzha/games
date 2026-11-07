@@ -81,7 +81,7 @@ const innen = skript
 try {
   vm.runInContext(innen +
     "\nglobalThis.__aus = { KL_WEISS, KL_SCHWARZ, KL_ALLE, KL_VON_TASTE," +
-    " KL_BASS, KL_MELODIE, KL_GUT, KL_SCHWELLE, klSongBauen, klSeiteBestimmen," +
+    " KL_LINKS, KL_RECHTS, KL_GUT, KL_SCHWELLE, klSongBauen, klSeiteBestimmen," +
     " klavierStarten };", kasten);
 } catch (e) {
   console.error("FEHLER beim Laden der Seite: " + e.message);
@@ -89,7 +89,7 @@ try {
 }
 
 const aus = kasten.__aus;
-const { KL_WEISS, KL_SCHWARZ, KL_ALLE, KL_VON_TASTE, KL_BASS, KL_MELODIE,
+const { KL_WEISS, KL_SCHWARZ, KL_ALLE, KL_VON_TASTE, KL_LINKS, KL_RECHTS,
         KL_GUT, klSongBauen } = aus;
 
 console.log("Klaviatur");
@@ -118,13 +118,12 @@ pruefe(einer.length === anderer.length,
 // die Melodie ein Stueck — beide muessen beides spielen.
 const tausch = (skript.match(/KL_TAUSCH = (\d+)/) || [])[1];
 pruefe(tausch, "es gibt einen Stimmentausch (nach " + tausch + " Z\u00e4hlzeiten)");
-pruefe(skript.includes("wer: t < KL_TAUSCH ? wer : (wer === 0 ? 1 : 0),"),
+pruefe(skript.includes("const wessen = t < KL_TAUSCH ? wer : (wer === 0 ? 1 : 0);"),
        "nach dem Tausch geh\u00f6rt die Stimme dem anderen");
 
-const bassToene = ["C4","D4","E4","F4","G4","A4","H4"];
-function istBass(n) { return bassToene.includes(n.note) && n.dauer >= 0; }
-const vorher = song.noten.filter((n) => n.zeit < tausch * 340);
-const nachher = song.noten.filter((n) => n.zeit >= tausch * 340);
+const zaehler = +(skript.match(/KL_ZAEHLER = (\d+)/) || [])[1];
+const vorher = song.noten.filter((n) => n.zeit < tausch * zaehler);
+const nachher = song.noten.filter((n) => n.zeit >= tausch * zaehler);
 [0, 1].forEach((w) => {
   pruefe(vorher.some((n) => n.wer === w) && nachher.some((n) => n.wer === w),
          "Spieler " + (w + 1) + " spielt vor und nach dem Tausch");
@@ -155,9 +154,28 @@ pruefe(kollision.length === 0,
        "die beiden kommen sich auf keiner Taste in die Quere" +
        (kollision.length ? " — " + kollision.join("; ") : ""));
 
-pruefe(KL_MELODIE[0][0] === "E5" && KL_MELODIE[1][0] === "D5" &&
-       KL_MELODIE[2][0] === "C5" && KL_MELODIE[3][0] === "H4",
-       "die Melodie f\u00e4ngt mit der absteigenden Linie an, die jeder kennt");
+pruefe(KL_RECHTS[0][0] === "E5" && KL_RECHTS[1][0] === "Dis5" &&
+       KL_RECHTS[2][0] === "E5" && KL_RECHTS[3][0] === "Dis5",
+       "die rechte Hand f\u00e4ngt mit dem E–Dis–E–Dis an, das jeder kennt");
+
+console.log("Zwei H\u00e4nde");
+// Eine Stimme aus lauter Einzelnoten kann man mit einem Finger
+// abarbeiten. Griffe sind der Grund, zwei H\u00e4nde zu brauchen.
+function griffe(noten) {
+  const proZeit = {};
+  noten.forEach((n) => { proZeit[n.zeit] = (proZeit[n.zeit] || 0) + 1; });
+  return Object.values(proZeit).filter((v) => v > 1).length;
+}
+[0, 1].forEach((w) => {
+  const seine = song.noten.filter((n) => n.wer === w);
+  pruefe(griffe(seine) >= 3,
+         "Spieler " + (w + 1) + " hat " + griffe(seine) +
+         " Griffe — daf\u00fcr braucht er beide H\u00e4nde");
+});
+pruefe(KL_LINKS.some(([n]) => n === null) && KL_RECHTS.some(([n]) => n === null),
+       "beide Stimmen haben Pausen — die H\u00e4nde spielen abwechselnd");
+pruefe(skript.includes("t += laenge;                        // null ist eine Pause"),
+       "eine Pause r\u00fcckt die Zeit vor, ohne eine Note zu setzen");
 
 console.log("Melodie, Feinheiten");
 // Zwei gleiche Noten zu dicht beieinander: die Trefferfenster überlappen,
@@ -189,7 +207,7 @@ pruefe(skript.includes("const klDarfWaehlen = () => !PARTNER_ID;"),
        "nur allein — mit einem Mitspieler entscheiden die Kennungen");
 pruefe(skript.includes('if (!klDarfWaehlen()) return;'),
        "mit Mitspieler l\u00e4uft der Wechsel ins Leere");
-pruefe(skript.includes('klIchBin === 0 ? "Lieber mit der Melodie" : "Lieber mit dem Bass"'),
+pruefe(skript.includes('klIchBin === 0 ? "Lieber die linke Hand" : "Lieber die rechte Hand"'),
        "der Knopf sagt, worauf man wechselt");
 
 console.log("Allein und ohne Haus");
