@@ -129,7 +129,9 @@
                     transform: translate(-50%, -50%) scale(0.3); }
   .back-sagt { max-width: 700px; margin: 16px auto 0; font-size: 15px; line-height: 1.6; min-height: 3em; }
   #screen-abspann { padding: 0; overflow: hidden; }
-  .abspann-bild { position: absolute; inset: 0; background-size: cover; background-position: center; }
+  .abspann-bild { position: absolute; inset: 0; background-size: cover; background-position: center;
+                  transition: opacity 1.6s ease-in-out; }
+  .abspann-bild2 { opacity: 0; }
   .abspann-schleier { position: absolute; inset: 0; background: #05080a; opacity: 0.55; }
   .abspann-schleier.dunkel { opacity: 1; transition: opacity 6s ease-in; }
   .abspann-fenster { position: absolute; inset: 0; overflow: hidden; }
@@ -309,6 +311,7 @@
   <!-- Ende -->
   <div class="screen hidden" id="screen-abspann">
     <div class="abspann-bild" id="abspann-bild"></div>
+    <div class="abspann-bild abspann-bild2" id="abspann-bild2"></div>
     <div class="abspann-schleier" id="abspann-schleier"></div>
     <div class="abspann-fenster" id="abspann-fenster">
       <div class="abspann-rolle" id="abspann-rolle"></div>
@@ -369,7 +372,7 @@
 
   // Wird bei jedem Paket neu gesetzt. Steht unten im Startbildschirm, damit man
   // sofort sieht, welche Fassung gerade live ist.
-  const BAUSTAND = '07.11.2026 22:55';
+  const BAUSTAND = '07.11.2026 22:56';
   const SPEICHER_KEY = 'ostern_fortschritt';
   const HINWEISE_GESAMT = 3;
   // Gemeinsamer Faktor für alle Eier. Die Radien in EIER bleiben, hier wird
@@ -3419,6 +3422,23 @@
 
   // Musik im Abspann. Fehlt die Datei, bleibt es still — das Spiel merkt es
   // selbst und meldet nichts.
+  // Diashow hinter dem Abspann. Die Reihenfolge ist die Reihenfolge, in der
+  // die Bilder entstanden sind — vom ersten Raum bis zum letzten Nahbild.
+  // Eigene Bilder einfach hier eintragen, der Pfad ist ostern/bilder/.
+  const ABSPANN_BILDER = [
+    'garage-zu.webp', 'garage2-zu.webp', 'treppenhaus-dunkel.webp', 'wohnzimmer-zu.webp',
+    'kueche-dunkel.webp', 'bild-vorn.webp', 'bild-hinten-zu.webp', 'spind-nah.webp',
+    'gruen-nah.webp', 'kiste-nah.webp', 'sessel-nah.webp', 'tisch-nah.webp',
+    'flur.webp', 'becken-nah.webp', 'bad.webp', 'wanne-nah.webp', 'ente-nah.webp',
+    'schlafzimmer.webp', 'koffer-nah.webp', 'ente-vorn.webp',
+    'kue-unten-nah.webp', 'topf-batterien.webp', 'aci-zimmer.webp', 'aquarium-nah.webp',
+    'schreibtisch.webp', 'pc-schirm.webp', 'wagen-nah.webp', 'kiste-gruen-voll.webp',
+    'regalwand-nah.webp', 'th-kiste-nah.webp', 'kue-ober-nah.webp', 'dachboden.webp',
+    'kuehl-nah.webp',
+    // Rausgeflogen: die leere Wanne und der alte Klodeckel
+    'bad-wanne-leer.webp', 'bad-deckel.webp',
+    'aci-kuchen.webp'
+  ];
   const ABSPANN_MUSIK = 'ostern/toene/abspann.mp3';
   // Länge der Hymne in Sekunden. Die Rolle richtet sich danach, damit der
   // letzte Satz steht, wenn der letzte Ton verklingt. Auf 0 setzen, wenn
@@ -3470,9 +3490,31 @@
   }
 
   let abspannLauf = null;
+  let diaTimer = null;
+
+  // Blendet die Bilder abwechselnd auf den beiden Ebenen ein, damit es
+  // weich übergeht statt zu springen.
+  function diashowStart() {
+    clearInterval(diaTimer);
+    const a = document.getElementById('abspann-bild');
+    const b = document.getElementById('abspann-bild2');
+    const liste = ABSPANN_BILDER.length ? ABSPANN_BILDER : ['aci-kuchen.webp'];
+    let i = 0, obenB = false;
+    a.style.backgroundImage = 'url(ostern/bilder/' + liste[0] + ')';
+    b.style.opacity = 0;
+    // Die Bilder teilen sich die Laufzeit der Hymne
+    const takt = Math.max(3000, Math.round((ABSPANN_DAUER || 180) * 1000 / liste.length));
+    diaTimer = setInterval(() => {
+      i = (i + 1) % liste.length;
+      const neu = 'url(ostern/bilder/' + liste[i] + ')';
+      if (obenB) { a.style.backgroundImage = neu; b.style.opacity = 0; }
+      else       { b.style.backgroundImage = neu; b.style.opacity = 1; }
+      obenB = !obenB;
+    }, takt);
+  }
+  function diashowStop() { clearInterval(diaTimer); diaTimer = null; }
   function zeigeAbspann() {
-    const bild = document.getElementById('abspann-bild');
-    bild.style.backgroundImage = 'url(' + BACK_FERTIG + ')';
+    diashowStart();
     document.getElementById('abspann-schleier').classList.remove('dunkel');
     abspannBauen();
     musikAn();
@@ -3503,6 +3545,7 @@
   document.getElementById('abspann-knopf').onclick = zeigeAbspann;
   document.getElementById('abspann-weg').onclick = () => {
     clearTimeout(abspannLauf);
+    diashowStop();
     musikAus(0.8);
     if (ABSPANNTEST) { zeigeAbspann(); return; }   // im Testmodus einfach von vorn
     document.getElementById('screen-abspann').classList.add('hidden');
