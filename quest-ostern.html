@@ -372,7 +372,7 @@
 
   // Wird bei jedem Paket neu gesetzt. Steht unten im Startbildschirm, damit man
   // sofort sieht, welche Fassung gerade live ist.
-  const BAUSTAND = '07.11.2026 22:56';
+  const BAUSTAND = '07.11.2026 22:58';
   const SPEICHER_KEY = 'ostern_fortschritt';
   const HINWEISE_GESAMT = 3;
   // Gemeinsamer Faktor für alle Eier. Die Radien in EIER bleiben, hier wird
@@ -3808,12 +3808,21 @@
           + 'Schränke, deinen Rucksack, die gelösten Rätsel und die Zeit. Dein Name und deine Gruppe bleiben.'
         : 'Es gibt noch nichts zurückzusetzen. Dein Name und deine Gruppe bleiben.';
     document.getElementById('neu-modal').classList.add('show');
-    // Der Startbildschirm tritt zurück, damit nichts durchscheint
-    document.getElementById('screen-intro').classList.add('verdeckt');
+    // Der gerade sichtbare Bildschirm tritt zurück, damit nichts durchscheint.
+    // Das betrifft Start- und Endbildschirm gleichermassen.
+    offenerBildschirm().forEach(el => el.classList.add('verdeckt'));
+  }
+  function offenerBildschirm() {
+    return ['screen-intro', 'screen-ende', 'screen-backen']
+      .map(id => document.getElementById(id))
+      .filter(el => el && !el.classList.contains('hidden'));
   }
   function neuAbfrageZu() {
     document.getElementById('neu-modal').classList.remove('show');
-    document.getElementById('screen-intro').classList.remove('verdeckt');
+    ['screen-intro', 'screen-ende', 'screen-backen'].forEach(id => {
+      const el = document.getElementById(id);
+      if (el) el.classList.remove('verdeckt');
+    });
   }
   document.getElementById('neu-ja').onclick = () => { neuAbfrageZu(); neuAnfangen(); };
   document.getElementById('neu-nein').onclick = neuAbfrageZu;
