@@ -81,7 +81,7 @@ const innen = skript
 try {
   vm.runInContext(innen +
     "\nglobalThis.__aus = { KL_WEISS, KL_SCHWARZ, KL_ALLE, KL_VON_TASTE," +
-    " KL_PHRASEN, KL_GUT, KL_SCHWELLE, klSongBauen, klSeiteBestimmen," +
+    " KL_BASS, KL_MELODIE, KL_GUT, KL_SCHWELLE, klSongBauen, klSeiteBestimmen," +
     " klavierStarten };", kasten);
 } catch (e) {
   console.error("FEHLER beim Laden der Seite: " + e.message);
@@ -89,7 +89,7 @@ try {
 }
 
 const aus = kasten.__aus;
-const { KL_WEISS, KL_SCHWARZ, KL_ALLE, KL_VON_TASTE, KL_PHRASEN,
+const { KL_WEISS, KL_SCHWARZ, KL_ALLE, KL_VON_TASTE, KL_BASS, KL_MELODIE,
         KL_GUT, klSongBauen } = aus;
 
 console.log("Klaviatur");
@@ -108,21 +108,41 @@ pruefe(unbekannt.length === 0, "alle Noten liegen auf der Klaviatur" +
 pruefe(song.noten.length > 20, song.noten.length + " Noten, L\u00e4nge " +
        Math.round(song.laenge / 1000) + " Sekunden");
 
-const wer = KL_PHRASEN.map((p) => p.wer);
-let laeufe = 1, laengster = 1;
-wer.forEach((w, i) => {
-  if (i === 0) return;
-  laeufe = (w === wer[i - 1]) ? laeufe + 1 : 1;
-  laengster = Math.max(laengster, laeufe);
-});
-pruefe(laengster <= 2,
-       "niemand spielt mehr als zwei Phrasen am St\u00fcck (l\u00e4ngster Lauf " +
-       laengster + ")");
-const erste = song.noten.filter((n) => n.wer === 0).length;
-const anteil = erste / song.noten.length;
-pruefe(anteil > 0.4 && anteil < 0.6,
-       "Aufteilung ausgewogen: " + erste + " zu " + (song.noten.length - erste));
+console.log("Die beiden Stimmen");
+const bass = song.noten.filter((n) => n.wer === 0);
+const melodie = song.noten.filter((n) => n.wer === 1);
+pruefe(bass.length > 10 && melodie.length > 10,
+       "Bass " + bass.length + " Noten, Melodie " + melodie.length);
+const anteil = bass.length / song.noten.length;
+pruefe(anteil > 0.35 && anteil < 0.65,
+       "keine Stimme ist viel mehr Arbeit als die andere");
 
+// Beide fangen zusammen an und hoeren ungefaehr zusammen auf —
+// sonst sitzt einer am Ende da und schaut zu.
+pruefe(Math.min(bass[0].zeit, melodie[0].zeit) === 0, "beide beginnen zur selben Zeit");
+const endeBass = Math.max(...bass.map((n) => n.zeit + n.dauer));
+const endeMel = Math.max(...melodie.map((n) => n.zeit + n.dauer));
+pruefe(Math.abs(endeBass - endeMel) < 1500,
+       "beide enden ungef\u00e4hr zusammen (" + Math.round(Math.abs(endeBass - endeMel)) +
+       " ms auseinander)");
+
+// Die Stimmen duerfen sich nie auf derselben Taste treffen: Sonst
+// faellt eine Note auf die andere und man sieht nicht, wem sie gehoert.
+const kollision = [];
+bass.forEach((a) => melodie.forEach((b) => {
+  if (a.note === b.note && Math.abs(a.zeit - b.zeit) < KL_GUT * 2)
+    kollision.push(a.note + " bei " + Math.round(a.zeit) + " ms");
+}));
+pruefe(kollision.length === 0,
+       "die beiden kommen sich auf keiner Taste in die Quere" +
+       (kollision.length ? " — " + kollision.join("; ") : ""));
+
+const tiefBass = bass.every((n) => ["C4","Cis4","D4","Dis4","E4","F4","Fis4","G4","Gis4","A4","Ais4","H4"].includes(n.note));
+const hochMel = melodie.every((n) => ["H4","C5","Cis5","D5","Dis5","E5","F5"].includes(n.note));
+pruefe(tiefBass, "der Bass bleibt in der unteren H\u00e4lfte der Klaviatur");
+pruefe(hochMel, "die Melodie in der oberen");
+
+console.log("Melodie, Feinheiten");
 // Zwei gleiche Noten zu dicht beieinander: die Trefferfenster überlappen,
 // dann wertet ein Tastendruck die falsche.
 const eng = [];
