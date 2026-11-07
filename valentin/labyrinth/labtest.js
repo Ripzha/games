@@ -192,6 +192,19 @@ pruefe(skript.indexOf("[[links, -1], [rechts, 1]].forEach") <
        skript.indexOf("// Boden des Abschnitts"),
        "der Durchgang wird vor dem Korridorboden gezeichnet");
 
+console.log("Hecken");
+pruefe(skript.includes("function heckeBauen()"), "die Blattmasse wird erzeugt");
+pruefe(skript.includes("zufallAus(9876)"),
+       "mit festem Startwert — sonst flimmert sie bei jedem Bild");
+pruefe(skript.includes("if (!heckeBild) heckeBild = heckeBauen();"),
+       "sie wird nur einmal gezeichnet und danach wiederverwendet");
+pruefe(!/fillStyle = heck\(/.test(skript), "keine flachen gr\u00fcnen Fl\u00e4chen mehr");
+pruefe((skript.match(/heckenFlaeche\(/g) || []).length >= 5,
+       "alle Heckenfl\u00e4chen gehen dar\u00fcber (" +
+       (skript.match(/heckenFlaeche\(/g) || []).length + " Aufrufe)");
+pruefe(skript.includes("s2.ellipse(px, py + r * 0.25"),
+       "die Oberkante wird mit B\u00fcscheln aufgebrochen");
+
 console.log("Fallen");
 pruefe(skript.includes("lab.falle[y][x] && t <= 1"),
        "die Spur einer Falle sieht man erst direkt davor");
