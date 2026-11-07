@@ -292,13 +292,14 @@
   <!-- Intro -->
   <div class="screen" id="screen-intro">
     <h1>Acis <em>Eiersuche</em></h1>
-    <p class="untertitel">Dreiunddreissig Eier. Neun Räume. Manche sind wirklich beschissen versteckt.</p>
-    <p class="intro-text">Aci lehnt im Türrahmen. <em>„Mama hat alle dreiunddreissig versteckt. Manche sieht man nur, wenn man nah genug rangeht. Manche sind irgendwo drin. Bei ein paar musst du erst was anderes machen. Ich weiss auch nicht mehr, wo alle sind."</em></p>
+    <p class="untertitel">Ein Kulitsch zu Ostern. Sechs Zutaten, dreiunddreissig Eier, neun Räume.</p>
+    <p class="intro-text">Aci lehnt im Türrahmen. <em>„Mama will backen. Kulitsch, wie jedes Jahr. Nur hat sie alles versteckt — die Zutaten und die Eier dazu. Drei Zutaten sind deine, die anderen drei hat jemand anders. Ohne die Eier fängt sie gar nicht erst an. Ich weiss auch nicht mehr, wo alles liegt."</em></p>
     <div class="regeln">
       <b>Zoomen</b> mit zwei Fingern oder Mausrad — die kleinen sind wirklich klein.<br>
       <b>Antippen</b>, was sich öffnen lässt: Schubladen, Türen, Kissen, Vorhänge. Nochmal antippen schliesst wieder.<br>
       <b>Pfeile</b> am Bildrand drehen dich im Raum. Goldene Marken sind Durchgänge.<br>
-      <b>Drei Hinweise</b> hast du. Mehr nicht.
+      <b>Drei Hinweise</b> hast du. Mehr nicht.<br>
+      <b>Gebacken</b> wird am Schluss zu zweit — jede Gruppe bringt drei Zutaten mit.
     </div>
     <div class="namensfeld">
       <label for="spielername">Wie heisst du?</label>
@@ -307,7 +308,7 @@
       <span class="namenswarnung" id="namenswarnung"></span>
     </div>
     <div class="knopf-reihe">
-      <button class="knopf" id="start-knopf">Suchen</button>
+      <button class="knopf" id="start-knopf">Losgehen</button>
       <button class="knopf sekundaer" id="neu-knopf" style="display:none">Von vorn anfangen</button>
     </div>
     <p class="baustand" id="baustand"></p>
@@ -378,7 +379,7 @@
 
   // Wird bei jedem Paket neu gesetzt. Steht unten im Startbildschirm, damit man
   // sofort sieht, welche Fassung gerade live ist.
-  const BAUSTAND = '07.11.2026 23:10';
+  const BAUSTAND = '07.11.2026 23:13';
   const SPEICHER_KEY = 'ostern_fortschritt';
   const HINWEISE_GESAMT = 3;
   // Gemeinsamer Faktor für alle Eier. Die Radien in EIER bleiben, hier wird
@@ -1338,7 +1339,7 @@
     [0.95, 'Fast fertig. Auf das letzte war Mama besonders stolz.'],
     [1.00, 'Alle. Hätte ich nicht gedacht. Mama schon.']
   ];
-  const ENDE_TEXT = 'Aci trägt die Eier in die Küche und stellt den Korb neben die Schüssel. „Gut. Alle da. Dann können wir anfangen."';
+  const ENDE_TEXT = 'Aci trägt den Korb in die Küche und stellt ihn neben die Schüssel. „Eier sind da. Zutaten auch. Dann fangen wir an."';
 
   // Aus den Prozentwerten feste Zahlen machen. Erst beim Start, weil die Zahl
   // der Eier von der Gruppe abhängt.
@@ -3814,7 +3815,7 @@
     zustand.laeuft = true;
     uhrStart();
     klang('holz');
-    setTimeout(() => sag(zustand.gefunden.length ? 'Du hast schon ' + zustand.gefunden.length + '. Fehlen noch ein paar.' : 'Fang in der Garage an. Da bist du sowieso schon.'), 400);
+    setTimeout(() => sag(zustand.gefunden.length ? 'Du hast schon ' + zustand.gefunden.length + '. Fehlen noch ein paar.' : 'Fang in der Garage an. Da bist du sowieso schon. Zutaten und Eier, beides.'), 400);
   };
   document.getElementById('reset-knopf').onclick = neuNachfragen;
 
