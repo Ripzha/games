@@ -1,0 +1,528 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Das Heckenlabyrinth — zu zweit</title>
+<style>
+  :root { color-scheme: dark; }
+  * { box-sizing: border-box; }
+  html, body { height: 100%; margin: 0; background: #0a0908; color: #ded6c2;
+    font-family: -apple-system, BlinkMacSystemFont, "Helvetica Neue", sans-serif;
+    overflow: hidden; }
+  #huelle { height: 100%; display: flex; flex-direction: column; }
+  #kopf { flex: none; display: flex; align-items: baseline; gap: 16px;
+    padding: 6px 14px; background: #131210; border-bottom: 1px solid #262218;
+    font-size: 13px; color: #8a857a; }
+  #kopf b { color: #f0c173; font-weight: 600; font-size: 15px; }
+  #platz { flex: 1; display: flex; min-height: 0; }
+  .seite { flex: 1 1 50%; position: relative; min-width: 0; display: flex;
+    flex-direction: column; }
+  .seite + .seite { border-left: 2px solid #262218; }
+  .schild { flex: none; padding: 5px 12px; font-size: 12px; letter-spacing: .06em;
+    text-transform: uppercase; color: #8a857a; background: #0f0e0c; }
+  .schild b { color: #f0c173; text-transform: none; letter-spacing: 0; font-size: 14px; }
+  canvas { flex: 1; width: 100%; min-height: 0; display: block; }
+  #lautsprecher { flex: none; display: flex; gap: 6px; padding: 7px 10px;
+    background: #0f0e0c; border-top: 1px solid #262218; }
+  #lautsprecher input { flex: 1; min-width: 0; background: #131210; color: #ded6c2;
+    border: 1px solid #332f24; border-radius: 6px; padding: 7px 10px; font: inherit; }
+  #lautsprecher button { padding: 7px 14px; background: #3a2f12; color: #f0c173;
+    border: 1px solid #5a4a1c; border-radius: 6px; font: inherit; cursor: pointer; }
+  #tafel { position: absolute; inset: 0; z-index: 9; display: flex;
+    align-items: center; justify-content: center; padding: 24px;
+    background: rgba(10,9,8,0.94); }
+  #tafel.weg { display: none; }
+  #karte { max-width: 520px; width: 100%; background: rgba(16,14,11,0.98);
+    border: 1px solid #5a4a1c; border-radius: 12px; padding: 22px 24px; }
+  #karte h1 { margin: 0 0 10px; font-size: 19px; font-weight: 500; color: #f0c173; }
+  #karte p { margin: 0 0 12px; font-size: 15px; line-height: 1.55; }
+  #karte table { width: 100%; border-collapse: collapse; margin: 0 0 14px; font-size: 14px; }
+  #karte td { padding: 4px 0; }
+  #karte td:last-child { text-align: right; color: #8a857a; }
+  #karte button { padding: 9px 18px; margin: 4px 6px 0 0; background: #3a2f12;
+    color: #f0c173; border: 1px solid #5a4a1c; border-radius: 6px;
+    font-size: 15px; cursor: pointer; }
+</style>
+</head>
+<body>
+<div id="huelle">
+  <div id="kopf"><b id="kopf-stand">—</b><span id="kopf-hinweis"></span></div>
+  <div id="platz">
+    <div class="seite">
+      <div class="schild"><b>Im Labyrinth</b> &nbsp; W vor, S zurück, A und D drehen</div>
+      <canvas id="sicht"></canvas>
+    </div>
+    <div class="seite">
+      <div class="schild"><b>Am Monitor</b> &nbsp; klicken markiert ein Feld</div>
+      <canvas id="plan"></canvas>
+      <div id="lautsprecher">
+        <input id="durchsage" maxlength="80" placeholder="Durchsage an den Läufer">
+        <button id="senden">Durchsagen</button>
+      </div>
+    </div>
+  </div>
+  <div id="tafel"><div id="karte"></div></div>
+</div>
+
+<script>
+(function () {
+  'use strict';
+
+  // ====================================================================
+  // Das Heckenlabyrinth
+  //
+  //   Einer läuft, einer führt. Der Läufer sieht nur den Gang vor sich
+  //   und die Fallen, sobald er davorsteht. Der Führende sieht das
+  //   ganze Labyrinth von oben und wo der Läufer steckt, aber keine
+  //   einzige Falle.
+  //
+  //   Gesprochen wird in eine Richtung: der Führende sagt durch, der
+  //   Läufer liest mit und kann nicht antworten. Wenn der Läufer vor
+  //   einer Falle stehen bleibt und umkehrt, muss der Führende das aus
+  //   seiner Bewegung lesen und einen anderen Weg suchen. Dafür kann er
+  //   sich Felder auf seinem Plan markieren.
+  //
+  //   Diese Seite zeigt beide Hälften nebeneinander zum Alleintesten.
+  //   Im Haus sitzen die beiden in verschiedenen Räumen — der Läufer
+  //   hinter dem Tor im Garten, der Führende an den Bildschirmen im
+  //   Geheimraum.
+  // ====================================================================
+
+  const FELDER   = 12;        // Kantenlänge des Labyrinths
+  const FALLEN   = 10;        // so viele Fallen werden gestreut
+  const SCHLEIFEN = 0.22;     // Anteil zusätzlich geöffneter Wände
+  const SICHT    = 5;         // so viele Felder weit sieht der Läufer
+  const SCHRITT  = 170;       // Millisekunden für einen Schritt
+  const DREHUNG  = 150;       // Millisekunden für eine Vierteldrehung
+
+  // Richtungen: 0 Norden, 1 Osten, 2 Süden, 3 Westen
+  const DX = [0, 1, 0, -1];
+  const DY = [-1, 0, 1, 0];
+
+  // --------------------------------------------------------------
+  // Zufall mit Startwert, damit beide Hälften dasselbe Labyrinth
+  // bekommen. Im Haus wird der Startwert über die Verbindung geteilt.
+  // --------------------------------------------------------------
+  function zufallAus(saat) {
+    let z = saat >>> 0;
+    return function () {
+      z += 0x6D2B79F5;
+      let t = z;
+      t = Math.imul(t ^ (t >>> 15), t | 1);
+      t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+      return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+    };
+  }
+
+  // --------------------------------------------------------------
+  // Labyrinth bauen. Jedes Feld hat vier Wände; der Tiefensuch-
+  // Algorithmus reisst Wände ein, bis alles verbunden ist. Danach
+  // kommen ein paar zusätzliche Öffnungen dazu — ohne die gäbe es nur
+  // einen einzigen Weg, und der Führende könnte eine Falle nicht
+  // umgehen.
+  // --------------------------------------------------------------
+  function labyrinthBauen(saat) {
+    const w = zufallAus(saat);
+    const wand = [];
+    for (let y = 0; y < FELDER; y++) {
+      wand[y] = [];
+      for (let x = 0; x < FELDER; x++) wand[y][x] = [true, true, true, true];
+    }
+    const besucht = [];
+    for (let y = 0; y < FELDER; y++) besucht[y] = new Array(FELDER).fill(false);
+
+    const stapel = [[0, 0]];
+    besucht[0][0] = true;
+    while (stapel.length) {
+      const [x, y] = stapel[stapel.length - 1];
+      const offen = [];
+      for (let r = 0; r < 4; r++) {
+        const nx = x + DX[r], ny = y + DY[r];
+        if (nx < 0 || ny < 0 || nx >= FELDER || ny >= FELDER) continue;
+        if (!besucht[ny][nx]) offen.push(r);
+      }
+      if (!offen.length) { stapel.pop(); continue; }
+      const r = offen[Math.floor(w() * offen.length)];
+      const nx = x + DX[r], ny = y + DY[r];
+      wand[y][x][r] = false;
+      wand[ny][nx][(r + 2) % 4] = false;
+      besucht[ny][nx] = true;
+      stapel.push([nx, ny]);
+    }
+
+    // Zusätzliche Öffnungen für Umwege
+    const zusatz = Math.round(FELDER * FELDER * SCHLEIFEN);
+    for (let i = 0; i < zusatz; i++) {
+      const x = Math.floor(w() * FELDER), y = Math.floor(w() * FELDER);
+      const r = Math.floor(w() * 4);
+      const nx = x + DX[r], ny = y + DY[r];
+      if (nx < 0 || ny < 0 || nx >= FELDER || ny >= FELDER) continue;
+      wand[y][x][r] = false;
+      wand[ny][nx][(r + 2) % 4] = false;
+    }
+
+    // Fallen streuen, aber nicht auf Start und Ziel — und keine, die den
+    // Weg ganz zusperrt. Sonst müsste der Läufer hineinlaufen, und das
+    // ganze Spiel wäre hinfällig. Deshalb wird nach jeder Falle geprüft,
+    // ob das Ziel noch zu erreichen ist, ohne eine Falle zu betreten.
+    const falle = [];
+    for (let y = 0; y < FELDER; y++) falle[y] = new Array(FELDER).fill(false);
+
+    function zielErreichbar() {
+      const gesehen = [];
+      for (let y = 0; y < FELDER; y++) gesehen[y] = new Array(FELDER).fill(false);
+      const warte = [[0, 0]];
+      gesehen[0][0] = true;
+      while (warte.length) {
+        const [x, y] = warte.pop();
+        if (x === FELDER - 1 && y === FELDER - 1) return true;
+        for (let r = 0; r < 4; r++) {
+          if (wand[y][x][r]) continue;
+          const nx = x + DX[r], ny = y + DY[r];
+          if (nx < 0 || ny < 0 || nx >= FELDER || ny >= FELDER) continue;
+          if (gesehen[ny][nx] || falle[ny][nx]) continue;
+          gesehen[ny][nx] = true;
+          warte.push([nx, ny]);
+        }
+      }
+      return false;
+    }
+
+    let gesetzt = 0, wache = 0;
+    while (gesetzt < FALLEN && wache++ < 4000) {
+      const x = Math.floor(w() * FELDER), y = Math.floor(w() * FELDER);
+      if ((x < 2 && y < 2) || (x > FELDER - 3 && y > FELDER - 3)) continue;
+      if (falle[y][x]) continue;
+      falle[y][x] = true;
+      if (zielErreichbar()) gesetzt++;
+      else falle[y][x] = false;      // diese Falle sperrt alles ab
+    }
+    return { wand, falle, ziel: [FELDER - 1, FELDER - 1] };
+  }
+
+  function wandDa(lab, x, y, r) {
+    if (x < 0 || y < 0 || x >= FELDER || y >= FELDER) return true;
+    return lab.wand[y][x][r];
+  }
+
+  // --------------------------------------------------------------
+  // Zustand
+  // --------------------------------------------------------------
+  let lab = null;
+  let saat = 1;
+  let laeufer = { x: 0, y: 0, r: 1 };     // Feld und Blickrichtung
+  let gleit = { von: null, bis: null, start: 0, art: null };
+  let marken = [];                        // was der Führende angezeichnet hat
+  let durchsage = { text: '', bis: 0 };
+  let versuche = 0, gestartet = 0, laeuft = false;
+
+  const sicht = document.getElementById('sicht');
+  const plan = document.getElementById('plan');
+  const s2 = sicht.getContext('2d');
+  const p2 = plan.getContext('2d');
+  const tafel = document.getElementById('tafel');
+  const karte = document.getElementById('karte');
+
+  function groesse() {
+    [sicht, plan].forEach((c) => {
+      const r = c.getBoundingClientRect();
+      const d = Math.min(window.devicePixelRatio || 1, 2);
+      c.width = Math.max(1, Math.round(r.width * d));
+      c.height = Math.max(1, Math.round(r.height * d));
+    });
+  }
+  addEventListener('resize', groesse);
+
+  // --------------------------------------------------------------
+  // Die Sicht des Läufers. Gitterweise gezeichnet, nicht frei —
+  // man steht immer mittig im Feld und schaut in eine der vier
+  // Richtungen. Das passt zu "vor, zurück, links, rechts" und sieht
+  // aus wie die alten Gangspiele.
+  // --------------------------------------------------------------
+  function rahmen(tiefe, B, H) {
+    const k = Math.pow(0.56, tiefe);
+    return { l: B / 2 - B * 0.5 * k, r: B / 2 + B * 0.5 * k,
+             o: H / 2 - H * 0.5 * k, u: H / 2 + H * 0.5 * k };
+  }
+
+  function sichtMalen() {
+    const B = sicht.width, H = sicht.height;
+    s2.clearRect(0, 0, B, H);
+    s2.fillStyle = '#0d1410'; s2.fillRect(0, 0, B, H / 2);
+    s2.fillStyle = '#14100c'; s2.fillRect(0, H / 2, B, H / 2);
+
+    const r = laeufer.r;
+    const links = (r + 3) % 4, rechts = (r + 1) % 4;
+
+    for (let t = SICHT; t >= 0; t--) {
+      const x = laeufer.x + DX[r] * t, y = laeufer.y + DY[r] * t;
+      if (x < 0 || y < 0 || x >= FELDER || y >= FELDER) continue;
+      const a = rahmen(t, B, H), b = rahmen(t + 1, B, H);
+      const dunkel = Math.max(0, 1 - t * 0.17);
+
+      // Boden und Himmel des Abschnitts
+      s2.fillStyle = 'rgba(42,34,24,' + (0.9 * dunkel).toFixed(3) + ')';
+      s2.beginPath();
+      s2.moveTo(a.l, a.u); s2.lineTo(a.r, a.u); s2.lineTo(b.r, b.u); s2.lineTo(b.l, b.u);
+      s2.closePath(); s2.fill();
+
+      // Falle auf dem Boden — nur der Läufer sieht sie
+      if (lab.falle[y][x] && t <= 2) {
+        const mx = (a.l + a.r) / 2, my = (a.u + b.u) / 2;
+        const gr = (a.r - a.l) * 0.17;
+        s2.strokeStyle = 'rgba(232,138,138,' + (0.95 * dunkel).toFixed(3) + ')';
+        s2.lineWidth = Math.max(2, gr * 0.16);
+        s2.beginPath();
+        s2.moveTo(mx - gr, my - gr * 0.5); s2.lineTo(mx + gr, my + gr * 0.5);
+        s2.moveTo(mx + gr, my - gr * 0.5); s2.lineTo(mx - gr, my + gr * 0.5);
+        s2.stroke();
+      }
+
+      const heck = (hell) => 'rgba(' + Math.round(38 * hell) + ',' +
+                    Math.round(62 * hell) + ',' + Math.round(34 * hell) + ',1)';
+
+      if (wandDa(lab, x, y, links)) {
+        s2.fillStyle = heck(dunkel);
+        s2.beginPath();
+        s2.moveTo(a.l, a.o); s2.lineTo(b.l, b.o); s2.lineTo(b.l, b.u); s2.lineTo(a.l, a.u);
+        s2.closePath(); s2.fill();
+      }
+      if (wandDa(lab, x, y, rechts)) {
+        s2.fillStyle = heck(dunkel * 0.86);
+        s2.beginPath();
+        s2.moveTo(a.r, a.o); s2.lineTo(b.r, b.o); s2.lineTo(b.r, b.u); s2.lineTo(a.r, a.u);
+        s2.closePath(); s2.fill();
+      }
+      if (wandDa(lab, x, y, r)) {
+        s2.fillStyle = heck(dunkel * 0.72);
+        s2.fillRect(b.l, b.o, b.r - b.l, b.u - b.o);
+        break;                       // dahinter sieht man nichts mehr
+      }
+      // Ziel
+      if (x === lab.ziel[0] && y === lab.ziel[1] && t > 0) {
+        s2.fillStyle = 'rgba(240,193,115,' + (0.5 * dunkel).toFixed(3) + ')';
+        s2.fillRect(b.l, b.o, b.r - b.l, b.u - b.o);
+      }
+    }
+
+    // Durchsage vom Monitor
+    if (Date.now() < durchsage.bis && durchsage.text) {
+      const gr = Math.max(13, H * 0.045);
+      s2.font = '600 ' + gr + 'px -apple-system, sans-serif';
+      s2.textAlign = 'center';
+      const br = Math.min(s2.measureText(durchsage.text).width + gr, B * 0.9);
+      s2.fillStyle = 'rgba(10,9,8,0.86)';
+      s2.beginPath();
+      if (s2.roundRect) s2.roundRect(B / 2 - br / 2, H * 0.06, br, gr * 1.9, 8);
+      else s2.rect(B / 2 - br / 2, H * 0.06, br, gr * 1.9);
+      s2.fill();
+      s2.fillStyle = '#f0c173';
+      s2.fillText(durchsage.text, B / 2, H * 0.06 + gr * 1.3, B * 0.86);
+    }
+  }
+
+  // --------------------------------------------------------------
+  // Der Monitor. Wände und Läufer, aber keine Fallen.
+  // --------------------------------------------------------------
+  function planMalen() {
+    const B = plan.width, H = plan.height;
+    p2.clearRect(0, 0, B, H);
+    p2.fillStyle = '#0b1410'; p2.fillRect(0, 0, B, H);
+    const rand = Math.min(B, H) * 0.06;
+    const feld = Math.min((B - rand * 2) / FELDER, (H - rand * 2) / FELDER);
+    const ox = (B - feld * FELDER) / 2, oy = (H - feld * FELDER) / 2;
+
+    // Ziel
+    p2.fillStyle = 'rgba(240,193,115,0.18)';
+    p2.fillRect(ox + lab.ziel[0] * feld, oy + lab.ziel[1] * feld, feld, feld);
+
+    // Markierungen des Führenden
+    marken.forEach(([mx, my]) => {
+      p2.strokeStyle = '#e88a8a';
+      p2.lineWidth = Math.max(2, feld * 0.08);
+      const x = ox + mx * feld, y = oy + my * feld;
+      p2.beginPath();
+      p2.moveTo(x + feld * 0.25, y + feld * 0.25);
+      p2.lineTo(x + feld * 0.75, y + feld * 0.75);
+      p2.moveTo(x + feld * 0.75, y + feld * 0.25);
+      p2.lineTo(x + feld * 0.25, y + feld * 0.75);
+      p2.stroke();
+    });
+
+    // Wände
+    p2.strokeStyle = '#4a7a46';
+    p2.lineWidth = Math.max(1.5, feld * 0.09);
+    p2.lineCap = 'round';
+    for (let y = 0; y < FELDER; y++) {
+      for (let x = 0; x < FELDER; x++) {
+        const l = ox + x * feld, o = oy + y * feld;
+        const w = lab.wand[y][x];
+        p2.beginPath();
+        if (w[0]) { p2.moveTo(l, o); p2.lineTo(l + feld, o); }
+        if (w[1]) { p2.moveTo(l + feld, o); p2.lineTo(l + feld, o + feld); }
+        if (w[2]) { p2.moveTo(l, o + feld); p2.lineTo(l + feld, o + feld); }
+        if (w[3]) { p2.moveTo(l, o); p2.lineTo(l, o + feld); }
+        p2.stroke();
+      }
+    }
+
+    // Der Läufer samt Blickrichtung
+    const lx = ox + (laeufer.x + 0.5) * feld, ly = oy + (laeufer.y + 0.5) * feld;
+    p2.fillStyle = '#f0c173';
+    p2.beginPath(); p2.arc(lx, ly, feld * 0.22, 0, Math.PI * 2); p2.fill();
+    p2.strokeStyle = '#f0c173';
+    p2.lineWidth = Math.max(2, feld * 0.08);
+    p2.beginPath();
+    p2.moveTo(lx, ly);
+    p2.lineTo(lx + DX[laeufer.r] * feld * 0.42, ly + DY[laeufer.r] * feld * 0.42);
+    p2.stroke();
+
+    plan._feld = { feld, ox, oy };
+  }
+
+  // --------------------------------------------------------------
+  // Bewegen
+  // --------------------------------------------------------------
+  function gehen(vor) {
+    if (!laeuft || gleit.art) return;
+    const r = vor ? laeufer.r : (laeufer.r + 2) % 4;
+    if (wandDa(lab, laeufer.x, laeufer.y, r)) return;   // Hecke im Weg
+    const nx = laeufer.x + DX[r], ny = laeufer.y + DY[r];
+    laeufer.x = nx; laeufer.y = ny;
+
+    if (lab.falle[ny][nx]) {
+      versuche++;
+      laeufer = { x: 0, y: 0, r: 1 };
+      durchsage = { text: 'Reingetappt — zurück zum Eingang', bis: Date.now() + 3000 };
+      standMalen();
+      return;
+    }
+    if (nx === lab.ziel[0] && ny === lab.ziel[1]) { geschafft(); return; }
+    standMalen();
+  }
+
+  function drehen(nachRechts) {
+    if (!laeuft || gleit.art) return;
+    laeufer.r = (laeufer.r + (nachRechts ? 1 : 3)) % 4;
+  }
+
+  function standMalen() {
+    document.getElementById('kopf-stand').textContent =
+      'Feld ' + (laeufer.x + 1) + ' / ' + (laeufer.y + 1);
+    document.getElementById('kopf-hinweis').textContent =
+      versuche ? versuche + ' mal reingetappt' : '';
+  }
+
+  // --------------------------------------------------------------
+  // Tafeln
+  // --------------------------------------------------------------
+  function tafelZeigen(html, knoepfe) {
+    karte.innerHTML = html;
+    const leiste = document.createElement('div');
+    knoepfe.forEach(([t, tun]) => {
+      const b = document.createElement('button');
+      b.textContent = t; b.onclick = tun; leiste.appendChild(b);
+    });
+    karte.appendChild(leiste);
+    tafel.classList.remove('weg');
+  }
+
+  function anfangsTafel() {
+    tafelZeigen(
+      '<h1>Das Heckenlabyrinth</h1>' +
+      '<p>Einer läuft, einer führt. Der Läufer sieht nur den Gang vor sich — ' +
+      'und die Fallen, sobald er davorsteht. Der Führende sieht das ganze ' +
+      'Labyrinth von oben und wo der Läufer steckt, aber keine einzige Falle.</p>' +
+      '<p>Gesprochen wird in eine Richtung. Der Führende sagt durch, der Läufer ' +
+      'liest mit und kann nicht antworten. Bleibt der Läufer stehen und kehrt um, ' +
+      'muss der Führende daraus schliessen, dass dort etwas liegt, es sich ' +
+      'anzeichnen und einen anderen Weg suchen.</p>' +
+      '<table>' +
+      '<tr><td>Läufer</td><td>W vor, S zurück, A und D drehen</td></tr>' +
+      '<tr><td>Führender</td><td>Feld anklicken markiert, Feld nochmal klicken löscht</td></tr>' +
+      '</table>' +
+      '<p style="color:#8a857a;font-size:13px">Diese Seite zeigt beide Hälften ' +
+      'nebeneinander zum Ausprobieren. Im Haus sitzt ihr in verschiedenen Räumen.</p>',
+      [['Anfangen', function () { losgehen(Date.now() & 0xffff); }]]
+    );
+  }
+
+  function geschafft() {
+    laeuft = false;
+    const dauer = Math.round((Date.now() - gestartet) / 1000);
+    tafelZeigen(
+      '<h1>Durch</h1>' +
+      '<p>Ihr habt ' + Math.floor(dauer / 60) + ':' +
+      String(dauer % 60).padStart(2, '0') + ' gebraucht und seid ' + versuche +
+      ' mal in eine Falle getappt.</p>' +
+      '<p>Das Labyrinth wird jedes Mal neu gewürfelt — auswendig lernen geht nicht.</p>',
+      [['Nochmal', function () { losgehen(Date.now() & 0xffff); }]]
+    );
+  }
+
+  function losgehen(neueSaat) {
+    saat = neueSaat;
+    lab = labyrinthBauen(saat);
+    laeufer = { x: 0, y: 0, r: 1 };
+    marken = [];
+    versuche = 0;
+    durchsage = { text: '', bis: 0 };
+    gestartet = Date.now();
+    laeuft = true;
+    tafel.classList.add('weg');
+    groesse();
+    standMalen();
+  }
+
+  // --------------------------------------------------------------
+  // Eingaben
+  // --------------------------------------------------------------
+  addEventListener('keydown', (e) => {
+    if (document.activeElement === document.getElementById('durchsage')) return;
+    const t = e.key.toLowerCase();
+    if (t === 'w' || t === 'arrowup')    { gehen(true);  e.preventDefault(); }
+    if (t === 's' || t === 'arrowdown')  { gehen(false); e.preventDefault(); }
+    if (t === 'a' || t === 'arrowleft')  { drehen(false); e.preventDefault(); }
+    if (t === 'd' || t === 'arrowright') { drehen(true);  e.preventDefault(); }
+  });
+
+  plan.addEventListener('pointerdown', (e) => {
+    if (!laeuft || !plan._feld) return;
+    const r = plan.getBoundingClientRect();
+    const d = plan.width / r.width;
+    const { feld, ox, oy } = plan._feld;
+    const x = Math.floor(((e.clientX - r.left) * d - ox) / feld);
+    const y = Math.floor(((e.clientY - r.top) * d - oy) / feld);
+    if (x < 0 || y < 0 || x >= FELDER || y >= FELDER) return;
+    const i = marken.findIndex((m) => m[0] === x && m[1] === y);
+    if (i >= 0) marken.splice(i, 1); else marken.push([x, y]);
+  });
+
+  function durchsagen() {
+    const feld = document.getElementById('durchsage');
+    const t = feld.value.trim();
+    if (!t) return;
+    durchsage = { text: t.slice(0, 80), bis: Date.now() + 6000 };
+    feld.value = '';
+  }
+  document.getElementById('senden').onclick = durchsagen;
+  document.getElementById('durchsage').addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') { durchsagen(); e.preventDefault(); }
+  });
+
+  function schleife() {
+    requestAnimationFrame(schleife);
+    if (!lab) return;
+    sichtMalen();
+    planMalen();
+  }
+
+  lab = labyrinthBauen(1);
+  groesse();
+  anfangsTafel();
+  schleife();
+})();
+</script>
+</body>
+</html>
