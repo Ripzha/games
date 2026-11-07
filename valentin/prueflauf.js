@@ -346,6 +346,21 @@ pruefe(roh.includes("#satzfeld.wach"), "das Feld leuchtet kurz auf, wenn es wach
          "bei offenem " + f + " \u00f6ffnet Enter nichts");
 });
 
+// ---------- Der Gespraechsverlauf ----------
+console.log("Verlauf");
+pruefe(roh.includes("const VERLAUF_LAENGE = 20;"), "der Verlauf beh\u00e4lt 20 Zeilen");
+pruefe(roh.includes("function verlaufGehoert(a, text)"),
+       "mitgeschrieben wird auch, was andere sagen");
+pruefe(roh.includes("if (Math.abs(a.x - figur.x) >= HOERWEITE) return;"),
+       "nur was man h\u00f6rt — Nebenraum und Entfernung stehen nicht drin");
+pruefe(roh.includes("if (a.raum !== raumNr) return;"),
+       "und nur aus dem eigenen Raum");
+pruefe(roh.includes('verlaufEintragen("ich"'), "das eigene Gesagte auch");
+pruefe(roh.includes("verlauf.length > VERLAUF_LAENGE) verlauf.shift()"),
+       "\u00e4ltere Zeilen fallen hinten raus");
+pruefe(roh.includes("verlaufText(z.name)") && roh.includes("verlaufText(z.text)"),
+       "Namen und Text werden entsch\u00e4rft — niemand schreibt HTML hinein");
+
 // ---------- Vordergruende ----------
 console.log("Vordergr\u00fcnde");
 RAEUME.forEach((r, i) => {

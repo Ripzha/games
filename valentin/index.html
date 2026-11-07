@@ -2768,6 +2768,7 @@ function netzStarten() {
     if (!a) return;
     a.satz = String(payload.satz || "").slice(0, 120);
     a.satzBis = Date.now() + 5000;
+    if (typeof verlaufGehoert === "function") verlaufGehoert(a, a.satz);
   });
 
   netzKanal.subscribe((stand) => {
@@ -3528,6 +3529,110 @@ function labyrinthLobby(rolle) {
     rolle
   );
 }
+// ======================================================================
+// 21. Der Gesprächsverlauf
+//
+//    Sprechblasen sind weg, sobald man wegschaut. Wer gerade im Spiel
+//    war oder in einem anderen Raum stand, hat die Hälfte verpasst.
+//    Deshalb steht unten rechts der Verlauf der letzten Zeilen.
+//
+//    Mitgeschrieben wird alles, was man hört — also das eigene und das,
+//    was in Hörweite gesagt wird. Was im Nebenraum gesagt wird, steht
+//    auch nicht drin; man hat es ja nicht gehört.
+// ======================================================================
+
+const VERLAUF_LAENGE = 20;
+let verlauf = [];
+let verlaufBau = null;
+let verlaufOffen = true;
+
+function verlaufStil() {
+  if (document.getElementById("verlauf-stil")) return;
+  const s = document.createElement("style");
+  s.id = "verlauf-stil";
+  s.textContent = `
+  #verlauf { position: absolute; right: 10px; bottom: 10px; width: 260px;
+       max-width: 42%; background: rgba(13,12,10,.82); border: 1px solid #262218;
+       border-radius: 9px; font-size: 13px; z-index: 4; overflow: hidden; }
+  #verlauf-kopf { display: flex; align-items: center; gap: 8px; padding: 5px 9px;
+       background: rgba(19,18,16,.9); color: #8a857a; font-size: 12px;
+       cursor: pointer; user-select: none; }
+  #verlauf-kopf b { color: #f0c173; font-weight: 500; }
+  #verlauf-kopf span { margin-left: auto; }
+  #verlauf-liste { max-height: 168px; overflow-y: auto; padding: 6px 9px 8px;
+       line-height: 1.45; }
+  #verlauf.zu #verlauf-liste { display: none; }
+  #verlauf-liste div { margin-bottom: 2px; color: #ded6c2; }
+  #verlauf-liste b { font-weight: 600; margin-right: 5px; }
+  #verlauf-liste .ich b { color: #8fd49a; }
+  #verlauf-liste .andere b { color: #f0c173; }
+  #verlauf-liste .leer { color: #6d6659; font-style: italic; }
+  `;
+  document.head.appendChild(s);
+}
+
+function verlaufAufbau() {
+  if (verlaufBau) return;
+  verlaufStil();
+  const wurzel = document.createElement("div");
+  wurzel.id = "verlauf";
+  wurzel.innerHTML =
+    '<div id="verlauf-kopf"><b>Gesagt</b><span id="verlauf-pfeil">\u2013</span></div>' +
+    '<div id="verlauf-liste"></div>';
+  document.getElementById("buehne").appendChild(wurzel);
+  verlaufBau = { wurzel, liste: wurzel.querySelector("#verlauf-liste") };
+  wurzel.querySelector("#verlauf-kopf").onclick = () => {
+    verlaufOffen = !verlaufOffen;
+    wurzel.classList.toggle("zu", !verlaufOffen);
+    document.getElementById("verlauf-pfeil").textContent = verlaufOffen ? "\u2013" : "+";
+  };
+  verlaufMalen();
+}
+
+function verlaufText(s) {
+  return String(s).replace(/[&<>"]/g, (z) =>
+    ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[z]);
+}
+
+function verlaufMalen() {
+  if (!verlaufBau) return;
+  verlaufBau.liste.innerHTML = verlauf.length
+    ? verlauf.map((z) =>
+        '<div class="' + z.wer + '"><b>' + verlaufText(z.name) + "</b>" +
+        verlaufText(z.text) + "</div>").join("")
+    : '<div class="leer">noch nichts gesagt</div>';
+  verlaufBau.liste.scrollTop = verlaufBau.liste.scrollHeight;
+}
+
+function verlaufEintragen(wer, name, text) {
+  verlauf.push({ wer, name, text });
+  if (verlauf.length > VERLAUF_LAENGE) verlauf.shift();
+  verlaufMalen();
+}
+
+// Das eigene Gesagte
+const sagenVorVerlauf = sagen;
+sagen = function () {
+  const t = satzfeld.value.trim();
+  sagenVorVerlauf();
+  if (t) {
+    const satz = FIGUREN[MEINE_FIGUR];
+    verlaufEintragen("ich", (satz && satz.name) || MEINE_FIGUR, t.slice(0, 120));
+  }
+};
+
+// Und das Gehörte. Es kommt im Netzblock an, dort wird der Satz der
+// fremden Figur gesetzt — hier nur zusätzlich mitgeschrieben, wenn man
+// in Hörweite ist.
+function verlaufGehoert(a, text) {
+  if (!a) return;
+  if (a.raum !== raumNr) return;
+  if (Math.abs(a.x - figur.x) >= HOERWEITE) return;
+  verlaufEintragen("andere", a.name || "Jemand", text);
+}
+
+verlaufAufbau();
+
 </script>
 </body>
 </html>
