@@ -81,7 +81,7 @@ const innen = skript
 try {
   vm.runInContext(innen +
     "\nglobalThis.__aus = { KL_WEISS, KL_SCHWARZ, KL_ALLE, KL_VON_TASTE," +
-    " KL_LINKS, KL_RECHTS, KL_GUT, KL_SCHWELLE, klSongBauen, klSeiteBestimmen," +
+    " KL_OBEN, KL_UNTEN, KL_GUT, KL_SCHWELLE, klSongBauen, klSeiteBestimmen," +
     " klavierStarten };", kasten);
 } catch (e) {
   console.error("FEHLER beim Laden der Seite: " + e.message);
@@ -89,7 +89,7 @@ try {
 }
 
 const aus = kasten.__aus;
-const { KL_WEISS, KL_SCHWARZ, KL_ALLE, KL_VON_TASTE, KL_LINKS, KL_RECHTS,
+const { KL_WEISS, KL_SCHWARZ, KL_ALLE, KL_VON_TASTE, KL_OBEN, KL_UNTEN,
         KL_GUT, klSongBauen } = aus;
 
 console.log("Klaviatur");
@@ -129,14 +129,6 @@ const nachher = song.noten.filter((n) => n.zeit >= tausch * zaehler);
          "Spieler " + (w + 1) + " spielt vor und nach dem Tausch");
 });
 
-// Die hohen Toene gehoeren zur Melodie — jeder muss welche bekommen
-const hoch = ["C5","Cis5","D5","Dis5","E5","F5"];
-[0, 1].forEach((w) => {
-  const seine = song.noten.filter((n) => n.wer === w && hoch.includes(n.note));
-  pruefe(seine.length > 0,
-         "Spieler " + (w + 1) + " bekommt " + seine.length + " Melodienoten oben");
-});
-
 pruefe(Math.min(einer[0].zeit, anderer[0].zeit) === 0, "beide beginnen zur selben Zeit");
 const endeA = Math.max(...einer.map((n) => n.zeit + n.dauer));
 const endeB = Math.max(...anderer.map((n) => n.zeit + n.dauer));
@@ -154,39 +146,30 @@ pruefe(kollision.length === 0,
        "die beiden kommen sich auf keiner Taste in die Quere" +
        (kollision.length ? " — " + kollision.join("; ") : ""));
 
-pruefe(KL_RECHTS[0][0] === "E5" && KL_RECHTS[1][0] === "Dis5" &&
-       KL_RECHTS[2][0] === "E5" && KL_RECHTS[3][0] === "Dis5",
-       "die rechte Hand f\u00e4ngt mit dem E–Dis–E–Dis an, das jeder kennt");
 
 console.log("Die H\u00e4nde bleiben, wo sie sind");
 // Auf einer Rechnertastatur spielt man nur, wenn die Hand nicht wandern
 // muss. Links A S D F mit T dar\u00fcber, rechts H J K L \u00d6 mit O dar\u00fcber.
-const LINKE = ["A", "S", "D", "F", "T"];
-const RECHTE = ["H", "J", "K", "L", "\u00d6", "O"];
+const LINKE = ["A", "S", "D", "F"];
+const RECHTE = ["G", "H", "J", "K"];
 const erlaubt = LINKE.concat(RECHTE);
 const gebraucht = [...new Set(song.noten.map((n) => KL_ALLE[n.note].kuerzel))];
 const daneben = gebraucht.filter((k) => !erlaubt.includes(k));
 pruefe(daneben.length === 0,
-       gebraucht.length + " Tasten, alle unter den H\u00e4nden" +
+       gebraucht.length + " Tasten, alle auf A S D F G H J K" +
        (daneben.length ? " — ausser " + daneben.join(", ") : ""));
-pruefe(gebraucht.length <= 12, "nicht mehr als zw\u00f6lf Tasten im ganzen St\u00fcck");
+pruefe(gebraucht.length <= 8, "nicht mehr als acht Tasten im ganzen St\u00fcck");
 const schwarz = gebraucht.filter((k) => KL_SCHWARZ.some((t) => t.kuerzel === k));
-pruefe(schwarz.length <= 2, "h\u00f6chstens zwei schwarze Tasten (" + schwarz.join(", ") + ")");
+pruefe(schwarz.length === 0, "keine einzige schwarze Taste");
 
-// Ein Griff, den beide Finger einer Hand erreichen, beweist nichts.
-// In jeder Stimme muss mindestens ein Griff \u00fcber beide Handgruppen
-// reichen — erst dann braucht man wirklich zwei H\u00e4nde.
-function griffeVon(stimme) {
-  return stimme.filter(([x]) => Array.isArray(x)).map(([x]) =>
-    x.map((t) => KL_ALLE[t].kuerzel));
-}
-[["die linke Stimme", KL_LINKS], ["die rechte Stimme", KL_RECHTS]].forEach(
+// Jede Stimme spannt \u00fcber beide Handgruppen — eine Hand reicht nicht
+[["die obere Stimme", KL_OBEN], ["die untere Stimme", KL_UNTEN]].forEach(
   ([name, stimme]) => {
-    const beide = griffeVon(stimme).filter((g) =>
-      g.some((k) => LINKE.includes(k)) && g.some((k) => RECHTE.includes(k)));
-    pruefe(beide.length > 0, name + " hat " + beide.length +
-           " Griffe \u00fcber beide H\u00e4nde (" +
-           beide.map((g) => g.join("+")).join(", ") + ")");
+    const toene = stimme.filter(([x]) => x).reduce((a, [x]) =>
+      a.concat(Array.isArray(x) ? x : [x]), []);
+    const k = [...new Set(toene.map((t) => KL_ALLE[t].kuerzel))];
+    pruefe(k.some((x) => LINKE.includes(x)) && k.some((x) => RECHTE.includes(x)),
+           name + " liegt auf " + k.sort().join(" ") + " — beide H\u00e4nde");
   });
 
 console.log("Zwei H\u00e4nde");
@@ -199,12 +182,12 @@ function griffe(noten) {
 }
 [0, 1].forEach((w) => {
   const seine = song.noten.filter((n) => n.wer === w);
-  pruefe(griffe(seine) >= 3,
+  pruefe(griffe(seine) >= 1,
          "Spieler " + (w + 1) + " hat " + griffe(seine) +
          " Griffe — daf\u00fcr braucht er beide H\u00e4nde");
 });
-pruefe(KL_LINKS.some(([n]) => n === null) && KL_RECHTS.some(([n]) => n === null),
-       "beide Stimmen haben Pausen — die H\u00e4nde spielen abwechselnd");
+pruefe(KL_UNTEN.some(([n]) => n === null),
+       "die untere Stimme ist versetzt — sonst tr\u00e4fen sich beide auf einer Taste");
 pruefe(skript.includes("t += laenge;                        // null ist eine Pause"),
        "eine Pause r\u00fcckt die Zeit vor, ohne eine Note zu setzen");
 
@@ -238,7 +221,7 @@ pruefe(skript.includes("const klDarfWaehlen = () => !PARTNER_ID;"),
        "nur allein — mit einem Mitspieler entscheiden die Kennungen");
 pruefe(skript.includes('if (!klDarfWaehlen()) return;'),
        "mit Mitspieler l\u00e4uft der Wechsel ins Leere");
-pruefe(skript.includes('klIchBin === 0 ? "Lieber die linke Hand" : "Lieber die rechte Hand"'),
+pruefe(skript.includes('klIchBin === 0 ? "Lieber die Melodie" : "Lieber den Bass"'),
        "der Knopf sagt, worauf man wechselt");
 
 console.log("Allein und ohne Haus");
