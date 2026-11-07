@@ -189,6 +189,17 @@ let klIchBin = 0;
 function klSeiteBestimmen(partnerId) {
   klIchBin = partnerId && String(ICH) > String(partnerId) ? 1 : 0;
 }
+
+// Allein, mit dem Übungspartner, darf man sich die Seite aussuchen —
+// sonst übt man immer nur die Hälfte, die man zufällig bekommen hat.
+// Mit einem echten Mitspieler entscheiden die Kennungen, da gibt es
+// nichts zu wählen.
+const klDarfWaehlen = () => !PARTNER_ID;
+function klSeiteWechseln() {
+  if (!klDarfWaehlen()) return;
+  klIchBin = klIchBin === 0 ? 1 : 0;
+  klTafelStart();
+}
 const klAnderer = () => (klIchBin === 0 ? 1 : 0);
 
 const KL_PARTNER = {
@@ -481,12 +492,24 @@ function klTafelStart() {
     "dunkel.</p>" +
     "<p>Drück die Taste, wenn die Note unten ankommt. Gewertet wird " +
     "gemeinsam über das ganze Stück. Ab " + KL_SCHWELLE + " Prozent geht es auf.</p>" +
-    "<p style='color:#8a857a;font-size:13px'>Mitspieler: " + KL_PARTNER.name + "</p>",
-    [
-      ["Erst mal anhören", () => klSpielStarten(true)],
-      ["Spielen",          () => klSpielStarten(false)],
-      ["Zurück",           klavierSchliessen]
-    ]
+    "<p style='color:#8a857a;font-size:13px'>Mitspieler: " + KL_PARTNER.name +
+    (klDarfWaehlen()
+      ? " &nbsp;·&nbsp; du f\u00e4ngst mit " +
+        (klIchBin === 0 ? "dem Bass" : "der Melodie") + " an"
+      : "") + "</p>",
+    klDarfWaehlen()
+      ? [
+          ["Erst mal anhören", () => klSpielStarten(true)],
+          ["Spielen",          () => klSpielStarten(false)],
+          [klIchBin === 0 ? "Lieber mit der Melodie" : "Lieber mit dem Bass",
+                               klSeiteWechseln],
+          ["Zurück",           klavierSchliessen]
+        ]
+      : [
+          ["Erst mal anhören", () => klSpielStarten(true)],
+          ["Spielen",          () => klSpielStarten(false)],
+          ["Zurück",           klavierSchliessen]
+        ]
   );
 }
 

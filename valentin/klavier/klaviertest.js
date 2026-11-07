@@ -182,6 +182,16 @@ pruefe(!/n\.wer === 0/.test(skript) && !/n\.wer !== 0/.test(skript),
 pruefe(skript.includes("const klAnderer = () => (klIchBin === 0 ? 1 : 0);"),
        "der \u00dcbungspartner \u00fcbernimmt die andere H\u00e4lfte");
 
+console.log("Beide Seiten \u00fcben");
+pruefe(skript.includes("function klSeiteWechseln()"),
+       "allein kann man die Seite wechseln");
+pruefe(skript.includes("const klDarfWaehlen = () => !PARTNER_ID;"),
+       "nur allein — mit einem Mitspieler entscheiden die Kennungen");
+pruefe(skript.includes('if (!klDarfWaehlen()) return;'),
+       "mit Mitspieler l\u00e4uft der Wechsel ins Leere");
+pruefe(skript.includes('klIchBin === 0 ? "Lieber mit der Melodie" : "Lieber mit dem Bass"'),
+       "der Knopf sagt, worauf man wechselt");
+
 console.log("Allein und ohne Haus");
 pruefe(skript.includes('if (!KANAL_NAME || typeof supabase === "undefined") return;'),
        "ohne Kanal bleibt der \u00dcbungspartner — die Seite l\u00e4uft allein");
