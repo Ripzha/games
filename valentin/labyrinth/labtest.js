@@ -36,7 +36,8 @@ pruefe(FALLEN > 0 && FALLEN < FELDER * FELDER * 0.2,
        FALLEN + " Fallen auf " + FELDER * FELDER + " Felder");
 pruefe(SCHLEIFEN > 0, "es gibt zusätzliche Öffnungen (" + SCHLEIFEN + ") — ohne die " +
        "liesse sich keine Falle umgehen");
-pruefe(SICHT >= 3, "der Läufer sieht weit genug (" + SICHT + " Felder)");
+pruefe(SICHT >= 1 && SICHT <= 3,
+       "die Sichtweite zwingt zum F\u00fchren (" + SICHT + " Felder)");
 
 // ---------- Die Bauteile aus der Seite herausziehen ----------
 const kasten = vm.createContext({ console, Math });
@@ -49,9 +50,9 @@ const sichtTeil = skript.slice(skript.indexOf("function sichtTiefe"),
                                skript.indexOf("function spurMalen"));
 vm.runInContext(teile + "\n" + sichtTeil +
   "\nglobalThis.__aus = { labyrinthBauen, wandDa, DX, DY, FELDER, sichtTiefe," +
-  " zielErreichbarVon, heckeUmlegen, WANDEL_TAKT, WANDEL_ANZAHL };", kasten);
-const { labyrinthBauen, wandDa, DX, DY, sichtTiefe,
-        zielErreichbarVon, heckeUmlegen, WANDEL_TAKT, WANDEL_ANZAHL } = kasten.__aus;
+  " zielErreichbarVon, heckeUmlegen, WANDEL_TAKT, WANDEL_ANZAHL, WANDEL_NAEHE };", kasten);
+const { labyrinthBauen, wandDa, DX, DY, sichtTiefe, zielErreichbarVon,
+        heckeUmlegen, WANDEL_TAKT, WANDEL_ANZAHL, WANDEL_NAEHE } = kasten.__aus;
 
 // ---------- Erreichbarkeit ----------
 // Einmal ohne Ruecksicht auf Fallen, einmal mit: wer jede Falle umgehen
@@ -194,13 +195,19 @@ pruefe(WANDEL_TAKT >= 10000 && WANDEL_TAKT <= 60000,
 pruefe(WANDEL_ANZAHL >= 1 && WANDEL_ANZAHL <= 8,
        WANDEL_ANZAHL + " Hecken auf einmal");
 let kaputt = 0, eingemauert = 0, gelungen = 0, versucht = 0;
+let zuWeit = 0, abstaende = [];
 for (let i = 0; i < 60; i++) {
   const lab = labyrinthBauen(i * 5003 + 7);
   let lx = 0, ly = 0;
   for (let runde = 0; runde < 30; runde++) {
     for (let k = 0; k < WANDEL_ANZAHL; k++) {
       versucht++;
-      if (heckeUmlegen(lab, lx, ly, k % 2 === 0)) gelungen++;
+      const wo = heckeUmlegen(lab, lx, ly, k % 2 === 0);
+      if (wo) {
+        gelungen++;
+        abstaende.push(wo.abstand);
+        if (wo.abstand > WANDEL_NAEHE * 2) zuWeit++;
+      }
     }
     if (!zielErreichbarVon(lab, lx, ly)) kaputt++;
     if (lab.wand[ly][lx].every((w) => w)) eingemauert++;
@@ -220,6 +227,15 @@ pruefe(gelungen / versucht > 0.8,
        Math.round((gelungen / versucht) * 100) + " von 100 Verschiebungen gelingen");
 pruefe(skript.includes("raschelt = Date.now() + 2500"),
        "der L\u00e4ufer bekommt ein Zeichen, dass sich etwas bewegt hat");
+pruefe(zuWeit === 0, "keine Verschiebung liegt weiter weg als erlaubt");
+const naeheSchnitt = abstaende.reduce((a, b) => a + b, 0) / abstaende.length;
+pruefe(naeheSchnitt <= WANDEL_NAEHE,
+       "im Schnitt " + naeheSchnitt.toFixed(1) + " Felder vom L\u00e4ufer entfernt");
+pruefe(abstaende.filter((d) => d <= 2).length / abstaende.length > 0.25,
+       Math.round(abstaende.filter((d) => d <= 2).length / abstaende.length * 100) +
+       " von 100 Verschiebungen passieren in Sichtweite");
+pruefe(skript.includes("if (naechstes <= WANDEL_NAEHE) {"),
+       "gemeldet wird nur, was auch in Reichweite passiert ist");
 
 console.log("Standpunkt");
 pruefe(skript.includes("rahmen(t - 0.5, B, H), b = rahmen(t + 0.5, B, H)"),

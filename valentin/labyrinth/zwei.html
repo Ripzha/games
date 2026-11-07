@@ -96,15 +96,16 @@
   const FELDER   = 12;        // Kantenlänge des Labyrinths
   const FALLEN   = 10;        // so viele Fallen werden gestreut
   const SCHLEIFEN = 0.22;     // Anteil zusätzlich geöffneter Wände
-  const SICHT    = 5;         // so viele Felder weit sieht der Läufer
+  const SICHT    = 2;         // so viele Felder weit sieht der Läufer
   const SCHRITT  = 170;       // Millisekunden für einen Schritt
 
   // Das Labyrinth verändert sich. Ohne das kann der Läufer es allein
   // schaffen — herumlaufen und sich merken reicht. Verschieben sich die
   // Hecken, ist jede Erinnerung nach einer halben Minute wertlos, und nur
   // die Karte des Führenden stimmt noch, weil sie live ist.
-  const WANDEL_TAKT   = 25000;   // Millisekunden zwischen zwei Änderungen
+  const WANDEL_TAKT   = 15000;   // Millisekunden zwischen zwei Änderungen
   const WANDEL_ANZAHL = 3;       // so viele Hecken auf einmal
+  const WANDEL_NAEHE  = 4;       // nur so weit vom Läufer entfernt
 
   // Wer im Labyrinth läuft, steht auf dem Plan als Kopf seiner Figur.
   // kopf ist der Ausschnitt aus dem Stehbild, in Anteilen der Bildbreite
@@ -259,9 +260,13 @@
   // Eine Hecke umlegen. Zur Hälfte wird geöffnet, zur Hälfte geschlossen,
   // damit das Labyrinth über die Zeit nicht leer oder dicht wird.
   function heckeUmlegen(lab, sx, sy, schliessen) {
-    for (let versuch = 0; versuch < 200; versuch++) {
-      const x = Math.floor(Math.random() * FELDER);
-      const y = Math.floor(Math.random() * FELDER);
+    for (let versuch = 0; versuch < 400; versuch++) {
+      // In der Nähe des Läufers, sonst merkt er nichts davon. Vorher
+      // wurde irgendwo im Labyrinth umgelegt — bei 288 Heckenplätzen
+      // lag das fast nie dort, wo er hinschaut.
+      const x = sx + Math.round((Math.random() - 0.5) * 2 * WANDEL_NAEHE);
+      const y = sy + Math.round((Math.random() - 0.5) * 2 * WANDEL_NAEHE);
+      if (x < 0 || y < 0 || x >= FELDER || y >= FELDER) continue;
       const r = Math.floor(Math.random() * 4);
       const nx = x + DX[r], ny = y + DY[r];
       if (nx < 0 || ny < 0 || nx >= FELDER || ny >= FELDER) continue;
@@ -270,11 +275,13 @@
       lab.wand[ny][nx][(r + 2) % 4] = schliessen;
       // Das Feld, auf dem der Läufer steht, muss offen bleiben
       const eingemauert = lab.wand[sy][sx].every((w) => w);
-      if (!eingemauert && zielErreichbarVon(lab, sx, sy)) return true;
+      if (!eingemauert && zielErreichbarVon(lab, sx, sy)) {
+        return { x: x, y: y, abstand: Math.abs(x - sx) + Math.abs(y - sy) };
+      }
       lab.wand[y][x][r] = !schliessen;                  // zurücknehmen
       lab.wand[ny][nx][(r + 2) % 4] = !schliessen;
     }
-    return false;
+    return null;
   }
 
   function wandDa(lab, x, y, r) {
@@ -293,7 +300,7 @@
   let durchsage = { text: '', bis: 0 };   // vom Monitor zum Läufer
   let zuruf = { text: '', bis: 0 };       // vom Läufer zum Monitor
   let versuche = 0, gestartet = 0, laeuft = false;
-  let letzterWandel = 0, raschelt = 0;
+  let letzterWandel = 0, raschelt = 0, raschelNah = false;
 
   const sicht = document.getElementById('sicht');
   const plan = document.getElementById('plan');
@@ -592,7 +599,8 @@
       s2.font = gr + 'px -apple-system, sans-serif';
       s2.textAlign = 'center';
       s2.fillStyle = 'rgba(143,212,154,0.85)';
-      s2.fillText('Irgendwo raschelt es', B / 2, H * 0.93);
+      s2.fillText(raschelNah ? 'Direkt neben dir bewegt sich etwas'
+                             : 'Ganz in der Nähe raschelt es', B / 2, H * 0.93);
     }
 
     // Durchsage vom Monitor
@@ -863,11 +871,17 @@
 
     if (laeuft && Date.now() - letzterWandel > WANDEL_TAKT) {
       letzterWandel = Date.now();
-      let geschafft = 0;
+      let naechstes = 99;
       for (let i = 0; i < WANDEL_ANZAHL; i++) {
-        if (heckeUmlegen(lab, laeufer.x, laeufer.y, i % 2 === 0)) geschafft++;
+        const wo = heckeUmlegen(lab, laeufer.x, laeufer.y, i % 2 === 0);
+        if (wo) naechstes = Math.min(naechstes, wo.abstand);
       }
-      if (geschafft) raschelt = Date.now() + 2500;
+      // Nur melden, wenn wirklich etwas in Reichweite passiert ist —
+      // sonst steht da eine Meldung über etwas, das man nie findet.
+      if (naechstes <= WANDEL_NAEHE) {
+        raschelt = Date.now() + 2500;
+        raschelNah = naechstes <= 2;
+      }
     }
     sichtMalen();
     planMalen();
