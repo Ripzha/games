@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Vaas' Schrottschlitten — zu zweit</title>
+<style>
+  :root { color-scheme: dark; }
+  * { box-sizing: border-box; }
+  html, body { height: 100%; margin: 0; background: #060d1c; color: #e8e4da;
+    font-family: -apple-system, BlinkMacSystemFont, "Helvetica Neue", sans-serif;
+    overflow: hidden; }
+  #huelle { position: relative; height: 100%; display: flex; flex-direction: column; }
+  .haelfte { position: relative; flex: 1 1 50%; min-height: 0; border: 0; width: 100%; }
+  .haelfte iframe { width: 100%; height: 100%; border: 0; display: block; }
+  #trenner { height: 2px; background: #3a4a6a; flex: none; }
+  .schild { position: absolute; left: 10px; top: 8px; z-index: 3;
+    font-size: 12px; letter-spacing: .08em; text-transform: uppercase;
+    color: #9fb4d8; background: rgba(6,13,28,0.72); padding: 4px 10px;
+    border-radius: 12px; pointer-events: none; }
+  #balken { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%);
+    z-index: 4; display: flex; gap: 18px; align-items: center;
+    background: rgba(6,13,28,0.88); border: 1px solid #3a4a6a; border-radius: 20px;
+    padding: 7px 16px; font-size: 14px; pointer-events: none; }
+  #balken b { color: #f0c173; font-weight: 600; }
+  #herzen { letter-spacing: 2px; font-size: 15px; }
+  #tafel { position: absolute; inset: 0; z-index: 9; display: flex;
+    align-items: center; justify-content: center; padding: 24px;
+    background: rgba(6,13,28,0.93); }
+  #tafel.weg { display: none; }
+  #karte { max-width: 460px; width: 100%; background: rgba(10,18,34,0.98);
+    border: 1px solid #3a4a6a; border-radius: 12px; padding: 22px 24px; }
+  #karte h1 { margin: 0 0 10px; font-size: 20px; font-weight: 500; color: #f0c173; }
+  #karte p { margin: 0 0 12px; font-size: 15px; line-height: 1.55; color: #cdd8ea; }
+  #karte table { width: 100%; border-collapse: collapse; margin: 0 0 14px; font-size: 14px; }
+  #karte td { padding: 5px 0; color: #cdd8ea; }
+  #karte td:last-child { text-align: right; color: #9fb4d8; }
+  #karte button { padding: 9px 18px; margin: 4px 6px 0 0; background: #1d2a44;
+    color: #f0c173; border: 1px solid #3a4a6a; border-radius: 6px;
+    font-size: 15px; cursor: pointer; }
+</style>
+</head>
+<body>
+<div id="huelle">
+  <div class="haelfte"><div class="schild" id="schild-oben">Oben — Leertaste springen, S ducken</div>
+    <iframe id="oben" src="quest-schlitten.html?sync=meister&abstand=1.5"></iframe></div>
+  <div id="trenner"></div>
+  <div class="haelfte"><div class="schild">Unten — Pfeil hoch springen, Pfeil runter ducken</div>
+    <iframe id="unten" src="quest-schlitten.html?sync=spiegel&abstand=1.5"></iframe></div>
+
+  <div id="balken"><span id="herzen"></span><span>Punkte <b id="punkte">0</b></span></div>
+
+  <div id="tafel"><div id="karte"></div></div>
+</div>
+
+<script>
+(function () {
+  'use strict';
+
+  // Gemeinsamer Vorrat für beide. Jeder Treffer von jedem kostet eines.
+  const HERZEN = 5;
+
+  const oben  = document.getElementById('oben');
+  const unten = document.getElementById('unten');
+  const tafel = document.getElementById('tafel');
+  const karte = document.getElementById('karte');
+
+  let leben = HERZEN, laeuft = false, punkte = 0;
+  let getroffenSperre = 0;          // Zeitpunkt, bis zu dem Treffer ignoriert werden
+  const bereit = {};
+
+  function an(rahmen, art, daten) {
+    try {
+      rahmen.contentWindow.postMessage(
+        Object.assign({ schlitten: true, art: art }, daten || {}), '*');
+    } catch (e) {}
+  }
+  function anBeide(art, daten) { an(oben, art, daten); an(unten, art, daten); }
+
+  function herzenMalen() {
+    let s = '';
+    for (let i = 0; i < HERZEN; i++) s += i < leben ? '♥' : '♡';
+    document.getElementById('herzen').textContent = s;
+  }
+
+  function tafelZeigen(html, knoepfe) {
+    karte.innerHTML = html;
+    const leiste = document.createElement('div');
+    knoepfe.forEach(function (k) {
+      const b = document.createElement('button');
+      b.textContent = k[0];
+      b.onclick = k[1];
+      leiste.appendChild(b);
+    });
+    karte.appendChild(leiste);
+    tafel.classList.remove('weg');
+  }
+
+  function anfangsTafel() {
+    tafelZeigen(
+      '<h1>Vaas\u0027 Schrottschlitten — zu zweit</h1>' +
+      '<p>Eine Strecke, zwei Schlitten. Dieselben Hindernisse kommen bei ' +
+      'beiden im selben Augenblick — ihr springt also zusammen.</p>' +
+      '<table>' +
+      '<tr><td>Oben</td><td>Leertaste springen, S ducken</td></tr>' +
+      '<tr><td>Unten</td><td>Pfeil hoch springen, Pfeil runter ducken</td></tr>' +
+      '</table>' +
+      '<p>Ihr habt ' + HERZEN + ' Herzen zusammen. Jeder Treffer von jedem ' +
+      'kostet eines. Sind sie weg, ist die Fahrt vorbei — für beide.</p>',
+      [['Losfahren', losfahren]]
+    );
+  }
+
+  function losfahren() {
+    leben = HERZEN;
+    punkte = 0;
+    getroffenSperre = 0;
+    herzenMalen();
+    document.getElementById('punkte').textContent = '0';
+    tafel.classList.add('weg');
+    laeuft = true;
+    // Das Gelände kommt aus drei Zufallswerten. Beide bekommen dieselben,
+    // sonst fahren sie über verschiedene Hügel.
+    const phasen = [Math.random() * 7, Math.random() * 7, Math.random() * 7];
+    anBeide('anfangen', { phasen: phasen });
+  }
+
+  function ende() {
+    laeuft = false;
+    anBeide('aus');
+    tafelZeigen(
+      '<h1>Aus</h1>' +
+      '<p>Ihr seid zusammen auf <b>' + punkte + '</b> Punkte gekommen.</p>' +
+      '<p>Nichts geht verloren, fahrt einfach nochmal.</p>',
+      [['Nochmal', losfahren]]
+    );
+  }
+
+  addEventListener('message', function (e) {
+    const d = e.data;
+    if (!d || d.schlitten !== true) return;
+
+    if (d.art === 'bereit') { bereit[d.rolle] = true; return; }
+
+    if (d.art === 'welt') {
+      // Vom Meister zum Spiegel weiterreichen
+      an(unten, 'welt', d);
+      if (typeof d.punkte === 'number' && d.punkte !== punkte) {
+        punkte = d.punkte;
+        document.getElementById('punkte').textContent = punkte;
+      }
+      return;
+    }
+
+    if (d.art === 'crash') {
+      if (!laeuft) return;
+      // Beide melden denselben Baum kurz nacheinander — das ist ein Treffer,
+      // nicht zwei. Deshalb eine kurze Sperre.
+      const jetzt = performance.now();
+      if (jetzt < getroffenSperre) return;
+      getroffenSperre = jetzt + 900;
+      leben--;
+      herzenMalen();
+      anBeide('getroffen');
+      if (leben <= 0) ende();
+      return;
+    }
+  });
+
+  // Die Tasten fängt die Elternseite ab und verteilt sie. Sonst hört nur
+  // der Rahmen zu, der gerade den Fokus hat.
+  const TASTEN = {
+    'Space':      { rahmen: 'oben',  was: 'sprung' },
+    'KeyS':       { rahmen: 'oben',  was: 'ducken' },
+    'ArrowUp':    { rahmen: 'unten', was: 'sprung' },
+    'ArrowDown':  { rahmen: 'unten', was: 'ducken' }
+  };
+  function taste(e, runter) {
+    const t = TASTEN[e.code];
+    if (!t) return;
+    e.preventDefault();
+    if (runter && e.repeat) return;
+    if (!laeuft) return;
+    an(t.rahmen === 'oben' ? oben : unten, 'taste', { was: t.was, runter: runter });
+  }
+  addEventListener('keydown', function (e) { taste(e, true); });
+  addEventListener('keyup',   function (e) { taste(e, false); });
+
+  herzenMalen();
+  anfangsTafel();
+})();
+</script>
+</body>
+</html>
