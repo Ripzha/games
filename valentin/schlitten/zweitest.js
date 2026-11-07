@@ -106,6 +106,24 @@ pruefe(spiel.includes("anEltern('herz')") && eltern.includes("d.art === 'herz'")
 pruefe(!eltern.includes("getElementById('herzen')"),
        "die doppelte Herzleiste in der Mitte ist weg");
 
+// ---------- Geraeumte Strecke ----------
+console.log("Nach einem Treffer");
+pruefe(spiel.includes("function raeumen()"), "jede H\u00e4lfte r\u00e4umt selbst");
+pruefe(!spiel.includes("if (MEISTER) {\n        tempo = tempoBoden();\n        const wx"),
+       "das R\u00e4umen h\u00e4ngt nicht mehr allein am Meister");
+pruefe(spiel.includes("geraeumtAnwenden();"),
+       "der Spiegel blendet Ger\u00e4umtes aus, bis die neue Welt da ist");
+const fenster = spiel.match(/endet: performance\.now\(\) \+ (\d+)/);
+pruefe(fenster && +fenster[1] >= 600,
+       "das Ged\u00e4chtnis h\u00e4lt l\u00e4nger als eine Nachricht unterwegs ist (" +
+       (fenster ? fenster[1] : "?") + " ms)");
+pruefe(spiel.includes("geraeumt = [];") && spiel.indexOf("geraeumt = [];") < spiel.indexOf("function raeumen"),
+       "beim Neustart ist das Ged\u00e4chtnis leer");
+pruefe(spiel.includes("Den anderen hat es erwischt"),
+       "ein Treffer des anderen wird in der eigenen H\u00e4lfte angezeigt");
+pruefe(spiel.includes("if (!ZUZWEIT && punkte >= 20000"),
+       "Jack f\u00e4hrt zu zweit nicht mit");
+
 // ---------- Der Bot ----------
 console.log("Bot");
 function zahl(text, name) {

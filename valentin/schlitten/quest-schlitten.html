@@ -818,6 +818,7 @@
     jackAnBord = false; jackFall = null; naechsteJackWx = 0;
     camY = terrainY(SLED_X()) - H * 0.60;
     hindernisse = []; sammel = []; popups = []; spray = [];
+    geraeumt = [];
     naechstesHindernis = worldX + 900;
     naechstesSammel = worldX + 500;
     letztesHindernisWx = 0; letztesWarSchranke = false; letztesWarDoppel = false;
@@ -894,7 +895,7 @@
     }
     // Jack wartet am Streckenrand — nur im allerschnellsten Modus, und nur wenn sie
     // nicht schon mitfährt. Nach einem Sturz dauert es, bis sie wieder auftaucht.
-    if (punkte >= 20000 && !jackAnBord && !bossAktiv
+    if (!ZUZWEIT && punkte >= 20000 && !jackAnBord && !bossAktiv
         && !sammel.some(o => o.typ === 'jack' && !o.weg)
         && worldX >= naechsteJackWx) {
       let jwx = worldX + W + 700;
@@ -1287,9 +1288,11 @@
     if (ZUZWEIT) {
       // Zu zweit zählt die Elternseite die Leben für beide zusammen.
       anEltern('crash');
+      letzterEigenerCrash = performance.now();
       invuln = 2.4;
       combo = 0; comboMeter = 0; maxHalte = 0;
       popups.push({ wy: sledY - 90, txt: '💥 Getroffen', alter: 0 });
+      raeumen();
       return;
     }
     if (leben > 1) {
@@ -2416,6 +2419,31 @@
     punkte = netzWelt.punkte;
     hindernisse = netzWelt.hindernisse;
     sammel = netzWelt.sammel;
+    geraeumtAnwenden();
+  }
+
+  // Nach einem Treffer wird das Stück Strecke vor dem Schlitten frei geräumt.
+  // Der Spiegel bekommt die Welt aber weiter vom Meister geschickt, und solange
+  // dessen Nachricht unterwegs ist, stünden die Hindernisse dort wieder. Deshalb
+  // merkt sich jede Hälfte kurz, was sie geräumt hat, und blendet es aus.
+  let geraeumt = [];
+  let letzterEigenerCrash = -99999;
+
+  function raeumen() {
+    const wx = worldX + SLED_X();
+    const von = wx - 60, bis = wx + 520;
+    hindernisse = hindernisse.filter(function (hd) { return hd.wx < von || hd.wx > bis; });
+    if (SPIEGEL) geraeumt.push({ von: von, bis: bis, endet: performance.now() + 900 });
+  }
+
+  function geraeumtAnwenden() {
+    if (!geraeumt.length) return;
+    const jetzt = performance.now();
+    geraeumt = geraeumt.filter(function (g) { return g.endet > jetzt; });
+    if (!geraeumt.length) return;
+    hindernisse = hindernisse.filter(function (hd) {
+      return !geraeumt.some(function (g) { return hd.wx >= g.von && hd.wx <= g.bis; });
+    });
   }
 
   // Im Spiegel bleibt es still, sonst läuft alles doppelt.
@@ -2457,13 +2485,14 @@
       // und die Strecke wird vor dem Schlitten freigeräumt.
       invuln = Math.max(invuln, 2.4);
       combo = 0; comboMeter = 0; maxHalte = 0;
-      if (MEISTER) {
-        tempo = tempoBoden();
-        const wx = worldX + SLED_X();
-        hindernisse = hindernisse.filter(function (h) {
-          return h.wx < wx - 60 || h.wx > wx + 520;
-        });
+      if (MEISTER) tempo = tempoBoden();
+      // War es der andere, sagen wir es — sonst verschwindet ein Herz,
+      // ohne dass in dieser Hälfte etwas passiert ist.
+      if (performance.now() - letzterEigenerCrash > 400) {
+        popups.push({ wy: sledY - 90, txt: '💔 Den anderen hat es erwischt', alter: 0 });
+        lebenSound();
       }
+      raeumen();
       return;
     }
 
