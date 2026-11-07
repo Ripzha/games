@@ -99,6 +99,13 @@
   const SICHT    = 5;         // so viele Felder weit sieht der Läufer
   const SCHRITT  = 170;       // Millisekunden für einen Schritt
 
+  // Das Labyrinth verändert sich. Ohne das kann der Läufer es allein
+  // schaffen — herumlaufen und sich merken reicht. Verschieben sich die
+  // Hecken, ist jede Erinnerung nach einer halben Minute wertlos, und nur
+  // die Karte des Führenden stimmt noch, weil sie live ist.
+  const WANDEL_TAKT   = 25000;   // Millisekunden zwischen zwei Änderungen
+  const WANDEL_ANZAHL = 3;       // so viele Hecken auf einmal
+
   // Wer im Labyrinth läuft, steht auf dem Plan als Kopf seiner Figur.
   // kopf ist der Ausschnitt aus dem Stehbild, in Anteilen der Bildbreite
   // und -höhe: links, oben, breit, hoch. Er muss quadratisch sein, sonst
@@ -225,6 +232,51 @@
     return { wand, falle, ziel: [FELDER - 1, FELDER - 1] };
   }
 
+  // Ist das Ziel von hier aus erreichbar, ohne eine Falle zu betreten?
+  // Dieselbe Prüfung wie beim Setzen der Fallen, nur von einem beliebigen
+  // Feld aus. Jede Heckenverschiebung muss sie bestehen, sonst wird der
+  // Läufer eingemauert oder das Ziel unerreichbar.
+  function zielErreichbarVon(lab, sx, sy) {
+    const gesehen = [];
+    for (let y = 0; y < FELDER; y++) gesehen[y] = new Array(FELDER).fill(false);
+    const warte = [[sx, sy]];
+    gesehen[sy][sx] = true;
+    while (warte.length) {
+      const [x, y] = warte.pop();
+      if (x === FELDER - 1 && y === FELDER - 1) return true;
+      for (let r = 0; r < 4; r++) {
+        if (lab.wand[y][x][r]) continue;
+        const nx = x + DX[r], ny = y + DY[r];
+        if (nx < 0 || ny < 0 || nx >= FELDER || ny >= FELDER) continue;
+        if (gesehen[ny][nx] || lab.falle[ny][nx]) continue;
+        gesehen[ny][nx] = true;
+        warte.push([nx, ny]);
+      }
+    }
+    return false;
+  }
+
+  // Eine Hecke umlegen. Zur Hälfte wird geöffnet, zur Hälfte geschlossen,
+  // damit das Labyrinth über die Zeit nicht leer oder dicht wird.
+  function heckeUmlegen(lab, sx, sy, schliessen) {
+    for (let versuch = 0; versuch < 200; versuch++) {
+      const x = Math.floor(Math.random() * FELDER);
+      const y = Math.floor(Math.random() * FELDER);
+      const r = Math.floor(Math.random() * 4);
+      const nx = x + DX[r], ny = y + DY[r];
+      if (nx < 0 || ny < 0 || nx >= FELDER || ny >= FELDER) continue;
+      if (lab.wand[y][x][r] !== schliessen) continue;   // steht schon so
+      lab.wand[y][x][r] = schliessen;
+      lab.wand[ny][nx][(r + 2) % 4] = schliessen;
+      // Das Feld, auf dem der Läufer steht, muss offen bleiben
+      const eingemauert = lab.wand[sy][sx].every((w) => w);
+      if (!eingemauert && zielErreichbarVon(lab, sx, sy)) return true;
+      lab.wand[y][x][r] = !schliessen;                  // zurücknehmen
+      lab.wand[ny][nx][(r + 2) % 4] = !schliessen;
+    }
+    return false;
+  }
+
   function wandDa(lab, x, y, r) {
     if (x < 0 || y < 0 || x >= FELDER || y >= FELDER) return true;
     return lab.wand[y][x][r];
@@ -241,6 +293,7 @@
   let durchsage = { text: '', bis: 0 };   // vom Monitor zum Läufer
   let zuruf = { text: '', bis: 0 };       // vom Läufer zum Monitor
   let versuche = 0, gestartet = 0, laeuft = false;
+  let letzterWandel = 0, raschelt = 0;
 
   const sicht = document.getElementById('sicht');
   const plan = document.getElementById('plan');
@@ -533,6 +586,15 @@
       }
     }
 
+    // Es hat sich etwas bewegt
+    if (Date.now() < raschelt) {
+      const gr = Math.max(12, H * 0.035);
+      s2.font = gr + 'px -apple-system, sans-serif';
+      s2.textAlign = 'center';
+      s2.fillStyle = 'rgba(143,212,154,0.85)';
+      s2.fillText('Irgendwo raschelt es', B / 2, H * 0.93);
+    }
+
     // Durchsage vom Monitor
     if (Date.now() < durchsage.bis && durchsage.text) {
       const gr = Math.max(13, H * 0.045);
@@ -738,6 +800,8 @@
     durchsage = { text: '', bis: 0 };
     zuruf = { text: '', bis: 0 };
     gestartet = Date.now();
+    letzterWandel = Date.now();
+    raschelt = 0;
     laeuft = true;
     tafel.classList.add('weg');
     groesse();
@@ -796,6 +860,15 @@
   function schleife() {
     requestAnimationFrame(schleife);
     if (!lab) return;
+
+    if (laeuft && Date.now() - letzterWandel > WANDEL_TAKT) {
+      letzterWandel = Date.now();
+      let geschafft = 0;
+      for (let i = 0; i < WANDEL_ANZAHL; i++) {
+        if (heckeUmlegen(lab, laeufer.x, laeufer.y, i % 2 === 0)) geschafft++;
+      }
+      if (geschafft) raschelt = Date.now() + 2500;
+    }
     sichtMalen();
     planMalen();
   }
