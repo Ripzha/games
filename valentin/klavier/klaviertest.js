@@ -172,6 +172,21 @@ pruefe(schwarz.length === 0, "keine einzige schwarze Taste");
            name + " liegt auf " + k.sort().join(" ") + " — beide H\u00e4nde");
   });
 
+console.log("Begleitung und Farben");
+pruefe(skript.includes("const KL_AKKORDE = ["),
+       "unter den beiden Stimmen l\u00e4uft eine Begleitung mit");
+pruefe(skript.includes("function klBegleitung(t)"), "sie l\u00e4uft von selbst");
+pruefe(!/KL_AKKORDE[\s\S]{0,400}klPunkte/.test(skript),
+       "sie wird nicht gewertet — man dr\u00fcckt daf\u00fcr nichts");
+const akk = (skript.match(/\[T\.[A-H]\d/g) || []).length;
+pruefe(akk >= 8, akk + " Akkordt\u00f6ne — die Folge des Kanons");
+pruefe(skript.includes("const KL_HAND = {"), "die Tasten sind nach Hand eingef\u00e4rbt");
+const links = (skript.match(/C4: "links"/) || []).length;
+pruefe(links === 1 && skript.includes('G4: "rechts"'),
+       "A S D F geh\u00f6ren links, G H J K rechts");
+pruefe(skript.includes('(KL_HAND[t.note] || "aus")'),
+       "was im St\u00fcck nicht vorkommt, wird blass dargestellt");
+
 console.log("Zwei H\u00e4nde");
 // Eine Stimme aus lauter Einzelnoten kann man mit einem Finger
 // abarbeiten. Griffe sind der Grund, zwei H\u00e4nde zu brauchen.

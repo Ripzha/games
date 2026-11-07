@@ -74,6 +74,14 @@ const KL_WEISS = [
   { note: "E5",  freq: 659.25, kuerzel: "Ö" },
   { note: "F5",  freq: 698.46, kuerzel: "Ä" }
 ];
+// Welche Taste gehört zu welcher Hand. Was im Stück nicht vorkommt,
+// wird blass dargestellt — so sieht man auf einen Blick, wohin die
+// Hände gehören und was man gar nicht braucht.
+const KL_HAND = {
+  C4: "links",  D4: "links",  E4: "links",  F4: "links",
+  G4: "rechts", A4: "rechts", H4: "rechts", C5: "rechts"
+};
+
 // Die schwarzen Tasten liegen auf der Reihe darüber, jede über ihrer
 // eigenen Lücke. Dadurch bleibt jede Hand an ihrem Platz: die linke auf
 // A S D F mit T darüber, die rechte auf H J K L Ö mit O darüber.
@@ -139,6 +147,22 @@ const KL_PAUSE   = 1.5;      // Zähler Pause zwischen zwei Phrasen
 //
 // Eine Länge ist eine Zählzeit, null ist eine Pause.
 const KL_TAUSCH = 64;        // Zählzeiten bis zum Stimmentausch
+
+// Die Begleitung läuft von selbst mit. Zwei gespielte Stimmen tragen die
+// Harmonie des Kanons nicht — erst darunter klingt es nach dem Stück,
+// das man kennt. Sie wird nicht gewertet und erscheint nicht als
+// fallende Note; sie ist da, damit das Gespielte getragen wird.
+//
+// Die Töne liegen tiefer als die Klaviatur reicht, deshalb stehen hier
+// Frequenzen statt Tastennamen.
+const T = { C3: 130.81, D3: 146.83, E3: 164.81, F3: 174.61, G3: 196.00,
+            A3: 220.00, H3: 246.94, C4: 261.63, E4: 329.63, G4: 392.00 };
+
+// Ein Akkord je vier Zählzeiten, die Folge des Kanons: C G Am Em F C F G
+const KL_AKKORDE = [
+  [T.C3, T.G3, T.E4], [T.G3, T.H3, T.G4], [T.A3, T.E4, T.C4], [T.E3, T.H3, T.G4],
+  [T.F3, T.C4, T.A3], [T.C3, T.G3, T.E4], [T.F3, T.C4, T.A3], [T.G3, T.H3, T.G4]
+];
 
 const KL_OBEN = [
   // Erster Durchgang — die absteigende Linie
@@ -264,7 +288,7 @@ function klTonWerk() {
   if (klAudio.state === "suspended") klAudio.resume();
   return klAudio;
 }
-function klTon(freq, dauerMs, leise) {
+function klTon(freq, dauerMs, leise, staerkeMal) {
   const c = klTonWerk();
   if (!c) return;
   const jetzt = c.currentTime;
@@ -274,7 +298,7 @@ function klTon(freq, dauerMs, leise) {
   filter.frequency.value = 3200;
   filter.Q.value = 0.5;
   filter.connect(c.destination);
-  const laut = leise ? 0.45 : 1;
+  const laut = (leise ? 0.45 : 1) * (staerkeMal === undefined ? 1 : staerkeMal / 0.45);
   // Grundton und zwei Obertöne, das klingt nach Klavier genug
   [[1, 0.20], [2, 0.07], [3, 0.025]].forEach(([mal, staerke]) => {
     const o = c.createOscillator(), g = c.createGain();
@@ -363,6 +387,12 @@ function klStil() {
                 display: flex; align-items: flex-end; justify-content: center;
                 padding-bottom: 5px; font-size: 11px; font-weight: 600; cursor: pointer;
                 user-select: none; -webkit-user-select: none; z-index: 2; }
+  /* Welche Taste gehört zu welcher Hand. Links kühl, rechts warm —
+     damit man beim Spielen nicht suchen muss. */
+  .kl-weiss.links  { background: linear-gradient(#e2ecf2, #c3d4df); }
+  .kl-weiss.rechts { background: linear-gradient(#f7ead8, #e4cfae); }
+  .kl-weiss.aus    { opacity: .45; }
+  .kl-weiss.links  span, .kl-weiss.rechts span { opacity: .75; }
   .kl-weiss.an   { background: linear-gradient(#f0c173, #d9a85c); }
   .kl-schwarz.an { background: linear-gradient(#6b5420, #4a3a16); color: #f0c173; }
   #kl-urteil { position: absolute; left: 0; right: 0; top: 14%; text-align: center;
@@ -403,7 +433,7 @@ function klOberflaeche() {
 
   KL_WEISS.forEach((t) => {
     const el = document.createElement("div");
-    el.className = "kl-weiss";
+    el.className = "kl-weiss " + (KL_HAND[t.note] || "aus");
     el.textContent = t.kuerzel;
     reihe.appendChild(el);
     tastenEl[t.note] = el;
@@ -520,9 +550,9 @@ function klTafelStart() {
     "gleichzeitig: Einer nimmt die Melodie, der andere den Bass — und zur Hälfte " +
     "tauscht ihr. Deine Noten sind hell und tragen einen Buchstaben, die des " +
     "anderen bleiben dunkel.</p>" +
-    "<p style='color:#8fd49a'>Linke Hand auf A S D F, rechte Hand auf G H J K. " +
-    "Mehr brauchst du nicht, keine schwarzen Tasten — die Hände bleiben, wo " +
-    "sie sind.</p>" +
+    "<p style='color:#8fd49a'>Linke Hand auf die blauen Tasten A S D F, rechte " +
+    "auf die warmen G H J K. Mehr brauchst du nicht — die blassen Tasten kommen " +
+    "im Stück gar nicht vor.</p>" +
     "<p>Drück die Taste, wenn die Note unten ankommt. Gewertet wird " +
     "gemeinsam über das ganze Stück. Ab " + KL_SCHWELLE + " Prozent geht es auf.</p>" +
     "<p style='color:#8a857a;font-size:13px'>Mitspieler: " + KL_PARTNER.name +
@@ -596,6 +626,8 @@ function klSpielStarten(nurHoeren) {
     n.stand = "offen";
     n.getoent = false;
   });
+
+  klBegleitungGesetzt = 0;
 
   // Gemeinsam anfangen. Ohne das setzt jeder beim Druck auf "Spielen"
   // seine eigene Uhr, und die beiden Stimmen laufen um so viel
@@ -680,6 +712,9 @@ function klSchritt(jetzt) {
     }
 
     // Verpasst — nur die eigenen Noten, die des Partners meldet der Partner
+    // Die Begleitung
+    klBegleitung(t);
+
     // Die Stimme des anderen klingt leiser mit, sobald sie an der Leiste
     // ankommt. Dadurch hören beide dasselbe Stück, unabhängig davon, wie
     // lange eine Nachricht unterwegs ist.
@@ -714,6 +749,17 @@ function klSchritt(jetzt) {
 
   if (t > klSong.laenge + 900) { klBeenden(); return; }
   klSchleife = requestAnimationFrame(klSchritt);
+}
+
+// Die Begleitung: alle vier Zählzeiten der nächste Akkord, leise.
+let klBegleitungGesetzt = 0;
+function klBegleitung(t) {
+  const takt = 4 * KL_ZAEHLER;
+  const dran = Math.floor(t / takt) + 1;
+  if (dran <= klBegleitungGesetzt || dran < 1) return;
+  klBegleitungGesetzt = dran;
+  const akkord = KL_AKKORDE[(dran - 1) % KL_AKKORDE.length];
+  akkord.forEach((freq, i) => klTon(freq, takt * 0.9, true, 0.3 - i * 0.06));
 }
 
 function klEingabe(note) {
