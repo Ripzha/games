@@ -1866,9 +1866,13 @@ addEventListener("keydown", (e) => {
 //    Die Bilder schauen nach links und werden für rechts gespiegelt.
 // ======================================================================
 
+// Die Schlüssel links (chase, logan, figur3 …) sind die Kennung der
+// Figur in der Datenbank und im Browser. Sie bleiben, auch wenn die
+// Figur anders heisst — sonst verlieren Belegung und Inventar ihren
+// Bezug. Geändert wird nur der Name, den man sieht.
 const FIGUREN = {
   chase: {
-    name:   "Chase",
+    name:   "Delsyn",
     farbe:  "#c86a7a",
     stehen: "bilder/figuren/figur1-stehen.webp",
     gehen: [
@@ -1894,10 +1898,10 @@ const FIGUREN = {
   // Vier Plätze ohne Bilder. Sie werden als farbige Platzhalterfigur
   // gezeichnet, bis Bilder da sind. Dann hier dasselbe eintragen wie oben:
   // stehen, gehen, anker und seiten aus dem Zuschneiden.
-  figur3: { name: "Figur 3", farbe: "#c8a35a", gehen: [], anker: 0.5, seiten: 0.5, groesse: 1 },
-  figur4: { name: "Figur 4", farbe: "#6ac89a", gehen: [], anker: 0.5, seiten: 0.5, groesse: 1 },
-  figur5: { name: "Figur 5", farbe: "#a06ac8", gehen: [], anker: 0.5, seiten: 0.5, groesse: 1 },
-  figur6: { name: "Figur 6", farbe: "#c8826a", gehen: [], anker: 0.5, seiten: 0.5, groesse: 1 }
+  figur3: { name: "Gerda", farbe: "#c8a35a", gehen: [], anker: 0.5, seiten: 0.5, groesse: 1 },
+  figur4: { name: "Valentin", farbe: "#6ac89a", gehen: [], anker: 0.5, seiten: 0.5, groesse: 1 },
+  figur5: { name: "Maryama", farbe: "#a06ac8", gehen: [], anker: 0.5, seiten: 0.5, groesse: 1 },
+  figur6: { name: "Veronika", farbe: "#c8826a", gehen: [], anker: 0.5, seiten: 0.5, groesse: 1 }
 };
 
 // Welche Figur man spielt, wird beim Betreten gewählt und im Browser
