@@ -719,6 +719,7 @@
   function effMult() { return comboStufe() * (rausch ? 2 : 1); }
   // Leben
   let leben = 3;
+  let lebenMax = 3;      // zu zweit setzt die Elternseite den gemeinsamen Vorrat
   let invuln = 0;
   let punkteAkk = 0;
   let airZeit = 0;
@@ -809,7 +810,7 @@
     ducken = false; jubel = null;
     combo = 0; comboMeter = 0; maxHalte = 0;
     rausch = false; rauschZeit = 0; magnetNachlauf = 0; rauschCooldown = 0;
-    leben = 3; invuln = 0; punkteAkk = 0; airZeit = 0;
+    leben = lebenMax; invuln = 0; punkteAkk = 0; airZeit = 0;
     rekordGefeiert = false; rekordFlash = 0;
     bossAktiv = false; angriff = null; yetiStolpert = 0;
     zeitBisBoss = 50;
@@ -908,7 +909,7 @@
       if (++wache2 > 80) { naechstesSammel = rechteKante + 100; break; }
       let art = zufallsSammel();
       // Selten: Ersatzteil-Kiste (+1 Leben), nur wenn Leben fehlen — mit Abklingzeit
-      if (leben < 3 && Math.random() < 0.025 && naechstesSammel - letztesHerzWx > 4200) {
+      if (leben < lebenMax && Math.random() < 0.025 && naechstesSammel - letztesHerzWx > 4200) {
         art = { typ: 'herz', wert: 0 };
         letztesHerzWx = naechstesSammel;
       }
@@ -1088,7 +1089,8 @@
             popups.push({ wy: oy - 10, txt: '🧡 JACK SPRINGT AUF!', alter: 0 });
             jubel = { t: 0, txt: 'Festhalten, Jack!' };
           } else if (o.typ === 'herz') {
-            leben = Math.min(3, leben + 1);
+            leben = Math.min(lebenMax, leben + 1);
+            if (ZUZWEIT) anEltern('herz');
             fanfare();
             popups.push({ wy: oy - 10, txt: '+1 LEBEN', alter: 0 });
             jubel = { t: 0, txt: 'Ersatzteile!' };
@@ -1238,7 +1240,7 @@
               document.getElementById('hud-punkte').textContent = punkte;
               zeitBisBoss = Math.max(32, 75 + Math.random() * 30 - tempoStufe() * 13);
               // Trostpflaster: fehlt ein Leben, taucht bald eine Ersatzteil-Kiste auf
-              if (leben < 3) sammel.push({ wx: worldX + W + 500, hoehe: 40, typ: 'herz', wert: 0, rot: 0 });
+              if (leben < lebenMax) sammel.push({ wx: worldX + W + 500, hoehe: 40, typ: 'herz', wert: 0, rot: 0 });
             }
           }
         }
@@ -1622,10 +1624,13 @@
     popups = popups.filter(p => p.alter < 0.8);
 
     // Leben (oben links) — plus oranges Jack-Herz, solange sie mitfährt
-    for (let i = 0; i < (jackAnBord ? 4 : 3); i++) {
+    const herzPlaetze = ZUZWEIT ? lebenMax : (jackAnBord ? 4 : 3);
+    for (let i = 0; i < herzPlaetze; i++) {
       const hx = 26 + i * 30, hy = 30;
       ctx.save(); ctx.translate(hx, hy);
-      ctx.fillStyle = i === 3 ? '#f0a050' : (i < leben ? '#e86a6a' : 'rgba(58, 74, 106, 0.6)');
+      const jackHerz = !ZUZWEIT && i === 3;
+      ctx.fillStyle = jackHerz ? '#f0a050'
+                    : (i < leben ? '#e86a6a' : 'rgba(58, 74, 106, 0.6)');
       ctx.beginPath();
       ctx.moveTo(0, 9);
       ctx.bezierCurveTo(-12, -1, -9, -12, 0, -6);
@@ -2434,9 +2439,16 @@
 
     if (d.art === 'anfangen') {
       netzPhasen = d.phasen;
+      if (d.max) { lebenMax = d.max; leben = d.max; }
       document.getElementById('screen-intro').classList.add('hidden');
       document.getElementById('screen-ende').classList.add('hidden');
       starte();
+      return;
+    }
+
+    if (d.art === 'leben') {
+      lebenMax = d.max;
+      leben = d.wert;
       return;
     }
 

@@ -88,6 +88,24 @@ pruefe(spiel.includes("function zeigeEnde()"), "der Endbildschirm für allein st
 pruefe(/const ABSTAND = Math\.max\(1,/.test(spiel),
        "ohne ?abstand bleibt der Abstand wie vorher");
 
+// ---------- Die gemeinsamen Herzen ----------
+console.log("Herzen");
+const HERZEN = (eltern.match(/const HERZEN = (\d+)/) || [])[1];
+pruefe(HERZEN && +HERZEN > 3, "der gemeinsame Vorrat ist gr\u00f6sser als die drei im Alleinspiel (" + HERZEN + ")");
+pruefe(spiel.includes("let lebenMax = 3;"), "das Spiel kennt eine Obergrenze f\u00fcr die Herzen");
+pruefe(!spiel.includes("leben < 3 &&"), "der Herz-Nachschub h\u00e4ngt nicht mehr an der festen Drei");
+pruefe(spiel.includes("leben = Math.min(lebenMax, leben + 1);"),
+       "ein aufgesammeltes Herz z\u00e4hlt bis zur Obergrenze");
+pruefe(spiel.includes("const herzPlaetze = ZUZWEIT ? lebenMax"),
+       "die Anzeige zeigt zu zweit so viele Pl\u00e4tze wie der Vorrat hat");
+pruefe(spiel.includes("leben = lebenMax;"), "beim Neustart ist der Vorrat voll");
+pruefe(eltern.includes("anBeide('leben'"), "die Eltern schicken den Stand an beide H\u00e4lften");
+pruefe(spiel.includes("d.art === 'leben'"), "das Spiel h\u00f6rt darauf");
+pruefe(spiel.includes("anEltern('herz')") && eltern.includes("d.art === 'herz'"),
+       "ein aufgesammeltes Herz wird gemeldet und gezaehlt");
+pruefe(!eltern.includes("getElementById('herzen')"),
+       "die doppelte Herzleiste in der Mitte ist weg");
+
 // ---------- Der Bot ----------
 console.log("Bot");
 function zahl(text, name) {
