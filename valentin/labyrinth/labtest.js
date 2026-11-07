@@ -194,6 +194,10 @@ pruefe(skript.includes("[[links, -1], [rechts, 1]].forEach"),
        "offene Seiten werden ausgebaut statt leer gelassen");
 pruefe(skript.includes("const nx = x + DX[seite], ny = y + DY[seite];"),
        "dahinter kommt die Hecke der Nachbarzelle, wenn der Gang dort endet");
+pruefe(skript.includes("if (wandDa(lab, nx, ny, r)) {"),
+       "auch die Hecke, die im Seitengang quer steht, wird gezeichnet");
+pruefe(skript.includes("[[kanteF, b.o], [aussenF, b.o], [aussenF, b.u], [kanteF, b.u]]"),
+       "sie deckt den Seitengang auf seiner ganzen Breite");
 pruefe(skript.indexOf("[[links, -1], [rechts, 1]].forEach") <
        skript.indexOf("// Boden des Abschnitts"),
        "der Durchgang wird vor dem Korridorboden gezeichnet");

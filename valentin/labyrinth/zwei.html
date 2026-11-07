@@ -476,6 +476,14 @@
                         dunkel * 0.6, [aussen, a.o, aussenF, b.o], x * 97 + y * 31 + 11,
                         kachel * 0.8);
         }
+        // Die Hecke, die im Seitengang quer steht. Ohne die klafft dort
+        // ein Loch, obwohl man von hier aus sehen müsste, dass es nach
+        // vorne nicht weitergeht.
+        if (wandDa(lab, nx, ny, r)) {
+          heckenFlaeche([[kanteF, b.o], [aussenF, b.o], [aussenF, b.u], [kanteF, b.u]],
+                        dunkel * 0.7, [kanteF, b.o, aussenF, b.o], x * 97 + y * 31 + 21,
+                        kachel * 0.6);
+        }
 
         // Die Stirnseiten der Hecken, die den Durchgang einrahmen. Ohne die
         // ist eine Hecke eine Fläche ohne Dicke, und der Durchgang sieht aus
