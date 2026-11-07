@@ -367,7 +367,7 @@
 
   // Wird bei jedem Paket neu gesetzt. Steht unten im Startbildschirm, damit man
   // sofort sieht, welche Fassung gerade live ist.
-  const BAUSTAND = '07.11.2026 22:39';
+  const BAUSTAND = '07.11.2026 22:45';
   const SPEICHER_KEY = 'ostern_fortschritt';
   const HINWEISE_GESAMT = 3;
   // Gemeinsamer Faktor für alle Eier. Die Radien in EIER bleiben, hier wird
@@ -3146,10 +3146,21 @@
           renderBacken();
           if (zustand.backen >= BACK_SCHRITTE.length) fanfare([520, 660, 880]);
         })
-        .catch(() => {
+        .catch(err => {
           klang('fehler');
-          document.getElementById('back-sagt').textContent =
-            'Aci schüttelt den Kopf. „Du bist nicht dran. Erst der andere."';
+          // Der Server sagt genau, woran es liegt. Vorher stand hier immer
+          // „Du bist nicht dran", auch wenn etwas ganz anderes schiefging.
+          let grund = '';
+          try { grund = JSON.parse(err.message).message || ''; } catch (e) { grund = String(err.message || ''); }
+          const el = document.getElementById('back-sagt');
+          if (/nicht dran/.test(grund)) {
+            el.textContent = 'Aci schüttelt den Kopf. „Du bist nicht dran. Erst der andere."';
+          } else if (/passt nicht/.test(grund)) {
+            el.textContent = 'Der Tisch steht woanders. Gleich wird neu geladen.';
+            setTimeout(tischHolen, 500);
+          } else {
+            el.textContent = 'Der Tisch antwortet nicht richtig: ' + grund.slice(0, 120);
+          }
         });
       return;
     }
