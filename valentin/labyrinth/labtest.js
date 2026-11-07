@@ -50,9 +50,9 @@ const sichtTeil = skript.slice(skript.indexOf("function sichtTiefe"),
                                skript.indexOf("function spurMalen"));
 vm.runInContext(teile + "\n" + sichtTeil +
   "\nglobalThis.__aus = { labyrinthBauen, wandDa, DX, DY, FELDER, sichtTiefe," +
-  " zielErreichbarVon, heckeUmlegen, WANDEL_TAKT, WANDEL_ANZAHL, WANDEL_NAEHE };", kasten);
+  " zielErreichbarVon, heckeSetzen, SCHNITT_OFFEN, SCHNITT_JEDER };", kasten);
 const { labyrinthBauen, wandDa, DX, DY, sichtTiefe, zielErreichbarVon,
-        heckeUmlegen, WANDEL_TAKT, WANDEL_ANZAHL, WANDEL_NAEHE } = kasten.__aus;
+        heckeSetzen } = kasten.__aus;
 
 // ---------- Erreichbarkeit ----------
 // Einmal ohne Ruecksicht auf Fallen, einmal mit: wer jede Falle umgehen
@@ -186,72 +186,40 @@ for (let i = 0; i < 40; i++) {
 pruefe(blind === blindRichtig,
        "vor einer Hecke endet die Sicht sofort (" + blindRichtig + " von " + blind + ")");
 
-// ---------- Bewegliche Hecken ----------
-// Das Labyrinth ver\u00e4ndert sich w\u00e4hrend des Spiels. Keine Verschiebung
-// darf den L\u00e4ufer einmauern oder das Ziel unerreichbar machen.
-console.log("Bewegliche Hecken");
-pruefe(WANDEL_TAKT >= 10000 && WANDEL_TAKT <= 60000,
-       "der Takt ist brauchbar (" + (WANDEL_TAKT / 1000) + " Sekunden)");
-pruefe(WANDEL_ANZAHL >= 1 && WANDEL_ANZAHL <= 8,
-       WANDEL_ANZAHL + " Hecken auf einmal");
-let kaputt = 0, eingemauert = 0, gelungen = 0, versucht = 0;
-let zuWeit = 0, abstaende = [], wirklichAnders = 0, runden = 0;
-for (let i = 0; i < 60; i++) {
-  const lab = labyrinthBauen(i * 5003 + 7);
-  let lx = 0, ly = 0;
-  for (let runde = 0; runde < 30; runde++) {
-    const vorher = JSON.stringify(lab.wand);
-    runden++;
-    for (let k = 0; k < WANDEL_ANZAHL; k++) {
-      versucht++;
-      const wo = heckeUmlegen(lab, lx, ly, k % 2 === 0);
-      if (wo) {
-        gelungen++;
-        abstaende.push(wo.abstand);
-        if (wo.abstand > WANDEL_NAEHE * 2) zuWeit++;
-      }
-    }
-    if (JSON.stringify(lab.wand) !== vorher) wirklichAnders++;
-    if (!zielErreichbarVon(lab, lx, ly)) kaputt++;
-    if (lab.wand[ly][lx].every((w) => w)) eingemauert++;
-    // der L\u00e4ufer geht ein Feld weiter, damit auch unterwegs gepr\u00fcft wird
-    for (let r = 0; r < 4; r++) {
-      const nx = lx + DX[r], ny = ly + DY[r];
-      if (lab.wand[ly][lx][r]) continue;
-      if (nx < 0 || ny < 0 || nx >= FELDER || ny >= FELDER) continue;
-      if (lab.falle[ny][nx]) continue;
-      lx = nx; ly = ny; break;
-    }
-  }
-}
-pruefe(kaputt === 0, "nach 1800 Verschiebungen ist das Ziel immer noch erreichbar");
-pruefe(eingemauert === 0, "der L\u00e4ufer wird nie eingemauert");
-pruefe(gelungen / versucht > 0.8,
-       Math.round((gelungen / versucht) * 100) + " von 100 Verschiebungen gelingen");
-pruefe(skript.includes("raschelt = Date.now() + 2500"),
-       "der L\u00e4ufer bekommt ein Zeichen, dass sich etwas bewegt hat");
-pruefe(zuWeit === 0, "keine Verschiebung liegt weiter weg als erlaubt");
-// Der wichtigste Test: es muss sich tats\u00e4chlich etwas \u00e4ndern. Vorher
-// wurden Hecken auf den Wert gesetzt, den sie schon hatten — gemeldet
-// wurde eine \u00c4nderung, passiert ist nichts.
-pruefe(wirklichAnders / runden > 0.98,
-       "nach jeder Runde sieht das Labyrinth anders aus (" + wirklichAnders +
-       " von " + runden + ")");
-const naeheSchnitt = abstaende.reduce((a, b) => a + b, 0) / abstaende.length;
-pruefe(naeheSchnitt <= WANDEL_NAEHE,
-       "im Schnitt " + naeheSchnitt.toFixed(1) + " Felder vom L\u00e4ufer entfernt");
-pruefe(abstaende.filter((d) => d <= 2).length / abstaende.length > 0.3,
-       Math.round(abstaende.filter((d) => d <= 2).length / abstaende.length * 100) +
-       " von 100 Verschiebungen passieren in Sichtweite");
-pruefe(skript.includes("if (naechstes <= WANDEL_NAEHE) {"),
-       "gemeldet wird nur, was auch in Reichweite passiert ist");
-
-// ---------- Der Gaertner ----------
-console.log("Der G\u00e4rtner");
+// ---------- Der G\u00e4rtner schneidet ----------
+// Alle Zeiten m\u00fcssen l\u00e4nger sein als eine getippte Ansage braucht.
+console.log("Tippbare Zeiten");
 const zahl2=(n)=>{const m=skript.match(new RegExp("const\\s+"+n+"\\s*=\\s*([0-9.]+)"));return m?parseFloat(m[1]):null;};
-const GZ=zahl2("GEGNER_ZAHL"), GT=zahl2("GEGNER_TAKT"), GH=zahl2("GEGNER_HOERT");
+const GT=zahl2("GEGNER_TAKT"), SO=zahl2("SCHNITT_OFFEN"), SJ=zahl2("SCHNITT_JEDER");
+const ANSAGE = 10000;   // so lange dauert tippen, lesen, umsetzen
+pruefe(GT >= 2500, "ein Schritt des G\u00e4rtners dauert " + (GT/1000) +
+       " s — bei einer Sekunde ist jede Warnung falsch, sobald sie ankommt");
+pruefe(SO >= ANSAGE * 3, "ein Schnitt bleibt " + (SO/1000) +
+       " s offen, eine Ansage braucht rund " + (ANSAGE/1000) + " s");
+pruefe(SJ >= 2, "er schneidet bei jedem " + SJ + ". Schritt");
+pruefe(skript.includes("return;                      // dieser Schritt war das Schneiden"),
+       "beim Schneiden bleibt er stehen — solange ist er berechenbar");
+pruefe(skript.includes("if (gegnerAufFeld(s.x, s.y)) return true;"),
+       "ein Schnitt w\u00e4chst nicht zu, solange der G\u00e4rtner darauf steht");
+pruefe(skript.includes("if (!heckeSetzen(lab, s.x, s.y, s.r, true, laeufer.x, laeufer.y)) return true;"),
+       "er w\u00e4chst auch nicht zu, wenn das jemanden einsperren w\u00fcrde");
+pruefe(!skript.includes("WANDEL_TAKT"),
+       "die zuf\u00e4llige Heckenverschiebung ist raus — alles hat jetzt eine Ursache");
+
+console.log("Der eingezeichnete Weg");
+pruefe(skript.includes("function pfeilMalen"), "der L\u00e4ufer sieht einen Pfeil auf dem Boden");
+pruefe(skript.includes("if (e.shiftKey || e.button === 2) {"),
+       "Umschalt-Klick setzt weiterhin ein Kreuz");
+pruefe(skript.includes("const drehung = ((richtung - laeufer.r) + 4) % 4;"),
+       "der Pfeil zeigt relativ zur Blickrichtung");
+pruefe(skript.includes("if (richtung < 0) return;"),
+       "ein Weg \u00fcber Eck ohne Nachbarfeld zeigt keinen Pfeil");
+pruefe(skript.indexOf("gehen(") > 0 && !/weg\[i \+ 1\][\s\S]{0,200}laeufer\.x =/.test(skript),
+       "der Pfeil bewegt die Figur nicht — gehen muss der L\u00e4ufer selbst");
+
+console.log("Der G\u00e4rtner");
+const GZ=zahl2("GEGNER_ZAHL"), GH=zahl2("GEGNER_HOERT");
 pruefe(GZ >= 1, GZ + " G\u00e4rtner im Labyrinth");
-pruefe(GT >= 600 && GT <= 3000, "er geht alle " + GT + " ms ein Feld");
 pruefe(GH >= 1, "man h\u00f6rt ihn ab " + GH + " Feldern");
 pruefe(skript.includes("if (nx === 0 && ny === 0) continue;"),
        "den Eingang betritt er nie — sonst steht er beim Neustart davor");
@@ -264,8 +232,8 @@ pruefe(skript.includes("if (gegnerAufFeld(x, y)) gegnerMalen(a, b, dunkel);"),
 const planTeil = skript.slice(skript.indexOf("function planMalen"), skript.indexOf("function gegnerSetzen"));
 pruefe(planTeil.indexOf("gegner.forEach") >= 0, "der F\u00fchrende sieht ihn auf dem Plan");
 pruefe(planTeil.indexOf("lab.falle") < 0, "Fallen bleiben auf dem Plan unsichtbar");
-pruefe(skript.includes("gezeigt.push({ x: wo.x"),
-       "ge\u00e4nderte Hecken blinken auf dem Plan auf");
+pruefe(skript.includes("gezeigt.push({ x: g.x, y: g.y, bis: jetzt + WANDEL_ZEIGT });"),
+       "ein frischer Schnitt blinkt auf dem Plan auf");
 const wz = zahl2("WANDEL_ZEIGT");
 pruefe(wz >= 3000, "das Aufblinken h\u00e4lt " + (wz/1000) + " Sekunden");
 

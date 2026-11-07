@@ -99,21 +99,22 @@
   const SICHT    = 2;         // so viele Felder weit sieht der Läufer
   const SCHRITT  = 170;       // Millisekunden für einen Schritt
 
-  // Das Labyrinth verändert sich. Ohne das kann der Läufer es allein
-  // schaffen — herumlaufen und sich merken reicht. Verschieben sich die
-  // Hecken, ist jede Erinnerung nach einer halben Minute wertlos, und nur
-  // die Karte des Führenden stimmt noch, weil sie live ist.
-  const WANDEL_TAKT   = 15000;   // Millisekunden zwischen zwei Änderungen
-  const WANDEL_ANZAHL = 3;       // so viele Hecken auf einmal
-  const WANDEL_NAEHE  = 3;       // nur so weit vom Läufer entfernt
-  const WANDEL_ZEIGT  = 6000;    // so lange blinkt die Änderung auf dem Plan
-
-  // Der Gärtner geht durchs Labyrinth. Wer ihm in die Arme läuft, steht
-  // wieder am Eingang. Der Führende sieht ihn auf dem Plan, der Läufer
-  // erst, wenn er im Gang vor ihm steht — und hört ihn, wenn er nah ist.
-  const GEGNER_ZAHL  = 1;
-  const GEGNER_TAKT  = 1100;     // Millisekunden je Schritt
-  const GEGNER_HOERT = 2;        // ab so vielen Feldern hört man ihn
+  // Der Gärtner geht durchs Labyrinth und schneidet sich ab und zu
+  // hindurch. Wer ihm in die Arme läuft, steht wieder am Eingang. Der
+  // Führende sieht ihn auf dem Plan, der Läufer erst, wenn er im Gang vor
+  // ihm steht — und hört ihn, wenn er nah ist.
+  //
+  // Alle Zeiten sind danach bemessen, dass sich die beiden tippend
+  // verständigen. Eine Ansage zu schreiben, zu lesen und umzusetzen
+  // dauert gut zehn Sekunden. Was der Führende ansagen soll, muss also
+  // länger stehen bleiben als das — sonst ist jede Warnung falsch,
+  // sobald sie ankommt.
+  const GEGNER_ZAHL   = 1;
+  const GEGNER_TAKT   = 3000;    // Millisekunden je Schritt
+  const GEGNER_HOERT  = 2;       // ab so vielen Feldern hört man ihn
+  const SCHNITT_JEDER = 4;       // bei jedem wievielten Schritt er schneidet
+  const SCHNITT_OFFEN = 60000;   // so lange bleibt ein Schnitt offen
+  const WANDEL_ZEIGT  = 8000;    // so lange blinkt eine Änderung auf dem Plan
 
   // Wer im Labyrinth läuft, steht auf dem Plan als Kopf seiner Figur.
   // kopf ist der Ausschnitt aus dem Stehbild, in Anteilen der Bildbreite
@@ -265,32 +266,21 @@
     return false;
   }
 
-  // Eine Hecke umlegen. Zur Hälfte wird geöffnet, zur Hälfte geschlossen,
-  // damit das Labyrinth über die Zeit nicht leer oder dicht wird.
-  function heckeUmlegen(lab, sx, sy, schliessen) {
-    for (let versuch = 0; versuch < 400; versuch++) {
-      // In der Nähe des Läufers, sonst merkt er nichts davon. Vorher
-      // wurde irgendwo im Labyrinth umgelegt — bei 288 Heckenplätzen
-      // lag das fast nie dort, wo er hinschaut.
-      const x = sx + Math.round((Math.random() - 0.5) * 2 * WANDEL_NAEHE);
-      const y = sy + Math.round((Math.random() - 0.5) * 2 * WANDEL_NAEHE);
-      if (x < 0 || y < 0 || x >= FELDER || y >= FELDER) continue;
-      const r = Math.floor(Math.random() * 4);
-      const nx = x + DX[r], ny = y + DY[r];
-      if (nx < 0 || ny < 0 || nx >= FELDER || ny >= FELDER) continue;
-      if (lab.wand[y][x][r] === schliessen) continue;   // steht schon so
-      lab.wand[y][x][r] = schliessen;
-      lab.wand[ny][nx][(r + 2) % 4] = schliessen;
-      // Das Feld, auf dem der Läufer steht, muss offen bleiben
-      const eingemauert = lab.wand[sy][sx].every((w) => w);
-      if (!eingemauert && zielErreichbarVon(lab, sx, sy)) {
-        return { x: x, y: y, nx: nx, ny: ny,
-                 abstand: Math.abs(x - sx) + Math.abs(y - sy) };
-      }
-      lab.wand[y][x][r] = !schliessen;                  // zurücknehmen
-      lab.wand[ny][nx][(r + 2) % 4] = !schliessen;
-    }
-    return null;
+  // Eine bestimmte Hecke öffnen oder schliessen. Beim Schliessen wird
+  // geprüft, ob das Ziel danach noch erreichbar ist und der Läufer nicht
+  // eingemauert wird — beim Öffnen kann das nie passieren.
+  function heckeSetzen(lab, x, y, r, schliessen, sx, sy) {
+    const nx = x + DX[r], ny = y + DY[r];
+    if (nx < 0 || ny < 0 || nx >= FELDER || ny >= FELDER) return false;
+    if (lab.wand[y][x][r] === schliessen) return false;
+    lab.wand[y][x][r] = schliessen;
+    lab.wand[ny][nx][(r + 2) % 4] = schliessen;
+    if (!schliessen) return true;
+    const eingemauert = lab.wand[sy][sx].every((w) => w);
+    if (!eingemauert && zielErreichbarVon(lab, sx, sy)) return true;
+    lab.wand[y][x][r] = false;
+    lab.wand[ny][nx][(r + 2) % 4] = false;
+    return false;
   }
 
   function wandDa(lab, x, y, r) {
@@ -309,9 +299,11 @@
   let durchsage = { text: '', bis: 0 };   // vom Monitor zum Läufer
   let zuruf = { text: '', bis: 0 };       // vom Läufer zum Monitor
   let versuche = 0, gestartet = 0, laeuft = false;
-  let letzterWandel = 0, raschelt = 0, raschelNah = false;
+  let raschelt = 0, raschelNah = false;
   let gezeigt = [];              // zuletzt geänderte Felder, für den Plan
-  let gegner = [];               // { x, y, r, letzterSchritt }
+  let gegner = [];               // { x, y, r, letzter, schritte }
+  let schnitte = [];             // offene Schnitte, die wieder zuwachsen
+  let weg = [];                  // der Weg, den der Führende einzeichnet
 
   const sicht = document.getElementById('sicht');
   const plan = document.getElementById('plan');
@@ -530,6 +522,37 @@
     s2.fill();
   }
 
+  // Der Pfeil auf dem Boden: zeigt in die Richtung, die der Führende
+  // als Nächstes eingezeichnet hat. Gehen, Fallen sehen und dem Gärtner
+  // ausweichen bleibt Sache des Läufers — der Pfeil ersetzt nur das
+  // Tippen von „an der dritten Kreuzung links".
+  function pfeilMalen(a, b, dunkel) {
+    const i = weg.findIndex((w) => w[0] === laeufer.x && w[1] === laeufer.y);
+    if (i < 0 || i + 1 >= weg.length) return;
+    const zx = weg[i + 1][0] - laeufer.x, zy = weg[i + 1][1] - laeufer.y;
+    let richtung = -1;
+    for (let r = 0; r < 4; r++) if (DX[r] === zx && DY[r] === zy) richtung = r;
+    if (richtung < 0) return;                     // kein Nachbarfeld
+    const drehung = ((richtung - laeufer.r) + 4) % 4;   // 0 vor, 1 rechts …
+
+    const mx = (a.l + a.r) / 2;
+    const my = (a.u + b.u) / 2;
+    const gr = (b.r - b.l) * 0.3;
+    s2.save();
+    s2.translate(mx, my);
+    s2.scale(1, 0.5);                             // flach auf dem Boden
+    s2.rotate(drehung * Math.PI / 2);
+    s2.fillStyle = 'rgba(240,193,115,' + (0.8 * dunkel).toFixed(2) + ')';
+    s2.beginPath();
+    s2.moveTo(0, -gr);
+    s2.lineTo(gr * 0.8, gr * 0.45);
+    s2.lineTo(0, gr * 0.1);
+    s2.lineTo(-gr * 0.8, gr * 0.45);
+    s2.closePath();
+    s2.fill();
+    s2.restore();
+  }
+
   function sichtMalen() {
     const B = sicht.width, H = sicht.height;
     s2.clearRect(0, 0, B, H);
@@ -646,6 +669,9 @@
 
       // Die Spur einer Falle — nur ein Feld weit und nur für den Läufer
       if (lab.falle[y][x] && t <= 1) spurMalen(a, b, dunkel, x * 97 + y * 31 + 7);
+
+      // Der Pfeil liegt auf dem eigenen Feld
+      if (t === 0) pfeilMalen(a, b, dunkel);
 
       // Der Gärtner, wenn er im Gang vor einem steht
       if (gegnerAufFeld(x, y)) gegnerMalen(a, b, dunkel);
@@ -811,6 +837,25 @@
       p2.fillText(zuruf.text, B / 2, H * 0.03 + gr * 1.3, B * 0.86);
     }
 
+    // Der eingezeichnete Weg
+    if (weg.length) {
+      p2.strokeStyle = 'rgba(240,193,115,0.75)';
+      p2.lineWidth = Math.max(2, feld * 0.14);
+      p2.lineJoin = 'round'; p2.lineCap = 'round';
+      p2.beginPath();
+      weg.forEach(([wx, wy], i) => {
+        const px = ox + (wx + 0.5) * feld, py = oy + (wy + 0.5) * feld;
+        if (i === 0) p2.moveTo(px, py); else p2.lineTo(px, py);
+      });
+      p2.stroke();
+      const letzte = weg[weg.length - 1];
+      p2.fillStyle = 'rgba(240,193,115,0.9)';
+      p2.beginPath();
+      p2.arc(ox + (letzte[0] + 0.5) * feld, oy + (letzte[1] + 0.5) * feld,
+             feld * 0.14, 0, Math.PI * 2);
+      p2.fill();
+    }
+
     // Der Gärtner — nur der Führende sieht ihn auf dem Plan
     gegner.forEach((g) => {
       const gx = ox + (g.x + 0.5) * feld, gy = oy + (g.y + 0.5) * feld;
@@ -848,6 +893,30 @@
     gegner.forEach((g) => {
       if (jetzt - g.letzter < GEGNER_TAKT) return;
       g.letzter = jetzt;
+      g.schritte = (g.schritte || 0) + 1;
+
+      // Bei jedem vierten Schritt schneidet er sich durch eine Hecke und
+      // bleibt dabei stehen. Solange er schneidet, ist er berechenbar —
+      // und der Schnitt entsteht dort, wo der Führende ihn gerade sieht.
+      if (g.schritte % SCHNITT_JEDER === 0) {
+        const zu = [];
+        for (let r = 0; r < 4; r++) {
+          const nx = g.x + DX[r], ny = g.y + DY[r];
+          if (nx < 0 || ny < 0 || nx >= FELDER || ny >= FELDER) continue;
+          if (lab.wand[g.y][g.x][r]) zu.push(r);
+        }
+        if (zu.length) {
+          const r = zu[Math.floor(Math.random() * zu.length)];
+          if (heckeSetzen(lab, g.x, g.y, r, false, laeufer.x, laeufer.y)) {
+            schnitte.push({ x: g.x, y: g.y, r: r, bis: jetzt + SCHNITT_OFFEN });
+            gezeigt.push({ x: g.x, y: g.y, bis: jetzt + WANDEL_ZEIGT });
+            gezeigt.push({ x: g.x + DX[r], y: g.y + DY[r], bis: jetzt + WANDEL_ZEIGT });
+            raschelt = jetzt + 3000;
+            raschelNah = Math.abs(g.x - laeufer.x) + Math.abs(g.y - laeufer.y) <= 2;
+            return;                      // dieser Schritt war das Schneiden
+          }
+        }
+      }
       // offene Richtungen, am liebsten nicht zurück
       const offen = [];
       for (let r = 0; r < 4; r++) {
@@ -941,13 +1010,16 @@
       '<p>Geredet wird in beide Richtungen. Der Führende sagt den Weg durch, der ' +
       'Läufer ruft zurück, wo eine Falle liegt. Der Führende kann sie sich auf ' +
       'seinem Plan anzeichnen und einen anderen Weg suchen.</p>' +
-      '<p>Im Labyrinth geht der Gärtner umher. Nur der Führende sieht, wo er ist. ' +
-      'Der Läufer hört ihn erst, wenn er zwei Felder entfernt ist, und sieht ihn ' +
-      'erst, wenn er im Gang vor ihm steht. Die Hecken verschieben sich dazu — ' +
-      'was sich ändert, blinkt auf dem Plan kurz auf.</p>' +
+      '<p>Im Labyrinth geht der Gärtner umher und schneidet sich ab und zu durch ' +
+      'eine Hecke. Nur der Führende sieht, wo er ist und wo gerade ein Durchgang ' +
+      'entsteht. Der Läufer hört ihn ab zwei Feldern und sieht ihn erst, wenn er ' +
+      'im Gang vor ihm steht. Ein Schnitt wächst nach einer Minute wieder zu.</p>' +
+      '<p>Der Führende kann einen Weg auf den Plan zeichnen. Beim Läufer erscheint ' +
+      'dann ein Pfeil auf dem Boden, der in die nächste Richtung zeigt. Alles ' +
+      'andere — Fallen, der Gärtner, ob man wartet oder läuft — wird geredet.</p>' +
       '<table>' +
       '<tr><td>Läufer</td><td>W vor, S zurück, A und D drehen, Feld unten zum Zurückrufen</td></tr>' +
-      '<tr><td>Führender</td><td>Feld anklicken markiert, Feld nochmal klicken löscht</td></tr>' +
+      '<tr><td>Führender</td><td>Feld anklicken zeichnet den Weg, Umschalt-Klick setzt ein Kreuz</td></tr>' +
       '<tr><td>Der Gärtner</td><td>geht umher — wer ihm begegnet, steht wieder am Eingang</td></tr>' +
       '<tr><td>Figur</td><td>' + FIGUREN[WER].name + ' — mit ?figur=logan wechseln</td></tr>' +
       '</table>' +
@@ -980,8 +1052,9 @@
     zuruf = { text: '', bis: 0 };
     gegnerSetzen();
     gezeigt = [];
+    schnitte = [];
+    weg = [];
     gestartet = Date.now();
-    letzterWandel = Date.now();
     raschelt = 0;
     laeuft = true;
     tafel.classList.add('weg');
@@ -1002,6 +1075,7 @@
     if (t === 'd' || t === 'arrowright') { drehen(true);  e.preventDefault(); }
   });
 
+  plan.addEventListener('contextmenu', (e) => e.preventDefault());
   plan.addEventListener('pointerdown', (e) => {
     if (!laeuft || !plan._feld) return;
     const r = plan.getBoundingClientRect();
@@ -1010,8 +1084,20 @@
     const x = Math.floor(((e.clientX - r.left) * d - ox) / feld);
     const y = Math.floor(((e.clientY - r.top) * d - oy) / feld);
     if (x < 0 || y < 0 || x >= FELDER || y >= FELDER) return;
-    const i = marken.findIndex((m) => m[0] === x && m[1] === y);
-    if (i >= 0) marken.splice(i, 1); else marken.push([x, y]);
+
+    // Mit Umschalt oder rechter Maustaste ein Kreuz setzen, sonst den
+    // Weg zeichnen. Den Weg sieht der Läufer als Pfeil auf dem Boden —
+    // „an der dritten Kreuzung links" zu tippen dauert zu lange.
+    if (e.shiftKey || e.button === 2) {
+      const i = marken.findIndex((m) => m[0] === x && m[1] === y);
+      if (i >= 0) marken.splice(i, 1); else marken.push([x, y]);
+      return;
+    }
+    const letzte = weg[weg.length - 1];
+    if (letzte && letzte[0] === x && letzte[1] === y) { weg.pop(); return; }
+    const i = weg.findIndex((w) => w[0] === x && w[1] === y);
+    if (i >= 0) { weg.length = i; return; }       // bis dorthin zurücknehmen
+    weg.push([x, y]);
   });
 
   function durchsagen() {
@@ -1044,29 +1130,19 @@
 
     if (laeuft) {
       gegnerSchritt();
+      // Schnitte wachsen wieder zu, sonst wird das Labyrinth mit der Zeit
+      // zu einem offenen Feld. Geht das Zuwachsen gerade nicht, weil
+      // jemand eingesperrt würde, bleibt der Schnitt eben länger offen.
+      schnitte = schnitte.filter((s) => {
+        if (s.bis > Date.now()) return true;
+        if (gegnerAufFeld(s.x, s.y)) return true;
+        if (!heckeSetzen(lab, s.x, s.y, s.r, true, laeufer.x, laeufer.y)) return true;
+        gezeigt.push({ x: s.x, y: s.y, bis: Date.now() + WANDEL_ZEIGT });
+        return false;
+      });
       if (gegnerAufFeld(laeufer.x, laeufer.y)) erwischt();
     }
 
-    if (laeuft && Date.now() - letzterWandel > WANDEL_TAKT) {
-      letzterWandel = Date.now();
-      let naechstes = 99;
-      for (let i = 0; i < WANDEL_ANZAHL; i++) {
-        const wo = heckeUmlegen(lab, laeufer.x, laeufer.y, i % 2 === 0);
-        if (!wo) continue;
-        naechstes = Math.min(naechstes, wo.abstand);
-        // Auf dem Plan aufblinken lassen, sonst sieht der Führende nicht,
-        // was sich geändert hat — drei Heckenstücke auf zwölf mal zwölf
-        // Feldern fallen sonst niemandem auf.
-        gezeigt.push({ x: wo.x, y: wo.y, bis: Date.now() + WANDEL_ZEIGT });
-        gezeigt.push({ x: wo.nx, y: wo.ny, bis: Date.now() + WANDEL_ZEIGT });
-      }
-      // Nur melden, wenn wirklich etwas in Reichweite passiert ist —
-      // sonst steht da eine Meldung über etwas, das man nie findet.
-      if (naechstes <= WANDEL_NAEHE) {
-        raschelt = Date.now() + 2500;
-        raschelNah = naechstes <= 2;
-      }
-    }
     sichtMalen();
     planMalen();
   }
