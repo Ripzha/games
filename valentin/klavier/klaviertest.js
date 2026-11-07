@@ -108,28 +108,46 @@ pruefe(unbekannt.length === 0, "alle Noten liegen auf der Klaviatur" +
 pruefe(song.noten.length > 20, song.noten.length + " Noten, L\u00e4nge " +
        Math.round(song.laenge / 1000) + " Sekunden");
 
-console.log("Die beiden Stimmen");
-const bass = song.noten.filter((n) => n.wer === 0);
-const melodie = song.noten.filter((n) => n.wer === 1);
-pruefe(bass.length > 10 && melodie.length > 10,
-       "Bass " + bass.length + " Noten, Melodie " + melodie.length);
-const anteil = bass.length / song.noten.length;
-pruefe(anteil > 0.35 && anteil < 0.65,
-       "keine Stimme ist viel mehr Arbeit als die andere");
+console.log("Beide gleich schwer");
+const einer = song.noten.filter((n) => n.wer === 0);
+const anderer = song.noten.filter((n) => n.wer === 1);
+pruefe(einer.length === anderer.length,
+       "gleich viele Noten: " + einer.length + " zu " + anderer.length);
 
-// Beide fangen zusammen an und hoeren ungefaehr zusammen auf —
-// sonst sitzt einer am Ende da und schaut zu.
-pruefe(Math.min(bass[0].zeit, melodie[0].zeit) === 0, "beide beginnen zur selben Zeit");
-const endeBass = Math.max(...bass.map((n) => n.zeit + n.dauer));
-const endeMel = Math.max(...melodie.map((n) => n.zeit + n.dauer));
-pruefe(Math.abs(endeBass - endeMel) < 1500,
-       "beide enden ungef\u00e4hr zusammen (" + Math.round(Math.abs(endeBass - endeMel)) +
+// Gleich viele Noten allein reicht nicht. Der Bass ist ein Pulsschlag,
+// die Melodie ein Stueck — beide muessen beides spielen.
+const tausch = (skript.match(/KL_TAUSCH = (\d+)/) || [])[1];
+pruefe(tausch, "es gibt einen Stimmentausch (nach " + tausch + " Z\u00e4hlzeiten)");
+pruefe(skript.includes("wer: t < KL_TAUSCH ? wer : (wer === 0 ? 1 : 0),"),
+       "nach dem Tausch geh\u00f6rt die Stimme dem anderen");
+
+const bassToene = ["C4","D4","E4","F4","G4","A4","H4"];
+function istBass(n) { return bassToene.includes(n.note) && n.dauer >= 0; }
+const vorher = song.noten.filter((n) => n.zeit < tausch * 340);
+const nachher = song.noten.filter((n) => n.zeit >= tausch * 340);
+[0, 1].forEach((w) => {
+  pruefe(vorher.some((n) => n.wer === w) && nachher.some((n) => n.wer === w),
+         "Spieler " + (w + 1) + " spielt vor und nach dem Tausch");
+});
+
+// Die hohen Toene gehoeren zur Melodie — jeder muss welche bekommen
+const hoch = ["C5","Cis5","D5","Dis5","E5","F5"];
+[0, 1].forEach((w) => {
+  const seine = song.noten.filter((n) => n.wer === w && hoch.includes(n.note));
+  pruefe(seine.length > 0,
+         "Spieler " + (w + 1) + " bekommt " + seine.length + " Melodienoten oben");
+});
+
+pruefe(Math.min(einer[0].zeit, anderer[0].zeit) === 0, "beide beginnen zur selben Zeit");
+const endeA = Math.max(...einer.map((n) => n.zeit + n.dauer));
+const endeB = Math.max(...anderer.map((n) => n.zeit + n.dauer));
+pruefe(Math.abs(endeA - endeB) < 1500,
+       "beide enden ungef\u00e4hr zusammen (" + Math.round(Math.abs(endeA - endeB)) +
        " ms auseinander)");
 
-// Die Stimmen duerfen sich nie auf derselben Taste treffen: Sonst
-// faellt eine Note auf die andere und man sieht nicht, wem sie gehoert.
+// Die Stimmen duerfen sich nie auf derselben Taste treffen
 const kollision = [];
-bass.forEach((a) => melodie.forEach((b) => {
+einer.forEach((a) => anderer.forEach((b) => {
   if (a.note === b.note && Math.abs(a.zeit - b.zeit) < KL_GUT * 2)
     kollision.push(a.note + " bei " + Math.round(a.zeit) + " ms");
 }));
@@ -137,17 +155,9 @@ pruefe(kollision.length === 0,
        "die beiden kommen sich auf keiner Taste in die Quere" +
        (kollision.length ? " — " + kollision.join("; ") : ""));
 
-// Die Melodie ist die echte Violinlinie und reicht deshalb tief hinunter.
-// Getrennt bleiben die beiden nicht durch die Lage, sondern dadurch, dass
-// sie nie gleichzeitig dieselbe Taste brauchen — das steht oben.
-const bassToene = new Set(bass.map((n) => n.note));
-pruefe(bassToene.size <= 6, "der Bass benutzt nur " + bassToene.size +
-       " verschiedene T\u00f6ne — er ist die ruhige Stimme");
-const melToene = new Set(melodie.map((n) => n.note));
-pruefe(melToene.size >= 8, "die Melodie " + melToene.size + " — sie ist die bewegte");
-pruefe(melodie[0].note === "E5" && melodie[1].note === "D5" &&
-       melodie[2].note === "C5" && melodie[3].note === "H4",
-       "sie f\u00e4ngt mit der absteigenden Linie an, die jeder kennt");
+pruefe(KL_MELODIE[0][0] === "E5" && KL_MELODIE[1][0] === "D5" &&
+       KL_MELODIE[2][0] === "C5" && KL_MELODIE[3][0] === "H4",
+       "die Melodie f\u00e4ngt mit der absteigenden Linie an, die jeder kennt");
 
 console.log("Melodie, Feinheiten");
 // Zwei gleiche Noten zu dicht beieinander: die Trefferfenster überlappen,

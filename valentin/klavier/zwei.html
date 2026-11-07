@@ -120,19 +120,25 @@ const KL_PAUSE   = 1.5;      // Zähler Pause zwischen zwei Phrasen
 // kommen sich auf keiner Taste in die Quere.
 //
 // Zwei Stimmen, jede eine Folge von [Note, Länge in Zählzeiten].
+// Beide spielen beides. Zur Hälfte des Stücks tauschen sie die Stimmen:
+// Wer den Bass angefangen hat, übernimmt dann die Melodie und umgekehrt.
+// Gleich viele Noten allein wäre nicht gleich schwer — der Bass ist ein
+// Pulsschlag, die Melodie ein Stück. Nur wenn beide beides spielen, ist
+// es für beide dasselbe.
+const KL_TAUSCH = 48;        // Zählzeiten bis zum Stimmentausch
+
 const KL_BASS = [
-  // Die Basslinie des Kanons: C G A E F C F G, sechsmal durch. An vier
-  // Stellen hält die vorige Note durch, statt neu anzuschlagen — dort
-  // läge sonst dieselbe Note gleichzeitig in der Melodie, und die beiden
-  // kämen sich auf einer Taste in die Quere.
-  ["C4", 2], ["G4", 2], ["A4", 2], ["E4", 2], ["F4", 2], ["C4", 2],
-  ["F4", 2], ["G4", 2], ["C4", 2], ["G4", 2], ["A4", 2], ["E4", 2],
-  ["F4", 2], ["C4", 2], ["F4", 2], ["G4", 2], ["C4", 2], ["G4", 2],
-  ["A4", 2], ["E4", 2], ["F4", 2], ["C4", 2], ["F4", 2], ["G4", 2],
-  ["C4", 2], ["G4", 2], ["A4", 2], ["E4", 4], ["C4", 2], ["F4", 2],
-  ["G4", 2], ["C4", 2], ["G4", 2], ["A4", 2], ["E4", 2], ["F4", 2],
-  ["C4", 2], ["F4", 4], ["C4", 2], ["G4", 2], ["A4", 6], ["C4", 2],
-  ["F4", 2], ["G4", 2]
+  // Die Basslinie des Kanons: C G A E F C F G. An sechs Stellen steht
+  // ein anderer Ton desselben Akkords, weil dort sonst dieselbe Note
+  // gleichzeitig in der Melodie läge und beide auf einer Taste wären.
+  ["C4", 4], ["G4", 4], ["A4", 4], ["E4", 4],
+  ["F4", 4], ["C4", 4], ["F4", 4], ["G4", 4],
+  ["C4", 4], ["G4", 4], ["C4", 4], ["E4", 4],
+  ["A4", 4], ["C4", 4], ["A4", 4], ["G4", 4],
+  ["C4", 2], ["G4", 2], ["A4", 2], ["E4", 2],
+  ["F4", 2], ["C4", 2], ["F4", 2], ["H4", 2],
+  ["C4", 2], ["G4", 2], ["A4", 2], ["G4", 2],
+  ["A4", 2], ["C4", 2], ["F4", 2], ["G4", 2]
 ];
 
 const KL_MELODIE = [
@@ -148,6 +154,7 @@ const KL_MELODIE = [
   ["A4", 2], ["F4", 2], ["G4", 2], ["E4", 2],
   ["F4", 2], ["D4", 2], ["E4", 2], ["C4", 2]
 ];
+
 
 
 
@@ -256,7 +263,8 @@ function klStimmeBauen(stimme, wer, noten) {
       zeit: t * KL_ZAEHLER,
       dauer: laenge * KL_ZAEHLER,
       note: note,
-      wer: wer,
+      // Nach dem Tausch gehört die Stimme dem anderen
+      wer: t < KL_TAUSCH ? wer : (wer === 0 ? 1 : 0),
       stand: "offen"
     });
     t += laenge;
@@ -467,7 +475,8 @@ function klTafelStart() {
   klTafelZeigen(
     "<h2>Das Klavier</h2>" +
     "<p>Auf dem Pult liegt Pachelbels Kanon, gesetzt für vier Hände. Ihr spielt " +
-    "gleichzeitig: Einer nimmt die Basslinie unten, der andere die Melodie oben. " +
+    "gleichzeitig: Einer nimmt die Basslinie, der andere die Melodie — und zur " +
+    "Hälfte tauscht ihr. " +
     "Deine Noten sind hell und tragen einen Buchstaben, die des anderen bleiben " +
     "dunkel.</p>" +
     "<p>Drück die Taste, wenn die Note unten ankommt. Gewertet wird " +
@@ -639,7 +648,7 @@ function klSchritt(jetzt) {
   if (!klVorspiel) {
     const naechste = klSong.noten.find((n) => n.zeit > t - 200);
     klBau.wer.textContent = naechste
-      ? (klIchBin === 0 ? "du spielst den Bass" : "du spielst die Melodie")
+      ? (naechste.wer === klIchBin ? "deine Noten sind hell" : "")
       : "";
   }
 
