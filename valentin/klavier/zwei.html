@@ -74,14 +74,17 @@ const KL_WEISS = [
   { note: "E5",  freq: 659.25, kuerzel: "Ö" },
   { note: "F5",  freq: 698.46, kuerzel: "Ä" }
 ];
+// Die schwarzen Tasten liegen auf der Reihe darüber, jede über ihrer
+// eigenen Lücke. Dadurch bleibt jede Hand an ihrem Platz: die linke auf
+// A S D F mit T darüber, die rechte auf H J K L Ö mit O darüber.
 const KL_SCHWARZ = [
   { note: "Cis4", freq: 277.18, kuerzel: "W", nach: 0 },
   { note: "Dis4", freq: 311.13, kuerzel: "E", nach: 1 },
-  { note: "Fis4", freq: 369.99, kuerzel: "T", nach: 3 },
-  { note: "Gis4", freq: 415.30, kuerzel: "Z", nach: 4 },
-  { note: "Ais4", freq: 466.16, kuerzel: "U", nach: 5 },
-  { note: "Cis5", freq: 554.37, kuerzel: "O", nach: 7 },
-  { note: "Dis5", freq: 622.25, kuerzel: "P", nach: 8 }
+  { note: "Fis4", freq: 369.99, kuerzel: "R", nach: 3 },
+  { note: "Gis4", freq: 415.30, kuerzel: "T", nach: 4 },
+  { note: "Ais4", freq: 466.16, kuerzel: "Z", nach: 5 },
+  { note: "Cis5", freq: 554.37, kuerzel: "I", nach: 7 },
+  { note: "Dis5", freq: 622.25, kuerzel: "O", nach: 8 }
 ];
 
 const KL_ALLE = {};
@@ -154,12 +157,12 @@ const KL_LINKS_TEIL = (schluss) => [
 const KL_RECHTS_TEIL = (schluss) => [
   ["E5", 1], ["Dis5", 1], ["E5", 1], ["Dis5", 1],
   ["E5", 1], ["H4", 1], ["D5", 1], ["C5", 1],
-  [["A4", "E5"], 2], [null, 4],
+  [["F4", "A4"], 2], [null, 4],
   ["H4", 2], [null, 4],
   ["C5", 2], [null, 4],
   ["E5", 1], ["Dis5", 1], ["E5", 1], ["Dis5", 1],
   ["E5", 1], ["H4", 1], ["D5", 1], ["C5", 1],
-  [["A4", "E5"], 2], [null, 4],
+  [["F4", "A4"], 2], [null, 4],
   ["H4", 2], [null, 2], ["C5", 1], ["E5", 1],
   [schluss, 4], [null, 8]
 ];
@@ -512,6 +515,9 @@ function klTafelStart() {
     "Hälfte tauscht ihr. Wo zwei Noten nebeneinander kommen, brauchst du beide " +
     "Hände. Deine Noten sind hell und tragen einen Buchstaben, die des anderen " +
     "bleiben dunkel.</p>" +
+    "<p style='color:#8fd49a'>Linke Hand auf A S D F, die rechte auf H J K L Ö. " +
+    "Darüber liegen T und O. Mehr brauchst du nicht — die Hände bleiben, wo " +
+    "sie sind.</p>" +
     "<p>Drück die Taste, wenn die Note unten ankommt. Gewertet wird " +
     "gemeinsam über das ganze Stück. Ab " + KL_SCHWELLE + " Prozent geht es auf.</p>" +
     "<p style='color:#8a857a;font-size:13px'>Mitspieler: " + KL_PARTNER.name +

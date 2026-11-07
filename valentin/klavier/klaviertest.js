@@ -158,6 +158,37 @@ pruefe(KL_RECHTS[0][0] === "E5" && KL_RECHTS[1][0] === "Dis5" &&
        KL_RECHTS[2][0] === "E5" && KL_RECHTS[3][0] === "Dis5",
        "die rechte Hand f\u00e4ngt mit dem E–Dis–E–Dis an, das jeder kennt");
 
+console.log("Die H\u00e4nde bleiben, wo sie sind");
+// Auf einer Rechnertastatur spielt man nur, wenn die Hand nicht wandern
+// muss. Links A S D F mit T dar\u00fcber, rechts H J K L \u00d6 mit O dar\u00fcber.
+const LINKE = ["A", "S", "D", "F", "T"];
+const RECHTE = ["H", "J", "K", "L", "\u00d6", "O"];
+const erlaubt = LINKE.concat(RECHTE);
+const gebraucht = [...new Set(song.noten.map((n) => KL_ALLE[n.note].kuerzel))];
+const daneben = gebraucht.filter((k) => !erlaubt.includes(k));
+pruefe(daneben.length === 0,
+       gebraucht.length + " Tasten, alle unter den H\u00e4nden" +
+       (daneben.length ? " — ausser " + daneben.join(", ") : ""));
+pruefe(gebraucht.length <= 12, "nicht mehr als zw\u00f6lf Tasten im ganzen St\u00fcck");
+const schwarz = gebraucht.filter((k) => KL_SCHWARZ.some((t) => t.kuerzel === k));
+pruefe(schwarz.length <= 2, "h\u00f6chstens zwei schwarze Tasten (" + schwarz.join(", ") + ")");
+
+// Ein Griff, den beide Finger einer Hand erreichen, beweist nichts.
+// In jeder Stimme muss mindestens ein Griff \u00fcber beide Handgruppen
+// reichen — erst dann braucht man wirklich zwei H\u00e4nde.
+function griffeVon(stimme) {
+  return stimme.filter(([x]) => Array.isArray(x)).map(([x]) =>
+    x.map((t) => KL_ALLE[t].kuerzel));
+}
+[["die linke Stimme", KL_LINKS], ["die rechte Stimme", KL_RECHTS]].forEach(
+  ([name, stimme]) => {
+    const beide = griffeVon(stimme).filter((g) =>
+      g.some((k) => LINKE.includes(k)) && g.some((k) => RECHTE.includes(k)));
+    pruefe(beide.length > 0, name + " hat " + beide.length +
+           " Griffe \u00fcber beide H\u00e4nde (" +
+           beide.map((g) => g.join("+")).join(", ") + ")");
+  });
+
 console.log("Zwei H\u00e4nde");
 // Eine Stimme aus lauter Einzelnoten kann man mit einem Finger
 // abarbeiten. Griffe sind der Grund, zwei H\u00e4nde zu brauchen.
