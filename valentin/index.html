@@ -2998,6 +2998,16 @@ const LOBBY_QUELLE = {
       this._kanal = inventarKlient.channel("lobby-" + raum, {
         config: { presence: { key: netzIch } }
       });
+      // Wer das Paar zuerst erkennt, sagt es dem anderen ausdrücklich.
+      // Sich nur auf die Anwesenheit zu verlassen reicht nicht: Der
+      // Erste verlässt die Lobby sofort, und damit verschwindet seine
+      // Meldung, bevor der Zweite sie gesehen hat.
+      this._kanal.on("broadcast", { event: "los" }, ({ payload }) => {
+        if (!payload || payload.an !== netzIch) return;
+        if (this._losGesagt) return;
+        this._losGesagt = true;
+        if (typeof lobbyLosgehen === "function") lobbyLosgehen(payload.von);
+      });
       this._kanal.on("presence", { event: "sync" }, () => {
         const stand = this._kanal.presenceState();
         const andere = [];
@@ -3033,9 +3043,21 @@ const LOBBY_QUELLE = {
   },
 
   verlassen() {
-    if (this._kanal) { try { this._kanal.unsubscribe(); } catch (e) {} }
+    // Nicht sofort abmelden, damit ein eben gesendetes "los" noch
+    // hinausgeht. Sonst startet nur einer von beiden.
+    const kanal = this._kanal;
+    if (kanal) setTimeout(() => { try { kanal.unsubscribe(); } catch (e) {} }, 400);
     this._kanal = null;
     this._melden = null;
+    this._losGesagt = false;
+  },
+
+  losSagen(anId) {
+    if (!this._kanal) return;
+    try {
+      this._kanal.send({ type: "broadcast", event: "los",
+                         payload: { an: anId, von: netzIch } });
+    } catch (e) {}
   },
 
   bereitSetzen(ja) { this._ich.bereit = ja; this._senden(); },
@@ -3107,6 +3129,7 @@ function lobbyOeffnen(titel, erklaerung, beiStart, beiZurueck, raum, seite) {
 
 function lobbySchliessen() {
   LOBBY_QUELLE.verlassen();
+  setTimeout(() => { lobbyGestartet = false; }, 1000);
   lobbyZustand = null;
   lobbyOffen = false;
   if (lobbyBau) lobbyBau.wurzel.classList.remove("auf");
@@ -3121,9 +3144,21 @@ function lobbyPruefen() {
   if (!meiner) return;
   const er = z.andere.find((a) => a.id === meiner);
   if (!er || er.partner !== netzIch) return;
+  LOBBY_QUELLE.losSagen(meiner);
+  lobbyLosgehen(meiner, er);
+}
+
+// Von beiden Seiten aufrufbar: einmal durch das eigene Erkennen, einmal
+// durch die Nachricht des anderen. Zweimal starten darf es nicht.
+let lobbyGestartet = false;
+function lobbyLosgehen(partnerId, er) {
+  const z = lobbyZustand;
+  if (!z || lobbyGestartet) return;
+  lobbyGestartet = true;
   const los = z.beiStart;
+  const mit = er || z.andere.find((a) => a.id === partnerId) || { id: partnerId };
   lobbySchliessen();
-  los(false, er);                      // false = echter Mitspieler
+  los(false, mit);                     // false = echter Mitspieler
 }
 
 function lobbyWaehlen(id) {

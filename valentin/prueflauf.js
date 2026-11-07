@@ -89,7 +89,7 @@ globalThis.__aus = { KL_WEISS, KL_SCHWARZ, KL_ALLE, KL_VON_TASTE, KL_PHRASEN,
                      figurBelegen, figurUebernehmen, belegungLaden,
                      NETZ_URL, NETZ_SCHLUESSEL, NETZ_TAKT, HOERWEITE,
                      netzStarten, netzSenden, netzAndereImRaum, netzVergeben,
-                     LOBBY_QUELLE, lobbyOeffnen, lobbyWaehlen, lobbySchliessen,
+                     LOBBY_QUELLE, lobbyOeffnen, lobbyWaehlen, lobbySchliessen, lobbyLosgehen,
                      lobbyIstOffen: () => lobbyOffen, lobbyKarte: () => lobbyBau.karte.innerHTML,
                      setzeMeinX: (v) => { ttMeinX = v; }, holeMeinX: () => ttMeinX,
                      holeTreffer: () => ttTreffer, holeServiert: () => ttServiert };
@@ -342,6 +342,14 @@ pruefe(karte.indexOf("oben auf dem Dach") >= 0,
 pruefe(karte.indexOf("lobby-uebung") >= 0, "der Knopf f\u00fcr den \u00dcbungspartner ist da");
 pruefe(karte.indexOf("lobby-bereit") < 0,
        "statt eines Bereit-Knopfes w\u00e4hlt man jemanden aus");
+// Beide Seiten müssen starten, nicht nur die, die das Paar zuerst sieht
+pruefe(typeof aus.lobbyLosgehen === "function", "beide Seiten k\u00f6nnen starten");
+aus.lobbyLosgehen("fremd");
+pruefe(gestartet === false, "die Nachricht des anderen startet auch mich");
+gestartet = null;
+aus.lobbyLosgehen("fremd");
+pruefe(gestartet === null, "zweimal starten geht nicht");
+
 aus.lobbySchliessen();
 aus.LOBBY_QUELLE.betreten = echtesBetreten;
 console.log("Automat");
@@ -552,6 +560,10 @@ pruefe(roh.includes('inventarKlient.channel("lobby-" + raum'),
        "die Lobby h\u00e4ngt an einem Kanal je Aufgabe");
 pruefe(roh.includes("if (!er || er.partner !== netzIch) return;"),
        "es geht erst los, wenn zwei einander gew\u00e4hlt haben");
+pruefe(roh.includes("LOBBY_QUELLE.losSagen(meiner);"),
+       "wer das Paar zuerst sieht, sagt es dem anderen ausdr\u00fccklich");
+pruefe(roh.includes("if (kanal) setTimeout(() => { try { kanal.unsubscribe(); } catch (e) {} }, 400);"),
+       "abgemeldet wird erst danach, damit die Nachricht noch hinausgeht");
 ["klavier", "tischtennis", "labyrinth"].forEach((raum) =>
   pruefe(roh.indexOf('"' + raum + '"') >= 0, "die Aufgabe \"" + raum + "\" hat einen eigenen Raum"));
 pruefe(roh.includes('"labyrinth",\n    rolle'),
