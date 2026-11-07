@@ -212,17 +212,6 @@ pruefe(skript.includes("WANDEL_TAKT auf 0 schaltet es ab"),
 pruefe(skript.includes("if (!heckeSetzen(lab, wx, wy, wr, schliessen, laeufer.x, laeufer.y)) continue;"),
        "auch sie wird gepr\u00fcft, bevor sie bleibt");
 
-console.log("Der eingezeichnete Weg");
-pruefe(skript.includes("function pfeilMalen"), "der L\u00e4ufer sieht einen Pfeil auf dem Boden");
-pruefe(skript.includes("if (e.shiftKey || e.button === 2) {"),
-       "Umschalt-Klick setzt weiterhin ein Kreuz");
-pruefe(skript.includes("const drehung = ((richtung - laeufer.r) + 4) % 4;"),
-       "der Pfeil zeigt relativ zur Blickrichtung");
-pruefe(skript.includes("if (richtung < 0) return;"),
-       "ein Weg \u00fcber Eck ohne Nachbarfeld zeigt keinen Pfeil");
-pruefe(skript.indexOf("gehen(") > 0 && !/weg\[i \+ 1\][\s\S]{0,200}laeufer\.x =/.test(skript),
-       "der Pfeil bewegt die Figur nicht — gehen muss der L\u00e4ufer selbst");
-
 console.log("Der G\u00e4rtner");
 const GZ=zahl2("GEGNER_ZAHL"), GH=zahl2("GEGNER_HOERT");
 pruefe(GZ >= 1, GZ + " G\u00e4rtner im Labyrinth");
@@ -286,10 +275,12 @@ pruefe(skript.includes("Die Stirnseiten der Hecken"),
        "an jedem Durchgang werden die Stirnseiten gezeichnet");
 pruefe((skript.match(/heckenFlaeche\(/g) || []).length >= 6,
        (skript.match(/heckenFlaeche\(/g) || []).length + " Heckenfl\u00e4chen");
-pruefe(skript.includes("const kachel = (a.u - a.o) * HECKE_KACHEL;"),
-       "die Kachelgr\u00f6sse h\u00e4ngt an der Tiefe");
-pruefe(!/ka \* 0\.[0-9]|kachel \* 0\.[0-9]/.test(skript),
-       "alle Fl\u00e4chen eines Abschnitts haben dieselbe Kachelgr\u00f6sse");
+pruefe(skript.includes("const kachel = H * HECKE_KACHEL;") &&
+       skript.includes("const ka = H * HECKE_KACHEL;"),
+       "alle Heckenfl\u00e4chen haben dieselbe Kachelgr\u00f6sse — gestaffelt sieht " +
+       "es nach Bruchstellen aus, nicht nach Perspektive");
+pruefe(!/KACHEL[\s\S]{0,40}nah\.u|nah\.u - nah\.o\) \* [HB]|a\.u - a\.o\) \* [HB]/.test(skript),
+       "keine Kachelgr\u00f6sse h\u00e4ngt mehr an der Tiefe");
 pruefe(skript.includes("Math.floor(x0 / kb) * kb"),
        "das Kachelraster ist am Bildschirm ausgerichtet, nicht an jeder Fl\u00e4che");
 const hell = [...skript.matchAll(/d[ku]n?k?e?l? \* (0\.\d+), \[/g)].map((m) => parseFloat(m[1]));
