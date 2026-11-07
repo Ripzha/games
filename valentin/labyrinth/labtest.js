@@ -179,6 +179,15 @@ for (let i = 0; i < 40; i++) {
 pruefe(blind === blindRichtig,
        "vor einer Hecke endet die Sicht sofort (" + blindRichtig + " von " + blind + ")");
 
+console.log("Durchg\u00e4nge");
+pruefe(skript.includes("[[links, -1], [rechts, 1]].forEach"),
+       "offene Seiten werden ausgebaut statt leer gelassen");
+pruefe(skript.includes("const nx = x + DX[seite], ny = y + DY[seite];"),
+       "dahinter kommt die Hecke der Nachbarzelle, wenn der Gang dort endet");
+pruefe(skript.indexOf("[[links, -1], [rechts, 1]].forEach") <
+       skript.indexOf("// Boden des Abschnitts"),
+       "der Durchgang wird vor dem Korridorboden gezeichnet");
+
 console.log("Fallen");
 pruefe(skript.includes("lab.falle[y][x] && t <= 1"),
        "die Spur einer Falle sieht man erst direkt davor");

@@ -317,8 +317,38 @@
       const a = rahmen(t, B, H), b = rahmen(t + 1, B, H);
       const dunkel = Math.max(0, 1 - t * 0.17);
 
+      const heckFarbe = (hell) => 'rgba(' + Math.round(38 * hell) + ',' +
+                    Math.round(62 * hell) + ',' + Math.round(34 * hell) + ',1)';
+      const bodenFarbe = (hell) => 'rgba(' + Math.round(42 * hell) + ',' +
+                    Math.round(34 * hell) + ',' + Math.round(24 * hell) + ',1)';
+
+      // Seitliche Durchgänge. Ohne die sieht man an einer offenen Seite
+      // nur den leeren Hintergrund, und das wirkt wie eine kaputte Wand
+      // statt wie ein Weg. Deshalb bekommt jede Öffnung einen Boden, der
+      // zur Seite weiterläuft, und dahinter die Hecke der Nachbarzelle.
+      [[links, -1], [rechts, 1]].forEach(([seite, vorzeichen]) => {
+        if (wandDa(lab, x, y, seite)) return;
+        const kante  = vorzeichen < 0 ? a.l : a.r;
+        const kanteF = vorzeichen < 0 ? b.l : b.r;
+        const aussen  = kante  + vorzeichen * (a.r - a.l);
+        const aussenF = kanteF + vorzeichen * (b.r - b.l);
+        s2.fillStyle = bodenFarbe(dunkel * 0.8);
+        s2.beginPath();
+        s2.moveTo(aussen, a.u); s2.lineTo(kante, a.u);
+        s2.lineTo(kanteF, b.u); s2.lineTo(aussenF, b.u);
+        s2.closePath(); s2.fill();
+        const nx = x + DX[seite], ny = y + DY[seite];
+        if (wandDa(lab, nx, ny, seite)) {       // der Gang endet nebenan
+          s2.fillStyle = heckFarbe(dunkel * 0.6);
+          s2.beginPath();
+          s2.moveTo(aussen, a.o); s2.lineTo(aussenF, b.o);
+          s2.lineTo(aussenF, b.u); s2.lineTo(aussen, a.u);
+          s2.closePath(); s2.fill();
+        }
+      });
+
       // Boden des Abschnitts
-      s2.fillStyle = 'rgba(42,34,24,' + (0.9 * dunkel).toFixed(3) + ')';
+      s2.fillStyle = bodenFarbe(dunkel * 0.9);
       s2.beginPath();
       s2.moveTo(a.l, a.u); s2.lineTo(a.r, a.u); s2.lineTo(b.r, b.u); s2.lineTo(b.l, b.u);
       s2.closePath(); s2.fill();
@@ -326,8 +356,7 @@
       // Die Spur einer Falle — nur ein Feld weit und nur für den Läufer
       if (lab.falle[y][x] && t <= 1) spurMalen(a, b, dunkel, x * 97 + y * 31 + 7);
 
-      const heck = (hell) => 'rgba(' + Math.round(38 * hell) + ',' +
-                    Math.round(62 * hell) + ',' + Math.round(34 * hell) + ',1)';
+      const heck = heckFarbe;
 
       if (wandDa(lab, x, y, links)) {
         s2.fillStyle = heck(dunkel);
