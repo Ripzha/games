@@ -105,7 +105,7 @@
   // die Karte des Führenden stimmt noch, weil sie live ist.
   const WANDEL_TAKT   = 15000;   // Millisekunden zwischen zwei Änderungen
   const WANDEL_ANZAHL = 3;       // so viele Hecken auf einmal
-  const WANDEL_NAEHE  = 4;       // nur so weit vom Läufer entfernt
+  const WANDEL_NAEHE  = 3;       // nur so weit vom Läufer entfernt
 
   // Wer im Labyrinth läuft, steht auf dem Plan als Kopf seiner Figur.
   // kopf ist der Ausschnitt aus dem Stehbild, in Anteilen der Bildbreite
@@ -270,7 +270,7 @@
       const r = Math.floor(Math.random() * 4);
       const nx = x + DX[r], ny = y + DY[r];
       if (nx < 0 || ny < 0 || nx >= FELDER || ny >= FELDER) continue;
-      if (lab.wand[y][x][r] !== schliessen) continue;   // steht schon so
+      if (lab.wand[y][x][r] === schliessen) continue;   // steht schon so
       lab.wand[y][x][r] = schliessen;
       lab.wand[ny][nx][(r + 2) % 4] = schliessen;
       // Das Feld, auf dem der Läufer steht, muss offen bleiben

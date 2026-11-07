@@ -195,11 +195,13 @@ pruefe(WANDEL_TAKT >= 10000 && WANDEL_TAKT <= 60000,
 pruefe(WANDEL_ANZAHL >= 1 && WANDEL_ANZAHL <= 8,
        WANDEL_ANZAHL + " Hecken auf einmal");
 let kaputt = 0, eingemauert = 0, gelungen = 0, versucht = 0;
-let zuWeit = 0, abstaende = [];
+let zuWeit = 0, abstaende = [], wirklichAnders = 0, runden = 0;
 for (let i = 0; i < 60; i++) {
   const lab = labyrinthBauen(i * 5003 + 7);
   let lx = 0, ly = 0;
   for (let runde = 0; runde < 30; runde++) {
+    const vorher = JSON.stringify(lab.wand);
+    runden++;
     for (let k = 0; k < WANDEL_ANZAHL; k++) {
       versucht++;
       const wo = heckeUmlegen(lab, lx, ly, k % 2 === 0);
@@ -209,6 +211,7 @@ for (let i = 0; i < 60; i++) {
         if (wo.abstand > WANDEL_NAEHE * 2) zuWeit++;
       }
     }
+    if (JSON.stringify(lab.wand) !== vorher) wirklichAnders++;
     if (!zielErreichbarVon(lab, lx, ly)) kaputt++;
     if (lab.wand[ly][lx].every((w) => w)) eingemauert++;
     // der L\u00e4ufer geht ein Feld weiter, damit auch unterwegs gepr\u00fcft wird
@@ -228,10 +231,16 @@ pruefe(gelungen / versucht > 0.8,
 pruefe(skript.includes("raschelt = Date.now() + 2500"),
        "der L\u00e4ufer bekommt ein Zeichen, dass sich etwas bewegt hat");
 pruefe(zuWeit === 0, "keine Verschiebung liegt weiter weg als erlaubt");
+// Der wichtigste Test: es muss sich tats\u00e4chlich etwas \u00e4ndern. Vorher
+// wurden Hecken auf den Wert gesetzt, den sie schon hatten — gemeldet
+// wurde eine \u00c4nderung, passiert ist nichts.
+pruefe(wirklichAnders / runden > 0.98,
+       "nach jeder Runde sieht das Labyrinth anders aus (" + wirklichAnders +
+       " von " + runden + ")");
 const naeheSchnitt = abstaende.reduce((a, b) => a + b, 0) / abstaende.length;
 pruefe(naeheSchnitt <= WANDEL_NAEHE,
        "im Schnitt " + naeheSchnitt.toFixed(1) + " Felder vom L\u00e4ufer entfernt");
-pruefe(abstaende.filter((d) => d <= 2).length / abstaende.length > 0.25,
+pruefe(abstaende.filter((d) => d <= 2).length / abstaende.length > 0.3,
        Math.round(abstaende.filter((d) => d <= 2).length / abstaende.length * 100) +
        " von 100 Verschiebungen passieren in Sichtweite");
 pruefe(skript.includes("if (naechstes <= WANDEL_NAEHE) {"),
