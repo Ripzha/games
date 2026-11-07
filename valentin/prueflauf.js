@@ -420,6 +420,10 @@ pruefe(roh.includes("function netzFigurMalen(a, raum)"),
        "die fremde Figur bekommt den Raum mitgegeben");
 pruefe(roh.includes("if (!NETZ_SCHLUESSEL ||"),
        "ohne Schl\u00fcssel startet nichts und das Spiel l\u00e4uft allein weiter");
+pruefe(roh.includes('localStorage.getItem(NETZ_ICH_FACH)'),
+       "die eigene Kennung bleibt \u00fcber das Neuladen hinweg dieselbe");
+pruefe(roh.includes("if (d.figur && d.figur === MEINE_FIGUR) return;"),
+       "wer dieselbe Figur spielt wie ich, wird nicht als Fremder gezeichnet");
 
 // ---------- Wiederkommen ----------
 console.log("Wiederkommen");

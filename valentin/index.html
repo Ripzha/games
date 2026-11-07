@@ -3484,7 +3484,18 @@ const HOERWEITE  = 34;          // Prozent der Raumbreite, in denen man mithört
 
 let netzAn = false;
 let netzKanal = null;
-let netzIch = Math.random().toString(36).slice(2, 10);
+// Die eigene Kennung bleibt im Browser liegen. Mit einer neuen Kennung
+// bei jedem Laden stünde die alte Anwesenheitsmeldung noch ein paar
+// Sekunden im Kanal, und die eigene Figur erschiene als Fremder in der
+// Mitte des Hauses. Mit derselben Kennung ersetzt die neue Meldung die
+// alte.
+const NETZ_ICH_FACH = "valentin_kennung";
+let netzIch = null;
+try { netzIch = localStorage.getItem(NETZ_ICH_FACH); } catch (e) {}
+if (!netzIch) {
+  netzIch = Math.random().toString(36).slice(2, 10);
+  try { localStorage.setItem(NETZ_ICH_FACH, netzIch); } catch (e) {}
+}
 let netzAndere = {};            // id -> { name, figur, raum, x, blickt, hoch, schritt, satz, satzBis }
 let netzLetztGesendet = 0;
 
@@ -3507,6 +3518,9 @@ function netzStarten() {
     Object.keys(stand).forEach((id) => {
       if (id === netzIch) return;
       const d = stand[id][0] || {};
+      // Sicherheitsnetz: Wer dieselbe Figur spielt wie ich, bin ich —
+      // eine Figur ist nur einmal vergeben.
+      if (d.figur && d.figur === MEINE_FIGUR) return;
       const alt = netzAndere[id] || {};
       neu[id] = Object.assign({ x: 50, raum: 0, blickt: 1, hoch: 0, schritt: 0 }, alt, d);
     });
