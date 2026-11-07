@@ -369,8 +369,9 @@
     punkte.forEach(([x, y], i) => (i ? s2.lineTo(x, y) : s2.moveTo(x, y)));
     s2.closePath();
     s2.clip();
-    for (let yy = y0; yy < y1; yy += kh) {
-      for (let xx = x0; xx < x1; xx += kb) s2.drawImage(bodenBild, xx, yy, kb, kh);
+    const sx0 = Math.floor(x0 / kb) * kb, sy0 = Math.floor(y0 / kh) * kh;
+    for (let yy = sy0; yy < y1; yy += kh) {
+      for (let xx = sx0; xx < x1; xx += kb) s2.drawImage(bodenBild, xx, yy, kb, kh);
     }
     s2.fillStyle = 'rgba(0,0,0,' + Math.max(0, 1 - dunkel * BODEN_HELL).toFixed(3) + ')';
     s2.fillRect(x0, y0, x1 - x0, y1 - y0);
@@ -396,6 +397,9 @@
     return c;
   }
 
+  // Alle Flächen eines Tiefenabschnitts bekommen dieselbe Kachelgrösse.
+  // Unterschiedliche Grössen nebeneinander sehen aus wie Bruchstellen.
+  //
   // Eine Heckenfläche: Textur gekachelt hinein, nach Tiefe abdunkeln, und
   // die Oberkante mit ein paar Büscheln aufbrechen. Gekachelt statt
   // gestreckt, damit die Blätter nicht verzerren — die Kachelgrösse hängt
@@ -419,8 +423,12 @@
     punkte.forEach(([x, y], i) => (i ? s2.lineTo(x, y) : s2.moveTo(x, y)));
     s2.closePath();
     s2.clip();
-    for (let yy = y0; yy < y1; yy += kh) {
-      for (let xx = x0; xx < x1; xx += kb) s2.drawImage(bild, xx, yy, kb, kh);
+    // Das Kachelraster am Bildschirm ausrichten, nicht an der Ecke dieser
+    // Fläche. Sonst fängt jede Fläche bei einem anderen Blatt an und es
+    // entstehen Nähte zwischen Flächen, die eine Hecke sein sollen.
+    const sx0 = Math.floor(x0 / kb) * kb, sy0 = Math.floor(y0 / kh) * kh;
+    for (let yy = sy0; yy < y1; yy += kh) {
+      for (let xx = sx0; xx < x1; xx += kb) s2.drawImage(bild, xx, yy, kb, kh);
     }
     s2.fillStyle = 'rgba(0,0,0,' + Math.max(0, 1 - dunkel * HECKE_HELL).toFixed(3) + ')';
     s2.fillRect(x0, y0, x1 - x0, y1 - y0);
@@ -577,8 +585,8 @@
           // Boden des Gangabschnitts
           const gangPunkte = [[aussen, nah.u], [kante, nah.u],
                               [kanteF, fern.u], [aussenF, fern.u]];
-          if (!bodenFlaeche(gangPunkte, dk * 0.85, (nah.u - nah.o) * BODEN_KACHEL)) {
-            s2.fillStyle = bodenFarbe(dk * 0.8);
+          if (!bodenFlaeche(gangPunkte, dk, (nah.u - nah.o) * BODEN_KACHEL)) {
+            s2.fillStyle = bodenFarbe(dk * 0.9);
             s2.beginPath();
             gangPunkte.forEach(([px, py], i) => (i ? s2.lineTo(px, py) : s2.moveTo(px, py)));
             s2.closePath(); s2.fill();
@@ -588,23 +596,23 @@
           if (wandDa(lab, gx, gy, seite)) {
             heckenFlaeche([[aussen, nah.o], [aussenF, fern.o],
                            [aussenF, fern.u], [aussen, nah.u]],
-                          dk * 0.6, [aussen, nah.o, aussenF, fern.o],
-                          gx * 97 + gy * 31 + 11, ka * 0.8);
+                          dk * 0.9, [aussen, nah.o, aussenF, fern.o],
+                          gx * 97 + gy * 31 + 11, ka);
           }
           // Innenhecke zum Korridor hin, sobald man weiter hineinschaut
           if (k > 0 && wandDa(lab, gx, gy, (seite + 2) % 4)) {
             heckenFlaeche([[kante, nah.o], [kanteF, fern.o],
                            [kanteF, fern.u], [kante, nah.u]],
-                          dk * 0.66, [kante, nah.o, kanteF, fern.o],
-                          gx * 97 + gy * 31 + 31, ka * 0.8);
+                          dk * 0.9, [kante, nah.o, kanteF, fern.o],
+                          gx * 97 + gy * 31 + 31, ka);
           }
           // Hecke, die im Gang quer steht
           const quer = wandDa(lab, gx, gy, r);
           if (quer) {
             heckenFlaeche([[kanteF, fern.o], [aussenF, fern.o],
                            [aussenF, fern.u], [kanteF, fern.u]],
-                          dk * 0.7, [kanteF, fern.o, aussenF, fern.o],
-                          gx * 97 + gy * 31 + 21, ka * 0.6);
+                          dk * 0.84, [kanteF, fern.o, aussenF, fern.o],
+                          gx * 97 + gy * 31 + 21, ka);
           }
 
           // Die Stirnseiten der Hecken, die den Durchgang einrahmen
@@ -614,12 +622,12 @@
             if (wandDa(lab, x - DX[r], y - DY[r], seite)) {
               heckenFlaeche([[kante, nah.o], [kante + vorzeichen * d0, nah.o],
                              [kante + vorzeichen * d0, nah.u], [kante, nah.u]],
-                            dk * 0.74, null, 0, ka);
+                            dk * 0.92, null, 0, ka);
             }
             if (wandDa(lab, gx + DX[r], gy + DY[r], seite)) {
               heckenFlaeche([[kanteF, fern.o], [kanteF + vorzeichen * d1, fern.o],
                              [kanteF + vorzeichen * d1, fern.u], [kanteF, fern.u]],
-                            dk * 0.7, null, 0, ka * 0.6);
+                            dk * 0.88, null, 0, ka);
             }
           }
 
@@ -649,11 +657,11 @@
       }
       if (wandDa(lab, x, y, rechts)) {
         heckenFlaeche([[a.r, a.o], [b.r, b.o], [b.r, b.u], [a.r, a.u]],
-                      dunkel * 0.86, [a.r, a.o, b.r, b.o], saat + 2, kachel);
+                      dunkel * 0.93, [a.r, a.o, b.r, b.o], saat + 2, kachel);
       }
       if (wandDa(lab, x, y, r)) {
         heckenFlaeche([[b.l, b.o], [b.r, b.o], [b.r, b.u], [b.l, b.u]],
-                      dunkel * 0.78, [b.l, b.o, b.r, b.o], saat + 3, kachel * 0.6);
+                      dunkel * 0.86, [b.l, b.o, b.r, b.o], saat + 3, kachel);
       }
       // Ziel
       if (x === lab.ziel[0] && y === lab.ziel[1] && t > 0) {

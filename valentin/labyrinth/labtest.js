@@ -302,7 +302,7 @@ const datei = (skript.match(/HECKE_DATEI = '([^']+)'/) || [])[1];
 pruefe(datei && fs.existsSync(datei), "die Textur liegt daneben (" + datei + ")");
 pruefe(skript.includes("heckeErsatz = heckeWuerfeln()"),
        "solange sie nicht geladen ist, wird eine gew\u00fcrfelt — nie eine leere Wand");
-pruefe(/for \(let xx = x0; xx < x1; xx \+= kb\) s2\.drawImage/.test(skript),
+pruefe(/for \(let xx = sx0; xx < x1; xx \+= kb\) s2\.drawImage\(bild/.test(skript),
        "sie wird gekachelt, nicht gestreckt — sonst verzerren die Bl\u00e4tter");
 pruefe(skript.includes("const HECKE_DICKE"), "die Hecken haben eine Wandst\u00e4rke");
 const dicke = parseFloat((skript.match(/HECKE_DICKE = ([0-9.]+)/) || [])[1]);
@@ -314,12 +314,19 @@ pruefe((skript.match(/heckenFlaeche\(/g) || []).length >= 6,
        (skript.match(/heckenFlaeche\(/g) || []).length + " Heckenfl\u00e4chen");
 pruefe(skript.includes("const kachel = (a.u - a.o) * HECKE_KACHEL;"),
        "die Kachelgr\u00f6sse h\u00e4ngt an der Tiefe");
+pruefe(!/ka \* 0\.[0-9]|kachel \* 0\.[0-9]/.test(skript),
+       "alle Fl\u00e4chen eines Abschnitts haben dieselbe Kachelgr\u00f6sse");
+pruefe(skript.includes("Math.floor(x0 / kb) * kb"),
+       "das Kachelraster ist am Bildschirm ausgerichtet, nicht an jeder Fl\u00e4che");
+const hell = [...skript.matchAll(/d[ku]n?k?e?l? \* (0\.\d+), \[/g)].map((m) => parseFloat(m[1]));
+pruefe(hell.every((v) => v >= 0.8),
+       "keine Fl\u00e4che ist mehr als ein F\u00fcnftel dunkler als ihre Nachbarn");
 
 console.log("Boden");
 pruefe(skript.includes("const BODEN_DATEI"), "der Boden hat eine Textur");
 const bd = (skript.match(/BODEN_DATEI = '([^']+)'/) || [])[1];
 pruefe(bd && fs.existsSync(bd), "sie liegt daneben (" + bd + ")");
-pruefe(/for \(let xx = x0; xx < x1; xx \+= kb\) s2\.drawImage\(bodenBild/.test(skript),
+pruefe(/for \(let xx = sx0; xx < x1; xx \+= kb\) s2\.drawImage\(bodenBild/.test(skript),
        "auch der Boden wird gekachelt, nicht gestreckt");
 pruefe(skript.includes("if (!bodenFlaeche(bodenPunkte"),
        "ohne Textur bleibt die alte Farbe — nie ein Loch im Bild");
