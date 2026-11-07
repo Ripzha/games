@@ -367,7 +367,7 @@
 
   // Wird bei jedem Paket neu gesetzt. Steht unten im Startbildschirm, damit man
   // sofort sieht, welche Fassung gerade live ist.
-  const BAUSTAND = '07.11.2026 22:32';
+  const BAUSTAND = '07.11.2026 22:39';
   const SPEICHER_KEY = 'ostern_fortschritt';
   const HINWEISE_GESAMT = 3;
   // Gemeinsamer Faktor für alle Eier. Die Radien in EIER bleiben, hier wird
@@ -2620,6 +2620,7 @@
         if (t.gibt && !zustand.inventar.includes(t.gibt)) zustand.inventar.push(t.gibt);
         klang('nehmen');
         aktualisiereSichtbarkeit(); speichern();
+        zurueckZumKuchen();
         break;
       case 'naehe':
         if (t.nahWenn && !zustand.offen[t.nahWenn]) { sag(t.nahFehlt || 'Da ist nichts. Wirklich.'); return; }
@@ -3626,6 +3627,17 @@
   }
   // Zurück ins Haus: der Endbildschirm verschwindet, das Spiel läuft weiter.
   // Praktisch, wenn noch Zutaten fehlen.
+  // Wer nach dem Endbildschirm nochmal losgezogen ist, kommt zurück, sobald
+  // die letzte eigene Zutat im Rucksack liegt.
+  function zurueckZumKuchen() {
+    if (!zustand.fertig || !zustand.weitersuchen) return;
+    if (fehlendeZutaten().length) return;
+    zustand.weitersuchen = false;
+    speichern();
+    sag('Alles beisammen. Dann können wir backen.');
+    setTimeout(() => { schweig(); spielEnde(); }, 2200);
+  }
+
   document.getElementById('ende-weiter').onclick = () => {
     document.getElementById('ende-zutaten').textContent = '';
     document.getElementById('screen-ende').classList.add('hidden');
@@ -3779,6 +3791,13 @@
   if (hatte && zustand.fertig && !zustand.weitersuchen) {
     document.getElementById('screen-intro').classList.add('hidden');
     spielEnde();
+  } else if (hatte && zustand.fertig && zustand.weitersuchen) {
+    // Mitten im Nachsuchen neu geladen: direkt weiterspielen statt
+    // über den Startbildschirm zu gehen.
+    document.getElementById('screen-intro').classList.add('hidden');
+    zustand.laeuft = true;
+    uhrStart();
+    renderRaum();
   }
   // ?backen=1 öffnet den Backtisch sofort, zum Anschauen ohne vollständige Suche
   if (ABSPANNTEST) {
