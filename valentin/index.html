@@ -2055,76 +2055,18 @@ figurMalen = function (raum) {
 };
 
 // ======================================================================
-// 11. Die Tischtennisplatte im Spielzimmer — die zweite Aufgabe zu zweit
-//
-//    Zwei Schläger unten nebeneinander, jeder deckt seine Hälfte. Der
-//    Ball springt von Decke und Wänden zurück und darf nicht auf den
-//    Boden. Gezählt wird gemeinsam. Fällt er runter, fängt der Ballwechsel
-//    von vorne an, ohne Strafe.
-//
-//    Zur Verzögerung: anders als beim Klavier lässt sich der Ball nicht
-//    vorher ausrechnen, weil sein Weg davon abhängt, wo die Schläger
-//    stehen. Deshalb gehört der Ball immer dem, in dessen Hälfte er
-//    gerade ist. Wer ihn hat, rechnet ihn bei sich, schlägt ihn bei sich
-//    und schickt beim Übergeben einen Stand hinüber: Ort, Richtung,
-//    Tempo und die Uhrzeit dazu. Der andere setzt darauf auf. So spielt
-//    jeder immer gegen einen Ball, der bei ihm stimmt — die Verzögerung
-//    trifft nur den, der gerade ohnehin nicht zuständig ist.
-//
-//    Mehrspieler ist noch nicht gebaut. Solange steht ein Übungspartner
-//    an der anderen Hälfte, hinter TT_PARTNER.
 // ======================================================================
+// 11. Die Tischtennisplatte im Spielzimmer
+//
+//    Das Spiel selbst liegt in tischtennis/zwei.html und läuft in einem
+//    Rahmen, wie Klavier, Schlitten und Labyrinth. Hier bleibt nur, was
+//    das Haus davon wissen muss.
+// ======================================================================
+
+const TT_SEITE = "tischtennis/zwei.html";
 
 let ttOffen = false;
 let ttGeloest = false;          // wird wahr, sobald das Ziel erreicht ist
-
-// ----------------------------------------------------------------------
-// Masse und Tempo. Alles in Prozent des Spielfelds, damit es auf jeder
-// Bildschirmgrösse gleich spielt.
-// ----------------------------------------------------------------------
-const TT_ZIEL        = 15;      // so viele Treffer zusammen
-const TT_SCHLAEGER_B = 13;      // Breite des Schlägers
-const TT_SCHLAEGER_H = 2.4;
-const TT_SCHLAEGER_Y = 94;      // Höhe, auf der die Schläger liegen
-const TT_UEBERLAPP   = 4;       // wie weit jeder über die Mitte darf
-const TT_BALL        = 2.2;     // Halbmesser
-const TT_TEMPO_START = 54;      // Prozent je Sekunde
-const TT_TEMPO_PLUS  = 3.4;     // schneller je Treffer
-const TT_TEMPO_MAX   = 102;
-const TT_SCHLAEGER_TEMPO = 95;  // wie schnell sich ein Schläger bewegt
-const TT_UNTEN       = 104;     // darunter ist der Ball weg
-
-// ----------------------------------------------------------------------
-// Der Mitspieler an der rechten Hälfte.
-//
-// Später kommt hier die Verbindung hinein. Gebraucht wird wenig:
-//   wo()        wo sein Schläger steht, 0 bis 100
-//   schritt(dt) darf sich bewegen
-//   uebergeben(stand)  der Ball wechselt in seine Hälfte
-//   abholen()   liefert einen Stand zurück, wenn er den Ball
-//               zurückgeschlagen hat, sonst null
-// ----------------------------------------------------------------------
-const TT_PARTNER = {
-  name: "Übungspartner",
-  x: 75,
-  _traeg: 0,
-  neu() { this.x = 75; this._traeg = 0; },
-  wo() { return this.x; },
-  schritt(dt, ball) {
-    // Er zielt auf den Ball, reagiert aber etwas träge und ungenau.
-    this._traeg += dt;
-    if (this._traeg > 0.12) { this._traeg = 0; this._ziel = ball.x + (Math.random() - 0.5) * 9; }
-    const ziel = Math.min(100 - TT_SCHLAEGER_B / 2,
-                 Math.max(50 - TT_UEBERLAPP + TT_SCHLAEGER_B / 2, this._ziel || 75));
-    const weg = ziel - this.x;
-    const max = TT_SCHLAEGER_TEMPO * 0.85 * dt;
-    this.x += Math.max(-max, Math.min(max, weg));
-  }
-};
-
-// ----------------------------------------------------------------------
-// Oberfläche
-// ----------------------------------------------------------------------
 let ttBau = null;
 
 function ttStil() {
@@ -2133,327 +2075,70 @@ function ttStil() {
   s.id = "tt-stil";
   s.textContent = `
   #tischtennis { position: absolute; inset: 0; display: none; flex-direction: column;
-                 background: rgba(8,7,6,0.94); z-index: 5; }
+             background: #0a0908; z-index: 8; }
   #tischtennis.auf { display: flex; }
-  #tt-kopf { display: flex; justify-content: space-between; align-items: baseline;
-             padding: 10px 16px; font-size: 13px; color: #8a857a; flex: none; }
-  #tt-kopf b { color: #f0c173; font-weight: 500; }
-  #tt-feld { position: relative; flex: 1; overflow: hidden; }
-  #tt-feld canvas { position: absolute; inset: 0; width: 100%; height: 100%; }
-  #tt-tafel { position: absolute; inset: 0; display: flex; align-items: center;
-              justify-content: center; padding: 24px; background: rgba(8,7,6,0.9); z-index: 6; }
-  #tt-tafel.weg { display: none; }
-  #tt-karte { max-width: 480px; width: 100%; background: rgba(16,14,11,0.98);
-              border: 1px solid #5a4a1c; border-radius: 12px; padding: 22px 24px; }
-  #tt-karte h2 { margin: 0 0 10px; font-size: 19px; font-weight: 500; color: #f0c173; }
-  #tt-karte p  { margin: 0 0 12px; font-size: 15px; line-height: 1.55; color: #ded6c2; }
-  #tt-karte button { padding: 9px 18px; margin: 4px 6px 0 0; background: #3a2f12;
-              color: #f0c173; border: 1px solid #5a4a1c; border-radius: 6px;
-              font-size: 15px; cursor: pointer; }
+  #tt-leiste { flex: none; display: flex; align-items: center; gap: 14px;
+             padding: 7px 12px; background: #131210; border-bottom: 1px solid #262218;
+             font-size: 13px; color: #8a857a; }
+  #tt-leiste b { color: #f0c173; font-weight: 500; }
+  #tt-leiste button { margin-left: auto; padding: 5px 14px; background: #3a2f12;
+             color: #f0c173; border: 1px solid #5a4a1c; border-radius: 6px;
+             font-size: 13px; cursor: pointer; }
+  #tischtennis iframe { flex: 1; width: 100%; border: 0; display: block; min-height: 0; }
   `;
   document.head.appendChild(s);
 }
 
-function ttOberflaeche() {
-  if (ttBau) return ttBau;
+function ttStarten(mit) {
   ttStil();
-  const wurzel = document.createElement("div");
-  wurzel.id = "tischtennis";
-  wurzel.innerHTML =
-    '<div id="tt-kopf"><span id="tt-stand"></span><span id="tt-hinweis"></span></div>' +
-    '<div id="tt-feld"><canvas id="tt-bild"></canvas></div>' +
-    '<div id="tt-tafel"><div id="tt-karte"></div></div>';
-  document.getElementById("buehne").appendChild(wurzel);
-  ttBau = {
-    wurzel,
-    feld:    wurzel.querySelector("#tt-feld"),
-    leinwand: wurzel.querySelector("#tt-bild"),
-    stand:   wurzel.querySelector("#tt-stand"),
-    hinweis: wurzel.querySelector("#tt-hinweis"),
-    tafel:   wurzel.querySelector("#tt-tafel"),
-    karte:   wurzel.querySelector("#tt-karte")
-  };
-  ttBau.stift = ttBau.leinwand.getContext("2d");
-  window.addEventListener("resize", ttGroesse);
-  return ttBau;
-}
+  if (!ttBau) {
+    const wurzel = document.createElement("div");
+    wurzel.id = "tischtennis";
+    wurzel.innerHTML =
+      '<div id="tt-leiste"><b>Die Platte</b>' +
+      "<span>den Ball gemeinsam in der Luft halten</span>" +
+      '<button id="tt-weg">Zur\u00fcck</button></div>' +
+      '<iframe id="tt-rahmen" title="Tischtennis"></iframe>';
+    document.getElementById("buehne").appendChild(wurzel);
+    ttBau = { wurzel, rahmen: wurzel.querySelector("#tt-rahmen") };
+    wurzel.querySelector("#tt-weg").onclick = ttSchliessen;
+  }
 
-function ttGroesse() {
-  if (!ttBau) return;
-  const r = ttBau.feld.getBoundingClientRect();
-  const d = Math.min(window.devicePixelRatio || 1, 2);
-  ttBau.leinwand.width = Math.max(1, Math.round(r.width * d));
-  ttBau.leinwand.height = Math.max(1, Math.round(r.height * d));
-}
-
-// ----------------------------------------------------------------------
-// Zustand
-// ----------------------------------------------------------------------
-const ttBall = { x: 50, y: 30, dx: 0, dy: 0, tempo: TT_TEMPO_START, haelfte: 0 };
-let ttMeinX = 25;
-let ttLaeuft = false, ttSchleife = null, ttZuletzt = 0;
-let ttTreffer = 0, ttBeste = 0, ttServiert = false;
-const ttTasten = {};
-
-// Die Grenzen, in denen ein Schläger laufen darf.
-function ttGrenzen(links) {
-  const h = TT_SCHLAEGER_B / 2;
-  return links
-    ? [h, 50 + TT_UEBERLAPP - h]
-    : [50 - TT_UEBERLAPP + h, 100 - h];
-}
-
-function ttAufschlag(wer) {
-  // wer: 0 = ich, 1 = der andere. Der Ball steigt aus der Hälfte auf.
-  ttBall.x = wer === 0 ? 25 : 75;
-  ttBall.y = TT_SCHLAEGER_Y - 8;
-  ttBall.tempo = TT_TEMPO_START;
-  const schraeg = (Math.random() - 0.5) * 0.7;
-  const laenge = Math.sqrt(schraeg * schraeg + 1);
-  ttBall.dx = schraeg / laenge;
-  ttBall.dy = -1 / laenge;
-  ttBall.haelfte = wer;
-  ttTreffer = 0;
-  ttServiert = true;
-  ttStandAnzeigen();
-}
-
-function ttStandAnzeigen() {
-  ttBau.stand.innerHTML = "zusammen <b>" + ttTreffer + "</b> von " + TT_ZIEL +
-                          (ttBeste ? "   (beste " + ttBeste + ")" : "");
-}
-
-// ----------------------------------------------------------------------
-// Öffnen und schliessen
-// ----------------------------------------------------------------------
-function ttStarten() {
-  ttOberflaeche();
+  // Der Kanalname hängt an beiden Kennungen in fester Reihenfolge —
+  // dadurch kommen beide auf denselben, egal wer zuerst da ist.
+  const partnerId = mit && mit.id;
+  const kanal = partnerId ? "tt-" + [netzIch, partnerId].sort().join("-") : "";
   ttOffen = true;
   ttBau.wurzel.classList.add("auf");
-  ttGroesse();
-  ttTafelStart();
+  ttBau.rahmen.src = TT_SEITE +
+    "?ich=" + encodeURIComponent(netzIch) +
+    (partnerId ? "&partner=" + encodeURIComponent(partnerId) : "") +
+    (kanal ? "&kanal=" + encodeURIComponent(kanal) : "");
+  setTimeout(() => { try { ttBau.rahmen.contentWindow.focus(); } catch (e) {} }, 60);
 }
 
 function ttSchliessen() {
-  ttAbbrechen();
   ttOffen = false;
-  if (ttBau) ttBau.wurzel.classList.remove("auf");
+  if (ttBau) {
+    ttBau.wurzel.classList.remove("auf");
+    ttBau.rahmen.src = "about:blank";   // hält das Spiel an
+  }
   fensterZu();
+  try { window.focus(); } catch (e) {}
 }
 
-function ttAbbrechen() {
-  ttLaeuft = false;
-  if (ttSchleife) cancelAnimationFrame(ttSchleife);
-  ttSchleife = null;
-  Object.keys(ttTasten).forEach((k) => delete ttTasten[k]);
-}
+// Was die Seite dem Haus sagt
+addEventListener("message", (e) => {
+  const d = e.data;
+  if (!d || d.tischtennis !== true) return;
+  if (d.art === "geloest") ttGeloest = true;
+  if (d.art === "fertig") ttSchliessen();
+});
 
-function ttTafelZeigen(html, knoepfe) {
-  ttBau.karte.innerHTML = html;
-  const leiste = document.createElement("div");
-  knoepfe.forEach(([text, tun]) => {
-    const b = document.createElement("button");
-    b.textContent = text;
-    b.onclick = tun;
-    leiste.appendChild(b);
-  });
-  ttBau.karte.appendChild(leiste);
-  ttBau.tafel.classList.remove("weg");
-}
-
-function ttTafelStart() {
-  ttTafelZeigen(
-    "<h2>Die Tischtennisplatte</h2>" +
-    "<p>Zwei Schläger, einer für jeden. Du hast die linke Hälfte, der " +
-    "andere die rechte. Der Ball darf nicht auf den Boden.</p>" +
-    "<p>A und D bewegen deinen Schläger, mit der Maus oder dem Finger geht " +
-    "es auch. Leertaste schlägt auf — das darf jeder von euch.</p>" +
-    "<p>Gezählt wird zusammen. " + TT_ZIEL + " Treffer, dann ist es geschafft. " +
-    "Fällt der Ball, fangt ihr neu an, sonst passiert nichts.</p>" +
-    "<p style='color:#8a857a;font-size:13px'>Mitspieler: " + TT_PARTNER.name + "</p>",
-    [["Anfangen", ttSpielStarten], ["Zurück", ttSchliessen]]
-  );
-}
-
-function ttTafelEnde() {
-  ttGeloest = true;
-  ttTafelZeigen(
-    "<h2>" + TT_ZIEL + " am Stück</h2>" +
-    "<p>Der Ball ist nicht einmal runtergefallen, seit ihr angefangen habt.</p>" +
-    "<p><i>Platzhalter — hier kommt, was die gelöste Platte auswirft. " +
-    "Noch nicht entschieden.</i></p>",
-    [["Zurück", ttSchliessen]]
-  );
-}
-
-// ----------------------------------------------------------------------
-// Der Durchgang
-// ----------------------------------------------------------------------
-function ttSpielStarten() {
-  ttAbbrechen();
-  ttBau.tafel.classList.add("weg");
-  ttGroesse();
-  TT_PARTNER.neu();
-  ttMeinX = 25;
-  ttZielX = null;
-  ttTreffer = 0;
-  ttServiert = false;
-  ttBall.x = 50; ttBall.y = 50; ttBall.dx = 0; ttBall.dy = 0;
-  ttBau.hinweis.textContent = "Leertaste zum Aufschlagen";
-  ttStandAnzeigen();
-  ttLaeuft = true;
-  ttZuletzt = performance.now();
-  ttSchleife = requestAnimationFrame(ttSchritt);
-}
-
-function ttSchritt(jetzt) {
-  if (!ttLaeuft) return;
-  let dt = (jetzt - ttZuletzt) / 1000;
-  ttZuletzt = jetzt;
-  if (dt > 0.05) dt = 0.05;            // nach einem Hänger nicht springen
-
-  // Mein Schläger
-  let dx = 0;
-  if (ttTasten["a"]) dx -= 1;
-  if (ttTasten["d"]) dx += 1;
-  if (dx) { ttMeinX += dx * TT_SCHLAEGER_TEMPO * dt; ttZielX = null; }
-  else if (ttZielX !== null) {
-    const weg = ttZielX - ttMeinX;
-    const max = TT_SCHLAEGER_TEMPO * dt;
-    ttMeinX += Math.max(-max, Math.min(max, weg));
-  }
-  const [ml, mr] = ttGrenzen(true);
-  ttMeinX = Math.max(ml, Math.min(mr, ttMeinX));
-
-  if (ttServiert) {
-    TT_PARTNER.schritt(dt, ttBall);
-    ttBallSchritt(dt);
-  }
-  ttMalen();
-  ttSchleife = requestAnimationFrame(ttSchritt);
-}
-
-function ttBallSchritt(dt) {
-  const weg = ttBall.tempo * dt;
-  ttBall.x += ttBall.dx * weg;
-  ttBall.y += ttBall.dy * weg;
-
-  // Wände und Decke
-  if (ttBall.x < TT_BALL)       { ttBall.x = TT_BALL;       ttBall.dx = Math.abs(ttBall.dx); }
-  if (ttBall.x > 100 - TT_BALL) { ttBall.x = 100 - TT_BALL; ttBall.dx = -Math.abs(ttBall.dx); }
-  if (ttBall.y < TT_BALL)       { ttBall.y = TT_BALL;       ttBall.dy = Math.abs(ttBall.dy); }
-
-  // Wem gehört der Ball gerade
-  ttBall.haelfte = ttBall.x < 50 ? 0 : 1;
-
-  // Schläger
-  if (ttBall.dy > 0 &&
-      ttBall.y + TT_BALL >= TT_SCHLAEGER_Y &&
-      ttBall.y + TT_BALL <= TT_SCHLAEGER_Y + TT_SCHLAEGER_H + 2) {
-    const wo = ttBall.haelfte === 0 ? ttMeinX : TT_PARTNER.wo();
-    const ab = ttBall.x - wo;
-    if (Math.abs(ab) <= TT_SCHLAEGER_B / 2 + TT_BALL * 0.6) {
-      ttBall.y = TT_SCHLAEGER_Y - TT_BALL;
-      // Je weiter aussen getroffen, desto schräger zurück
-      const schraeg = (ab / (TT_SCHLAEGER_B / 2)) * 0.85;
-      const laenge = Math.sqrt(schraeg * schraeg + 1);
-      ttBall.dx = schraeg / laenge;
-      ttBall.dy = -1 / laenge;
-      ttBall.tempo = Math.min(TT_TEMPO_MAX, ttBall.tempo + TT_TEMPO_PLUS);
-      ttTreffer++;
-      if (ttTreffer > ttBeste) ttBeste = ttTreffer;
-      ttStandAnzeigen();
-      if (ttTreffer >= TT_ZIEL) { ttLaeuft = false; ttTafelEnde(); return; }
-    }
-  }
-
-  // Runtergefallen
-  if (ttBall.y > TT_UNTEN) {
-    ttServiert = false;
-    ttTreffer = 0;
-    ttStandAnzeigen();
-    ttBau.hinweis.textContent = "Daneben — Leertaste für den nächsten Aufschlag";
-  }
-}
-
-// ----------------------------------------------------------------------
-// Zeichnen
-// ----------------------------------------------------------------------
-function ttMalen() {
-  const s = ttBau.stift, B = ttBau.leinwand.width, H = ttBau.leinwand.height;
-  const px = (p) => (p / 100) * B;
-  const py = (p) => (p / 100) * H;
-  s.clearRect(0, 0, B, H);
-
-  // Mittellinie und Bodenlinie
-  s.strokeStyle = "rgba(201,160,106,0.18)";
-  s.lineWidth = Math.max(1, B * 0.0015);
-  s.setLineDash([B * 0.012, B * 0.012]);
-  s.beginPath(); s.moveTo(px(50), 0); s.lineTo(px(50), py(TT_SCHLAEGER_Y)); s.stroke();
-  s.setLineDash([]);
-  s.strokeStyle = "rgba(201,160,106,0.35)";
-  s.beginPath();
-  s.moveTo(0, py(TT_SCHLAEGER_Y + TT_SCHLAEGER_H + 1));
-  s.lineTo(B, py(TT_SCHLAEGER_Y + TT_SCHLAEGER_H + 1));
-  s.stroke();
-
-  // Schläger
-  const schlaeger = (x, farbe) => {
-    s.fillStyle = farbe;
-    const b = px(TT_SCHLAEGER_B), h = py(TT_SCHLAEGER_H);
-    const r = h / 2;
-    const l = px(x) - b / 2, o = py(TT_SCHLAEGER_Y);
-    s.beginPath();
-    if (s.roundRect) s.roundRect(l, o, b, h, r);
-    else s.rect(l, o, b, h);
-    s.fill();
-  };
-  schlaeger(ttMeinX, "#f0c173");
-  schlaeger(TT_PARTNER.wo(), "#6d6659");
-
-  // Ball
-  if (ttServiert) {
-    s.fillStyle = "#f6f0e4";
-    s.beginPath();
-    s.arc(px(ttBall.x), py(ttBall.y), px(TT_BALL), 0, Math.PI * 2);
-    s.fill();
-  }
-}
-
-// ----------------------------------------------------------------------
-// Tasten und Zeigen
-// ----------------------------------------------------------------------
 addEventListener("keydown", (e) => {
   if (!ttOffen) return;
-  if (document.activeElement === satzfeld) return;
-  const t = e.key.toLowerCase();
-  if (t === "escape") { ttSchliessen(); e.preventDefault(); return; }
-  if (t === "a" || t === "d") { ttTasten[t] = true; e.preventDefault(); return; }
-  if (e.key === " " || e.key === "Spacebar") {
-    e.preventDefault();
-    if (ttLaeuft && !ttServiert) ttAufschlag(Math.random() < 0.5 ? 0 : 1);
-  }
+  if (e.key === "Escape") { ttSchliessen(); e.preventDefault(); }
 });
-addEventListener("keyup", (e) => {
-  if (!ttOffen) return;
-  ttTasten[e.key.toLowerCase()] = false;
-});
-
-// Maus und Finger setzen nur ein Ziel. Der Schläger fährt mit derselben
-// Geschwindigkeit dorthin wie mit den Tasten — sonst wäre er mit der Maus
-// sofort überall und die Breite spielte keine Rolle mehr.
-let ttZielX = null;
-function ttZeigen(e) {
-  if (!ttOffen || !ttLaeuft) return;
-  const r = ttBau.feld.getBoundingClientRect();
-  const x = ((e.clientX - r.left) / r.width) * 100;
-  const [l, re] = ttGrenzen(true);
-  ttZielX = Math.max(l, Math.min(re, x));
-}
-["pointerdown", "pointermove"].forEach((art) =>
-  document.addEventListener(art, ttZeigen, { passive: true })
-);
-
 // ======================================================================
 // 12. Die Lobby vor jeder Aufgabe
 //
@@ -2746,7 +2431,7 @@ ttStarten = function () {
     "Die Tischtennisplatte",
     "Zwei Schläger, einer für jeden. Der Ball darf nicht auf den Boden, " +
     "gezählt wird zusammen.",
-    () => ttDirekt(),
+    (uebung, mit) => ttDirekt(mit),
     () => fensterZu(),
     "tischtennis"
   );

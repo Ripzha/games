@@ -1,0 +1,541 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Pachelbels Kanon — zum Üben</title>
+<style>
+  :root { color-scheme: dark; }
+  * { box-sizing: border-box; }
+  html, body { height: 100%; margin: 0; }
+  body { background: #0a0908; color: #ded6c2; display: flex; flex-direction: column;
+         font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; }
+
+  #leiste { flex: none; display: flex; align-items: center; gap: 16px;
+            padding: 9px 14px; background: #131210; border-bottom: 1px solid #262218;
+            font-size: 13px; color: #8a857a; }
+  #leiste b { color: #f0c173; font-weight: 500; }
+  #leiste button { padding: 5px 13px; background: #2a2720; color: #ded6c2;
+            border: 1px solid #3a352c; border-radius: 6px; font-size: 13px;
+            cursor: pointer; }
+  #leiste button:hover { background: #352f26; }
+  #leiste label { display: flex; align-items: center; gap: 7px; }
+  #leiste select { padding: 5px 9px; background: #2a2720; color: #f0c173;
+            border: 1px solid #3a352c; border-radius: 6px; font-size: 13px; }
+  #leiste input[type=range] { width: 120px; }
+  #stand { margin-left: auto; color: #8fd49a; }
+
+  #feld { position: relative; flex: 1; overflow: hidden; min-height: 0; }
+  .note { position: absolute; left: 0; top: 0; border-radius: 5px;
+          background: linear-gradient(#f0c173, #d9a85c); color: #2a2720;
+          display: flex; align-items: center; justify-content: center;
+          font-size: 13px; font-weight: 600; will-change: transform; }
+  .note.links  { background: linear-gradient(#bcd6e6, #93b3c8); }
+  .note.getroffen { background: #8fd49a; transition: opacity .3s; opacity: 0; }
+  #linie { position: absolute; left: 0; right: 0; bottom: 0; height: 2px;
+           background: rgba(240,193,115,.3); }
+  #urteil { position: absolute; left: 0; right: 0; top: 12%; text-align: center;
+            font-size: 22px; opacity: 0; pointer-events: none; }
+  #urteil.zeig { animation: auf .5s ease both; }
+  @keyframes auf { 0% { opacity: 0; transform: translateY(8px) }
+                   35% { opacity: 1; transform: none }
+                   100% { opacity: 0 } }
+
+  #tasten { position: relative; flex: none; height: 24%; min-height: 80px;
+            display: flex; padding: 0 12px 12px; }
+  .taste { position: relative; flex: 1; margin: 0 2px; border-radius: 0 0 6px 6px;
+           display: flex; align-items: flex-end; justify-content: center;
+           padding-bottom: 7px; font-size: 13px; font-weight: 600; cursor: pointer;
+           user-select: none; -webkit-user-select: none; color: #4a4335; }
+  .taste.links  { background: linear-gradient(#e2ecf2, #c3d4df); }
+  .taste.rechts { background: linear-gradient(#f7ead8, #e4cfae); }
+  .taste.an     { background: linear-gradient(#f0c173, #d9a85c); }
+
+  #tafel { position: absolute; inset: 0; display: flex; align-items: center;
+           justify-content: center; background: rgba(10,9,8,.88); z-index: 5; }
+  #tafel.weg { display: none; }
+  #karte { max-width: 460px; padding: 26px 30px; background: #16140f;
+           border: 1px solid #2d2a22; border-radius: 12px; }
+  #karte h1 { margin: 0 0 12px; font-size: 21px; color: #f0c173; font-weight: 500; }
+  #karte p { margin: 0 0 12px; font-size: 14px; line-height: 1.55; color: #a39b8a; }
+  #karte button { margin-top: 6px; padding: 8px 18px; background: #3a2f12;
+           color: #f0c173; border: 1px solid #5a4a1c; border-radius: 7px;
+           font-size: 14px; cursor: pointer; }
+</style>
+</head>
+<body>
+
+<div id="leiste">
+  <select id="stueckwahl">
+    <option value="kanon">Pachelbels Kanon</option>
+    <option value="mondschein">Mondscheinsonate</option>
+  </select>
+  <span id="wo"></span>
+  <button id="halt">Pause</button>
+  <button id="neu">Von vorne</button>
+  <label>Tempo <input id="tempo" type="range" min="60" max="160" value="100"></label>
+  <span id="stand"></span>
+</div>
+
+<div id="feld">
+  <div id="linie"></div>
+  <div id="urteil"></div>
+  <div id="tafel">
+    <div id="karte">
+      <h1>Zum Üben</h1>
+      <p>Oben links wählst du das Stück. Der Kanon hat neun Variationen über
+         derselben Basslinie, die Mondscheinsonate sechzehn Takte Dreiklänge.
+         Du spielst die eine Stimme, die Begleitung läuft von selbst mit.</p>
+      <p>Linke Hand auf die blauen Tasten A S D F, rechte auf die warmen G H J K.
+         Mehr brauchst du nicht.</p>
+      <p>Gewertet wird wie im Spiel: Perfekt, Gut, Verpasst. Ein Fehlgriff
+         kostet. Oben rechts stehen die Prozente und wie viele Noten du am
+         Stück getroffen hast.</p>
+      <p>Leertaste hält an und lässt weiterlaufen, R fängt von vorne an.</p>
+      <button id="los">Anfangen</button>
+    </div>
+  </div>
+</div>
+
+<div id="tasten"></div>
+
+<script>
+(function () {
+"use strict";
+
+// ======================================================================
+// Pachelbels Kanon, das ganze Stück, zum Alleinspielen.
+//
+//    Dieselben acht Tasten wie im Spiel: A S D F G H J K, also die
+//    weisse Oktave C4 bis C5. Die Melodie des Kanons spannt im Original
+//    mehr als eine Oktave und ist deshalb diatonisch nach unten
+//    versetzt — die Schrittfolge bleibt, die Lage ändert sich.
+//
+//    Neun Variationen über der immer gleichen Basslinie. Das ist das
+//    Prinzip des Stücks: unten trägt dieselbe Folge, oben verändert
+//    sich, was darüber liegt.
+//
+//    Hier wird nichts gewertet und es gibt keinen Mitspieler. Wer
+//    daneben greift, hört es und spielt weiter.
+// ======================================================================
+
+const TASTEN = [
+  { note: "C4", freq: 261.63, kuerzel: "A", hand: "links"  },
+  { note: "D4", freq: 293.66, kuerzel: "S", hand: "links"  },
+  { note: "E4", freq: 329.63, kuerzel: "D", hand: "links"  },
+  { note: "F4", freq: 349.23, kuerzel: "F", hand: "links"  },
+  { note: "G4", freq: 392.00, kuerzel: "G", hand: "rechts" },
+  { note: "A4", freq: 440.00, kuerzel: "H", hand: "rechts" },
+  { note: "H4", freq: 493.88, kuerzel: "J", hand: "rechts" },
+  { note: "C5", freq: 523.25, kuerzel: "K", hand: "rechts" }
+];
+const ALLE = {};
+TASTEN.forEach((t) => (ALLE[t.note] = t));
+const VON_TASTE = {};
+TASTEN.forEach((t) => (VON_TASTE[t.kuerzel.toLowerCase()] = t.note));
+
+// ----------------------------------------------------------------------
+// Die neun Variationen. Jede dauert 32 Zählzeiten, also einen vollen
+// Durchgang der Basslinie. Eine Länge ist eine Zählzeit.
+// ----------------------------------------------------------------------
+// Die Töne der Begleitung liegen tiefer als die Tasten reichen, damit
+// sie sich nicht mit dem Gespielten mischen.
+const T = { C3: 130.81, D3: 146.83, E3: 164.81, F3: 174.61, G3: 196.00,
+            A3: 220.00, H3: 246.94, C4: 261.63, E4: 329.63, G4: 392.00 };
+
+// Die Mondscheinsonate steht im Original in cis-Moll und besteht fast
+// nur aus schwarzen Tasten. Nach a-Moll versetzt wird sie weiss. Die
+// Dreiklangsfigur der rechten Hand ist das, was man kennt — sie läuft
+// hier durch, vier Figuren je Takt, drei Töne je Figur.
+//
+// Ein Zugeständnis: Die Leittöne des Originals, also die erhöhten
+// Stufen, wären schwarz. Hier steht dafür die natürliche Stufe. Das
+// nimmt etwas Spannung heraus, hält aber die acht Tasten.
+const MOND_TAKTE = [
+  ["E4","A4","C5"], ["E4","A4","C5"], ["D4","F4","A4"], ["E4","G4","H4"],
+  ["E4","A4","C5"], ["E4","A4","C5"], ["F4","A4","C5"], ["D4","G4","H4"],
+  ["E4","G4","C5"], ["E4","G4","C5"], ["F4","A4","C5"], ["E4","G4","H4"],
+  ["E4","A4","C5"], ["D4","F4","A4"], ["E4","G4","H4"], ["E4","A4","C5"]
+];
+
+const MOND_ABSCHNITTE = MOND_TAKTE.map((figur) => {
+  const takt = [];
+  for (let i = 0; i < 4; i++) figur.forEach((note) => takt.push([note, 1]));
+  return takt;                      // ein Takt sind zwölf Zählzeiten
+});
+
+const MOND_AKKORDE = [
+  [T.A3, T.E4, T.C4], [T.A3, T.E4, T.C4], [T.D3, T.A3, T.F3], [T.E3, T.H3, T.G4],
+  [T.A3, T.E4, T.C4], [T.A3, T.E4, T.C4], [T.F3, T.C4, T.A3], [T.G3, T.H3, T.G4],
+  [T.C3, T.G3, T.E4], [T.C3, T.G3, T.E4], [T.F3, T.C4, T.A3], [T.E3, T.H3, T.G4],
+  [T.A3, T.E4, T.C4], [T.D3, T.A3, T.F3], [T.E3, T.H3, T.G4], [T.A3, T.E4, T.C4]
+];
+
+const KANON_ABSCHNITTE = [
+  // 1 — die absteigende Linie, ganze Noten
+  [["C5",4],["H4",4],["A4",4],["G4",4],["F4",4],["E4",4],["F4",4],["G4",4]],
+  // 2 — dieselbe Linie weiter hinunter
+  [["A4",4],["G4",4],["F4",4],["E4",4],["D4",4],["C4",4],["D4",4],["E4",4]],
+  // 3 — halbe Noten, Akkordtöne paarweise
+  [["C5",2],["G4",2],["H4",2],["G4",2],["A4",2],["E4",2],["G4",2],["E4",2],
+   ["F4",2],["C4",2],["E4",2],["C4",2],["F4",2],["C4",2],["D4",2],["G4",2]],
+  // 4 — das bekannte Hüpfen, Sprung und Schritt
+  [["E4",2],["C5",2],["D4",2],["H4",2],["C4",2],["A4",2],["H4",2],["G4",2],
+   ["A4",2],["F4",2],["G4",2],["E4",2],["A4",2],["F4",2],["H4",2],["G4",2]],
+  // 5 — Läufe in Vierteln
+  [["C4",1],["D4",1],["E4",1],["F4",1],["G4",1],["A4",1],["H4",1],["C5",1],
+   ["H4",1],["A4",1],["G4",1],["F4",1],["E4",1],["D4",1],["C4",1],["D4",1],
+   ["E4",1],["F4",1],["G4",1],["A4",1],["G4",1],["F4",1],["E4",1],["D4",1],
+   ["C4",1],["D4",1],["E4",1],["F4",1],["G4",1],["F4",1],["E4",1],["D4",1]],
+  // 6 — gebrochene Akkorde in Vierteln
+  [["C4",1],["E4",1],["G4",1],["C5",1],["D4",1],["G4",1],["H4",1],["G4",1],
+   ["A4",1],["C5",1],["E4",1],["A4",1],["E4",1],["G4",1],["H4",1],["G4",1],
+   ["F4",1],["A4",1],["C5",1],["A4",1],["C4",1],["E4",1],["G4",1],["E4",1],
+   ["F4",1],["A4",1],["C5",1],["A4",1],["G4",1],["H4",1],["D4",1],["G4",1]],
+  // 7 — wieder ruhiger, Terzen abwärts
+  [["C5",2],["A4",2],["H4",2],["G4",2],["A4",2],["F4",2],["G4",2],["E4",2],
+   ["F4",2],["D4",2],["E4",2],["C4",2],["F4",2],["D4",2],["G4",2],["E4",2]],
+  // 8 — Schritte aufwärts, zum Schluss hin
+  [["C4",2],["E4",2],["D4",2],["G4",2],["E4",2],["A4",2],["G4",2],["H4",2],
+   ["A4",2],["C5",2],["G4",2],["E4",2],["A4",2],["F4",2],["H4",2],["G4",2]],
+  // 9 — breit, wie am Anfang, und aufgelöst
+  [["C5",4],["H4",4],["A4",4],["G4",4],["F4",4],["E4",4],["D4",4],[["C4","G4"],4]]
+];
+
+const KANON_AKKORDE = [
+  [T.C3, T.G3, T.E4], [T.G3, T.H3, T.G4], [T.A3, T.E4, T.C4], [T.E3, T.H3, T.G4],
+  [T.F3, T.C4, T.A3], [T.C3, T.G3, T.E4], [T.F3, T.C4, T.A3], [T.G3, T.H3, T.G4]
+];
+
+// Zwei Stücke. Ein Abschnitt ist beim Kanon eine Variation, bei der
+// Mondscheinsonate ein Takt. taktLaenge sagt, wie viele Zählzeiten auf
+// einen Begleitakkord gehen.
+const STUECKE = {
+  kanon: { name: "Variation", abschnitte: KANON_ABSCHNITTE,
+           akkorde: KANON_AKKORDE, taktLaenge: 4 },
+  mondschein: { name: "Takt", abschnitte: MOND_ABSCHNITTE,
+                akkorde: MOND_AKKORDE, taktLaenge: 12 }
+};
+let stueckName = "kanon";
+const jetztStueck = () => STUECKE[stueckName];
+
+const ZAEHLER_GRUND = 340;   // Millisekunden pro Zählzeit bei Tempo 100
+const FALLZEIT = 2600;
+const PERFEKT = 90;          // plus/minus Millisekunden für die volle Wertung
+const GUT = 200;             // plus/minus Millisekunden, sonst verpasst
+const ABZUG = 60;            // was ein Fehlgriff kostet
+const VORTAKTE = 4;
+const NACHTAKTE = 4;
+
+let zaehler = ZAEHLER_GRUND;
+let vorlauf = VORTAKTE * 4 * zaehler;      // wird beim Anfangen neu gesetzt
+
+// ----------------------------------------------------------------------
+// Das Stück aus den Variationen zusammensetzen
+// ----------------------------------------------------------------------
+function stueckBauen() {
+  const noten = [];
+  let t = 0;
+  jetztStueck().abschnitte.forEach((v, nr) => {
+    v.forEach(([note, laenge]) => {
+      (Array.isArray(note) ? note : [note]).forEach((einzeln) => {
+        noten.push({ zeit: t * zaehler, dauer: laenge * zaehler,
+                     note: einzeln, abschnitt: nr, stand: "offen" });
+      });
+      t += laenge;
+    });
+  });
+  return { noten, laenge: t * zaehler };
+}
+
+// ----------------------------------------------------------------------
+// Ton
+// ----------------------------------------------------------------------
+let audio = null;
+function tonWerk() {
+  if (!audio) {
+    try { audio = new (window.AudioContext || window.webkitAudioContext)(); }
+    catch (e) { return null; }
+  }
+  if (audio.state === "suspended") audio.resume();
+  return audio;
+}
+
+function ton(freq, dauerMs, staerke) {
+  const c = tonWerk();
+  if (!c) return;
+  const jetzt = c.currentTime;
+  const dauer = Math.max(0.5, (dauerMs || 500) / 1000 + 0.35);
+  const filter = c.createBiquadFilter();
+  filter.type = "lowpass";
+  filter.frequency.value = 3200;
+  filter.Q.value = 0.5;
+  filter.connect(c.destination);
+  const laut = staerke === undefined ? 1 : staerke;
+  [[1, 0.20], [2, 0.07], [3, 0.025]].forEach(([mal, s]) => {
+    const o = c.createOscillator(), g = c.createGain();
+    o.type = "sine";
+    o.frequency.value = freq * mal;
+    g.gain.setValueAtTime(0, jetzt);
+    g.gain.linearRampToValueAtTime(s * laut, jetzt + 0.008);
+    g.gain.exponentialRampToValueAtTime(0.001, jetzt + dauer);
+    o.connect(g).connect(filter);
+    o.start(jetzt);
+    o.stop(jetzt + dauer);
+  });
+}
+
+// ----------------------------------------------------------------------
+// Oberfläche
+// ----------------------------------------------------------------------
+const feld = document.getElementById("feld");
+const reihe = document.getElementById("tasten");
+const tafel = document.getElementById("tafel");
+const wo = document.getElementById("wo");
+const standEl = document.getElementById("stand");
+const urteilEl = document.getElementById("urteil");
+const tastenEl = {};
+
+TASTEN.forEach((t) => {
+  const el = document.createElement("div");
+  el.className = "taste " + t.hand;
+  el.textContent = t.kuerzel;
+  el.addEventListener("pointerdown", (e) => { e.preventDefault(); eingabe(t.note); });
+  reihe.appendChild(el);
+  tastenEl[t.note] = el;
+});
+
+function blitz(note) {
+  const el = tastenEl[note];
+  if (!el) return;
+  el.classList.add("an");
+  setTimeout(() => el.classList.remove("an"), 110);
+}
+
+let urteilUhr = null;
+function urteil(text, farbe) {
+  urteilEl.textContent = text;
+  urteilEl.style.color = farbe;
+  urteilEl.classList.remove("zeig");
+  void urteilEl.offsetWidth;
+  urteilEl.classList.add("zeig");
+  clearTimeout(urteilUhr);
+  urteilUhr = setTimeout(() => urteilEl.classList.remove("zeig"), 600);
+}
+
+// ----------------------------------------------------------------------
+// Der Lauf
+// ----------------------------------------------------------------------
+let stueck = null, start = 0, laeuft = false, schleife = null;
+let haelt = false, haltZeit = 0;
+let getroffen = 0, verpasst = 0, punkte = 0, moeglich = 0, beste = 0;
+let akkordGesetzt = -99, nachUhren = [];
+let lauf = 0;                 // wie viele Noten am Stück getroffen
+
+function anfangen() {
+  aufraeumen();
+  zaehler = Math.round(ZAEHLER_GRUND * 100 / (+document.getElementById("tempo").value));
+  vorlauf = VORTAKTE * jetztStueck().taktLaenge * zaehler;
+  stueck = stueckBauen();
+  getroffen = 0; verpasst = 0; punkte = 0; beste = 0; lauf = 0;
+  moeglich = stueck.noten.length * 100;
+  akkordGesetzt = -99;
+  tafel.classList.add("weg");
+
+  stueck.noten.forEach((n) => {
+    const el = document.createElement("div");
+    el.className = "note " + ALLE[n.note].hand;
+    el.textContent = ALLE[n.note].kuerzel;
+    el.style.display = "none";
+    feld.appendChild(el);
+    n.el = el;
+    n.stand = "offen";
+  });
+
+  start = performance.now() + vorlauf;
+  laeuft = true;
+  haelt = false;
+  document.getElementById("halt").textContent = "Pause";
+  schleife = requestAnimationFrame(schritt);
+}
+
+function aufraeumen() {
+  laeuft = false;
+  if (schleife) cancelAnimationFrame(schleife);
+  schleife = null;
+  nachUhren.forEach(clearTimeout);
+  nachUhren = [];
+  feld.querySelectorAll(".note").forEach((n) => n.remove());
+}
+
+function anhalten() {
+  if (!laeuft && !haelt) return;
+  if (haelt) {
+    start += performance.now() - haltZeit;
+    haelt = false;
+    laeuft = true;
+    document.getElementById("halt").textContent = "Pause";
+    schleife = requestAnimationFrame(schritt);
+  } else {
+    haltZeit = performance.now();
+    haelt = true;
+    laeuft = false;
+    if (schleife) cancelAnimationFrame(schleife);
+    schleife = null;
+    document.getElementById("halt").textContent = "Weiter";
+  }
+}
+
+function begleitung(t) {
+  const takt = jetztStueck().taktLaenge * zaehler;
+  const dran = Math.floor((t + vorlauf) / takt);
+  if (dran <= akkordGesetzt || dran < 0) return;
+  akkordGesetzt = dran;
+  akkordSpielen(dran);
+}
+
+function akkordSpielen(dran) {
+  const takt = jetztStueck().taktLaenge * zaehler;
+  const a = jetztStueck().akkorde[(dran + VORTAKTE) % jetztStueck().akkorde.length];
+  a.forEach((freq, i) => ton(freq, takt * 0.9, 0.3 - i * 0.06));
+}
+
+function ausklang() {
+  const takt = jetztStueck().taktLaenge * zaehler;
+  for (let i = 1; i <= NACHTAKTE; i++) {
+    const dran = akkordGesetzt + i;
+    nachUhren.push(setTimeout(() => akkordSpielen(dran), takt * (i - 0.4)));
+  }
+}
+
+function schritt(jetzt) {
+  if (!laeuft) return;
+  const t = jetzt - start;
+  const hoehe = feld.clientHeight;
+  const linksRand = feld.getBoundingClientRect().left;
+
+  begleitung(t);
+
+  stueck.noten.forEach((n) => {
+    const dt = n.zeit - t;
+    if (dt < FALLZEIT && dt > -600 && n.stand !== "weg") {
+      const taste = tastenEl[n.note];
+      if (taste) {
+        const r = taste.getBoundingClientRect();
+        const b = Math.min(r.width - 6, 62);
+        const hh = Math.max(26, n.dauer / 13);
+        const x = r.left - linksRand + (r.width - b) / 2;
+        const y = hoehe - (dt / FALLZEIT) * (hoehe + 80) - hh;
+        n.el.style.display = "flex";
+        n.el.style.width = b + "px";
+        n.el.style.height = hh + "px";
+        n.el.style.transform = "translate(" + x + "px," + y + "px)";
+      }
+    } else if (dt <= -600 && n.el.style.display !== "none") {
+      n.el.style.display = "none";
+      n.stand = "weg";
+    }
+    if (n.stand === "offen" && dt < -GUT) {
+      n.stand = "verpasst";
+      verpasst++;
+      lauf = 0;
+      urteil("Verpasst", "#8a857a");
+      standAnzeigen();
+    }
+  });
+
+  const dran = stueck.noten.find((n) => n.zeit > t);
+  if (dran) wo.textContent = jetztStueck().name + " " + (dran.abschnitt + 1) +
+                             " von " + jetztStueck().abschnitte.length;
+
+  if (t > stueck.laenge + 900) { beenden(); return; }
+  schleife = requestAnimationFrame(schritt);
+}
+
+function standAnzeigen() {
+  const bisher = getroffen + verpasst;
+  if (!bisher) { standEl.textContent = ""; return; }
+  const prozent = Math.round((punkte / (bisher * 100)) * 100);
+  standEl.textContent = prozent + " %  ·  " + getroffen + " von " + bisher +
+                        (beste > 2 ? "  ·  " + beste + " am Stück" : "");
+}
+
+function beenden() {
+  laeuft = false;
+  ausklang();
+  if (schleife) cancelAnimationFrame(schleife);
+  schleife = null;
+  feld.querySelectorAll(".note").forEach((n) => n.remove());
+  wo.textContent = "durch";
+  const prozent = moeglich ? Math.round((punkte / moeglich) * 100) : 0;
+  document.getElementById("karte").innerHTML =
+    "<h1>Durch</h1>" +
+    "<p>" + prozent + " Prozent. " + getroffen + " von " +
+    stueck.noten.length + " Noten getroffen, längster Lauf " + beste + ".</p>" +
+    "<p>Das Nachspiel läuft noch. Lass es ausklingen.</p>" +
+    '<button id="los">Nochmal</button>';
+  document.getElementById("los").onclick = anfangen;
+  tafel.classList.remove("weg");
+}
+
+// ----------------------------------------------------------------------
+// Eingabe
+// ----------------------------------------------------------------------
+function eingabe(note) {
+  blitz(note);
+  if (!laeuft) { ton(ALLE[note].freq, 400, 0.5); return; }
+
+  const t = performance.now() - start;
+  let treffer = null, abstand = Infinity;
+  stueck.noten.forEach((n) => {
+    if (n.stand !== "offen" || n.note !== note) return;
+    const d = Math.abs(n.zeit - t);
+    if (d > GUT) return;
+    if (d < abstand) { treffer = n; abstand = d; }   // die nächstgelegene gewinnt
+  });
+
+  if (treffer) {
+    treffer.stand = "getroffen";
+    treffer.el.classList.add("getroffen");
+    setTimeout(() => { treffer.el.style.display = "none"; }, 320);
+    ton(ALLE[note].freq, treffer.dauer);
+    getroffen++;
+    lauf++;
+    beste = Math.max(beste, lauf);
+    if (abstand <= PERFEKT) { punkte += 100; urteil("Perfekt", "#8fd49a"); }
+    else                    { punkte += 80;  urteil("Gut", "#f0c173"); }
+    standAnzeigen();
+  } else {
+    // Danebengegriffen: der Ton kommt trotzdem, leise — man hört den Fehler
+    ton(ALLE[note].freq, 350, 0.5);
+    punkte = Math.max(0, punkte - ABZUG);
+    lauf = 0;
+    urteil("Daneben", "#e8705a");
+    standAnzeigen();
+  }
+}
+
+addEventListener("keydown", (e) => {
+  if (e.repeat) return;
+  const t = e.key.toLowerCase();
+  if (t === " " || e.code === "Space") { anhalten(); e.preventDefault(); return; }
+  if (t === "r") { anfangen(); e.preventDefault(); return; }
+  const note = VON_TASTE[t];
+  if (note) { eingabe(note); e.preventDefault(); }
+});
+
+document.getElementById("los").onclick = anfangen;
+document.getElementById("halt").onclick = anhalten;
+document.getElementById("neu").onclick = anfangen;
+document.getElementById("stueckwahl").onchange = function () {
+  stueckName = this.value;
+  aufraeumen();
+  wo.textContent = "";
+  standEl.textContent = "";
+  tafel.classList.remove("weg");
+};
+
+})();
+</script>
+</body>
+</html>

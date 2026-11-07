@@ -77,9 +77,7 @@ globalThis.__aus = { RAEUME, klavierStarten, klavierGeloest, KLAVIER_SEITE,
                      FIGUREN, MEINE_FIGUR, figurMalen,
                      springt, sprungAnteil, SPRUNG_DAUER, SPRUNG_HOEHE, SPRUNG_BILD,
                      starteSprung: () => { sprungStart = performance.now(); },
-                     TT_ZIEL, TT_SCHLAEGER_B, TT_BALL, TT_UEBERLAPP, TT_SCHLAEGER_Y,
-                     TT_TEMPO_START, TT_TEMPO_MAX, TT_PARTNER, TT_UNTEN,
-                     ttBall, ttAufschlag, ttBallSchritt, ttGrenzen, ttOberflaeche,
+                     TT_SEITE, ttStarten, ttGeloest,
                      AUTOMAT_SPIEL, automatStarten, figurWahlOeffnen,
                      LABYRINTH_SEITE, labyrinthStarten,
                      MERK_SCHLUESSEL, standSichern, standLesen,
@@ -203,79 +201,6 @@ const spaet = aus.sprungAnteil();
 pruefe(frueh < 0.1 && spaet < 0.1, "Abflug und Landung liegen am Boden");
 umgebung.__uhr = 100000 + D + 1;
 pruefe(aus.sprungAnteil() === 0 && !aus.springt(), "nach der Dauer steht sie wieder");
-
-// ---------- Tischtennis ----------
-console.log("Tischtennis");
-aus.ttOberflaeche();
-
-// Die beiden Haelften muessen sich in der Mitte ueberschneiden, sonst
-// faellt der Ball durch die Luecke.
-const [ll, lr] = aus.ttGrenzen(true), [rl, rr] = aus.ttGrenzen(false);
-const deckeLinks  = lr + aus.TT_SCHLAEGER_B / 2;
-const deckeRechts = rl - aus.TT_SCHLAEGER_B / 2;
-pruefe(deckeLinks >= 50 && deckeRechts <= 50,
-       "die Haelften treffen sich in der Mitte (links bis " + deckeLinks.toFixed(1) +
-       ", rechts ab " + deckeRechts.toFixed(1) + ")");
-pruefe(lr >= ll && rr >= rl, "beide Schlaeger haben Platz zum Fahren");
-
-// Ein Ballwechsel mit einem Spieler, der immer richtig steht.
-function ballwechsel(schritte) {
-  aus.ttAufschlag(0);
-  let raus = false, tiefstes = 0;
-  for (let i = 0; i < schritte; i++) {
-    const dt = 1 / 60;
-    aus.setzeMeinX(Math.max(ll, Math.min(lr, aus.ttBall.x)));
-    aus.TT_PARTNER.schritt(dt, aus.ttBall);
-    aus.ttBallSchritt(dt);
-    if (aus.ttBall.x < -1 || aus.ttBall.x > 101 || aus.ttBall.y < -1) raus = true;
-    tiefstes = Math.max(tiefstes, aus.ttBall.y);
-    if (!aus.holeServiert()) break;          // runtergefallen
-    if (aus.holeTreffer() >= aus.TT_ZIEL) break;
-  }
-  return { raus, tiefstes, treffer: aus.holeTreffer(), laeuft: aus.holeServiert() };
-}
-
-const lauf = ballwechsel(60 * 90);
-pruefe(!lauf.raus, "der Ball bleibt im Feld");
-pruefe(lauf.treffer >= aus.TT_ZIEL,
-       "mit sicherem Spiel ist das Ziel erreichbar (" + lauf.treffer + " von " + aus.TT_ZIEL + ")");
-
-// Der Ball darf pro Bild nicht weiter springen als der Schlaeger dick ist,
-// sonst fliegt er bei hohem Tempo durch ihn hindurch.
-const proBild = aus.TT_TEMPO_MAX / 60;
-pruefe(proBild < aus.TT_BALL * 2,
-       "beim hoechsten Tempo kein Durchschlupf (" + proBild.toFixed(2) +
-       " gegen " + (aus.TT_BALL * 2).toFixed(2) + " je Bild)");
-
-// Wie schwer ist es? Ein Spieler, der den Ball erst nach 170 Millisekunden
-// sieht und etwas zittert. Das ist kein Beweis, nur ein Mass zum Vergleichen,
-// wenn an Breite, Tempo oder Ziel gedreht wird.
-function ttVersuch() {
-  aus.ttAufschlag(0);
-  let x = 25, sp = [], n = 0, best = 0;
-  const [l, r] = aus.ttGrenzen(true);
-  while (aus.holeServiert() && n < 60 * 300) {
-    const dt = 1 / 60;
-    sp.push(aus.ttBall.x);
-    const alt = sp[Math.max(0, sp.length - 10)];
-    const ziel = Math.max(l, Math.min(r, alt + (Math.random() - 0.5) * 7));
-    const max = 95 * dt;
-    x += Math.max(-max, Math.min(max, ziel - x));
-    aus.setzeMeinX(x);
-    aus.TT_PARTNER.schritt(dt, aus.ttBall);
-    aus.ttBallSchritt(dt);
-    best = Math.max(best, aus.holeTreffer());
-    n++;
-    if (best >= aus.TT_ZIEL) break;
-  }
-  return best;
-}
-const proben = [];
-for (let i = 0; i < 120; i++) proben.push(ttVersuch());
-const quote = proben.filter((v) => v >= aus.TT_ZIEL).length / proben.length;
-pruefe(quote > 0.08 && quote < 0.6,
-       "Schwierigkeit im Rahmen: " + Math.round(quote * 100) +
-       " von 100 Anläufen geschafft (Schläger " + aus.TT_SCHLAEGER_B + " breit)");
 
 // ---------- Lobby ----------
 console.log("Lobby");
@@ -495,6 +420,20 @@ if (fs.existsSync(path.join(wurzel, "spieler.sql"))) {
   pruefe(!/for update|for delete/.test(sql), "\u00e4ndern und l\u00f6schen sind niemandem erlaubt");
   pruefe(sql.includes(aus.SPIELER_TABELLE), "SQL und Spiel meinen dieselbe Tabelle");
 }
+
+// ---------- Die Platte ----------
+console.log("Tischtennis");
+const ttPfad = path.join(wurzel, aus.TT_SEITE || "tischtennis/zwei.html");
+pruefe(fs.existsSync(ttPfad), "die Seite liegt da, wo das Haus sie sucht (" +
+       (aus.TT_SEITE || "?") + ")");
+pruefe(roh.includes('"tt-" + [netzIch, partnerId].sort().join("-")'),
+       "das Paar bekommt einen gemeinsamen Kanal");
+pruefe(roh.includes('if (d.art === "geloest") ttGeloest = true;'),
+       "das Haus erf\u00e4hrt, wenn das Ziel erreicht ist");
+pruefe(!/TT_SCHLAEGER_B|ttBallSchritt|TT_PARTNER/.test(roh),
+       "das Spiel selbst steckt nicht mehr im Haus");
+pruefe(roh.includes("(uebung, mit) => ttDirekt(mit)"),
+       "der Partner aus der Lobby wird mitgenommen");
 
 // ---------- Das Klavier ----------
 console.log("Klavier");
