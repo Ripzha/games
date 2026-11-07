@@ -14,6 +14,13 @@
   .haelfte { position: relative; flex: 1 1 50%; min-height: 0; border: 0; width: 100%; }
   .haelfte iframe { width: 100%; height: 100%; border: 0; display: block; }
   #trenner { height: 2px; background: #3a4a6a; flex: none; }
+  #uhr { flex: none; display: flex; align-items: baseline; gap: 14px;
+    justify-content: center; padding: 5px 12px; background: #0a1222;
+    border-bottom: 1px solid #1d2a44; font-size: 13px; color: #9fb4d8; }
+  #uhr-zeit { font-size: 19px; font-weight: 600; color: #f0c173;
+    font-variant-numeric: tabular-nums; letter-spacing: .02em; }
+  #uhr.knapp #uhr-zeit { color: #e8a0a0; }
+  #uhr-punkte { color: #6f85a8; }
   .schild { position: absolute; left: 10px; bottom: 8px; z-index: 3;
     display: flex; align-items: baseline; gap: 8px;
     font-size: 12px; color: #9fb4d8; background: rgba(6,13,28,0.72);
@@ -39,6 +46,8 @@
 </head>
 <body>
 <div id="huelle">
+  <div id="uhr"><span id="uhr-zeit">2:00</span><span id="uhr-ziel"></span>
+    <span id="uhr-punkte"></span></div>
   <div class="haelfte"><div class="schild"><span class="name" id="name-oben"></span><span class="tasten">Leertaste springen, S ducken</span></div>
     <iframe id="oben" src="quest-schlitten.html?sync=meister&abstand=1.5"></iframe></div>
   <div id="trenner"></div>
@@ -54,6 +63,18 @@
 
   // Gemeinsamer Vorrat für beide. Jeder Treffer von jedem kostet eines.
   const HERZEN = 5;
+
+  // Das Ziel ist eine Zeit, keine Punktzahl. Daran arbeiten beide gleich
+  // viel mit — jeder Crash von jedem kostet ein Herz, und niemand kann die
+  // Zeit allein schneller vorbeibringen. Die Punkte laufen nebenher mit.
+  // Mit ?ziel=90 lässt es sich zum Ausprobieren ändern.
+  const ZIEL_ZEIT = Math.max(20, parseInt(
+    new URLSearchParams(location.search).get('ziel') || '120', 10) || 120);
+
+  function zeitText(s) {
+    s = Math.max(0, Math.ceil(s));
+    return Math.floor(s / 60) + ':' + String(s % 60).padStart(2, '0');
+  }
 
   // Namen kommen aus der Adresse: zwei.html?oben=Name&unten=Name
   // Aus dem Automaten im Haus heraus wird der Name der gespielten Figur
@@ -71,6 +92,7 @@
   let botAn = false;            // fährt die untere Hälfte der Rechner?
   let letzteWelt = null;
   let getroffenSperre = 0;          // Zeitpunkt, bis zu dem Treffer ignoriert werden
+  let startZeit = 0, uebrig = ZIEL_ZEIT;
   let herzSperre = 0;
   const bereit = {};
 
@@ -109,8 +131,9 @@
       '<tr><td>' + NAME_OBEN + ' (oben)</td><td>Leertaste springen, S ducken</td></tr>' +
       '<tr><td>' + NAME_UNTEN + ' (unten)</td><td>Pfeil hoch springen, Pfeil runter ducken</td></tr>' +
       '</table>' +
-      '<p>Ihr habt ' + HERZEN + ' Herzen zusammen. Jeder Treffer von jedem ' +
-      'kostet eines. Sind sie weg, ist die Fahrt vorbei — für beide.</p>' +
+      '<p>Haltet <b>' + zeitText(ZIEL_ZEIT) + '</b> zusammen durch, dann ist es ' +
+      'geschafft. Ihr habt ' + HERZEN + ' Herzen zusammen, jeder Treffer von ' +
+      'jedem kostet eines. Sind sie weg, ist die Fahrt vorbei — für beide.</p>' +
       '<p style="color:#9fb4d8;font-size:13px">Zum Alleintesten fährt der ' +
       'Rechner die untere Hälfte. Er macht Fehler, damit die Herzen etwas zu tun haben.</p>',
       [['Zu zweit an einer Tastatur', function () { losfahren(false); }],
@@ -129,6 +152,9 @@
     punkte = 0;
     getroffenSperre = 0;
     lebenMelden();
+    startZeit = performance.now();
+    uebrig = ZIEL_ZEIT;
+    uhrMalen();
     tafel.classList.add('weg');
     laeuft = true;
     // Das Gelände kommt aus drei Zufallswerten. Beide bekommen dieselben,
@@ -138,18 +164,43 @@
     requestAnimationFrame(botSchritt);
   }
 
+  function uhrMalen() {
+    document.getElementById('uhr-zeit').textContent = zeitText(uebrig);
+    document.getElementById('uhr-ziel').textContent = 'von ' + zeitText(ZIEL_ZEIT);
+    document.getElementById('uhr-punkte').textContent = 'Punkte ' + punkte;
+    document.getElementById('uhr').classList.toggle('knapp', uebrig <= 15);
+  }
+
+  function geschafft() {
+    laeuft = false;
+    anBeide('aus');
+    tafelZeigen(
+      '<h1>Geschafft</h1>' +
+      '<p>Ihr habt ' + zeitText(ZIEL_ZEIT) + ' durchgehalten, mit <b>' + leben +
+      '</b> von ' + HERZEN + ' Herzen übrig und ' + punkte + ' Punkten.</p>',
+      [['Nochmal', function () { losfahren(); }],
+       [botAn ? 'Lieber zu zweit' : 'Lieber gegen den Bot',
+        function () { losfahren(!botAn); }]]
+    );
+  }
+
   function ende() {
     laeuft = false;
     anBeide('aus');
+    const gehalten = ZIEL_ZEIT - uebrig;
     let beste = 0;
-    try { beste = parseInt(localStorage.getItem('schlitten_zwei_beste') || '0', 10) || 0; }
+    try { beste = parseFloat(localStorage.getItem('schlitten_zwei_beste') || '0') || 0; }
     catch (e) {}
-    const neuerRekord = punkte > beste;
-    if (neuerRekord) { try { localStorage.setItem('schlitten_zwei_beste', String(punkte)); } catch (e) {} }
+    const neuerRekord = gehalten > beste;
+    if (neuerRekord) {
+      try { localStorage.setItem('schlitten_zwei_beste', String(Math.round(gehalten))); }
+      catch (e) {}
+    }
     tafelZeigen(
-      '<h1>' + (neuerRekord ? 'Beste Fahrt bisher' : 'Aus') + '</h1>' +
-      '<p>Ihr seid zusammen auf <b>' + punkte + '</b> Punkte gekommen' +
-      (neuerRekord ? '.' : ' — eure beste steht bei ' + beste + '.') + '</p>' +
+      '<h1>Aus</h1>' +
+      '<p>Ihr habt <b>' + zeitText(gehalten) + '</b> von ' + zeitText(ZIEL_ZEIT) +
+      ' gehalten' + (neuerRekord ? ' — so weit wart ihr noch nie.'
+                                 : '. Eure beste steht bei ' + zeitText(beste) + '.') + '</p>' +
       '<p>Nichts geht verloren, fahrt einfach nochmal.</p>',
       [['Nochmal', function () { losfahren(); }],
        [botAn ? 'Lieber zu zweit' : 'Lieber gegen den Bot',
@@ -261,6 +312,11 @@
   function botSchritt() {
     if (!laeuft) { if (botDuckt) { botTaste('ducken', false); botDuckt = false; } return; }
     requestAnimationFrame(botSchritt);
+
+    uebrig = ZIEL_ZEIT - (performance.now() - startZeit) / 1000;
+    uhrMalen();
+    if (uebrig <= 0) { geschafft(); return; }
+
     if (!botAn || !letzteWelt) return;
 
     const w = letzteWelt;
@@ -321,6 +377,7 @@
   document.getElementById('name-oben').textContent = NAME_OBEN;
   document.getElementById('name-unten').textContent = NAME_UNTEN;
   document.getElementById('tasten-unten').textContent = 'Pfeil hoch springen, Pfeil runter ducken';
+  uhrMalen();
   anfangsTafel();
 })();
 </script>

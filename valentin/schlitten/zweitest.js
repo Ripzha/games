@@ -124,6 +124,33 @@ pruefe(spiel.includes("Den anderen hat es erwischt"),
 pruefe(spiel.includes("if (!ZUZWEIT && punkte >= 20000"),
        "Jack f\u00e4hrt zu zweit nicht mit");
 
+// ---------- Das Ziel ----------
+console.log("Ziel");
+const ZIEL = (eltern.match(/'120', 10\) \|\| (\d+)\)/) || [])[1];
+pruefe(ZIEL === '120', "das Ziel steht auf zwei Minuten (" + ZIEL + " s)");
+pruefe(eltern.includes("function geschafft()"), "es gibt einen Erfolgsfall, nicht nur ein Ende");
+pruefe(eltern.includes("if (uebrig <= 0) { geschafft(); return; }"),
+       "bei abgelaufener Uhr ist es geschafft");
+pruefe(eltern.includes("if (leben <= 0) ende();"), "ohne Herzen ist es vorbei");
+pruefe(eltern.includes("uhrMalen();"), "die Uhr wird angezeigt");
+pruefe(eltern.includes("schlitten_zwei_beste") && eltern.includes("ZIEL_ZEIT - uebrig"),
+       "gemerkt wird die gehaltene Zeit, nicht mehr die Punktzahl");
+
+// Die Tempostufe bei 10000 Punkten soll noch vor dem Ziel kommen, sonst
+// bleibt es bis zuletzt gleich schnell. Nur Strecke, ohne Sammelteile.
+const TEMPO_ST = +zahl(spiel, "TEMPO_START");
+const TMAX = +zahl(spiel, "TEMPO_MAX");
+let p = 0, tempo = TEMPO_ST, t = 0, stufeBei = null;
+while (t < +ZIEL) {
+  tempo = Math.min(TMAX, tempo + (1/60) * 9);
+  p += tempo * (1/60) * 0.14;
+  t += 1/60;
+  if (!stufeBei && p >= 10000) stufeBei = t;
+}
+pruefe(stufeBei !== null && stufeBei < +ZIEL,
+       "die n\u00e4chste Tempostufe f\u00e4llt noch in die Zeit (nach " +
+       Math.round(stufeBei || 0) + " von " + ZIEL + " s)");
+
 // ---------- Der Bot ----------
 console.log("Bot");
 function zahl(text, name) {
