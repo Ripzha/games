@@ -177,6 +177,21 @@ console.log("Was die Seite dem Haus sagt");
 pruefe(skript.includes('melden({ art: "fertig" })'), "sie sagt, wenn zugemacht werden soll");
 pruefe(skript.includes('melden({ art: "geloest" })'), "und wenn das St\u00fcck geschafft ist");
 
+console.log("Zeitverz\u00f6gerung");
+pruefe(!/klTon\(KL_ALLE\[n\.note\]\.freq, n\.dauer\);[\s\S]{0,80}klPunkte \+= gut/.test(skript),
+       "der Ton des anderen kommt nicht aus seiner Nachricht — sonst steckt " +
+       "die Netzverz\u00f6gerung in der Musik");
+pruefe(skript.includes("if (n.wer !== klIchBin && !n.getoent && dt >= 0) {"),
+       "die fremde Stimme klingt \u00f6rtlich zu ihrer eigenen Zeit");
+pruefe(skript.includes("KL_PARTNER.abstimmen = function (beiLos)"),
+       "es gibt einen gemeinsamen Start");
+pruefe(skript.includes('const ichGebeDasZeichen = String(ICH) < String(PARTNER_ID);'),
+       "wer das Zeichen gibt, steht durch die Kennungen fest");
+pruefe(skript.includes("setTimeout(anfangen, 10000);"),
+       "meldet sich niemand, geht es nach zehn Sekunden allein los");
+pruefe(skript.includes("if (nurHoeren || !KL_PARTNER.abstimmen) { losgehen(); return; }"),
+       "Vorspiel und \u00dcbungspartner fangen weiterhin sofort an");
+
 console.log("Was \u00fcber die Leitung geht");
 pruefe(skript.includes('kanal.send({ type: "broadcast", event: "note"'),
        "je Note ein Ergebnis, nicht der Tastendruck selbst");

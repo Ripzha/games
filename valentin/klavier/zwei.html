@@ -525,11 +525,27 @@ function klSpielStarten(nurHoeren) {
     klBau.feld.appendChild(el);
     n.el = el;
     n.stand = "offen";
+    n.getoent = false;
   });
 
-  klStart = performance.now() + KL_VORLAUF;
-  if (!nurHoeren) KL_PARTNER.starten(klSong, klPartnerMeldet, klStart);
-  klSchleife = requestAnimationFrame(klSchritt);
+  // Gemeinsam anfangen. Ohne das setzt jeder beim Druck auf "Spielen"
+  // seine eigene Uhr, und die beiden Stimmen laufen um so viel
+  // auseinander, wie die beiden Klicks auseinanderliegen.
+  //
+  // Der Übungspartner und das Vorspiel fangen sofort an. Mit einem
+  // echten Mitspieler meldet jeder "bereit", und wer die kleinere
+  // Kennung hat, gibt das Zeichen. Beide starten darauf hin — übrig
+  // bleibt der einfache Weg einer Nachricht, also ein Bruchteil dessen,
+  // was zwei Klicks auseinanderliegen.
+  const losgehen = () => {
+    klStart = performance.now() + KL_VORLAUF;
+    if (!nurHoeren) KL_PARTNER.starten(klSong, klPartnerMeldet, klStart);
+    klSchleife = requestAnimationFrame(klSchritt);
+  };
+
+  if (nurHoeren || !KL_PARTNER.abstimmen) { losgehen(); return; }
+  klBau.wer.textContent = "warte auf den anderen …";
+  if (!KL_PARTNER.abstimmen(losgehen)) losgehen();
 }
 
 // Der Mitspieler meldet ein Ergebnis für seine Note.
@@ -547,8 +563,9 @@ function klPartnerMeldet(index, gut) {
   n.stand = "getroffen";
   n.el.classList.add("getroffen");
   setTimeout(() => { n.el.style.display = "none"; }, 320);
-  klTon(KL_ALLE[n.note].freq, n.dauer);
-  klBlitz(n.note);
+  // Kein Ton an dieser Stelle. Die Stimme des anderen klingt örtlich zu
+  // ihrer eigenen Zeit aus den Noten — käme sie erst mit der Nachricht,
+  // steckte die Netzverzögerung in der Musik.
   klPunkte += gut ? 100 : 80;
   klStandAnzeigen();
 }
@@ -594,6 +611,15 @@ function klSchritt(jetzt) {
     }
 
     // Verpasst — nur die eigenen Noten, die des Partners meldet der Partner
+    // Die Stimme des anderen klingt leiser mit, sobald sie an der Leiste
+    // ankommt. Dadurch hören beide dasselbe Stück, unabhängig davon, wie
+    // lange eine Nachricht unterwegs ist.
+    if (n.wer !== klIchBin && !n.getoent && dt >= 0) {
+      n.getoent = true;
+      klTon(KL_ALLE[n.note].freq, n.dauer, true);
+      klBlitz(n.note);
+    }
+
     if (!klVorspiel && n.wer === klIchBin && n.stand === "offen" && dt < -KL_GUT) {
       if (window.klNoteMelden) window.klNoteMelden(klSong.noten.indexOf(n), null);
       n.stand = "verpasst";
@@ -713,7 +739,49 @@ addEventListener("keydown", (e) => {
     melderFn = melden;
     meinStart = startZeit;
   };
-  KL_PARTNER.beenden = function () { melderFn = null; };
+  KL_PARTNER.beenden = function () { melderFn = null; losFn = null; bereitDa = false; };
+
+  // Gemeinsam anfangen. Jeder meldet "bereit". Wer die kleinere Kennung
+  // hat, gibt danach das Zeichen — so entscheidet nicht der Zufall,
+  // sondern eine feste Regel, auf die beide von selbst kommen.
+  let losFn = null, bereitDa = false, schonLos = false;
+  const ichGebeDasZeichen = String(ICH) < String(PARTNER_ID);
+
+  kanal.on("broadcast", { event: "bereit" }, ({ payload }) => {
+    if (!payload || payload.von === ICH) return;
+    bereitDa = true;
+    pruefenObLos();
+  });
+
+  kanal.on("broadcast", { event: "los" }, ({ payload }) => {
+    if (!payload || payload.von === ICH || ichGebeDasZeichen) return;
+    anfangen();
+  });
+
+  function anfangen() {
+    if (schonLos || !losFn) return;
+    schonLos = true;
+    const f = losFn; losFn = null;
+    f();
+  }
+
+  function pruefenObLos() {
+    if (!losFn || !bereitDa || !ichGebeDasZeichen) return;
+    try { kanal.send({ type: "broadcast", event: "los", payload: { von: ICH } }); }
+    catch (e) {}
+    anfangen();
+  }
+
+  KL_PARTNER.abstimmen = function (beiLos) {
+    losFn = beiLos;
+    schonLos = false;
+    try { kanal.send({ type: "broadcast", event: "bereit", payload: { von: ICH } }); }
+    catch (e) {}
+    pruefenObLos();
+    // Falls der andere nie meldet, nach zehn Sekunden allein anfangen
+    setTimeout(anfangen, 10000);
+    return true;
+  };
 })();
 
 klSeiteBestimmen(PARTNER_ID);
