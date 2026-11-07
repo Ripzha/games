@@ -193,17 +193,23 @@ pruefe(skript.indexOf("[[links, -1], [rechts, 1]].forEach") <
        "der Durchgang wird vor dem Korridorboden gezeichnet");
 
 console.log("Hecken");
-pruefe(skript.includes("function heckeBauen()"), "die Blattmasse wird erzeugt");
-pruefe(skript.includes("zufallAus(9876)"),
-       "mit festem Startwert — sonst flimmert sie bei jedem Bild");
-pruefe(skript.includes("if (!heckeBild) heckeBild = heckeBauen();"),
-       "sie wird nur einmal gezeichnet und danach wiederverwendet");
-pruefe(!/fillStyle = heck\(/.test(skript), "keine flachen gr\u00fcnen Fl\u00e4chen mehr");
-pruefe((skript.match(/heckenFlaeche\(/g) || []).length >= 5,
-       "alle Heckenfl\u00e4chen gehen dar\u00fcber (" +
-       (skript.match(/heckenFlaeche\(/g) || []).length + " Aufrufe)");
-pruefe(skript.includes("s2.ellipse(px, py + r * 0.25"),
-       "die Oberkante wird mit B\u00fcscheln aufgebrochen");
+pruefe(skript.includes("const HECKE_DATEI"), "die Textur kommt aus einer Datei");
+const datei = (skript.match(/HECKE_DATEI = '([^']+)'/) || [])[1];
+pruefe(datei && fs.existsSync(datei), "die Textur liegt daneben (" + datei + ")");
+pruefe(skript.includes("heckeErsatz = heckeWuerfeln()"),
+       "solange sie nicht geladen ist, wird eine gew\u00fcrfelt — nie eine leere Wand");
+pruefe(/for \(let xx = x0; xx < x1; xx \+= kb\) s2\.drawImage/.test(skript),
+       "sie wird gekachelt, nicht gestreckt — sonst verzerren die Bl\u00e4tter");
+pruefe(skript.includes("const HECKE_DICKE"), "die Hecken haben eine Wandst\u00e4rke");
+const dicke = parseFloat((skript.match(/HECKE_DICKE = ([0-9.]+)/) || [])[1]);
+pruefe(dicke > 0.05 && dicke < 0.4,
+       "die St\u00e4rke ist plausibel (" + dicke + " der Gangbreite)");
+pruefe(skript.includes("Die Stirnseiten der Hecken"),
+       "an jedem Durchgang werden die Stirnseiten gezeichnet");
+pruefe((skript.match(/heckenFlaeche\(/g) || []).length >= 6,
+       (skript.match(/heckenFlaeche\(/g) || []).length + " Heckenfl\u00e4chen");
+pruefe(skript.includes("const kachel = (a.u - a.o) * HECKE_KACHEL;"),
+       "die Kachelgr\u00f6sse h\u00e4ngt an der Tiefe");
 
 console.log("Fallen");
 pruefe(skript.includes("lab.falle[y][x] && t <= 1"),
