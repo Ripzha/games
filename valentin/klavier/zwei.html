@@ -121,30 +121,34 @@ const KL_PAUSE   = 1.5;      // Zähler Pause zwischen zwei Phrasen
 //
 // Zwei Stimmen, jede eine Folge von [Note, Länge in Zählzeiten].
 const KL_BASS = [
-  // Die Basslinie des Kanons: C G A E F C F G, viermal, dann breit
-  ["C4", 2], ["G4", 2], ["A4", 2], ["E4", 2],
-  ["F4", 2], ["C4", 2], ["F4", 2], ["G4", 2],
-  ["C4", 2], ["G4", 2], ["A4", 2], ["E4", 2],
-  ["F4", 2], ["C4", 2], ["F4", 2], ["G4", 2],
-  ["C4", 2], ["G4", 2], ["A4", 2], ["E4", 2],
-  ["F4", 2], ["C4", 2], ["F4", 2], ["G4", 2],
-  ["C4", 2], ["G4", 2], ["A4", 2], ["E4", 2],
-  ["F4", 2], ["C4", 2], ["F4", 2], ["G4", 2],
-  ["C4", 4], ["F4", 4], ["G4", 4], ["C4", 4]
+  // Die Basslinie des Kanons: C G A E F C F G, sechsmal durch. An vier
+  // Stellen hält die vorige Note durch, statt neu anzuschlagen — dort
+  // läge sonst dieselbe Note gleichzeitig in der Melodie, und die beiden
+  // kämen sich auf einer Taste in die Quere.
+  ["C4", 2], ["G4", 2], ["A4", 2], ["E4", 2], ["F4", 2], ["C4", 2],
+  ["F4", 2], ["G4", 2], ["C4", 2], ["G4", 2], ["A4", 2], ["E4", 2],
+  ["F4", 2], ["C4", 2], ["F4", 2], ["G4", 2], ["C4", 2], ["G4", 2],
+  ["A4", 2], ["E4", 2], ["F4", 2], ["C4", 2], ["F4", 2], ["G4", 2],
+  ["C4", 2], ["G4", 2], ["A4", 2], ["E4", 4], ["C4", 2], ["F4", 2],
+  ["G4", 2], ["C4", 2], ["G4", 2], ["A4", 2], ["E4", 2], ["F4", 2],
+  ["C4", 2], ["F4", 4], ["C4", 2], ["G4", 2], ["A4", 6], ["C4", 2],
+  ["F4", 2], ["G4", 2]
 ];
 
 const KL_MELODIE = [
-  // Erster Durchgang — die absteigende Linie, ruhig
+  // Die Violinlinie des Kanons — der Teil, den jeder kennt. Erst die
+  // absteigende Linie in ganzen Noten, dann dieselbe Harmonie in der
+  // bewegteren Fassung.
   ["E5", 4], ["D5", 4], ["C5", 4], ["H4", 4],
-  ["C5", 4], ["D5", 4], ["E5", 4], ["D5", 4],
-  // Zweiter Durchgang — dieselbe Linie, jetzt in Zweiergruppen
-  ["E5", 2], ["F5", 2], ["E5", 2], ["D5", 2],
-  ["C5", 2], ["D5", 2], ["E5", 2], ["C5", 2],
-  ["D5", 2], ["E5", 2], ["F5", 2], ["E5", 2],
-  ["D5", 2], ["C5", 2], ["D5", 2], ["H4", 2],
-  // Schluss — breit, zusammen mit dem Bass
-  ["C5", 4], ["E5", 4], ["D5", 4], ["C5", 4]
+  ["A4", 4], ["G4", 4], ["A4", 4], ["H4", 4],
+  ["C5", 4], ["H4", 4], ["A4", 4], ["G4", 4],
+  ["F4", 4], ["E4", 4], ["F4", 4], ["D4", 4],
+  ["E5", 2], ["C5", 2], ["D5", 2], ["H4", 2],
+  ["C5", 2], ["A4", 2], ["H4", 2], ["G4", 2],
+  ["A4", 2], ["F4", 2], ["G4", 2], ["E4", 2],
+  ["F4", 2], ["D4", 2], ["E4", 2], ["C4", 2]
 ];
+
 
 
 

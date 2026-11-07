@@ -137,10 +137,17 @@ pruefe(kollision.length === 0,
        "die beiden kommen sich auf keiner Taste in die Quere" +
        (kollision.length ? " — " + kollision.join("; ") : ""));
 
-const tiefBass = bass.every((n) => ["C4","Cis4","D4","Dis4","E4","F4","Fis4","G4","Gis4","A4","Ais4","H4"].includes(n.note));
-const hochMel = melodie.every((n) => ["H4","C5","Cis5","D5","Dis5","E5","F5"].includes(n.note));
-pruefe(tiefBass, "der Bass bleibt in der unteren H\u00e4lfte der Klaviatur");
-pruefe(hochMel, "die Melodie in der oberen");
+// Die Melodie ist die echte Violinlinie und reicht deshalb tief hinunter.
+// Getrennt bleiben die beiden nicht durch die Lage, sondern dadurch, dass
+// sie nie gleichzeitig dieselbe Taste brauchen — das steht oben.
+const bassToene = new Set(bass.map((n) => n.note));
+pruefe(bassToene.size <= 6, "der Bass benutzt nur " + bassToene.size +
+       " verschiedene T\u00f6ne — er ist die ruhige Stimme");
+const melToene = new Set(melodie.map((n) => n.note));
+pruefe(melToene.size >= 8, "die Melodie " + melToene.size + " — sie ist die bewegte");
+pruefe(melodie[0].note === "E5" && melodie[1].note === "D5" &&
+       melodie[2].note === "C5" && melodie[3].note === "H4",
+       "sie f\u00e4ngt mit der absteigenden Linie an, die jeder kennt");
 
 console.log("Melodie, Feinheiten");
 // Zwei gleiche Noten zu dicht beieinander: die Trefferfenster überlappen,
