@@ -203,8 +203,14 @@ pruefe(skript.includes("if (gegnerAufFeld(s.x, s.y)) return true;"),
        "ein Schnitt w\u00e4chst nicht zu, solange der G\u00e4rtner darauf steht");
 pruefe(skript.includes("if (!heckeSetzen(lab, s.x, s.y, s.r, true, laeufer.x, laeufer.y)) return true;"),
        "er w\u00e4chst auch nicht zu, wenn das jemanden einsperren w\u00fcrde");
-pruefe(!skript.includes("WANDEL_TAKT"),
-       "die zuf\u00e4llige Heckenverschiebung ist raus — alles hat jetzt eine Ursache");
+const WT=zahl2("WANDEL_TAKT");
+pruefe(WT === 0 || WT >= ANSAGE * 3,
+       "die Heckenverschiebung kommt alle " + (WT/1000) + " s — selten genug, " +
+       "dass eine Ansage dazwischen ankommt");
+pruefe(skript.includes("WANDEL_TAKT auf 0 schaltet es ab"),
+       "sie l\u00e4sst sich mit einer Zahl abschalten");
+pruefe(skript.includes("if (!heckeSetzen(lab, wx, wy, wr, schliessen, laeufer.x, laeufer.y)) continue;"),
+       "auch sie wird gepr\u00fcft, bevor sie bleibt");
 
 console.log("Der eingezeichnete Weg");
 pruefe(skript.includes("function pfeilMalen"), "der L\u00e4ufer sieht einen Pfeil auf dem Boden");

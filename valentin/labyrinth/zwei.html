@@ -116,6 +116,17 @@
   const SCHNITT_OFFEN = 60000;   // so lange bleibt ein Schnitt offen
   const WANDEL_ZEIGT  = 8000;    // so lange blinkt eine Änderung auf dem Plan
 
+  // Zusätzlich verschiebt sich ab und zu eine Hecke von selbst. Der
+  // Gärtner schneidet nur dort, wo er gerade ist — alles andere bliebe
+  // sonst so, wie der Läufer es sich gemerkt hat.
+  //
+  // Eine einzelne Hecke, selten. Vorher waren es drei alle fünfzehn
+  // Sekunden, und dabei gingen die Ansagen unter: Bis „links ist jetzt
+  // zu" getippt war, hatte sich schon das Nächste verschoben.
+  // WANDEL_TAKT auf 0 schaltet es ab.
+  const WANDEL_TAKT  = 40000;    // Millisekunden zwischen zwei Verschiebungen
+  const WANDEL_NAEHE = 3;        // nur so weit vom Läufer entfernt
+
   // Wer im Labyrinth läuft, steht auf dem Plan als Kopf seiner Figur.
   // kopf ist der Ausschnitt aus dem Stehbild, in Anteilen der Bildbreite
   // und -höhe: links, oben, breit, hoch. Er muss quadratisch sein, sonst
@@ -299,7 +310,7 @@
   let durchsage = { text: '', bis: 0 };   // vom Monitor zum Läufer
   let zuruf = { text: '', bis: 0 };       // vom Läufer zum Monitor
   let versuche = 0, gestartet = 0, laeuft = false;
-  let raschelt = 0, raschelNah = false;
+  let raschelt = 0, raschelNah = false, letzterWandel = 0;
   let gezeigt = [];              // zuletzt geänderte Felder, für den Plan
   let gegner = [];               // { x, y, r, letzter, schritte }
   let schnitte = [];             // offene Schnitte, die wieder zuwachsen
@@ -1014,6 +1025,8 @@
       'eine Hecke. Nur der Führende sieht, wo er ist und wo gerade ein Durchgang ' +
       'entsteht. Der Läufer hört ihn ab zwei Feldern und sieht ihn erst, wenn er ' +
       'im Gang vor ihm steht. Ein Schnitt wächst nach einer Minute wieder zu.</p>' +
+      '<p>Dazu verschiebt sich ab und zu eine Hecke von selbst. Was sich ' +
+      'ändert, blinkt auf dem Plan auf — gesehen hat es nur der Führende.</p>' +
       '<p>Der Führende kann einen Weg auf den Plan zeichnen. Beim Läufer erscheint ' +
       'dann ein Pfeil auf dem Boden, der in die nächste Richtung zeigt. Alles ' +
       'andere — Fallen, der Gärtner, ob man wartet oder läuft — wird geredet.</p>' +
@@ -1054,6 +1067,7 @@
     gezeigt = [];
     schnitte = [];
     weg = [];
+    letzterWandel = Date.now();
     gestartet = Date.now();
     raschelt = 0;
     laeuft = true;
@@ -1141,6 +1155,24 @@
         return false;
       });
       if (gegnerAufFeld(laeufer.x, laeufer.y)) erwischt();
+
+      // Eine einzelne Hecke verschiebt sich von selbst
+      if (WANDEL_TAKT && Date.now() - letzterWandel > WANDEL_TAKT) {
+        letzterWandel = Date.now();
+        const schliessen = Math.random() < 0.5;
+        for (let versuch = 0; versuch < 400; versuch++) {
+          const wx = laeufer.x + Math.round((Math.random() - 0.5) * 2 * WANDEL_NAEHE);
+          const wy = laeufer.y + Math.round((Math.random() - 0.5) * 2 * WANDEL_NAEHE);
+          if (wx < 0 || wy < 0 || wx >= FELDER || wy >= FELDER) continue;
+          const wr = Math.floor(Math.random() * 4);
+          if (!heckeSetzen(lab, wx, wy, wr, schliessen, laeufer.x, laeufer.y)) continue;
+          gezeigt.push({ x: wx, y: wy, bis: Date.now() + WANDEL_ZEIGT });
+          gezeigt.push({ x: wx + DX[wr], y: wy + DY[wr], bis: Date.now() + WANDEL_ZEIGT });
+          raschelt = Date.now() + 3000;
+          raschelNah = Math.abs(wx - laeufer.x) + Math.abs(wy - laeufer.y) <= 2;
+          break;
+        }
+      }
     }
 
     sichtMalen();
