@@ -4181,6 +4181,7 @@ const LABYRINTH_SEITE = "labyrinth/zwei.html";
 
 let labyrinthOffen = false;
 let labyrinthBau = null;
+let labyrinthKanal = null;
 
 function labyrinthStil() {
   if (document.getElementById("labyrinth-stil")) return;
@@ -4202,7 +4203,44 @@ function labyrinthStil() {
   document.head.appendChild(s);
 }
 
-function labyrinthStarten(rolle) {
+// Der Kanal für ein Paar. Der Name hängt an beiden Kennungen, in fester
+// Reihenfolge — dadurch kommen beide auf denselben Namen, egal wer ihn
+// zuerst aufmacht.
+function labyrinthVerbinden(partnerId) {
+  labyrinthTrennen();
+  if (!partnerId || !inventarKlient) return;
+  const name = "spiel-labyrinth-" + [netzIch, partnerId].sort().join("-");
+  try {
+    labyrinthKanal = inventarKlient.channel(name);
+    labyrinthKanal.on("broadcast", { event: "sagt" }, ({ payload }) => {
+      if (!payload || payload.von === netzIch) return;
+      if (!labyrinthBau) return;
+      try {
+        labyrinthBau.rahmen.contentWindow.postMessage(
+          { labyrinth: true, art: "sagt", text: payload.text }, "*");
+      } catch (e) {}
+    });
+    labyrinthKanal.subscribe();
+  } catch (e) { labyrinthKanal = null; }
+}
+
+function labyrinthTrennen() {
+  if (labyrinthKanal) { try { labyrinthKanal.unsubscribe(); } catch (e) {} }
+  labyrinthKanal = null;
+}
+
+// Was im Rahmen geschrieben wird, geht über den Kanal zum Partner.
+addEventListener("message", (e) => {
+  const d = e.data;
+  if (!d || d.labyrinth !== true || d.art !== "sagt") return;
+  if (!labyrinthKanal) return;
+  try {
+    labyrinthKanal.send({ type: "broadcast", event: "sagt",
+                          payload: { von: netzIch, text: String(d.text).slice(0, 120) } });
+  } catch (fehler) {}
+});
+
+function labyrinthStarten(rolle, partnerId) {
   labyrinthStil();
   if (!labyrinthBau) {
     const wurzel = document.createElement("div");
@@ -4230,9 +4268,11 @@ function labyrinthStarten(rolle) {
   labyrinthBau.rahmen.src = LABYRINTH_SEITE + "?rolle=" + rolle +
                             "&figur=" + encodeURIComponent(MEINE_FIGUR);
   setTimeout(() => { try { labyrinthBau.rahmen.contentWindow.focus(); } catch (e) {} }, 60);
+  labyrinthVerbinden(partnerId);
 }
 
 function labyrinthSchliessen() {
+  labyrinthTrennen();
   labyrinthOffen = false;
   if (labyrinthBau) {
     labyrinthBau.wurzel.classList.remove("auf");
@@ -4262,7 +4302,7 @@ function labyrinthLobby(rolle) {
         "nur jemand, der von oben schaut."
       : "Von hier oben liegt das Labyrinth offen vor dir. Wer unten " +
         "steht, sieht nichts davon.",
-    () => labyrinthStarten(rolle),
+    (uebung, mit) => labyrinthStarten(rolle, mit && mit.id),
     () => fensterZu(),
     "labyrinth",
     rolle

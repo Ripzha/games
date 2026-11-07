@@ -23,6 +23,14 @@
     text-transform: uppercase; color: #8a857a; background: #0f0e0c; }
   .schild b { color: #f0c173; text-transform: none; letter-spacing: 0; font-size: 14px; }
   canvas { flex: 1; width: 100%; min-height: 0; display: block; }
+  .verlauf { flex: none; height: 104px; overflow-y: auto; padding: 6px 10px;
+    background: #0d0c0a; border-top: 1px solid #262218; font-size: 13px;
+    line-height: 1.45; }
+  .verlauf div { margin-bottom: 2px; color: #ded6c2; }
+  .verlauf b { font-weight: 600; margin-right: 5px; }
+  .verlauf .ich b { color: #8fd49a; }
+  .verlauf .er b  { color: #f0c173; }
+  .verlauf .ereignis { color: #8a857a; font-style: italic; }
   .reden { flex: none; display: flex; gap: 6px; padding: 7px 10px;
     background: #0f0e0c; border-top: 1px solid #262218; }
   .reden input { flex: 1; min-width: 0; background: #131210; color: #ded6c2;
@@ -52,17 +60,19 @@
     <div class="seite">
       <div class="schild"><b>Im Labyrinth</b> &nbsp; W vor, S zurück, A und D drehen</div>
       <canvas id="sicht"></canvas>
+      <div class="verlauf" id="verlauf-laeufer"></div>
       <div class="reden">
-        <input id="ruf" maxlength="80" placeholder="Zurückrufen">
-        <button id="rufen">Rufen</button>
+        <input id="ruf" maxlength="80" placeholder="Schreiben und Enter">
+        <button id="rufen">Senden</button>
       </div>
     </div>
     <div class="seite">
       <div class="schild"><b>Am Monitor</b> &nbsp; klicken markiert ein Feld</div>
       <canvas id="plan"></canvas>
+      <div class="verlauf" id="verlauf-monitor"></div>
       <div class="reden">
-        <input id="durchsage" maxlength="80" placeholder="Durchsage an den Läufer">
-        <button id="senden">Durchsagen</button>
+        <input id="durchsage" maxlength="80" placeholder="Schreiben und Enter">
+        <button id="senden">Senden</button>
       </div>
     </div>
   </div>
@@ -315,8 +325,13 @@
   let laeufer = { x: 0, y: 0, r: 1 };     // Feld und Blickrichtung
   let gleit = { von: null, bis: null, start: 0, art: null };
   let marken = [];                        // was der Führende angezeichnet hat
-  let durchsage = { text: '', bis: 0 };   // vom Monitor zum Läufer
-  let zuruf = { text: '', bis: 0 };       // vom Läufer zum Monitor
+  // Ein gemeinsamer Verlauf für beide Seiten. Die letzten Zeilen stehen
+  // unter dem Bild, die jüngste Nachricht des anderen zusätzlich gross
+  // im Bild, damit man sie beim Laufen nicht übersieht.
+  const VERLAUF_LAENGE = 20;
+  let verlauf = [];                       // { wer: 'ich' | 'er' | 'ereignis', text }
+  let durchsage = { text: '', bis: 0 };   // die jüngste Nachricht des anderen
+  let zuruf = { text: '', bis: 0 };       // dieselbe auf der Monitorseite
   let versuche = 0, gestartet = 0, laeuft = false;
   let raschelt = 0, raschelNah = false, letzterWandel = 0;
   let gezeigt = [];              // zuletzt geänderte Felder, für den Plan
@@ -957,7 +972,7 @@
   function erwischt() {
     versuche++;
     laeufer = { x: 0, y: 0, r: 1 };
-    durchsage = { text: 'Der Gärtner hat dich — zurück zum Eingang', bis: Date.now() + 3000 };
+    eintragen('ereignis', 'Der Gärtner hat dich — zurück zum Eingang');
     standMalen();
   }
 
@@ -972,7 +987,7 @@
     if (lab.falle[ny][nx]) {
       versuche++;
       laeufer = { x: 0, y: 0, r: 1 };
-      durchsage = { text: 'Reingetappt — zurück zum Eingang', bis: Date.now() + 3000 };
+      eintragen('ereignis', 'Reingetappt — zurück zum Eingang');
       standMalen();
       return;
     }
@@ -1005,6 +1020,51 @@
     karte.appendChild(leiste);
     tafel.classList.remove('weg');
   }
+
+  function verlaufMalen() {
+    ['laeufer', 'monitor'].forEach((seite) => {
+      const el = document.getElementById('verlauf-' + seite);
+      if (!el) return;
+      el.innerHTML = verlauf.map((z) =>
+        '<div class="' + z.wer + '">' +
+        (z.wer === 'ereignis' ? '' : '<b>' + (z.wer === 'ich' ? 'Du' : 'Er') + '</b>') +
+        text(z.text) + '</div>').join('');
+      el.scrollTop = el.scrollHeight;
+    });
+  }
+
+  function text(s) {
+    return String(s).replace(/[&<>"]/g, (z) =>
+      ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[z]);
+  }
+
+  function eintragen(wer, t) {
+    verlauf.push({ wer: wer, text: t });
+    if (verlauf.length > VERLAUF_LAENGE) verlauf.shift();
+    verlaufMalen();
+    if (wer === 'er') {
+      durchsage = { text: t, bis: Date.now() + 6000 };
+      zuruf = { text: t, bis: Date.now() + 6000 };
+    }
+  }
+
+  // Hinaus geht es über die Elternseite, die die Verbindung hat. Ohne
+  // Elternseite — auf der Testseite — kommt es bei einem selbst zurück.
+  function schicken(t) {
+    if (!t) return;
+    eintragen('ich', t);
+    if (window.parent && window.parent !== window) {
+      try {
+        window.parent.postMessage({ labyrinth: true, art: 'sagt', text: t }, '*');
+      } catch (e) {}
+    }
+  }
+
+  addEventListener('message', (e) => {
+    const d = e.data;
+    if (!d || d.labyrinth !== true) return;
+    if (d.art === 'sagt' && d.text) eintragen('er', String(d.text).slice(0, 120));
+  });
 
   function anfangsTafel() {
     tafelZeigen(
@@ -1041,6 +1101,8 @@
     versuche = 0;
     durchsage = { text: '', bis: 0 };
     zuruf = { text: '', bis: 0 };
+    verlauf = [];
+    verlaufMalen();
     gegnerSetzen();
     gezeigt = [];
     schnitte = [];
@@ -1087,7 +1149,7 @@
     const feld = document.getElementById('durchsage');
     const t = feld.value.trim();
     if (!t) return;
-    durchsage = { text: t.slice(0, 80), bis: Date.now() + 6000 };
+    schicken(t.slice(0, 80));
     feld.value = '';
   }
   document.getElementById('senden').onclick = durchsagen;
@@ -1099,7 +1161,7 @@
     const feld = document.getElementById('ruf');
     const t = feld.value.trim();
     if (!t) return;
-    zuruf = { text: t.slice(0, 80), bis: Date.now() + 6000 };
+    schicken(t.slice(0, 80));
     feld.value = '';
   }
   document.getElementById('rufen').onclick = rufen;

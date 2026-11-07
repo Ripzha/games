@@ -568,6 +568,20 @@ pruefe(roh.includes("LOBBY_QUELLE.losSagen(meiner);"),
        "wer das Paar zuerst sieht, sagt es dem anderen ausdr\u00fccklich");
 pruefe(roh.includes("if (kanal) setTimeout(() => { try { kanal.unsubscribe(); } catch (e) {} }, 400);"),
        "abgemeldet wird erst danach, damit die Nachricht noch hinausgeht");
+pruefe(roh.includes('"spiel-labyrinth-" + [netzIch, partnerId].sort().join("-")'),
+       "das Paar bekommt einen gemeinsamen Kanal, auf dessen Namen beide kommen");
+pruefe(roh.includes('(uebung, mit) => labyrinthStarten(rolle, mit && mit.id)'),
+       "der Partner aus der Lobby wird ins Labyrinth mitgenommen");
+if (fs.existsSync(labPfad)) {
+  const lab3 = fs.readFileSync(labPfad, "utf8");
+  pruefe(lab3.includes("const VERLAUF_LAENGE = 20;"), "der Chat beh\u00e4lt 20 Zeilen");
+  pruefe(lab3.includes("window.parent.postMessage({ labyrinth: true, art: 'sagt'"),
+         "Geschriebenes geht an die Elternseite");
+  pruefe(lab3.includes("if (window.parent && window.parent !== window)"),
+         "ohne Elternseite bleibt die Testseite benutzbar");
+  pruefe(lab3.includes("eintragen('ereignis'"),
+         "auch Fallen und der G\u00e4rtner stehen im Verlauf");
+}
 ["klavier", "tischtennis", "labyrinth"].forEach((raum) =>
   pruefe(roh.indexOf('"' + raum + '"') >= 0, "die Aufgabe \"" + raum + "\" hat einen eigenen Raum"));
 pruefe(roh.includes('"labyrinth",\n    rolle'),
