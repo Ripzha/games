@@ -81,7 +81,7 @@ globalThis.__aus = { KL_WEISS, KL_SCHWARZ, KL_ALLE, KL_VON_TASTE, KL_PHRASEN,
                      TT_ZIEL, TT_SCHLAEGER_B, TT_BALL, TT_UEBERLAPP, TT_SCHLAEGER_Y,
                      TT_TEMPO_START, TT_TEMPO_MAX, TT_PARTNER, TT_UNTEN,
                      ttBall, ttAufschlag, ttBallSchritt, ttGrenzen, ttOberflaeche,
-                     AUTOMAT_SPIEL, automatStarten,
+                     AUTOMAT_SPIEL, automatStarten, figurWahlOeffnen,
                      LOBBY_QUELLE, lobbyOeffnen, lobbyBereit, lobbySchliessen,
                      lobbyIstOffen: () => lobbyOffen, lobbyKarte: () => lobbyBau.karte.innerHTML,
                      setzeMeinX: (v) => { ttMeinX = v; }, holeMeinX: () => ttMeinX,
@@ -192,8 +192,14 @@ function bildMass(d) {
 const wurzel = path.dirname(path.resolve(datei));
 Object.keys(FIGUREN || {}).forEach((name) => {
   const satz = FIGUREN[name];
-  const pfade = [satz.stehen, ...satz.gehen];
-  console.log("  " + name + (name === MEINE ? "  (eingestellt)" : ""));
+  const pfade = satz.stehen ? [satz.stehen, ...satz.gehen] : [];
+  console.log("  " + name + (name === MEINE ? "  (eingestellt)" : "") +
+              (pfade.length ? "" : "  — noch ohne Bilder"));
+  if (!pfade.length) {
+    pruefe(typeof satz.name === "string" && satz.name.length > 0,
+           "  die Figur hat einen Namen (" + satz.name + ")");
+    return;
+  }
   const fehlend = pfade.filter((p) => !fs.existsSync(path.join(wurzel, p)));
   pruefe(fehlend.length === 0, "  " + pfade.length + " Bilder liegen am richtigen Ort" +
          (fehlend.length ? " — fehlt: " + fehlend.join(", ") : ""));
@@ -353,6 +359,20 @@ pruefe(zweiHtml.includes("adresse.get('oben')"),
 ["klavierOffen", "ttOffen", "lobbyOffen", "automatOffen"].forEach((f) =>
   pruefe(roh.indexOf(f + " || ") >= 0 || roh.indexOf("|| " + f) >= 0,
          f + " sperrt die Haustasten mit"));
+
+// ---------- Figurenauswahl ----------
+console.log("Figurenauswahl");
+const namen = Object.keys(FIGUREN).map((k) => FIGUREN[k].name);
+pruefe(Object.keys(FIGUREN).length === 6, Object.keys(FIGUREN).length + " Figuren sind angelegt");
+pruefe(new Set(namen).size === namen.length, "kein Name doppelt (" + namen.join(", ") + ")");
+pruefe(Object.keys(FIGUREN).every((k) => FIGUREN[k].farbe),
+       "jede Figur hat eine Farbe f\u00fcr den Platzhalter");
+pruefe(typeof aus.figurWahlOeffnen === "function", "die Auswahl ist erreichbar");
+pruefe(roh.includes("localStorage.setItem(\"valentin_figur\""), "die Wahl wird gemerkt");
+pruefe(roh.includes("wahlOffen) return"), "w\u00e4hrend der Auswahl h\u00f6rt das Haus nicht auf Tasten");
+const ohneBild = Object.keys(FIGUREN).filter((k) => !FIGUREN[k].stehen);
+pruefe(ohneBild.length === 4, ohneBild.length + " Figuren warten noch auf Bilder (" +
+       ohneBild.join(", ") + ")");
 
 console.log(fehler === 0 ? "\nAlles in Ordnung." : "\n" + fehler + " Fehler.");
 process.exit(fehler === 0 ? 0 : 1);

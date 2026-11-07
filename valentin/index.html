@@ -1163,7 +1163,7 @@ addEventListener("keydown", (e) => {
   if (document.activeElement === satzfeld) return;
   const t = e.key.toLowerCase();
   tasten[t] = true;
-  if (klavierOffen || ttOffen || lobbyOffen || automatOffen) return;  // die hören selbst zu
+  if (klavierOffen || ttOffen || lobbyOffen || automatOffen || wahlOffen) return;  // die hören selbst zu
   if (offenerPunkt) { if (t === "escape") fensterZu(); return; }
   const p = nahePunkte().find((k) => k.taste === t);
   if (p) { punktOeffnen(p); e.preventDefault(); }
@@ -2330,35 +2330,56 @@ addEventListener("keydown", (e) => {
 // ======================================================================
 
 const FIGUREN = {
-  figur1: {
+  chase: {
+    name:   "Chase",
+    farbe:  "#c86a7a",
     stehen: "bilder/figuren/figur1-stehen.webp",
     gehen: [
       "bilder/figuren/figur1-gehen1.webp",
       "bilder/figuren/figur1-gehen2.webp"
     ],
-    name:   "Figur 1",    // <- hier den Namen der Figur eintragen
     anker:  0.456,
     seiten: 319 / 480,
     groesse: 1            // zum Angleichen, falls eine Figur zu gross wirkt
   },
-  figur2: {
+  logan: {
+    name:   "Logan",
+    farbe:  "#6a8fc8",
     stehen: "bilder/figuren/figur2-stehen.webp",
     gehen: [
       "bilder/figuren/figur2-gehen1.webp",
       "bilder/figuren/figur2-gehen2.webp"
     ],
-    name:   "Figur 2",    // <- hier den Namen der Figur eintragen
     anker:  0.393,
     seiten: 235 / 480,
     groesse: 1
-  }
+  },
+  // Vier Plätze ohne Bilder. Sie werden als farbige Platzhalterfigur
+  // gezeichnet, bis Bilder da sind. Dann hier dasselbe eintragen wie oben:
+  // stehen, gehen, anker und seiten aus dem Zuschneiden.
+  figur3: { name: "Figur 3", farbe: "#c8a35a", gehen: [], anker: 0.5, seiten: 0.5, groesse: 1 },
+  figur4: { name: "Figur 4", farbe: "#6ac89a", gehen: [], anker: 0.5, seiten: 0.5, groesse: 1 },
+  figur5: { name: "Figur 5", farbe: "#a06ac8", gehen: [], anker: 0.5, seiten: 0.5, groesse: 1 },
+  figur6: { name: "Figur 6", farbe: "#c8826a", gehen: [], anker: 0.5, seiten: 0.5, groesse: 1 }
 };
 
-// Zum Ausprobieren lässt sich die Figur über die Adresse umschalten:
-// ?figur=figur2. Später kommt sie vom Mitspieler.
-const MEINE_FIGUR =
-  FIGUREN[new URLSearchParams(location.search).get("figur")] ? 
-    new URLSearchParams(location.search).get("figur") : "figur1";
+// Welche Figur man spielt, wird beim Betreten gewählt und im Browser
+// gemerkt. Über die Adresse geht es auch: ?figur=logan.
+let MEINE_FIGUR = "chase";
+
+function figurMerken(name) {
+  if (!FIGUREN[name]) return;
+  MEINE_FIGUR = name;
+  try { localStorage.setItem("valentin_figur", name); } catch (e) {}
+}
+
+(function figurLesen() {
+  const ausAdresse = new URLSearchParams(location.search).get("figur");
+  if (FIGUREN[ausAdresse]) { MEINE_FIGUR = ausAdresse; return; }
+  let gemerkt = null;
+  try { gemerkt = localStorage.getItem("valentin_figur"); } catch (e) {}
+  if (FIGUREN[gemerkt]) MEINE_FIGUR = gemerkt;
+})();
 const FIGUR_TAKT  = 2.0;          // kleiner heisst schnellerer Laufzyklus
 const FIGUR_STEHT_NACH = 140;     // Millisekunden ohne Schritt, dann steht sie
 
@@ -2388,7 +2409,7 @@ function sprungAnteil() {
 addEventListener("keydown", (e) => {
   if (e.key !== " " && e.key !== "Spacebar") return;
   if (document.activeElement === satzfeld) return;   // im Chat tippen geht vor
-  if (klavierOffen || ttOffen || lobbyOffen || automatOffen || offenerPunkt) return;
+  if (klavierOffen || ttOffen || lobbyOffen || automatOffen || wahlOffen || offenerPunkt) return;
   e.preventDefault();                                 // sonst scrollt die Seite
   if (springt() || blendZiel) return;                 // kein zweiter Sprung in der Luft
   sprungStart = performance.now();
@@ -2405,6 +2426,7 @@ if (!editModus && !umrissModus) {
 // Der Zyklus wechselt zwischen Schritt und Durchgangsstellung:
 // gehen[0], stehen, gehen[1], stehen.
 function figurBildJetzt(satz, laeuft) {
+  if (!satz || !satz.stehen) return null;
   if (!laeuft) return bildHolen(satz.stehen);
   const schrank = Math.floor(figur.schritt / FIGUR_TAKT) % 4;
   if (schrank === 0) return bildHolen(satz.gehen[0]);
@@ -2414,8 +2436,8 @@ function figurBildJetzt(satz, laeuft) {
 
 // Bilder gleich laden, damit beim ersten Schritt nichts flackert
 Object.values(FIGUREN).forEach((s) => {
-  bildHolen(s.stehen);
-  s.gehen.forEach(bildHolen);
+  if (s.stehen) bildHolen(s.stehen);
+  (s.gehen || []).forEach(bildHolen);
 });
 
 // Läuft die Figur gerade? schritt() zählt figur.schritt nur beim Laufen
@@ -2425,6 +2447,37 @@ let figurZuletztBewegt  = 0;
 
 const figurPlatzhalter = figurMalen;   // die alte Fassung als Rückfall
 
+// Figuren ohne Bilder bekommen die gezeichnete Figur in ihrer Farbe.
+function figurAusFarbe(raum, satz) {
+  const farbe = (satz && satz.farbe) || "#c86a7a";
+  const f = bereich(raum);
+  const h = f.h * (FIGURHOEHE / 100) * ((satz && satz.groesse) || 1);
+  const br = h * 0.38;
+  const hoch = sprungAnteil();
+  const x = f.x + f.b * (figur.x / 100);
+  const boden = f.y + f.h * (raum.boden / 100);
+  const y = boden - hoch * h * SPRUNG_HOEHE;
+  const wackeln = Math.sin(figur.schritt) * h * 0.035;
+
+  stift.fillStyle = "rgba(0,0,0," + (0.45 - hoch * 0.24).toFixed(3) + ")";
+  stift.beginPath();
+  stift.ellipse(x, boden + h * 0.02, br * 0.6 * (1 - hoch * 0.3),
+                h * 0.05 * (1 - hoch * 0.3), 0, 0, Math.PI * 2);
+  stift.fill();
+
+  stift.fillStyle = farbe;
+  stift.fillRect(x - br / 2, y - h * 0.72, br, h * 0.52);
+  stift.fillStyle = "#f0d2b8";
+  stift.beginPath();
+  stift.arc(x, y - h * 0.82, h * 0.18, 0, Math.PI * 2);
+  stift.fill();
+  stift.fillStyle = "#5a3f2c";
+  stift.fillRect(x - br / 2 + h * 0.04, y - h * 0.2 + wackeln, h * 0.09, h * 0.2);
+  stift.fillRect(x + br / 2 - h * 0.13, y - h * 0.2 - wackeln, h * 0.09, h * 0.2);
+  stift.fillStyle = "#2a1d16";
+  stift.fillRect(x + figur.blickt * h * 0.07 - h * 0.02, y - h * 0.86, h * 0.04, h * 0.04);
+}
+
 figurMalen = function (raum) {
   const satz = FIGUREN[MEINE_FIGUR];
   if (figur.schritt !== figurLetzterSchritt) {
@@ -2433,11 +2486,12 @@ figurMalen = function (raum) {
   }
   const laeuft = performance.now() - figurZuletztBewegt < FIGUR_STEHT_NACH;
   const hoch = sprungAnteil();
-  const bild = satz && (springt() ? bildHolen(satz.gehen[SPRUNG_BILD])
-                                  : figurBildJetzt(satz, laeuft));
+  const bild = (satz && satz.stehen)
+    ? (springt() ? bildHolen(satz.gehen[SPRUNG_BILD]) : figurBildJetzt(satz, laeuft))
+    : null;
 
   if (!bild || !bild.complete || !bild.naturalWidth) {
-    figurPlatzhalter(raum);              // Bilder noch nicht da
+    figurAusFarbe(raum, satz);           // noch keine Bilder für diese Figur
     return;
   }
 
@@ -3136,6 +3190,123 @@ addEventListener("keydown", (e) => {
   if (!automatOffen) return;
   if (e.key === "Escape") { automatSchliessen(); e.preventDefault(); }
 });
+
+// ======================================================================
+// 14. Die Figurenauswahl
+//
+//    Beim Betreten wird gewählt, wen man spielt. Die Wahl merkt sich der
+//    Browser, beim nächsten Mal steht sie schon da. Mit F lässt sie sich
+//    wieder öffnen.
+//
+//    Figuren ohne Bilder zeigen ein farbiges Feld statt eines Bildes und
+//    laufen im Haus als farbige Platzhalterfigur.
+//
+//    Wenn der Mehrspieler steht, muss hier noch dazu, dass eine Figur
+//    nur einmal vergeben wird — die Vergabe gehört dann in die Lobby,
+//    nicht hierher.
+// ======================================================================
+
+let wahlOffen = false;
+let wahlBau = null;
+
+function wahlStil() {
+  if (document.getElementById("wahl-stil")) return;
+  const s = document.createElement("style");
+  s.id = "wahl-stil";
+  s.textContent = `
+  #figurwahl { position: absolute; inset: 0; display: none; align-items: center;
+       justify-content: center; padding: 20px; background: rgba(8,7,6,0.95); z-index: 10; }
+  #figurwahl.auf { display: flex; }
+  #wahl-karte { max-width: 620px; width: 100%; }
+  #wahl-karte h2 { margin: 0 0 4px; font-size: 20px; font-weight: 500; color: #f0c173; }
+  #wahl-karte p { margin: 0 0 16px; font-size: 14px; color: #8a857a; }
+  #wahl-gitter { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+  @media (max-width: 520px) { #wahl-gitter { grid-template-columns: repeat(2, 1fr); } }
+  .wahl-feld { background: #131210; border: 1px solid #262218; border-radius: 10px;
+       padding: 10px 8px 9px; cursor: pointer; text-align: center; color: #ded6c2;
+       font-size: 14px; }
+  .wahl-feld:hover { border-color: #5a4a1c; }
+  .wahl-feld.gewaehlt { border-color: #f0c173; background: #1a1610; }
+  .wahl-bild { height: 110px; display: flex; align-items: flex-end;
+       justify-content: center; margin-bottom: 7px; }
+  .wahl-bild img { max-height: 110px; max-width: 100%; object-fit: contain; }
+  .wahl-klotz { width: 34px; height: 76px; border-radius: 5px 5px 2px 2px; }
+  .wahl-feld small { display: block; color: #6d6659; font-size: 11px; margin-top: 2px; }
+  `;
+  document.head.appendChild(s);
+}
+
+function figurWahlOeffnen() {
+  wahlStil();
+  if (!wahlBau) {
+    const wurzel = document.createElement("div");
+    wurzel.id = "figurwahl";
+    wurzel.innerHTML =
+      '<div id="wahl-karte"><h2>Wen spielst du?</h2>' +
+      "<p>Die Wahl merkt sich der Browser. Mit F kannst du sie später ändern.</p>" +
+      '<div id="wahl-gitter"></div></div>';
+    document.getElementById("buehne").appendChild(wurzel);
+    wahlBau = { wurzel, gitter: wurzel.querySelector("#wahl-gitter") };
+  }
+  wahlMalen();
+  wahlOffen = true;
+  wahlBau.wurzel.classList.add("auf");
+}
+
+function figurWahlSchliessen() {
+  wahlOffen = false;
+  if (wahlBau) wahlBau.wurzel.classList.remove("auf");
+  letzteBewegung = Date.now();
+}
+
+function wahlMalen() {
+  wahlBau.gitter.innerHTML = "";
+  Object.keys(FIGUREN).forEach((schluessel) => {
+    const satz = FIGUREN[schluessel];
+    const feld = document.createElement("div");
+    feld.className = "wahl-feld" + (schluessel === MEINE_FIGUR ? " gewaehlt" : "");
+    const hatBild = !!satz.stehen;
+    feld.innerHTML =
+      '<div class="wahl-bild">' +
+      (hatBild
+        ? '<img src="' + satz.stehen + '" alt="">'
+        : '<div class="wahl-klotz" style="background:' + satz.farbe + '"></div>') +
+      "</div>" + satz.name +
+      (hatBild ? "" : "<small>noch ohne Bilder</small>");
+    feld.onclick = () => {
+      figurMerken(schluessel);
+      wahlMalen();
+      figurWahlSchliessen();
+    };
+    wahlBau.gitter.appendChild(feld);
+  });
+}
+
+addEventListener("keydown", (e) => {
+  if (wahlOffen) {
+    if (e.key === "Escape") { figurWahlSchliessen(); e.preventDefault(); }
+    return;
+  }
+  if (e.key !== "f" && e.key !== "F") return;
+  if (document.activeElement === satzfeld) return;
+  if (klavierOffen || ttOffen || lobbyOffen || automatOffen || offenerPunkt) return;
+  e.preventDefault();
+  figurWahlOeffnen();
+});
+
+// Beim Betreten fragen — ausser die Figur steht in der Adresse.
+if (!editModus && !umrissModus &&
+    !new URLSearchParams(location.search).get("figur")) {
+  figurWahlOeffnen();
+}
+
+// Die Hilfe oben rechts um die Taste ergänzen
+if (!editModus && !umrissModus) {
+  document.getElementById("hilfe").innerHTML =
+    "A und D zum Laufen, Leertaste zum Hüpfen<br>" +
+    "am Zeichen stehen, dann W oder S<br>" +
+    "F wechselt die Figur";
+}
 </script>
 </body>
 </html>
