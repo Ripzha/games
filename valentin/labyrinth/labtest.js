@@ -183,6 +183,12 @@ for (let i = 0; i < 40; i++) {
 pruefe(blind === blindRichtig,
        "vor einer Hecke endet die Sicht sofort (" + blindRichtig + " von " + blind + ")");
 
+console.log("Standpunkt");
+pruefe(skript.includes("rahmen(t - 0.5, B, H), b = rahmen(t + 0.5, B, H)"),
+       "man steht in der Mitte des Feldes, nicht an seinem Rand");
+pruefe(!/rahmen\(t, B, H\), b = rahmen\(t \+ 1, B, H\)/.test(skript),
+       "die alte Fassung ist weg");
+
 console.log("Durchg\u00e4nge");
 pruefe(skript.includes("[[links, -1], [rechts, 1]].forEach"),
        "offene Seiten werden ausgebaut statt leer gelassen");

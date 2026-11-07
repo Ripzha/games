@@ -440,7 +440,13 @@
     for (let t = tiefe; t >= 0; t--) {
       const x = laeufer.x + DX[r] * t, y = laeufer.y + DY[r] * t;
       if (x < 0 || y < 0 || x >= FELDER || y >= FELDER) continue;
-      const a = rahmen(t, B, H), b = rahmen(t + 1, B, H);
+      // Man steht in der Mitte des Feldes, nicht an seinem hinteren Rand.
+      // Deshalb liegt die Nahebene ein halbes Feld vor einem und die
+      // Fernebene ein halbes dahinter. Für das eigene Feld wird die
+      // Nahebene dadurch grösser als der Bildschirm — die Hecken neben
+      // einem laufen aus dem Bild heraus, und so sieht es auch aus,
+      // wenn man wirklich dazwischensteht.
+      const a = rahmen(t - 0.5, B, H), b = rahmen(t + 0.5, B, H);
       const dunkel = Math.max(0.2, 1 - t * 0.17);
       const kachel = (a.u - a.o) * HECKE_KACHEL;
 
