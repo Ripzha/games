@@ -138,19 +138,31 @@ const KL_PAUSE   = 1.5;      // Zähler Pause zwischen zwei Phrasen
 // Zählzeiten versetzt — sie fällt nie mit der oberen zusammen.
 //
 // Eine Länge ist eine Zählzeit, null ist eine Pause.
-const KL_TAUSCH = 32;        // Zählzeiten bis zum Stimmentausch
+const KL_TAUSCH = 64;        // Zählzeiten bis zum Stimmentausch
 
 const KL_OBEN = [
+  // Erster Durchgang — die absteigende Linie
   ["C5", 4], ["H4", 4], ["A4", 4], ["G4", 4],
   ["F4", 4], ["E4", 4], ["F4", 4], ["G4", 4],
   ["A4", 4], ["G4", 4], ["F4", 4], ["E4", 4],
   ["D4", 4], ["C4", 4], ["D4", 4], [["C4", "G4"], 4],
+  // Zweiter Durchgang — dieselbe Harmonie, jetzt in Sprüngen
+  ["C5", 4], ["A4", 4], ["H4", 4], ["G4", 4],
+  ["A4", 4], ["F4", 4], ["G4", 4], ["E4", 4],
+  ["F4", 4], ["D4", 4], ["E4", 4], ["C4", 4],
+  ["D4", 4], ["H4", 4], ["C4", 4], [["C4", "G4"], 4],
   [null, 4]
 ];
 
 const KL_UNTEN = [
-  // Die Basslinie C G A E F C F G, um zwei Zählzeiten versetzt
+  // Die Basslinie C G A E F C F G, um zwei Zählzeiten versetzt. Sie
+  // bleibt über beide Durchgänge dieselbe — das ist das Prinzip des
+  // Kanons: der Bass trägt, darüber verändert sich die Melodie.
   [null, 2],
+  ["C4", 4], ["G4", 4], ["A4", 4], ["E4", 4],
+  ["F4", 4], ["C4", 4], ["F4", 4], ["G4", 4],
+  ["C4", 4], ["G4", 4], ["A4", 4], ["E4", 4],
+  ["F4", 4], ["C4", 4], ["F4", 4], [["G4", "H4"], 4],
   ["C4", 4], ["G4", 4], ["A4", 4], ["E4", 4],
   ["F4", 4], ["C4", 4], ["F4", 4], ["G4", 4],
   ["C4", 4], ["G4", 4], ["A4", 4], ["E4", 4],
