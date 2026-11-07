@@ -572,8 +572,10 @@ pruefe(roh.includes('"lab-" + [netzIch, partnerId].sort().join("-")'),
        "das Paar bekommt einen gemeinsamen Kanal, auf dessen Namen beide kommen");
 pruefe(roh.includes('"&kanal=" + encodeURIComponent(kanal)'),
        "der Kanalname geht in der Adresse an die Labyrinthseite");
-pruefe(roh.includes('(uebung, mit) => labyrinthStarten(rolle, mit && mit.id)'),
+pruefe(roh.includes('(uebung, mit) => labyrinthStarten(rolle, mit)'),
        "der Partner aus der Lobby wird ins Labyrinth mitgenommen");
+pruefe(roh.includes('"&partner=" + encodeURIComponent(andereFigur)'),
+       "die Figur des Partners geht mit, damit oben sein Kopf steht");
 if (fs.existsSync(labPfad)) {
   const lab3 = fs.readFileSync(labPfad, "utf8");
   pruefe(lab3.includes("const VERLAUF_LAENGE = 20;"), "der Chat beh\u00e4lt 20 Zeilen");

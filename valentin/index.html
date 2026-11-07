@@ -4202,7 +4202,8 @@ function labyrinthStil() {
   document.head.appendChild(s);
 }
 
-function labyrinthStarten(rolle, partnerId) {
+function labyrinthStarten(rolle, mit) {
+  const partnerId = mit && mit.id;
   labyrinthStil();
   if (!labyrinthBau) {
     const wurzel = document.createElement("div");
@@ -4233,9 +4234,13 @@ function labyrinthStarten(rolle, partnerId) {
   const kanal = partnerId
     ? "lab-" + [netzIch, partnerId].sort().join("-")
     : "";
+  // Die Figur des Partners geht mit: Wer oben steht, sieht auf dem Plan
+  // den Kopf des anderen, nicht seinen eigenen.
+  const andereFigur = mit && mit.figur ? mit.figur : "";
   labyrinthBau.rahmen.src = LABYRINTH_SEITE + "?rolle=" + rolle +
                             "&figur=" + encodeURIComponent(MEINE_FIGUR) +
                             "&ich=" + encodeURIComponent(netzIch) +
+                            (andereFigur ? "&partner=" + encodeURIComponent(andereFigur) : "") +
                             (kanal ? "&kanal=" + encodeURIComponent(kanal) : "");
   setTimeout(() => { try { labyrinthBau.rahmen.contentWindow.focus(); } catch (e) {} }, 60);
 }
@@ -4270,7 +4275,7 @@ function labyrinthLobby(rolle) {
         "nur jemand, der von oben schaut."
       : "Von hier oben liegt das Labyrinth offen vor dir. Wer unten " +
         "steht, sieht nichts davon.",
-    (uebung, mit) => labyrinthStarten(rolle, mit && mit.id),
+    (uebung, mit) => labyrinthStarten(rolle, mit),
     () => fensterZu(),
     "labyrinth",
     rolle

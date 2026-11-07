@@ -343,6 +343,12 @@ koepfe.forEach(([, schluessel, name, bild, masse]) => {
   pruefe(Math.abs(px[0] - px[1]) < 2,
          "  " + name + ": quadratisch (" + Math.round(px[0]) + " zu " + Math.round(px[1]) + ")");
 });
+pruefe(skript.includes("const KOPF_FIGUR = (ROLLE === 'monitor' && PARTNER) ? PARTNER : WER;"),
+       "wer oben zusieht, sieht den Kopf seines Partners");
+pruefe(skript.includes("const [kx, ky, kb, kh] = FIGUREN[KOPF_FIGUR].kopf;"),
+       "auch der Ausschnitt kommt von der richtigen Figur");
+pruefe(skript.includes("if (!satz) return;"),
+       "kennt die Seite die Figur nicht, bleibt der goldene Punkt");
 pruefe(skript.includes("if (laeufer.r === 1) p2.scale(-1, 1);"),
        "nach Osten wird der Kopf gespiegelt");
 pruefe(skript.includes("p2.clip();"), "der Kopf sitzt in einem runden Rahmen");

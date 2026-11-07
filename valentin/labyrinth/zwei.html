@@ -159,11 +159,19 @@
   const ROLLE = ['laeufer', 'monitor'].includes(adresse.get('rolle'))
     ? adresse.get('rolle') : 'beide';
 
+  // Auf dem Plan steht der Kopf dessen, der unten läuft. Wer oben
+  // zusieht, sieht also den Kopf seines Partners und nicht seinen
+  // eigenen. Kennt die Seite die Figur nicht, bleibt der goldene Punkt.
+  const PARTNER = FIGUREN[adresse.get('partner')] ? adresse.get('partner') : null;
+  const KOPF_FIGUR = (ROLLE === 'monitor' && PARTNER) ? PARTNER : WER;
+
   let kopfBild = null;
   (function kopfLaden() {
+    const satz = FIGUREN[KOPF_FIGUR];
+    if (!satz) return;
     const b = new Image();
     b.onload = () => { kopfBild = b; };
-    b.src = FIGUREN[WER].bild;
+    b.src = satz.bild;
   })();
   const DREHUNG  = 150;       // Millisekunden für eine Vierteldrehung
 
@@ -842,7 +850,7 @@
     p2.restore();
 
     if (kopfBild && kopfBild.complete && kopfBild.naturalWidth) {
-      const [kx, ky, kb, kh] = FIGUREN[WER].kopf;
+      const [kx, ky, kb, kh] = FIGUREN[KOPF_FIGUR].kopf;
       const B0 = kopfBild.naturalWidth, H0 = kopfBild.naturalHeight;
       p2.save();
       p2.beginPath(); p2.arc(lx, ly, halb, 0, Math.PI * 2); p2.clip();
