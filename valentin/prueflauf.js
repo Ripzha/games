@@ -568,17 +568,21 @@ pruefe(roh.includes("LOBBY_QUELLE.losSagen(meiner);"),
        "wer das Paar zuerst sieht, sagt es dem anderen ausdr\u00fccklich");
 pruefe(roh.includes("if (kanal) setTimeout(() => { try { kanal.unsubscribe(); } catch (e) {} }, 400);"),
        "abgemeldet wird erst danach, damit die Nachricht noch hinausgeht");
-pruefe(roh.includes('"spiel-labyrinth-" + [netzIch, partnerId].sort().join("-")'),
+pruefe(roh.includes('"lab-" + [netzIch, partnerId].sort().join("-")'),
        "das Paar bekommt einen gemeinsamen Kanal, auf dessen Namen beide kommen");
+pruefe(roh.includes('"&kanal=" + encodeURIComponent(kanal)'),
+       "der Kanalname geht in der Adresse an die Labyrinthseite");
 pruefe(roh.includes('(uebung, mit) => labyrinthStarten(rolle, mit && mit.id)'),
        "der Partner aus der Lobby wird ins Labyrinth mitgenommen");
 if (fs.existsSync(labPfad)) {
   const lab3 = fs.readFileSync(labPfad, "utf8");
   pruefe(lab3.includes("const VERLAUF_LAENGE = 20;"), "der Chat beh\u00e4lt 20 Zeilen");
-  pruefe(lab3.includes("window.parent.postMessage({ labyrinth: true, art: 'sagt'"),
-         "Geschriebenes geht an die Elternseite");
-  pruefe(lab3.includes("if (window.parent && window.parent !== window)"),
-         "ohne Elternseite bleibt die Testseite benutzbar");
+  pruefe(lab3.includes("kanal.send({ type: 'broadcast', event: 'sagt'"),
+         "die Seite schickt selbst, ohne Umweg \u00fcber das Haus");
+  pruefe(lab3.includes("if (!KANAL_NAME || typeof supabase === 'undefined') return;"),
+         "ohne Kanalnamen bleibt die Testseite benutzbar");
+  pruefe(lab3.includes("if (!payload || payload.von === ICH) return;"),
+         "die eigenen Zeilen kommen nicht doppelt zur\u00fcck");
   pruefe(lab3.includes("eintragen('ereignis'"),
          "auch Fallen und der G\u00e4rtner stehen im Verlauf");
 }

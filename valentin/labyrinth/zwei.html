@@ -79,6 +79,7 @@
   <div id="tafel"><div id="karte"></div></div>
 </div>
 
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
 <script>
 (function () {
   'use strict';
@@ -1048,23 +1049,39 @@
     }
   }
 
-  // Hinaus geht es über die Elternseite, die die Verbindung hat. Ohne
-  // Elternseite — auf der Testseite — kommt es bei einem selbst zurück.
+  // Die Seite hat ihre eigene Verbindung. Den Kanalnamen gibt das Haus
+  // in der Adresse mit — er hängt an den Kennungen der beiden Spieler,
+  // deshalb sieht den Chat nur, wer gerade zusammen spielt. Ohne
+  // Kanalnamen, also auf der Testseite, kommt alles bei einem selbst
+  // zurück.
+  const NETZ_URL = 'https://uvnffzypgtrzgqtthdrn.supabase.co';
+  const NETZ_SCHLUESSEL = 'sb_publishable_3q0OPU3U_DgYMcqSbacRqg_OVv7FofY';
+  const KANAL_NAME = adresse.get('kanal') || '';
+  const ICH = adresse.get('ich') || ('x' + Math.random().toString(36).slice(2, 8));
+
+  let kanal = null;
+  (function verbinden() {
+    if (!KANAL_NAME || typeof supabase === 'undefined') return;
+    try {
+      const klient = supabase.createClient(NETZ_URL, NETZ_SCHLUESSEL);
+      kanal = klient.channel(KANAL_NAME);
+      kanal.on('broadcast', { event: 'sagt' }, ({ payload }) => {
+        if (!payload || payload.von === ICH) return;
+        eintragen('er', String(payload.text).slice(0, 120));
+      });
+      kanal.subscribe();
+    } catch (e) { kanal = null; }
+  })();
+
   function schicken(t) {
     if (!t) return;
     eintragen('ich', t);
-    if (window.parent && window.parent !== window) {
-      try {
-        window.parent.postMessage({ labyrinth: true, art: 'sagt', text: t }, '*');
-      } catch (e) {}
-    }
+    if (!kanal) { return; }
+    try {
+      kanal.send({ type: 'broadcast', event: 'sagt',
+                   payload: { von: ICH, text: t } });
+    } catch (e) {}
   }
-
-  addEventListener('message', (e) => {
-    const d = e.data;
-    if (!d || d.labyrinth !== true) return;
-    if (d.art === 'sagt' && d.text) eintragen('er', String(d.text).slice(0, 120));
-  });
 
   function anfangsTafel() {
     tafelZeigen(
