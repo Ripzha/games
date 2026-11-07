@@ -106,18 +106,30 @@ KL_SCHWARZ.forEach((t) => (KL_VON_TASTE[t.kuerzel.toLowerCase()] = t.note));
 const KL_ZAEHLER = 340;      // Millisekunden pro Zähler
 const KL_PAUSE   = 1.5;      // Zähler Pause zwischen zwei Phrasen
 
+// Pachelbels Kanon in D, nach C-Dur versetzt, damit er in den Umfang
+// der Klaviatur passt (C4 bis F5). Die Melodie läuft über die immer
+// gleiche Basslinie des Kanons: C G A E F C F G.
+//
+// Erst die beiden ruhigen Durchgänge, die jeder kennt, dann die beiden
+// bewegteren. Die Phrasen wechseln zwischen den beiden, niemand spielt
+// mehr als zwei am Stück.
 const KL_PHRASEN = [
-  { wer: 0, noten: [["A4", 1], ["C5", 2], ["D5", 1], ["E5", 2], ["F5", 1], ["E5", 3]] },
-  { wer: 1, noten: [["D5", 2], ["H4", 1], ["G4", 2], ["A4", 1], ["H4", 3]] },
-  { wer: 0, noten: [["C5", 2], ["A4", 3], ["Gis4", 1], ["A4", 2], ["H4", 1]] },
-  { wer: 1, noten: [["Gis4", 3], ["E4", 3]] },
-  // Beim Wiederholungsteil tauschen die beiden die Rollen, damit jeder
-  // ungefähr gleich viele Noten bekommt.
-  { wer: 1, noten: [["A4", 1], ["C5", 2], ["D5", 1], ["E5", 2], ["F5", 1], ["E5", 3]] },
-  { wer: 0, noten: [["D5", 2], ["H4", 1], ["G4", 2], ["A4", 1], ["H4", 3]] },
-  { wer: 1, noten: [["C5", 2], ["H4", 1], ["A4", 2], ["Gis4", 1], ["Fis4", 2], ["Gis4", 1]] },
-  { wer: 0, noten: [["A4", 3], ["A4", 3]] }
+  // Erster Durchgang — die absteigende Linie
+  { wer: 0, noten: [["E5", 2], ["D5", 2], ["C5", 2], ["H4", 2]] },
+  { wer: 1, noten: [["A4", 2], ["G4", 2], ["A4", 2], ["H4", 2]] },
+  // Zweiter Durchgang — dieselbe Linie eine Stufe tiefer
+  { wer: 0, noten: [["C5", 2], ["H4", 2], ["A4", 2], ["G4", 2]] },
+  { wer: 1, noten: [["F4", 2], ["E4", 2], ["F4", 2], ["D4", 2]] },
+  // Dritter Durchgang — jetzt in Sprüngen, das bekannte Hüpfen
+  { wer: 1, noten: [["E5", 1], ["C5", 1], ["D5", 1], ["H4", 1]] },
+  { wer: 0, noten: [["C5", 1], ["A4", 1], ["H4", 1], ["G4", 1]] },
+  { wer: 1, noten: [["A4", 1], ["F4", 1], ["G4", 1], ["E4", 1]] },
+  { wer: 0, noten: [["F4", 1], ["D4", 1], ["E4", 1], ["C4", 1]] },
+  // Schluss — wieder hinauf und ausklingen
+  { wer: 1, noten: [["F4", 2], ["G4", 2], ["A4", 2], ["H4", 2]] },
+  { wer: 0, noten: [["C5", 3], ["E5", 3], ["C5", 4]] }
 ];
+
 
 // ----------------------------------------------------------------------
 // Zeiten und Schwellen
@@ -428,7 +440,7 @@ function klTafelZeigen(html, knoepfe) {
 function klTafelStart() {
   klTafelZeigen(
     "<h2>Das Klavier</h2>" +
-    "<p>Auf dem Pult liegt ein Stück für vier Hände. Die Melodie springt " +
+    "<p>Auf dem Pult liegt Pachelbels Kanon, gesetzt für vier Hände. Die Melodie springt " +
     "zwischen euch hin und her — deine Noten sind hell und tragen einen " +
     "Buchstaben, die des anderen bleiben dunkel.</p>" +
     "<p>Drück die Taste, wenn die Note unten ankommt. Gewertet wird " +
