@@ -88,5 +88,60 @@ pruefe(spiel.includes("function zeigeEnde()"), "der Endbildschirm für allein st
 pruefe(/const ABSTAND = Math\.max\(1,/.test(spiel),
        "ohne ?abstand bleibt der Abstand wie vorher");
 
+// ---------- Der Bot ----------
+console.log("Bot");
+function zahl(text, name) {
+  const m = text.match(new RegExp("(?:const|let)\\s+" + name + "\\s*=\\s*(-?[0-9.]+)"));
+  return m ? parseFloat(m[1]) : null;
+}
+const VORLAUF  = zahl(eltern, "BOT_VORLAUF");
+const DUCK_VOR = zahl(eltern, "BOT_DUCK_VOR");
+const FEHLER   = zahl(eltern, "BOT_FEHLER");
+const GRAV     = zahl(spiel, "GRAV");
+const SPRUNG   = zahl(spiel, "SPRUNG");
+const TEMPO_MAX = zahl(spiel, "TEMPO_MAX");
+
+pruefe(VORLAUF && DUCK_VOR && FEHLER !== null, "die Botwerte stehen in der Elternseite");
+pruefe(GRAV && SPRUNG, "Schwerkraft und Sprungkraft stehen im Spiel");
+pruefe(eltern.includes("if (botAn && t.rahmen === 'unten') return;"),
+       "bei Bot werden die Pfeiltasten durchgelassen und nicht doppelt gedrückt");
+pruefe(eltern.includes("botTaste('sprung'") && eltern.includes("botTaste('ducken'"),
+       "der Bot kann springen und ducken");
+pruefe(FEHLER > 0 && FEHLER < 0.2,
+       "der Bot macht Fehler, aber nicht dauernd (" + Math.round(FEHLER * 100) + " %)");
+
+// Springt er hoch genug? Höhe über dem Boden beim Erreichen des Hindernisses.
+// y = SPRUNG * t + GRAV * t² / 2, SPRUNG ist negativ.
+const hoeheBeiAnkunft = -(SPRUNG * VORLAUF + GRAV * VORLAUF * VORLAUF / 2);
+const hoechstes = Math.max(...[...spiel.matchAll(/\{ typ: '[a-z]+', b: \d+, h: (\d+) \}/g)]
+                             .map((m) => parseInt(m[1], 10)));
+pruefe(hoeheBeiAnkunft > hoechstes + 15,
+       "der Sprung trägt über das höchste Hindernis (" + Math.round(hoeheBeiAnkunft) +
+       " gegen " + hoechstes + " Bildpunkte)");
+
+// Und ist er zum Scheitelpunkt noch nicht wieder unten?
+const scheitel = -SPRUNG / GRAV;
+pruefe(VORLAUF > scheitel * 0.8 && VORLAUF < scheitel * 2,
+       "der Absprung liegt sinnvoll zum Scheitelpunkt (" + VORLAUF.toFixed(2) +
+       " s gegen " + scheitel.toFixed(2) + " s)");
+
+// Beim höchsten Tempo noch genug Vorwarnung?
+pruefe(VORLAUF * TEMPO_MAX > 180,
+       "auch beim höchsten Tempo springt er früh genug (" +
+       Math.round(VORLAUF * TEMPO_MAX) + " Bildpunkte vorher)");
+
+// Die Schranke: geduckt muss der Kopf unter die Unterkante passen
+const unter = spiel.match(/terrainY\(worldX \+ sx\) - (\d+)/);
+const kopfDuck = spiel.match(/ducken && amBoden \? (\d+) : (\d+)/);
+if (unter && kopfDuck) {
+  pruefe(parseInt(kopfDuck[1], 10) < parseInt(unter[1], 10),
+         "geduckt passt der Kopf unter die Schranke (" + kopfDuck[1] + " gegen " + unter[1] + ")");
+  pruefe(parseInt(kopfDuck[2], 10) > parseInt(unter[1], 10),
+         "aufrecht passt er nicht — Ducken ist also nötig (" + kopfDuck[2] + ")");
+}
+pruefe(DUCK_VOR * TEMPO_MAX > 150,
+       "auch beim höchsten Tempo duckt er früh genug (" +
+       Math.round(DUCK_VOR * TEMPO_MAX) + " Bildpunkte vorher)");
+
 console.log(fehler === 0 ? "\nAlles in Ordnung." : "\n" + fehler + " Fehler.");
 process.exit(fehler === 0 ? 0 : 1);

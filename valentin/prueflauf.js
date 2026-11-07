@@ -81,6 +81,7 @@ globalThis.__aus = { KL_WEISS, KL_SCHWARZ, KL_ALLE, KL_VON_TASTE, KL_PHRASEN,
                      TT_ZIEL, TT_SCHLAEGER_B, TT_BALL, TT_UEBERLAPP, TT_SCHLAEGER_Y,
                      TT_TEMPO_START, TT_TEMPO_MAX, TT_PARTNER, TT_UNTEN,
                      ttBall, ttAufschlag, ttBallSchritt, ttGrenzen, ttOberflaeche,
+                     AUTOMAT_SPIEL, automatStarten,
                      LOBBY_QUELLE, lobbyOeffnen, lobbyBereit, lobbySchliessen,
                      lobbyIstOffen: () => lobbyOffen, lobbyKarte: () => lobbyBau.karte.innerHTML,
                      setzeMeinX: (v) => { ttMeinX = v; }, holeMeinX: () => ttMeinX,
@@ -331,6 +332,20 @@ const karte = aus.lobbyKarte();
 pruefe(karte.indexOf("wartet auf einen zweiten") >= 0, "der Wartehinweis steht da");
 aus.lobbySchliessen();
 aus.LOBBY_QUELLE.betreten = echtesBetreten;
+
+// ---------- Der Automat ----------
+console.log("Automat");
+const roh = fs.readFileSync(datei, "utf8");
+let automatPunkte = 0;
+RAEUME.forEach((r) => (r.punkte || []).forEach((p) => { if (p.automat) automatPunkte++; }));
+pruefe(automatPunkte === 1, "es gibt genau einen Automatenpunkt");
+pruefe(typeof aus.automatStarten === "function", "automatStarten ist erreichbar");
+const spielPfad = path.join(path.dirname(path.resolve(datei)), aus.AUTOMAT_SPIEL);
+pruefe(fs.existsSync(spielPfad), "das Spiel liegt da, wo der Automat es sucht (" +
+       aus.AUTOMAT_SPIEL + ")");
+["klavierOffen", "ttOffen", "lobbyOffen", "automatOffen"].forEach((f) =>
+  pruefe(roh.indexOf(f + " || ") >= 0 || roh.indexOf("|| " + f) >= 0,
+         f + " sperrt die Haustasten mit"));
 
 console.log(fehler === 0 ? "\nAlles in Ordnung." : "\n" + fehler + " Fehler.");
 process.exit(fehler === 0 ? 0 : 1);

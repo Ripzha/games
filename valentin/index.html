@@ -519,6 +519,7 @@ const RAEUME = [
         "x": 89,
         "taste": "w",
         "zeichen": "★",
+        "automat": true,
         "titel": "Der Automat",
         "text": "Er läuft noch. Auf dem Bildschirm steht ein Name aus drei Buchstaben, und die Punktzahl ist von heute Nacht.<br><br><i>Platzhalter für einen Hinweis.</i>"
       }
@@ -1162,7 +1163,7 @@ addEventListener("keydown", (e) => {
   if (document.activeElement === satzfeld) return;
   const t = e.key.toLowerCase();
   tasten[t] = true;
-  if (klavierOffen || ttOffen || lobbyOffen) return;   // die hören selbst zu
+  if (klavierOffen || ttOffen || lobbyOffen || automatOffen) return;  // die hören selbst zu
   if (offenerPunkt) { if (t === "escape") fensterZu(); return; }
   const p = nahePunkte().find((k) => k.taste === t);
   if (p) { punktOeffnen(p); e.preventDefault(); }
@@ -1195,6 +1196,12 @@ function punktOeffnen(p) {
   if (p.tischtennis) {                   // die Platte im Spielzimmer
     offenerPunkt = p;
     ttStarten();
+    letzteBewegung = Date.now();
+    return;
+  }
+  if (p.automat) {                       // der Spielautomat im Spielzimmer
+    offenerPunkt = p;
+    automatStarten();
     letzteBewegung = Date.now();
     return;
   }
@@ -2379,7 +2386,7 @@ function sprungAnteil() {
 addEventListener("keydown", (e) => {
   if (e.key !== " " && e.key !== "Spacebar") return;
   if (document.activeElement === satzfeld) return;   // im Chat tippen geht vor
-  if (klavierOffen || ttOffen || lobbyOffen || offenerPunkt) return;
+  if (klavierOffen || ttOffen || lobbyOffen || automatOffen || offenerPunkt) return;
   e.preventDefault();                                 // sonst scrollt die Seite
   if (springt() || blendZiel) return;                 // kein zweiter Sprung in der Luft
   sprungStart = performance.now();
@@ -3048,6 +3055,81 @@ ttStarten = function () {
     () => fensterZu()
   );
 };
+
+// ======================================================================
+// 13. Der Automat im Spielzimmer
+//
+//    Darin läuft Vaas' Schrottschlitten zu zweit, aus schlitten/zwei.html.
+//    Das Spiel bleibt eine eigene Datei und läuft in einem Rahmen — es ist
+//    mit 1,4 MB grösser als das ganze Haus und hat mit dem Rest nichts zu
+//    tun.
+//
+//    Weil der Rahmen die Tasten selbst braucht, bekommt er beim Öffnen den
+//    Fokus. Solange er offen ist, hört das Haus auf keine Taste mehr.
+//    Zurück geht es über den Knopf oben oder mit Escape, sobald man einmal
+//    neben den Rahmen geklickt hat.
+// ======================================================================
+
+const AUTOMAT_SPIEL = "schlitten/zwei.html";
+
+let automatOffen = false;
+let automatBau = null;
+
+function automatStil() {
+  if (document.getElementById("automat-stil")) return;
+  const s = document.createElement("style");
+  s.id = "automat-stil";
+  s.textContent = `
+  #automat { position: absolute; inset: 0; display: none; flex-direction: column;
+             background: #060d1c; z-index: 8; }
+  #automat.auf { display: flex; }
+  #automat-leiste { flex: none; display: flex; align-items: center; gap: 14px;
+             padding: 7px 12px; background: #0a1222; border-bottom: 1px solid #1d2a44;
+             font-size: 13px; color: #9fb4d8; }
+  #automat-leiste b { color: #f0c173; font-weight: 500; }
+  #automat-leiste button { margin-left: auto; padding: 5px 14px; background: #1d2a44;
+             color: #f0c173; border: 1px solid #3a4a6a; border-radius: 6px;
+             font-size: 13px; cursor: pointer; }
+  #automat iframe { flex: 1; width: 100%; border: 0; display: block; min-height: 0; }
+  `;
+  document.head.appendChild(s);
+}
+
+function automatStarten() {
+  automatStil();
+  if (!automatBau) {
+    const wurzel = document.createElement("div");
+    wurzel.id = "automat";
+    wurzel.innerHTML =
+      '<div id="automat-leiste"><b>Vaas\u0027 Schrottschlitten</b>' +
+      "<span>steht im Spielzimmer und nimmt keine M\u00fcnzen</span>" +
+      '<button id="automat-weg">Zur\u00fcck ins Zimmer</button></div>' +
+      '<iframe id="automat-rahmen" title="Schrottschlitten"></iframe>';
+    document.getElementById("buehne").appendChild(wurzel);
+    automatBau = { wurzel, rahmen: wurzel.querySelector("#automat-rahmen") };
+    wurzel.querySelector("#automat-weg").onclick = automatSchliessen;
+  }
+  automatOffen = true;
+  automatBau.wurzel.classList.add("auf");
+  // Erst beim Öffnen laden, damit das Haus schnell startet.
+  automatBau.rahmen.src = AUTOMAT_SPIEL;
+  setTimeout(() => { try { automatBau.rahmen.contentWindow.focus(); } catch (e) {} }, 60);
+}
+
+function automatSchliessen() {
+  automatOffen = false;
+  if (automatBau) {
+    automatBau.wurzel.classList.remove("auf");
+    automatBau.rahmen.src = "about:blank";   // hält das Spiel an
+  }
+  fensterZu();
+  try { window.focus(); } catch (e) {}
+}
+
+addEventListener("keydown", (e) => {
+  if (!automatOffen) return;
+  if (e.key === "Escape") { automatSchliessen(); e.preventDefault(); }
+});
 </script>
 </body>
 </html>
