@@ -132,6 +132,10 @@ pruefe(spiel.includes("if (ZUZWEIT) eigenWeg[Math.round(o.wx)] = true;"),
        "jede H\u00e4lfte merkt sich, was sie selbst eingesammelt hat");
 pruefe(!/sammel: sammel\.map[\s\S]{0,160}weg: o\.weg/.test(spiel),
        "der Meister schickt seinen Sammelstand nicht mit");
+pruefe(spiel.includes("(ZUZWEIT || !o.weg)"),
+       "eingesammelte Teile fliegen zu zweit nicht aus der Liste");
+pruefe(!/sammel = sammel\.filter\(o => o\.wx > worldX - 200 && !o\.weg\)/.test(spiel),
+       "die alte Fassung des Filters ist weg");
 pruefe(spiel.includes("anEltern('punkte'") && eltern.includes("d.art === 'punkte'"),
        "beide H\u00e4lften melden ihren eigenen Punktestand");
 pruefe(eltern.includes("punkte = stand.meister + stand.spiegel;"),

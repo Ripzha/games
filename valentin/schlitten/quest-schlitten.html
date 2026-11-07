@@ -943,7 +943,10 @@
       naechstesSammel += 700 + Math.random() * 700;
     }
     hindernisse = hindernisse.filter(h => h.wx > worldX - 200);
-    sammel = sammel.filter(o => o.wx > worldX - 200 && !o.weg);
+    // Zu zweit bleiben eingesammelte Teile in der Liste, damit sie dem
+    // anderen nicht unter den Händen verschwinden. Weggeräumt werden sie
+    // erst, wenn sie hinter dem Schlitten liegen.
+    sammel = sammel.filter(o => o.wx > worldX - 200 && (ZUZWEIT || !o.weg));
   }
 
   // ---------- Loop ----------
