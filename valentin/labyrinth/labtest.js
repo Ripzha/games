@@ -246,6 +246,29 @@ pruefe(abstaende.filter((d) => d <= 2).length / abstaende.length > 0.3,
 pruefe(skript.includes("if (naechstes <= WANDEL_NAEHE) {"),
        "gemeldet wird nur, was auch in Reichweite passiert ist");
 
+// ---------- Der Gaertner ----------
+console.log("Der G\u00e4rtner");
+const zahl2=(n)=>{const m=skript.match(new RegExp("const\\s+"+n+"\\s*=\\s*([0-9.]+)"));return m?parseFloat(m[1]):null;};
+const GZ=zahl2("GEGNER_ZAHL"), GT=zahl2("GEGNER_TAKT"), GH=zahl2("GEGNER_HOERT");
+pruefe(GZ >= 1, GZ + " G\u00e4rtner im Labyrinth");
+pruefe(GT >= 600 && GT <= 3000, "er geht alle " + GT + " ms ein Feld");
+pruefe(GH >= 1, "man h\u00f6rt ihn ab " + GH + " Feldern");
+pruefe(skript.includes("if (nx === 0 && ny === 0) continue;"),
+       "den Eingang betritt er nie — sonst steht er beim Neustart davor");
+pruefe(skript.includes("if (gegnerAufFeld(nx, ny)) { erwischt(); return; }"),
+       "wer in ihn hineinl\u00e4uft, steht wieder am Eingang");
+pruefe(skript.includes("if (gegnerAufFeld(laeufer.x, laeufer.y)) erwischt();"),
+       "auch wenn er selbst auf den L\u00e4ufer tritt");
+pruefe(skript.includes("if (gegnerAufFeld(x, y)) gegnerMalen(a, b, dunkel);"),
+       "der L\u00e4ufer sieht ihn nur im Gang vor sich");
+const planTeil = skript.slice(skript.indexOf("function planMalen"), skript.indexOf("function gegnerSetzen"));
+pruefe(planTeil.indexOf("gegner.forEach") >= 0, "der F\u00fchrende sieht ihn auf dem Plan");
+pruefe(planTeil.indexOf("lab.falle") < 0, "Fallen bleiben auf dem Plan unsichtbar");
+pruefe(skript.includes("gezeigt.push({ x: wo.x"),
+       "ge\u00e4nderte Hecken blinken auf dem Plan auf");
+const wz = zahl2("WANDEL_ZEIGT");
+pruefe(wz >= 3000, "das Aufblinken h\u00e4lt " + (wz/1000) + " Sekunden");
+
 console.log("Standpunkt");
 pruefe(skript.includes("rahmen(t - 0.5, B, H), b = rahmen(t + 0.5, B, H)"),
        "man steht in der Mitte des Feldes, nicht an seinem Rand");
@@ -309,8 +332,8 @@ pruefe(skript.includes("lab.falle[y][x] && t <= 1"),
 pruefe(!/falle[\s\S]{0,400}e88a8a/.test(skript),
        "sie ist kein rotes Warnzeichen mehr");
 pruefe(skript.includes("function spurMalen"), "sie wird als Bodenspur gezeichnet");
-pruefe(!/plan[\s\S]{0,4000}lab\.falle/.test(skript.slice(skript.indexOf("function planMalen"),
-       skript.indexOf("function gehen"))),
+pruefe(skript.slice(skript.indexOf("function planMalen"),
+       skript.indexOf("function gegnerSetzen")).indexOf("lab.falle") < 0,
        "auf dem Monitor taucht keine Falle auf");
 
 // ---------- Der Kopf auf dem Plan ----------

@@ -106,6 +106,14 @@
   const WANDEL_TAKT   = 15000;   // Millisekunden zwischen zwei Änderungen
   const WANDEL_ANZAHL = 3;       // so viele Hecken auf einmal
   const WANDEL_NAEHE  = 3;       // nur so weit vom Läufer entfernt
+  const WANDEL_ZEIGT  = 6000;    // so lange blinkt die Änderung auf dem Plan
+
+  // Der Gärtner geht durchs Labyrinth. Wer ihm in die Arme läuft, steht
+  // wieder am Eingang. Der Führende sieht ihn auf dem Plan, der Läufer
+  // erst, wenn er im Gang vor ihm steht — und hört ihn, wenn er nah ist.
+  const GEGNER_ZAHL  = 1;
+  const GEGNER_TAKT  = 1100;     // Millisekunden je Schritt
+  const GEGNER_HOERT = 2;        // ab so vielen Feldern hört man ihn
 
   // Wer im Labyrinth läuft, steht auf dem Plan als Kopf seiner Figur.
   // kopf ist der Ausschnitt aus dem Stehbild, in Anteilen der Bildbreite
@@ -276,7 +284,8 @@
       // Das Feld, auf dem der Läufer steht, muss offen bleiben
       const eingemauert = lab.wand[sy][sx].every((w) => w);
       if (!eingemauert && zielErreichbarVon(lab, sx, sy)) {
-        return { x: x, y: y, abstand: Math.abs(x - sx) + Math.abs(y - sy) };
+        return { x: x, y: y, nx: nx, ny: ny,
+                 abstand: Math.abs(x - sx) + Math.abs(y - sy) };
       }
       lab.wand[y][x][r] = !schliessen;                  // zurücknehmen
       lab.wand[ny][nx][(r + 2) % 4] = !schliessen;
@@ -301,6 +310,8 @@
   let zuruf = { text: '', bis: 0 };       // vom Läufer zum Monitor
   let versuche = 0, gestartet = 0, laeuft = false;
   let letzterWandel = 0, raschelt = 0, raschelNah = false;
+  let gezeigt = [];              // zuletzt geänderte Felder, für den Plan
+  let gegner = [];               // { x, y, r, letzterSchritt }
 
   const sicht = document.getElementById('sicht');
   const plan = document.getElementById('plan');
@@ -487,6 +498,30 @@
     s2.restore();
   }
 
+  // Ein dunkler Umriss im Gang. Keine Figur im Detail — man soll ihn
+  // erkennen und erschrecken, nicht anschauen.
+  function gegnerMalen(a, b, dunkel) {
+    const mx = (a.l + a.r) / 2;
+    const hoehe = (a.u - a.o) * 0.62;
+    const breite = (a.r - a.l) * 0.16;
+    const fuss = (a.u + b.u) / 2;
+    const d = Math.max(0.25, dunkel);
+    s2.fillStyle = 'rgba(' + Math.round(18 * d) + ',' + Math.round(16 * d) + ',' +
+                   Math.round(14 * d) + ',0.96)';
+    s2.beginPath();
+    s2.ellipse(mx, fuss - hoehe * 0.42, breite, hoehe * 0.42, 0, 0, Math.PI * 2);
+    s2.fill();
+    s2.beginPath();
+    s2.arc(mx, fuss - hoehe * 0.88, breite * 0.52, 0, Math.PI * 2);
+    s2.fill();
+    // zwei helle Punkte, damit man weiss, dass er einen ansieht
+    s2.fillStyle = 'rgba(232,112,90,' + (0.85 * d).toFixed(2) + ')';
+    s2.beginPath();
+    s2.arc(mx - breite * 0.22, fuss - hoehe * 0.9, breite * 0.09, 0, Math.PI * 2);
+    s2.arc(mx + breite * 0.22, fuss - hoehe * 0.9, breite * 0.09, 0, Math.PI * 2);
+    s2.fill();
+  }
+
   function sichtMalen() {
     const B = sicht.width, H = sicht.height;
     s2.clearRect(0, 0, B, H);
@@ -604,6 +639,9 @@
       // Die Spur einer Falle — nur ein Feld weit und nur für den Läufer
       if (lab.falle[y][x] && t <= 1) spurMalen(a, b, dunkel, x * 97 + y * 31 + 7);
 
+      // Der Gärtner, wenn er im Gang vor einem steht
+      if (gegnerAufFeld(x, y)) gegnerMalen(a, b, dunkel);
+
       const saat = x * 97 + y * 31;
       if (wandDa(lab, x, y, links)) {
         heckenFlaeche([[a.l, a.o], [b.l, b.o], [b.l, b.u], [a.l, a.u]],
@@ -622,6 +660,16 @@
         s2.fillStyle = 'rgba(240,193,115,' + (0.5 * dunkel).toFixed(3) + ')';
         s2.fillRect(b.l, b.o, b.r - b.l, b.u - b.o);
       }
+    }
+
+    // Schritte in der Nähe
+    const gd = gegnerAbstand();
+    if (laeuft && gd <= GEGNER_HOERT) {
+      const gr = Math.max(13, H * 0.04);
+      s2.font = '600 ' + gr + 'px -apple-system, sans-serif';
+      s2.textAlign = 'center';
+      s2.fillStyle = 'rgba(232,112,90,0.9)';
+      s2.fillText(gd <= 1 ? 'Schritte, ganz nah' : 'Irgendwo Schritte', B / 2, H * 0.86);
     }
 
     // Es hat sich etwas bewegt
@@ -664,6 +712,14 @@
     // Ziel
     p2.fillStyle = 'rgba(240,193,115,0.18)';
     p2.fillRect(ox + lab.ziel[0] * feld, oy + lab.ziel[1] * feld, feld, feld);
+
+    // Was sich gerade geändert hat, blinkt kurz auf
+    gezeigt = gezeigt.filter((g) => g.bis > Date.now());
+    gezeigt.forEach((g) => {
+      const rest = (g.bis - Date.now()) / WANDEL_ZEIGT;
+      p2.fillStyle = 'rgba(240,193,115,' + (0.35 * rest).toFixed(3) + ')';
+      p2.fillRect(ox + g.x * feld, oy + g.y * feld, feld, feld);
+    });
 
     // Markierungen des Führenden
     marken.forEach(([mx, my]) => {
@@ -747,12 +803,82 @@
       p2.fillText(zuruf.text, B / 2, H * 0.03 + gr * 1.3, B * 0.86);
     }
 
+    // Der Gärtner — nur der Führende sieht ihn auf dem Plan
+    gegner.forEach((g) => {
+      const gx = ox + (g.x + 0.5) * feld, gy = oy + (g.y + 0.5) * feld;
+      p2.fillStyle = '#e8705a';
+      p2.beginPath(); p2.arc(gx, gy, feld * 0.26, 0, Math.PI * 2); p2.fill();
+      p2.strokeStyle = 'rgba(232,112,90,0.5)';
+      p2.lineWidth = Math.max(1, feld * 0.06);
+      p2.beginPath(); p2.arc(gx, gy, feld * 0.45, 0, Math.PI * 2); p2.stroke();
+    });
+
     plan._feld = { feld, ox, oy };
   }
 
   // --------------------------------------------------------------
   // Bewegen
   // --------------------------------------------------------------
+  // ------------------------------------------------------------------
+  // Der Gärtner
+  // ------------------------------------------------------------------
+  function gegnerSetzen() {
+    gegner = [];
+    for (let i = 0; i < GEGNER_ZAHL; i++) {
+      // weit weg vom Eingang starten, sonst steht er gleich vor der Nase
+      let x = 0, y = 0, wache = 0;
+      do {
+        x = Math.floor(Math.random() * FELDER);
+        y = Math.floor(Math.random() * FELDER);
+      } while (wache++ < 300 && (x + y < FELDER || lab.falle[y][x]));
+      gegner.push({ x: x, y: y, r: Math.floor(Math.random() * 4), letzter: 0 });
+    }
+  }
+
+  function gegnerSchritt() {
+    const jetzt = Date.now();
+    gegner.forEach((g) => {
+      if (jetzt - g.letzter < GEGNER_TAKT) return;
+      g.letzter = jetzt;
+      // offene Richtungen, am liebsten nicht zurück
+      const offen = [];
+      for (let r = 0; r < 4; r++) {
+        if (wandDa(lab, g.x, g.y, r)) continue;
+        const nx = g.x + DX[r], ny = g.y + DY[r];
+        if (nx < 0 || ny < 0 || nx >= FELDER || ny >= FELDER) continue;
+        if (nx === 0 && ny === 0) continue;         // der Eingang bleibt frei
+        offen.push(r);
+      }
+      if (!offen.length) return;
+      const zurueck = (g.r + 2) % 4;
+      const lieber = offen.filter((r) => r !== zurueck);
+      const wahl = (lieber.length ? lieber : offen)[
+        Math.floor(Math.random() * (lieber.length ? lieber.length : offen.length))];
+      g.r = wahl;
+      g.x += DX[wahl];
+      g.y += DY[wahl];
+    });
+  }
+
+  function gegnerAufFeld(x, y) {
+    return gegner.some((g) => g.x === x && g.y === y);
+  }
+
+  function gegnerAbstand() {
+    let d = 99;
+    gegner.forEach((g) => {
+      d = Math.min(d, Math.abs(g.x - laeufer.x) + Math.abs(g.y - laeufer.y));
+    });
+    return d;
+  }
+
+  function erwischt() {
+    versuche++;
+    laeufer = { x: 0, y: 0, r: 1 };
+    durchsage = { text: 'Der Gärtner hat dich — zurück zum Eingang', bis: Date.now() + 3000 };
+    standMalen();
+  }
+
   function gehen(vor) {
     if (!laeuft || gleit.art) return;
     const r = vor ? laeufer.r : (laeufer.r + 2) % 4;
@@ -760,6 +886,7 @@
     const nx = laeufer.x + DX[r], ny = laeufer.y + DY[r];
     laeufer.x = nx; laeufer.y = ny;
 
+    if (gegnerAufFeld(nx, ny)) { erwischt(); return; }
     if (lab.falle[ny][nx]) {
       versuche++;
       laeufer = { x: 0, y: 0, r: 1 };
@@ -806,9 +933,14 @@
       '<p>Geredet wird in beide Richtungen. Der Führende sagt den Weg durch, der ' +
       'Läufer ruft zurück, wo eine Falle liegt. Der Führende kann sie sich auf ' +
       'seinem Plan anzeichnen und einen anderen Weg suchen.</p>' +
+      '<p>Im Labyrinth geht der Gärtner umher. Nur der Führende sieht, wo er ist. ' +
+      'Der Läufer hört ihn erst, wenn er zwei Felder entfernt ist, und sieht ihn ' +
+      'erst, wenn er im Gang vor ihm steht. Die Hecken verschieben sich dazu — ' +
+      'was sich ändert, blinkt auf dem Plan kurz auf.</p>' +
       '<table>' +
       '<tr><td>Läufer</td><td>W vor, S zurück, A und D drehen, Feld unten zum Zurückrufen</td></tr>' +
       '<tr><td>Führender</td><td>Feld anklicken markiert, Feld nochmal klicken löscht</td></tr>' +
+      '<tr><td>Der Gärtner</td><td>geht umher — wer ihm begegnet, steht wieder am Eingang</td></tr>' +
       '<tr><td>Figur</td><td>' + FIGUREN[WER].name + ' — mit ?figur=logan wechseln</td></tr>' +
       '</table>' +
       '<p style="color:#8a857a;font-size:13px">Diese Seite zeigt beide Hälften ' +
@@ -838,6 +970,8 @@
     versuche = 0;
     durchsage = { text: '', bis: 0 };
     zuruf = { text: '', bis: 0 };
+    gegnerSetzen();
+    gezeigt = [];
     gestartet = Date.now();
     letzterWandel = Date.now();
     raschelt = 0;
@@ -900,12 +1034,23 @@
     requestAnimationFrame(schleife);
     if (!lab) return;
 
+    if (laeuft) {
+      gegnerSchritt();
+      if (gegnerAufFeld(laeufer.x, laeufer.y)) erwischt();
+    }
+
     if (laeuft && Date.now() - letzterWandel > WANDEL_TAKT) {
       letzterWandel = Date.now();
       let naechstes = 99;
       for (let i = 0; i < WANDEL_ANZAHL; i++) {
         const wo = heckeUmlegen(lab, laeufer.x, laeufer.y, i % 2 === 0);
-        if (wo) naechstes = Math.min(naechstes, wo.abstand);
+        if (!wo) continue;
+        naechstes = Math.min(naechstes, wo.abstand);
+        // Auf dem Plan aufblinken lassen, sonst sieht der Führende nicht,
+        // was sich geändert hat — drei Heckenstücke auf zwölf mal zwölf
+        // Feldern fallen sonst niemandem auf.
+        gezeigt.push({ x: wo.x, y: wo.y, bis: Date.now() + WANDEL_ZEIGT });
+        gezeigt.push({ x: wo.nx, y: wo.ny, bis: Date.now() + WANDEL_ZEIGT });
       }
       // Nur melden, wenn wirklich etwas in Reichweite passiert ist —
       // sonst steht da eine Meldung über etwas, das man nie findet.
