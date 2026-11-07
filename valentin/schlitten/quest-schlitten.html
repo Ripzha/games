@@ -818,7 +818,7 @@
     jackAnBord = false; jackFall = null; naechsteJackWx = 0;
     camY = terrainY(SLED_X()) - H * 0.60;
     hindernisse = []; sammel = []; popups = []; spray = [];
-    geraeumt = [];
+    geraeumt = []; eigenWeg = {};
     naechstesHindernis = worldX + 900;
     naechstesSammel = worldX + 500;
     letztesHindernisWx = 0; letztesWarSchranke = false; letztesWarDoppel = false;
@@ -952,6 +952,7 @@
     try {
       tickInner(jetzt);
       if (MEISTER) weltSenden();
+      if (ZUZWEIT) punkteMelden();
     } catch (err) {
       laufend = false;
       zeigeFehler('Spielschleife: ' + err.message + '\n' + (err.stack || '').split('\n').slice(0, 3).join('\n'));
@@ -1084,6 +1085,7 @@
         const oy = terrainY(o.wx) - o.hoehe;
         if (Math.abs(oy - (sledY - 28)) < 44) {
           o.weg = true;
+          if (ZUZWEIT) eigenWeg[Math.round(o.wx)] = true;
           if (o.typ === 'jack') {
             jackAnBord = true;
             fanfare();
@@ -2405,20 +2407,33 @@
       hindernisse: hindernisse.map(function (h) {
         return { wx: h.wx, typ: h.typ, b: h.b, h: h.h };
       }),
+      // Ohne weg: jede Hälfte sammelt für sich. Was oben eingesammelt
+      // wurde, liegt unten noch da und umgekehrt.
       sammel: sammel.map(function (o) {
         return { wx: o.wx, hoehe: o.hoehe, typ: o.typ, wert: o.wert,
-                 rot: o.rot, weg: o.weg, luft: o.luft };
+                 rot: o.rot, luft: o.luft };
       })
     });
+  }
+
+  // Jede Hälfte meldet ihren eigenen Punktestand, damit die Elternseite
+  // beide nebeneinanderstellen und am Ende in die Rangliste schreiben kann.
+  let letztePunkteMeldung = 0;
+  function punkteMelden() {
+    const jetzt = performance.now();
+    if (jetzt - letztePunkteMeldung < 400) return;
+    letztePunkteMeldung = jetzt;
+    anEltern('punkte', { rolle: SYNC, punkte: Math.round(punkte) });
   }
 
   function weltUebernehmen() {
     if (!netzWelt) return;
     worldX = netzWelt.worldX;
     tempo  = netzWelt.tempo;
-    punkte = netzWelt.punkte;
     hindernisse = netzWelt.hindernisse;
+    // Punkte zählt jede Hälfte selbst, sonst trägt nur eine etwas bei.
     sammel = netzWelt.sammel;
+    sammel.forEach(function (o) { if (eigenWeg[Math.round(o.wx)]) o.weg = true; });
     geraeumtAnwenden();
   }
 
@@ -2427,6 +2442,7 @@
   // dessen Nachricht unterwegs ist, stünden die Hindernisse dort wieder. Deshalb
   // merkt sich jede Hälfte kurz, was sie geräumt hat, und blendet es aus.
   let geraeumt = [];
+  let eigenWeg = {};        // was diese Hälfte schon eingesammelt hat
   let letzterEigenerCrash = -99999;
 
   function raeumen() {

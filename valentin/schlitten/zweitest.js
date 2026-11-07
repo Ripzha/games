@@ -124,6 +124,33 @@ pruefe(spiel.includes("Den anderen hat es erwischt"),
 pruefe(spiel.includes("if (!ZUZWEIT && punkte >= 20000"),
        "Jack f\u00e4hrt zu zweit nicht mit");
 
+// ---------- Getrennt sammeln und Rangliste ----------
+console.log("Punkte und Rangliste");
+pruefe(!spiel.includes("punkte = netzWelt.punkte;"),
+       "der Spiegel bekommt die Punkte nicht mehr vom Meister");
+pruefe(spiel.includes("if (ZUZWEIT) eigenWeg[Math.round(o.wx)] = true;"),
+       "jede H\u00e4lfte merkt sich, was sie selbst eingesammelt hat");
+pruefe(!/sammel: sammel\.map[\s\S]{0,160}weg: o\.weg/.test(spiel),
+       "der Meister schickt seinen Sammelstand nicht mit");
+pruefe(spiel.includes("anEltern('punkte'") && eltern.includes("d.art === 'punkte'"),
+       "beide H\u00e4lften melden ihren eigenen Punktestand");
+pruefe(eltern.includes("punkte = stand.meister + stand.spiegel;"),
+       "angezeigt wird die Summe aus beiden");
+pruefe(eltern.includes("if (!botAn) eintraege.push"),
+       "der Rechner kommt nicht in die Rangliste");
+pruefe(eltern.includes("schlitten_rangliste"), "die Tabelle ist benannt");
+pruefe(fs.existsSync("rangliste.sql"), "das SQL zum Anlegen liegt daneben");
+if (fs.existsSync("rangliste.sql")) {
+  const sql = fs.readFileSync("rangliste.sql", "utf8");
+  pruefe(sql.includes("enable row level security"), "die Tabelle ist gesch\u00fctzt");
+  pruefe(sql.includes("for select") && sql.includes("for insert"),
+         "lesen und eintragen sind erlaubt");
+  pruefe(!/for update|for delete/.test(sql),
+         "\u00e4ndern und l\u00f6schen sind niemandem erlaubt");
+}
+pruefe(eltern.includes("bestenliste === null"),
+       "ohne erreichbare Rangliste l\u00e4uft das Spiel trotzdem");
+
 // ---------- Das Ziel ----------
 console.log("Ziel");
 const ZIEL = (eltern.match(/'120', 10\) \|\| (\d+)\)/) || [])[1];

@@ -32,9 +32,30 @@
     align-items: center; justify-content: center; padding: 24px;
     background: rgba(6,13,28,0.93); }
   #tafel.weg { display: none; }
-  #karte { max-width: 460px; width: 100%; background: rgba(10,18,34,0.98);
-    border: 1px solid #3a4a6a; border-radius: 12px; padding: 22px 24px; }
-  #karte h1 { margin: 0 0 10px; font-size: 20px; font-weight: 500; color: #f0c173; }
+  #karte { max-width: 520px; width: 100%; background: rgba(10,18,34,0.98);
+    border: 2px solid #3a4a6a; border-radius: 12px; padding: 20px 22px;
+    font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+    box-shadow: 0 0 0 4px rgba(10,18,34,0.9), 0 0 40px rgba(240,193,115,0.08); }
+  #karte h1 { margin: 0 0 10px; font-size: 19px; font-weight: 700; color: #f0c173;
+    letter-spacing: .14em; text-transform: uppercase; text-align: center;
+    text-shadow: 0 0 14px rgba(240,193,115,0.35); }
+  #rangliste { margin: 2px 0 14px; border-top: 1px dashed #2a3a58;
+    border-bottom: 1px dashed #2a3a58; padding: 8px 0; }
+  #rangliste .kopf { display: flex; justify-content: space-between;
+    font-size: 11px; letter-spacing: .14em; color: #5f7596; }
+  #rangliste ol { list-style: none; margin: 0; padding: 0; }
+  #rangliste li { display: flex; align-items: baseline; gap: 10px;
+    font-size: 14px; color: #cdd8ea; padding: 2px 0; }
+  #rangliste li .platz { width: 26px; color: #6f85a8; }
+  #rangliste li .figur { flex: 1; overflow: hidden; text-overflow: ellipsis;
+    white-space: nowrap; }
+  #rangliste li .zahl { color: #f0c173; font-variant-numeric: tabular-nums; }
+  #rangliste li.eigen { color: #f0c173; }
+  #rangliste .leer { font-size: 13px; color: #6f85a8; text-align: center; padding: 6px 0; }
+  #namen { display: flex; gap: 8px; margin: 0 0 12px; }
+  #namen input { flex: 1; min-width: 0; background: #0a1222; color: #ded6c2;
+    border: 1px solid #2a3a58; border-radius: 6px; padding: 7px 10px;
+    font: inherit; font-size: 14px; }
   #karte p { margin: 0 0 12px; font-size: 15px; line-height: 1.55; color: #cdd8ea; }
   #karte table { width: 100%; border-collapse: collapse; margin: 0 0 14px; font-size: 14px; }
   #karte td { padding: 5px 0; color: #cdd8ea; }
@@ -57,6 +78,7 @@
   <div id="tafel"><div id="karte"></div></div>
 </div>
 
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
 <script>
 (function () {
   'use strict';
@@ -80,8 +102,65 @@
   // Aus dem Automaten im Haus heraus wird der Name der gespielten Figur
   // mitgegeben. Ohne Angabe steht da Spieler 1 und Spieler 2.
   const adresse = new URLSearchParams(location.search);
-  const NAME_OBEN  = (adresse.get('oben')  || 'Spieler 1').slice(0, 20);
-  const NAME_UNTEN = (adresse.get('unten') || 'Spieler 2').slice(0, 20);
+  function nameLesen(welche, vorgabe) {
+    const ausAdresse = adresse.get(welche);
+    if (ausAdresse) return ausAdresse.slice(0, 20);
+    try {
+      const g = localStorage.getItem('schlitten_name_' + welche);
+      if (g) return g.slice(0, 20);
+    } catch (e) {}
+    return vorgabe;
+  }
+  let NAME_OBEN  = nameLesen('oben',  'Spieler 1');
+  let NAME_UNTEN = nameLesen('unten', 'Spieler 2');
+
+  function namenMerken() {
+    try {
+      localStorage.setItem('schlitten_name_oben', NAME_OBEN);
+      localStorage.setItem('schlitten_name_unten', NAME_UNTEN);
+    } catch (e) {}
+  }
+
+  function schilderMalen() {
+    document.getElementById('name-oben').textContent = NAME_OBEN;
+    document.getElementById('name-unten').textContent = botAn ? 'Rechner' : NAME_UNTEN;
+  }
+
+  // ------------------------------------------------------------------
+  // Die Rangliste liegt im selben Supabase-Projekt wie das Haus.
+  // Die Tabelle wird einmal mit rangliste.sql angelegt. Fehlt sie oder
+  // ist das Projekt pausiert, läuft das Spiel trotzdem — dann steht in
+  // der Lobby nur, dass gerade keine Rangliste da ist.
+  // ------------------------------------------------------------------
+  const NETZ_URL = 'https://uvnffzypgtrzgqtthdrn.supabase.co';
+  const NETZ_SCHLUESSEL = 'sb_publishable_3q0OPU3U_DgYMcqSbacRqg_OVv7FofY';
+  const TABELLE = 'schlitten_rangliste';
+
+  let klient = null;
+  try {
+    if (NETZ_SCHLUESSEL && typeof supabase !== 'undefined') {
+      klient = supabase.createClient(NETZ_URL, NETZ_SCHLUESSEL);
+    }
+  } catch (e) { klient = null; }
+
+  let bestenliste = null;        // null = noch nicht geladen, [] = leer
+
+  async function ranglisteLaden() {
+    if (!klient) return;
+    try {
+      const { data, error } = await klient.from(TABELLE)
+        .select('figur, punkte, geschafft')
+        .order('punkte', { ascending: false })
+        .limit(10);
+      if (error) throw error;
+      bestenliste = data || [];
+    } catch (e) { bestenliste = null; }
+  }
+
+  async function ranglisteEintragen(eintraege) {
+    if (!klient || !eintraege.length) return;
+    try { await klient.from(TABELLE).insert(eintraege); } catch (e) {}
+  }
 
   const oben  = document.getElementById('oben');
   const unten = document.getElementById('unten');
@@ -93,6 +172,7 @@
   let letzteWelt = null;
   let getroffenSperre = 0;          // Zeitpunkt, bis zu dem Treffer ignoriert werden
   let startZeit = 0, uebrig = ZIEL_ZEIT;
+  const stand = { meister: 0, spiegel: 0 };
   let herzSperre = 0;
   const bereit = {};
 
@@ -122,28 +202,60 @@
     tafel.classList.remove('weg');
   }
 
+  function text(s) {
+    return String(s).replace(/[&<>"]/g, function (z) {
+      return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[z];
+    });
+  }
+
+  function ranglisteHtml() {
+    if (bestenliste === null) {
+      return '<div id="rangliste"><div class="leer">Rangliste nicht erreichbar</div></div>';
+    }
+    if (!bestenliste.length) {
+      return '<div id="rangliste"><div class="leer">Noch niemand gefahren</div></div>';
+    }
+    const zeilen = bestenliste.map(function (e, i) {
+      const eigen = (e.figur === NAME_OBEN || e.figur === NAME_UNTEN) ? ' class="eigen"' : '';
+      return '<li' + eigen + '><span class="platz">' + (i + 1) + '.</span>' +
+             '<span class="figur">' + text(e.figur) + (e.geschafft ? ' \u2605' : '') + '</span>' +
+             '<span class="zahl">' + e.punkte + '</span></li>';
+    }).join('');
+    return '<div id="rangliste">' +
+           '<div class="kopf"><span>Beste Fahrten</span><span>Punkte</span></div>' +
+           '<ol>' + zeilen + '</ol></div>';
+  }
+
   function anfangsTafel() {
     tafelZeigen(
-      '<h1>Vaas\u0027 Schrottschlitten — zu zweit</h1>' +
-      '<p>Eine Strecke, zwei Schlitten. Dieselben Hindernisse kommen bei ' +
-      'beiden im selben Augenblick — ihr springt also zusammen.</p>' +
-      '<table>' +
-      '<tr><td>' + NAME_OBEN + ' (oben)</td><td>Leertaste springen, S ducken</td></tr>' +
-      '<tr><td>' + NAME_UNTEN + ' (unten)</td><td>Pfeil hoch springen, Pfeil runter ducken</td></tr>' +
-      '</table>' +
-      '<p>Haltet <b>' + zeitText(ZIEL_ZEIT) + '</b> zusammen durch, dann ist es ' +
-      'geschafft. Ihr habt ' + HERZEN + ' Herzen zusammen, jeder Treffer von ' +
-      'jedem kostet eines. Sind sie weg, ist die Fahrt vorbei — für beide.</p>' +
-      '<p style="color:#9fb4d8;font-size:13px">Zum Alleintesten fährt der ' +
-      'Rechner die untere Hälfte. Er macht Fehler, damit die Herzen etwas zu tun haben.</p>',
-      [['Zu zweit an einer Tastatur', function () { losfahren(false); }],
-       ['Allein gegen den Bot',       function () { losfahren(true); }]]
+      '<h1>Vaas\u0027 Schrottschlitten</h1>' +
+      ranglisteHtml() +
+      '<p>Eine Strecke, zwei Schlitten. Haltet <b>' + zeitText(ZIEL_ZEIT) +
+      '</b> zusammen durch \u2014 ' + HERZEN + ' Herzen f\u00fcr euch beide, ' +
+      'jeder Treffer von jedem kostet eines.</p>' +
+      '<p>Gesammelt wird getrennt. Was der eine aufhebt, liegt beim anderen ' +
+      'noch da, und jeder kommt mit seiner eigenen Punktzahl in die Rangliste.</p>' +
+      '<div id="namen">' +
+      '<input id="feld-oben" maxlength="20" placeholder="oben" value="' + text(NAME_OBEN) + '">' +
+      '<input id="feld-unten" maxlength="20" placeholder="unten" value="' + text(NAME_UNTEN) + '">' +
+      '</div>',
+      [['Zu zweit an einer Tastatur', function () { namenUebernehmen(); losfahren(false); }],
+       ['Allein gegen den Bot',       function () { namenUebernehmen(); losfahren(true); }]]
     );
+  }
+
+  function namenUebernehmen() {
+    const a = document.getElementById('feld-oben');
+    const b = document.getElementById('feld-unten');
+    if (a && a.value.trim()) NAME_OBEN = a.value.trim().slice(0, 20);
+    if (b && b.value.trim()) NAME_UNTEN = b.value.trim().slice(0, 20);
+    namenMerken();
+    schilderMalen();
   }
 
   function losfahren(mitBot) {
     if (mitBot !== undefined) botAn = !!mitBot;
-    document.getElementById('name-unten').textContent = botAn ? 'Rechner' : NAME_UNTEN;
+    schilderMalen();
     document.getElementById('tasten-unten').textContent = botAn
       ? 'fährt von selbst'
       : 'Pfeil hoch springen, Pfeil runter ducken';
@@ -152,6 +264,7 @@
     punkte = 0;
     getroffenSperre = 0;
     lebenMelden();
+    stand.meister = 0; stand.spiegel = 0; punkte = 0;
     startZeit = performance.now();
     uebrig = ZIEL_ZEIT;
     uhrMalen();
@@ -171,17 +284,38 @@
     document.getElementById('uhr').classList.toggle('knapp', uebrig <= 15);
   }
 
-  function geschafft() {
-    laeuft = false;
-    anBeide('aus');
+  // Wer hat wie viel beigetragen? Der Bot kommt nicht in die Rangliste.
+  function standHtml() {
+    const zeile = (name, p) =>
+      '<li><span class="platz"></span><span class="figur">' + text(name) +
+      '</span><span class="zahl">' + p + '</span></li>';
+    return '<div id="rangliste"><div class="kopf"><span>Diese Fahrt</span>' +
+           '<span>Punkte</span></div><ol>' +
+           zeile(NAME_OBEN, stand.meister) +
+           zeile(botAn ? 'Rechner' : NAME_UNTEN, stand.spiegel) +
+           '</ol></div>';
+  }
+
+  async function eintragenUndZeigen(geschafftJa, kopf, einleitung) {
+    const eintraege = [{ figur: NAME_OBEN, punkte: stand.meister, geschafft: geschafftJa }];
+    if (!botAn) eintraege.push({ figur: NAME_UNTEN, punkte: stand.spiegel, geschafft: geschafftJa });
+    await ranglisteEintragen(eintraege);
+    await ranglisteLaden();
     tafelZeigen(
-      '<h1>Geschafft</h1>' +
-      '<p>Ihr habt ' + zeitText(ZIEL_ZEIT) + ' durchgehalten, mit <b>' + leben +
-      '</b> von ' + HERZEN + ' Herzen übrig und ' + punkte + ' Punkten.</p>',
+      '<h1>' + kopf + '</h1>' + einleitung + standHtml() + ranglisteHtml(),
       [['Nochmal', function () { losfahren(); }],
        [botAn ? 'Lieber zu zweit' : 'Lieber gegen den Bot',
         function () { losfahren(!botAn); }]]
     );
+  }
+
+  function geschafft() {
+    laeuft = false;
+    anBeide('aus');
+    tafelZeigen('<h1>Geschafft</h1><p>Einen Moment \u2026</p>', []);
+    eintragenUndZeigen(true, 'Geschafft',
+      '<p>Ihr habt ' + zeitText(ZIEL_ZEIT) + ' durchgehalten, mit <b>' + leben +
+      '</b> von ' + HERZEN + ' Herzen \u00fcbrig.</p>');
   }
 
   function ende() {
@@ -196,16 +330,11 @@
       try { localStorage.setItem('schlitten_zwei_beste', String(Math.round(gehalten))); }
       catch (e) {}
     }
-    tafelZeigen(
-      '<h1>Aus</h1>' +
+    tafelZeigen('<h1>Aus</h1><p>Einen Moment \u2026</p>', []);
+    eintragenUndZeigen(false, 'Aus',
       '<p>Ihr habt <b>' + zeitText(gehalten) + '</b> von ' + zeitText(ZIEL_ZEIT) +
-      ' gehalten' + (neuerRekord ? ' — so weit wart ihr noch nie.'
-                                 : '. Eure beste steht bei ' + zeitText(beste) + '.') + '</p>' +
-      '<p>Nichts geht verloren, fahrt einfach nochmal.</p>',
-      [['Nochmal', function () { losfahren(); }],
-       [botAn ? 'Lieber zu zweit' : 'Lieber gegen den Bot',
-        function () { losfahren(!botAn); }]]
-    );
+      ' gehalten' + (neuerRekord ? ' \u2014 so weit wart ihr noch nie.'
+                                 : '. Eure beste steht bei ' + zeitText(beste) + '.') + '</p>');
   }
 
   addEventListener('message', function (e) {
@@ -218,7 +347,6 @@
       // Vom Meister zum Spiegel weiterreichen
       an(unten, 'welt', d);
       letzteWelt = d;
-      if (typeof d.punkte === 'number') punkte = d.punkte;
       return;
     }
 
@@ -233,6 +361,12 @@
       lebenMelden();
       anBeide('getroffen');
       if (leben <= 0) ende();
+      return;
+    }
+
+    if (d.art === 'punkte') {
+      if (d.rolle === 'meister' || d.rolle === 'spiegel') stand[d.rolle] = d.punkte | 0;
+      punkte = stand.meister + stand.spiegel;
       return;
     }
 
@@ -378,7 +512,9 @@
   document.getElementById('name-unten').textContent = NAME_UNTEN;
   document.getElementById('tasten-unten').textContent = 'Pfeil hoch springen, Pfeil runter ducken';
   uhrMalen();
+  schilderMalen();
   anfangsTafel();
+  ranglisteLaden().then(anfangsTafel);
 })();
 </script>
 </body>

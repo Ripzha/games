@@ -356,7 +356,7 @@ pruefe(fs.existsSync(spielPfad), "das Spiel liegt da, wo der Automat es sucht ("
 pruefe(roh.includes('AUTOMAT_SPIEL + "?oben="'),
        "der Automat gibt den Namen der Figur mit");
 const zweiHtml = fs.readFileSync(spielPfad, "utf8");
-pruefe(zweiHtml.includes("adresse.get('oben')"),
+pruefe(zweiHtml.includes("nameLesen('oben'"),
        "die Schlittenseite liest den Namen aus der Adresse");
 ["klavierOffen", "ttOffen", "lobbyOffen", "automatOffen"].forEach((f) =>
   pruefe(roh.indexOf(f + " || ") >= 0 || roh.indexOf("|| " + f) >= 0,
