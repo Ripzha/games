@@ -146,6 +146,11 @@
   .abspann-rolle p { margin: 0 0 4px; }
   .abspann-rolle .klein { font-size: 13px; color: var(--sand); }
   .abspann-rolle .luft { height: 46vh; }
+  .abspann-unterschrift { position: absolute; left: 50%; transform: translateX(-50%); bottom: 58px;
+                          width: min(760px, 88vw); margin: 0; text-align: center; z-index: 4;
+                          font-family: var(--serif); font-size: 17px; font-style: italic;
+                          color: var(--creme); text-shadow: 0 2px 10px rgba(0,0,0,0.9);
+                          opacity: 0; transition: opacity 0.8s; pointer-events: none; }
   .abspann-weg { position: absolute; right: 14px; bottom: 14px; z-index: 5; }
   .admin-liste { display: flex; flex-direction: column; gap: 10px; max-width: 640px; margin: 0 auto 16px; }
   .admin-tisch { background: rgba(255,255,255,0.05); border: 1px solid #4a5568; border-radius: 10px;
@@ -312,6 +317,7 @@
   <div class="screen hidden" id="screen-abspann">
     <div class="abspann-bild" id="abspann-bild"></div>
     <div class="abspann-bild abspann-bild2" id="abspann-bild2"></div>
+    <p class="abspann-unterschrift" id="abspann-unterschrift"></p>
     <div class="abspann-schleier" id="abspann-schleier"></div>
     <div class="abspann-fenster" id="abspann-fenster">
       <div class="abspann-rolle" id="abspann-rolle"></div>
@@ -372,7 +378,7 @@
 
   // Wird bei jedem Paket neu gesetzt. Steht unten im Startbildschirm, damit man
   // sofort sieht, welche Fassung gerade live ist.
-  const BAUSTAND = '07.11.2026 23:02';
+  const BAUSTAND = '07.11.2026 23:10';
   const SPEICHER_KEY = 'ostern_fortschritt';
   const HINWEISE_GESAMT = 3;
   // Gemeinsamer Faktor für alle Eier. Die Radien in EIER bleiben, hier wird
@@ -3422,27 +3428,51 @@
 
   // Musik im Abspann. Fehlt die Datei, bleibt es still — das Spiel merkt es
   // selbst und meldet nichts.
-  // Diashow hinter dem Abspann. Die Reihenfolge ist die Reihenfolge, in der
-  // die Bilder entstanden sind — vom ersten Raum bis zum letzten Nahbild.
-  // Eigene Bilder einfach hier eintragen, der Pfad ist ostern/bilder/.
+  // Diashow hinter dem Abspann: die Entstehungsgeschichte in Bildern.
+  // Erst der Platzhalter, direkt danach das Bild, das daraus wurde. Die
+  // Texte sind Momente aus der Entwicklung. Eigene Einträge einfach
+  // { bild: 'datei.webp', text: 'Bildunterschrift' } anhängen.
   const ABSPANN_BILDER = [
-    // Ganz am Anfang gab es nur Rechtecke mit Beschriftung, solange ein Raum
-    // noch kein Bild hatte. Nachgebaut aus den Daten von damals, in der
-    // Reihenfolge, in der die Räume entstanden sind — die Garage zuerst.
-    'alt-garage1.webp', 'alt-garage2.webp', 'alt-wohnzimmer.webp', 'alt-kueche.webp',
-    'alt-bad.webp', 'alt-schlafzimmer.webp', 'alt-acizimmer.webp', 'alt-dachboden.webp',
-    'garage-zu.webp', 'garage2-zu.webp', 'treppenhaus-dunkel.webp', 'wohnzimmer-zu.webp',
-    'kueche-dunkel.webp', 'bild-vorn.webp', 'bild-hinten-zu.webp', 'spind-nah.webp',
-    'gruen-nah.webp', 'kiste-nah.webp', 'sessel-nah.webp', 'tisch-nah.webp',
-    'flur.webp', 'becken-nah.webp', 'bad.webp', 'wanne-nah.webp', 'ente-nah.webp',
-    'schlafzimmer.webp', 'koffer-nah.webp', 'ente-vorn.webp',
-    'kue-unten-nah.webp', 'topf-batterien.webp', 'aci-zimmer.webp', 'aquarium-nah.webp',
-    'schreibtisch.webp', 'pc-schirm.webp', 'wagen-nah.webp', 'kiste-gruen-voll.webp',
-    'regalwand-nah.webp', 'th-kiste-nah.webp', 'kue-ober-nah.webp', 'dachboden.webp',
-    'kuehl-nah.webp',
-    // Rausgeflogen: die leere Wanne und der alte Klodeckel
-    'bad-wanne-leer.webp', 'bad-deckel.webp',
-    'aci-kuchen.webp'
+    { bild: 'alt-garage1.webp', text: 'Am Anfang war jeder Raum nur ein Raster mit beschrifteten Rechtecken.' },
+    { bild: 'garage-zu.webp',   text: 'Die Garage war der erste Raum, der ein Gesicht bekam.' },
+    { bild: 'alt-garage2.webp', text: 'Zweite Garagenansicht, noch als Geometrie.' },
+    { bild: 'garage2-zu.webp',  text: 'Dahinter versteckte sich später die Taschenlampe.' },
+    { bild: 'alt-wohnzimmer.webp', text: 'Das Wohnzimmer hatte zehn Flächen, bevor es ein Bild hatte.' },
+    { bild: 'wohnzimmer-zu.webp',  text: 'Dann sass Anfisa darin und wollte nicht mehr aufstehen.' },
+    { bild: 'wz-frau-wach.webp',   text: '„Dabei sollte sie wirklich aufsitzen, dafür haben wir ein Bild gemacht."' },
+    { bild: 'sessel-nah.webp',     text: 'Unter ihrem Sitzkissen lag am Ende der halbe Türcode.' },
+    { bild: 'alt-kueche.webp',  text: 'Die Küche, noch ohne Licht und ohne Schränke.' },
+    { bild: 'kueche-dunkel.webp', text: 'Ohne Strom bleibt sie dunkel. Die Sicherung lag in der Garage.' },
+    { bild: 'kueche-hell.webp',   text: 'Mit Licht zeigte sich, wie viel dort zu finden war.' },
+    { bild: 'kue-unten-nah.webp', text: '„Das geht nur wenn das Licht an ist."' },
+    { bild: 'topf-batterien.webp', text: 'Batterien im Blumentopf — die Taschenlampe zog dreimal um.' },
+    { bild: 'alt-bad.webp',   text: 'Das Bad als Rechtecke.' },
+    { bild: 'bad.webp',       text: 'Fertig, mit drei Eiern und einem Klodeckel, hinter dem lange nichts war.' },
+    { bild: 'wanne-nah.webp', text: 'Die Wanne hatte einmal einen Stöpsel zum Wasserablassen. Geflogen.' },
+    { bild: 'bad-wanne-leer.webp', text: 'Das Bild dazu blieb übrig.' },
+    { bild: 'ente-vorn.webp', text: '„Damit man sie beim Untersuchen ansehen kann und dann umdrehen."' },
+    { bild: 'ente-nah.webp',  text: 'Auf der Unterseite standen am Ende zwei Ziffern des Lukencodes.' },
+    { bild: 'alt-schlafzimmer.webp', text: 'Anfisas Zimmer lag zuerst an der falschen Tür.' },
+    { bild: 'schlafzimmer.webp',     text: 'Dann hinten im Flur, wo es hingehört.' },
+    { bild: 'sz-nachttisch.webp',    text: 'Im Nachttisch versteckte sich später der Safran.' },
+    { bild: 'koffer-nah.webp',       text: 'Der Koffer unter dem Bett brauchte einen Schlüssel hinter dem Gemälde.' },
+    { bild: 'bild-vorn.webp',        text: 'Erst abhängen, dann wieder aufhängen — sonst redet sie nicht mehr.' },
+    { bild: 'bild-hinten-zu.webp',   text: 'Hinter dem Bild ein Fach, darin der Schlüssel.' },
+    { bild: 'alt-acizimmer.webp', text: '„Der Garten muss weg. Aber kann ja als Platzhalter für Acis Zimmer dienen."' },
+    { bild: 'aci-zimmer.webp',    text: 'Aus dem gestrichenen Garten wurde Acis Zimmer.' },
+    { bild: 'aquarium-nah.webp',  text: '„Kannst du die Fische animieren, dass sie random hin und her schwimmen?"' },
+    { bild: 'pc-schirm.webp',     text: '„Einmal aufs Glas klicken ist ja nicht wirklich ein Rätsel."' },
+    { bild: 'schreibtisch.webp',  text: 'Also 30 Dateien, drei Ordner und ein Passwort aus dem Treppenhaus.' },
+    { bild: 'pc-skalar.webp',     text: 'Skalare, Guppys, Neons — die Reihenfolge stand im Futterplan.' },
+    { bild: 'treppenhaus-dunkel.webp', text: 'Die Leuchtschrift an der Wand war zuerst viel zu offensichtlich.' },
+    { bild: 'th-kiste-nah.webp',  text: 'In der Holzkiste lag die falsche Zigarettenmarke.' },
+    { bild: 'alt-dachboden.webp', text: 'Der Dachboden war lange nur ein Platzhalter mit drei Kisten.' },
+    { bild: 'dachboden.webp',     text: '„Das Sparschwein soll man mit dem Hammer kaputtmachen."' },
+    { bild: 'dachboden-offen.webp', text: 'Koffer und Truhe gingen auf, darin Hefe und Rosinen.' },
+    { bild: 'kuehl-nah.webp',     text: 'Der Kühlschrank kam zuletzt, mit Butter und einem Ei im Eierhalter.' },
+    { bild: 'backen-0-leer.webp', text: 'Zum Schluss das Backen zu zweit, Schritt für Schritt über die Datenbank.' },
+    { bild: 'backen-3-butter.webp', text: 'Sechs Zutaten, zwei Gruppen, eine Schüssel.' },
+    { bild: 'aci-kuchen.webp',    text: 'Und am Ende steht der Kulitsch auf dem Tisch.' }
   ];
   const ABSPANN_MUSIK = 'ostern/toene/abspann.mp3';
   // Länge der Hymne in Sekunden. Die Rolle richtet sich danach, damit der
@@ -3503,19 +3533,22 @@
     clearInterval(diaTimer);
     const a = document.getElementById('abspann-bild');
     const b = document.getElementById('abspann-bild2');
-    const liste = ABSPANN_BILDER.length ? ABSPANN_BILDER : ['aci-kuchen.webp'];
+    const u = document.getElementById('abspann-unterschrift');
+    const liste = ABSPANN_BILDER.length ? ABSPANN_BILDER : [{ bild: 'aci-kuchen.webp' }];
     let i = 0, obenB = false;
-    a.style.backgroundImage = 'url(ostern/bilder/' + liste[0] + ')';
-    b.style.opacity = 0;
-    // Die Bilder teilen sich die Laufzeit der Hymne
+    const zeig = n => {
+      const e = liste[n];
+      const bild = 'url(ostern/bilder/' + e.bild + ')';
+      if (n === 0) { a.style.backgroundImage = bild; b.style.opacity = 0; }
+      else if (obenB) { a.style.backgroundImage = bild; b.style.opacity = 0; }
+      else { b.style.backgroundImage = bild; b.style.opacity = 1; }
+      if (n > 0) obenB = !obenB;
+      u.style.opacity = 0;
+      setTimeout(() => { u.textContent = e.text || ''; u.style.opacity = e.text ? 1 : 0; }, 700);
+    };
+    zeig(0);
     const takt = Math.max(3000, Math.round((ABSPANN_DAUER || 180) * 1000 / liste.length));
-    diaTimer = setInterval(() => {
-      i = (i + 1) % liste.length;
-      const neu = 'url(ostern/bilder/' + liste[i] + ')';
-      if (obenB) { a.style.backgroundImage = neu; b.style.opacity = 0; }
-      else       { b.style.backgroundImage = neu; b.style.opacity = 1; }
-      obenB = !obenB;
-    }, takt);
+    diaTimer = setInterval(() => { i = (i + 1) % liste.length; zeig(i); }, takt);
   }
   function diashowStop() { clearInterval(diaTimer); diaTimer = null; }
   function zeigeAbspann() {
