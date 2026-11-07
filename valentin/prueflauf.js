@@ -83,6 +83,9 @@ globalThis.__aus = { KL_WEISS, KL_SCHWARZ, KL_ALLE, KL_VON_TASTE, KL_PHRASEN,
                      ttBall, ttAufschlag, ttBallSchritt, ttGrenzen, ttOberflaeche,
                      AUTOMAT_SPIEL, automatStarten, figurWahlOeffnen,
                      MERK_SCHLUESSEL, standSichern, standLesen,
+                     GEGENSTAENDE, INVENTAR_TABELLE, hat, einstecken,
+                     SPIELER_TABELLE, SCHLUESSEL_FACH, schluesselBauen, schluesselSchoen,
+                     figurBelegen, figurUebernehmen, belegungLaden,
                      NETZ_URL, NETZ_SCHLUESSEL, NETZ_TAKT, HOERWEITE,
                      netzStarten, netzSenden, netzAndereImRaum, netzVergeben,
                      LOBBY_QUELLE, lobbyOeffnen, lobbyBereit, lobbySchliessen,
@@ -473,6 +476,59 @@ RAEUME.forEach((r, i) => {
     pruefe(drin, "  " + r.name + ": Umriss " + j + " liegt im Bild");
   });
 });
+
+// ---------- Inventar ----------
+console.log("Inventar");
+const dinge = Object.keys(aus.GEGENSTAENDE || {});
+pruefe(dinge.length > 0, dinge.length + " Gegenstand/Gegenst\u00e4nde angelegt (" + dinge.join(", ") + ")");
+dinge.forEach((g) => {
+  const d = aus.GEGENSTAENDE[g];
+  pruefe(d.name && d.zeichen && d.text, "  " + g + " hat Name, Zeichen und Text");
+});
+const geber = [];
+RAEUME.forEach((r) => (r.punkte || []).forEach((p) => {
+  if (p.gibt) geber.push(r.name + " / " + p.titel + " -> " + p.gibt);
+}));
+pruefe(geber.length > 0, "im Haus liegen Gegenst\u00e4nde: " + geber.join("; "));
+geber.forEach((g) => {
+  const was = g.split(" -> ")[1];
+  pruefe(!!aus.GEGENSTAENDE[was], "  \"" + was + "\" ist auch angelegt");
+});
+pruefe(geber.filter((g) => g.endsWith("headset")).length >= 2,
+       "es gibt mindestens zwei Headsets — sonst kann nur einer reden");
+pruefe(fs.existsSync(path.join(wurzel, "inventar.sql")), "das SQL zum Anlegen liegt dabei");
+if (fs.existsSync(path.join(wurzel, "inventar.sql"))) {
+  const sql = fs.readFileSync(path.join(wurzel, "inventar.sql"), "utf8");
+  pruefe(sql.includes("enable row level security"), "die Tabelle ist gesch\u00fctzt");
+  pruefe(!/for update|for delete/.test(sql), "\u00e4ndern und l\u00f6schen sind niemandem erlaubt");
+  pruefe(sql.includes(aus.INVENTAR_TABELLE), "SQL und Spiel meinen dieselbe Tabelle");
+}
+pruefe(roh.includes("const punktOeffnenAllein = punktOeffnen;"),
+       "das Aufheben h\u00e4ngt sich an, ohne das Bestehende zu \u00e4ndern");
+
+// ---------- Figurenbelegung ----------
+console.log("Figurenbelegung");
+pruefe(typeof aus.figurBelegen === "function" && typeof aus.figurUebernehmen === "function",
+       "Belegen und \u00dcbernehmen sind da");
+const probe = aus.schluesselBauen();
+pruefe(probe.length === 8, "der Schl\u00fcssel hat acht Zeichen (" + probe + ")");
+pruefe(!/[O0I1]/.test(probe), "keine Zeichen, die man verwechselt");
+const viele = new Set();
+for (let i = 0; i < 4000; i++) viele.add(aus.schluesselBauen());
+pruefe(viele.size === 4000, "4000 Schl\u00fcssel, kein einziger doppelt");
+pruefe(aus.schluesselSchoen("ABCD2345") === "ABCD-2345", "er wird lesbar getrennt");
+pruefe(fs.existsSync(path.join(wurzel, "spieler.sql")), "das SQL zum Anlegen liegt dabei");
+if (fs.existsSync(path.join(wurzel, "spieler.sql"))) {
+  const sql = fs.readFileSync(path.join(wurzel, "spieler.sql"), "utf8");
+  pruefe(sql.includes("figur      text        primary key"),
+         "die Figur ist Prim\u00e4rschl\u00fcssel — zweimal vergeben geht nicht");
+  pruefe(sql.includes("grant select (figur, gewaehlt)") && !/grant select \([^)]*schluessel/.test(sql),
+         "den Schl\u00fcssel darf niemand lesen");
+  pruefe(sql.includes("security definer") && sql.includes("returns boolean"),
+         "das \u00dcbernehmen antwortet nur mit ja oder nein");
+  pruefe(!/for update|for delete/.test(sql), "\u00e4ndern und l\u00f6schen sind niemandem erlaubt");
+  pruefe(sql.includes(aus.SPIELER_TABELLE), "SQL und Spiel meinen dieselbe Tabelle");
+}
 
 console.log(fehler === 0 ? "\nAlles in Ordnung." : "\n" + fehler + " Fehler.");
 process.exit(fehler === 0 ? 0 : 1);

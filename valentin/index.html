@@ -293,7 +293,8 @@ const RAEUME = [
         "taste": "w",
         "zeichen": "!",
         "titel": "Hinter der Bar",
-        "text": "Jemand räumt Gläser ein und schaut nicht auf.<br><br><i>Hier kommt der Dialog mit dem NPC. Porträt links, Text darunter, ein paar feste Antworten.</i>"
+        "text": "Jemand räumt Gläser ein und schaut nicht auf.<br><br><i>Hier kommt der Dialog mit dem NPC. Porträt links, Text darunter, ein paar feste Antworten.</i>",
+        "gibt": "headset"
       }
     ]
   },
@@ -962,7 +963,8 @@ const RAEUME = [
         "taste": "w",
         "zeichen": "✦",
         "titel": "Die Truhe",
-        "text": "Zu lang für eine Truhe und zu schmal für einen Tisch. Der Deckel ist angelehnt.<br><br><i>Platzhalter für einen Hinweis.</i>"
+        "text": "Zu lang für eine Truhe und zu schmal für einen Tisch. Der Deckel ist angelehnt.<br><br><i>Platzhalter für einen Hinweis.</i>",
+        "gibt": "headset"
       }
     ]
   },
@@ -3721,6 +3723,319 @@ addEventListener("keydown", (e) => {
 satzfeld.addEventListener("keydown", (e) => {
   if (e.key === "Escape") { satzfeld.value = ""; satzfeld.blur(); e.preventDefault(); }
 });
+
+// ======================================================================
+// 18. Das Inventar
+//
+//    Was jemand findet, hängt an der Figur und nicht am Browser — wer am
+//    Handy weitermacht, soll sein Headset noch haben. Deshalb liegt das
+//    Inventar in der Datenbank und nicht im Speicher des Browsers.
+//
+//    Die Tabelle wird einmal mit inventar.sql angelegt. Fehlt sie oder
+//    ist das Projekt pausiert, läuft das Spiel weiter — dann bleibt das
+//    Inventar nur für diese Sitzung bestehen.
+//
+//    Ein Punkt im Haus gibt einen Gegenstand her, wenn bei ihm
+//    "gibt": "headset" steht. Zum Verschieben reicht es, diese Zeile an
+//    einen anderen Punkt in der Raumliste zu setzen.
+// ======================================================================
+
+const GEGENSTAENDE = {
+  headset: {
+    name: "Headset",
+    zeichen: "🎧",
+    text: "Ein Funkheadset mit halb leerem Akku. Damit kann man sich über " +
+          "das ganze Grundstück verständigen."
+  }
+};
+
+const INVENTAR_TABELLE = "valentin_inventar";
+
+let inventar = {};              // gegenstand -> true
+let inventarBau = null;
+
+function hat(was) { return !!inventar[was]; }
+
+// ----------------------------------------------------------------------
+// Datenbank
+// ----------------------------------------------------------------------
+let inventarKlient = null;
+try {
+  if (NETZ_SCHLUESSEL && typeof supabase !== "undefined") {
+    inventarKlient = supabase.createClient(NETZ_URL, NETZ_SCHLUESSEL);
+  }
+} catch (e) { inventarKlient = null; }
+
+async function inventarLaden() {
+  if (!inventarKlient) return;
+  try {
+    const { data, error } = await inventarKlient
+      .from(INVENTAR_TABELLE)
+      .select("gegenstand")
+      .eq("figur", MEINE_FIGUR);
+    if (error) throw error;
+    inventar = {};
+    (data || []).forEach((z) => { inventar[z.gegenstand] = true; });
+    inventarMalen();
+  } catch (e) { /* ohne Tabelle bleibt es bei dieser Sitzung */ }
+}
+
+async function einstecken(was) {
+  if (!GEGENSTAENDE[was] || inventar[was]) return false;
+  inventar[was] = true;
+  inventarMalen();
+  if (!inventarKlient) return true;
+  try {
+    await inventarKlient.from(INVENTAR_TABELLE)
+      .insert([{ figur: MEINE_FIGUR, gegenstand: was }]);
+  } catch (e) { /* schon drin oder nicht erreichbar */ }
+  return true;
+}
+
+// ----------------------------------------------------------------------
+// Anzeige unten links auf der Bühne
+// ----------------------------------------------------------------------
+function inventarStil() {
+  if (document.getElementById("inventar-stil")) return;
+  const s = document.createElement("style");
+  s.id = "inventar-stil";
+  s.textContent = `
+  #inventar { position: absolute; left: 10px; bottom: 10px; z-index: 4;
+       display: flex; gap: 6px; pointer-events: none; }
+  #inventar .fach { width: 38px; height: 38px; border-radius: 9px;
+       background: rgba(16,14,11,0.82); border: 1px solid #332f24;
+       display: flex; align-items: center; justify-content: center;
+       font-size: 20px; }
+  #inventar .fach.voll { border-color: #5a4a1c; }
+  #inventar .fach.leer { opacity: .35; font-size: 13px; color: #6d6659; }
+  `;
+  document.head.appendChild(s);
+}
+
+function inventarMalen() {
+  inventarStil();
+  if (!inventarBau) {
+    const el = document.createElement("div");
+    el.id = "inventar";
+    document.getElementById("buehne").appendChild(el);
+    inventarBau = el;
+  }
+  const namen = Object.keys(GEGENSTAENDE);
+  inventarBau.innerHTML = namen.map((g) =>
+    inventar[g]
+      ? '<div class="fach voll" title="' + GEGENSTAENDE[g].name + '">' +
+        GEGENSTAENDE[g].zeichen + "</div>"
+      : '<div class="fach leer">·</div>'
+  ).join("");
+}
+
+// ----------------------------------------------------------------------
+// Einhängen: ein Punkt, bei dem "gibt" steht, legt den Gegenstand ins
+// Inventar und schreibt es ins offene Fenster.
+// ----------------------------------------------------------------------
+const punktOeffnenAllein = punktOeffnen;
+punktOeffnen = function (p) {
+  punktOeffnenAllein(p);
+  if (!p || !p.gibt || !GEGENSTAENDE[p.gibt]) return;
+  const g = GEGENSTAENDE[p.gibt];
+  const tafel = document.getElementById("tafel");
+  if (!tafel) return;
+  const schon = hat(p.gibt);
+  const absatz = document.createElement("p");
+  if (schon) {
+    absatz.innerHTML = "<i>" + g.name + " hast du schon eingesteckt.</i>";
+  } else {
+    einstecken(p.gibt);
+    absatz.innerHTML = "<b>" + g.zeichen + " " + g.name + " eingesteckt.</b><br>" + g.text;
+  }
+  const knopf = tafel.querySelector("button");
+  if (knopf) tafel.insertBefore(absatz, knopf);
+  else tafel.appendChild(absatz);
+};
+
+// Beim Figurenwechsel gehört das Inventar der neuen Figur
+const figurMerkenVorInventar = figurMerken;
+figurMerken = function (name) {
+  figurMerkenVorInventar(name);
+  inventar = {};
+  inventarMalen();
+  inventarLaden();
+};
+
+inventarMalen();
+inventarLaden();
+
+// ======================================================================
+// 19. Die Figur gehört dir
+//
+//    Ohne Anmeldung kann die Datenbank nicht wissen, wer gerade wer ist.
+//    Deshalb bekommt jeder beim Wählen einen Schlüssel, den sein Browser
+//    behält. Die Figur ist damit eingetragen und für alle anderen weg —
+//    nicht nur solange das Fenster offen ist, sondern bis jemand die
+//    Zeile im Dashboard löscht.
+//
+//    Wer das Gerät wechselt, gibt den Schlüssel einmal ein. Lesen kann
+//    ihn niemand sonst: die Spalte ist für alle gesperrt, und die
+//    Funktion zum Übernehmen antwortet nur mit ja oder nein.
+//
+//    Die Tabelle wird einmal mit spieler.sql angelegt. Fehlt sie, läuft
+//    das Spiel wie bisher, nur ohne Belegung.
+// ======================================================================
+
+const SPIELER_TABELLE = "valentin_spieler";
+const SCHLUESSEL_FACH = "valentin_schluessel";
+
+let meineSchluessel = {};        // figur -> schluessel
+let belegt = {};                 // figur -> true, aus der Datenbank
+let belegtGeladen = false;
+
+try {
+  meineSchluessel = JSON.parse(localStorage.getItem(SCHLUESSEL_FACH) || "{}") || {};
+} catch (e) { meineSchluessel = {}; }
+
+function schluesselMerken() {
+  try { localStorage.setItem(SCHLUESSEL_FACH, JSON.stringify(meineSchluessel)); }
+  catch (e) {}
+}
+
+// Acht Zeichen ohne die, die man verwechselt: kein O, kein 0, kein I, kein 1.
+function schluesselBauen() {
+  const zeichen = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+  let s = "";
+  for (let i = 0; i < 8; i++) s += zeichen[Math.floor(Math.random() * zeichen.length)];
+  return s;
+}
+
+function schluesselSchoen(s) {
+  return s ? s.slice(0, 4) + "-" + s.slice(4) : "";
+}
+
+async function belegungLaden() {
+  if (!inventarKlient) return;
+  try {
+    const { data, error } = await inventarKlient
+      .from(SPIELER_TABELLE).select("figur");
+    if (error) throw error;
+    belegt = {};
+    (data || []).forEach((z) => { belegt[z.figur] = true; });
+    belegtGeladen = true;
+    if (wahlOffen) wahlMalen();
+  } catch (e) { belegtGeladen = false; }
+}
+
+// Gibt zurück: "ok", "schon-meins", "vergeben" oder "offline"
+async function figurBelegen(name) {
+  if (meineSchluessel[name]) return "schon-meins";
+  if (!inventarKlient) return "offline";
+  const s = schluesselBauen();
+  try {
+    const { error } = await inventarKlient.from(SPIELER_TABELLE)
+      .insert([{ figur: name, schluessel: s }]);
+    if (error) { await belegungLaden(); return "vergeben"; }
+    meineSchluessel[name] = s;
+    schluesselMerken();
+    belegt[name] = true;
+    return "ok";
+  } catch (e) { return "offline"; }
+}
+
+async function figurUebernehmen(name, s) {
+  if (!inventarKlient) return false;
+  try {
+    const { data, error } = await inventarKlient
+      .rpc("valentin_uebernehmen", { p_figur: name, p_schluessel: s });
+    if (error || !data) return false;
+    meineSchluessel[name] = s;
+    schluesselMerken();
+    return true;
+  } catch (e) { return false; }
+}
+
+// ----------------------------------------------------------------------
+// In die Figurenauswahl einhängen
+// ----------------------------------------------------------------------
+const wahlMalenVorBelegung = wahlMalen;
+wahlMalen = function () {
+  wahlMalenVorBelegung();
+  if (!wahlBau) return;
+
+  const felder = wahlBau.gitter.children;
+  Object.keys(FIGUREN).forEach((schluessel, i) => {
+    const feld = felder[i];
+    if (!feld) return;
+    if (meineSchluessel[schluessel]) {
+      const h = document.createElement("small");
+      h.textContent = "gehört dir";
+      h.style.color = "#8fd49a";
+      feld.appendChild(h);
+      return;
+    }
+    if (!belegt[schluessel]) return;
+    feld.style.opacity = "0.45";
+    feld.style.cursor = "not-allowed";
+    feld.onclick = null;
+    const h = document.createElement("small");
+    h.textContent = "schon vergeben";
+    feld.appendChild(h);
+  });
+
+  // Eigener Schlüssel und das Feld zum Übernehmen
+  let fuss = wahlBau.wurzel.querySelector("#wahl-fuss");
+  if (!fuss) {
+    fuss = document.createElement("div");
+    fuss.id = "wahl-fuss";
+    fuss.style.cssText = "margin-top:14px;font-size:13px;color:#8a857a;line-height:1.6";
+    wahlBau.wurzel.querySelector("#wahl-karte").appendChild(fuss);
+  }
+  const eigen = meineSchluessel[MEINE_FIGUR];
+  fuss.innerHTML =
+    (eigen
+      ? "Dein Schlüssel für " + FIGUREN[MEINE_FIGUR].name + ": <b style='color:#f0c173'>" +
+        schluesselSchoen(eigen) + "</b><br>Schreib ihn dir auf, damit du auf einem " +
+        "anderen Gerät weiterspielen kannst."
+      : "Sobald du wählst, bekommst du einen Schlüssel für deine Figur.") +
+    "<br><br>Schon eine Figur auf einem anderen Gerät? " +
+    '<input id="wahl-code" maxlength="9" placeholder="XXXX-XXXX" ' +
+    'style="width:110px;background:#131210;color:#ded6c2;border:1px solid #332f24;' +
+    'border-radius:6px;padding:5px 8px;font:inherit"> ' +
+    '<button id="wahl-holen" style="padding:5px 12px;background:#3a2f12;color:#f0c173;' +
+    'border:1px solid #5a4a1c;border-radius:6px;font:inherit;cursor:pointer">Übernehmen</button>' +
+    '<span id="wahl-sagt" style="margin-left:8px"></span>';
+
+  const holen = document.getElementById("wahl-holen");
+  if (holen) holen.onclick = async () => {
+    const code = (document.getElementById("wahl-code").value || "")
+      .toUpperCase().replace(/[^A-Z0-9]/g, "");
+    const sagt = document.getElementById("wahl-sagt");
+    if (code.length !== 8) { sagt.textContent = "Der Schlüssel hat acht Zeichen."; return; }
+    sagt.textContent = "einen Moment …";
+    let gefunden = null;
+    for (const name of Object.keys(FIGUREN)) {
+      if (await figurUebernehmen(name, code)) { gefunden = name; break; }
+    }
+    if (!gefunden) { sagt.textContent = "Kein Treffer."; return; }
+    figurMerken(gefunden);
+    wahlMalen();
+    figurWahlSchliessen();
+  };
+};
+
+// Beim Wählen wird belegt. Geht das nicht, bleibt die alte Figur.
+const figurMerkenVorBelegung = figurMerken;
+figurMerken = function (name) {
+  const vorher = MEINE_FIGUR;
+  figurMerkenVorBelegung(name);
+  figurBelegen(name).then((wie) => {
+    if (wie !== "vergeben") return;
+    figurMerkenVorBelegung(vorher);
+    belegungLaden();
+    figurWahlOeffnen();
+    const sagt = document.getElementById("wahl-sagt");
+    if (sagt) sagt.textContent = "Die war gerade eben schon weg.";
+  });
+};
+
+belegungLaden();
 </script>
 </body>
 </html>

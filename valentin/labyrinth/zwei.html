@@ -23,11 +23,11 @@
     text-transform: uppercase; color: #8a857a; background: #0f0e0c; }
   .schild b { color: #f0c173; text-transform: none; letter-spacing: 0; font-size: 14px; }
   canvas { flex: 1; width: 100%; min-height: 0; display: block; }
-  #lautsprecher { flex: none; display: flex; gap: 6px; padding: 7px 10px;
+  .reden { flex: none; display: flex; gap: 6px; padding: 7px 10px;
     background: #0f0e0c; border-top: 1px solid #262218; }
-  #lautsprecher input { flex: 1; min-width: 0; background: #131210; color: #ded6c2;
+  .reden input { flex: 1; min-width: 0; background: #131210; color: #ded6c2;
     border: 1px solid #332f24; border-radius: 6px; padding: 7px 10px; font: inherit; }
-  #lautsprecher button { padding: 7px 14px; background: #3a2f12; color: #f0c173;
+  .reden button { padding: 7px 14px; background: #3a2f12; color: #f0c173;
     border: 1px solid #5a4a1c; border-radius: 6px; font: inherit; cursor: pointer; }
   #tafel { position: absolute; inset: 0; z-index: 9; display: flex;
     align-items: center; justify-content: center; padding: 24px;
@@ -52,11 +52,15 @@
     <div class="seite">
       <div class="schild"><b>Im Labyrinth</b> &nbsp; W vor, S zurück, A und D drehen</div>
       <canvas id="sicht"></canvas>
+      <div class="reden">
+        <input id="ruf" maxlength="80" placeholder="Zurückrufen">
+        <button id="rufen">Rufen</button>
+      </div>
     </div>
     <div class="seite">
       <div class="schild"><b>Am Monitor</b> &nbsp; klicken markiert ein Feld</div>
       <canvas id="plan"></canvas>
-      <div id="lautsprecher">
+      <div class="reden">
         <input id="durchsage" maxlength="80" placeholder="Durchsage an den Läufer">
         <button id="senden">Durchsagen</button>
       </div>
@@ -214,7 +218,8 @@
   let laeufer = { x: 0, y: 0, r: 1 };     // Feld und Blickrichtung
   let gleit = { von: null, bis: null, start: 0, art: null };
   let marken = [];                        // was der Führende angezeichnet hat
-  let durchsage = { text: '', bis: 0 };
+  let durchsage = { text: '', bis: 0 };   // vom Monitor zum Läufer
+  let zuruf = { text: '', bis: 0 };       // vom Läufer zum Monitor
   let versuche = 0, gestartet = 0, laeuft = false;
 
   const sicht = document.getElementById('sicht');
@@ -378,6 +383,21 @@
     p2.lineTo(lx + DX[laeufer.r] * feld * 0.42, ly + DY[laeufer.r] * feld * 0.42);
     p2.stroke();
 
+    // Zuruf des Läufers
+    if (Date.now() < zuruf.bis && zuruf.text) {
+      const gr = Math.max(13, H * 0.042);
+      p2.font = '600 ' + gr + 'px -apple-system, sans-serif';
+      p2.textAlign = 'center';
+      const br = Math.min(p2.measureText(zuruf.text).width + gr, B * 0.9);
+      p2.fillStyle = 'rgba(10,9,8,0.88)';
+      p2.beginPath();
+      if (p2.roundRect) p2.roundRect(B / 2 - br / 2, H * 0.03, br, gr * 1.9, 8);
+      else p2.rect(B / 2 - br / 2, H * 0.03, br, gr * 1.9);
+      p2.fill();
+      p2.fillStyle = '#8fd49a';
+      p2.fillText(zuruf.text, B / 2, H * 0.03 + gr * 1.3, B * 0.86);
+    }
+
     plan._feld = { feld, ox, oy };
   }
 
@@ -434,12 +454,11 @@
       '<p>Einer läuft, einer führt. Der Läufer sieht nur den Gang vor sich — ' +
       'und die Fallen, sobald er davorsteht. Der Führende sieht das ganze ' +
       'Labyrinth von oben und wo der Läufer steckt, aber keine einzige Falle.</p>' +
-      '<p>Gesprochen wird in eine Richtung. Der Führende sagt durch, der Läufer ' +
-      'liest mit und kann nicht antworten. Bleibt der Läufer stehen und kehrt um, ' +
-      'muss der Führende daraus schliessen, dass dort etwas liegt, es sich ' +
-      'anzeichnen und einen anderen Weg suchen.</p>' +
+      '<p>Geredet wird in beide Richtungen. Der Führende sagt den Weg durch, der ' +
+      'Läufer ruft zurück, wo eine Falle liegt. Der Führende kann sie sich auf ' +
+      'seinem Plan anzeichnen und einen anderen Weg suchen.</p>' +
       '<table>' +
-      '<tr><td>Läufer</td><td>W vor, S zurück, A und D drehen</td></tr>' +
+      '<tr><td>Läufer</td><td>W vor, S zurück, A und D drehen, Feld unten zum Zurückrufen</td></tr>' +
       '<tr><td>Führender</td><td>Feld anklicken markiert, Feld nochmal klicken löscht</td></tr>' +
       '</table>' +
       '<p style="color:#8a857a;font-size:13px">Diese Seite zeigt beide Hälften ' +
@@ -468,6 +487,7 @@
     marken = [];
     versuche = 0;
     durchsage = { text: '', bis: 0 };
+    zuruf = { text: '', bis: 0 };
     gestartet = Date.now();
     laeuft = true;
     tafel.classList.add('weg');
@@ -479,7 +499,8 @@
   // Eingaben
   // --------------------------------------------------------------
   addEventListener('keydown', (e) => {
-    if (document.activeElement === document.getElementById('durchsage')) return;
+    const wo = document.activeElement;
+    if (wo && wo.tagName === 'INPUT') return;    // beim Tippen nicht laufen
     const t = e.key.toLowerCase();
     if (t === 'w' || t === 'arrowup')    { gehen(true);  e.preventDefault(); }
     if (t === 's' || t === 'arrowdown')  { gehen(false); e.preventDefault(); }
@@ -509,6 +530,18 @@
   document.getElementById('senden').onclick = durchsagen;
   document.getElementById('durchsage').addEventListener('keydown', (e) => {
     if (e.key === 'Enter') { durchsagen(); e.preventDefault(); }
+  });
+
+  function rufen() {
+    const feld = document.getElementById('ruf');
+    const t = feld.value.trim();
+    if (!t) return;
+    zuruf = { text: t.slice(0, 80), bis: Date.now() + 6000 };
+    feld.value = '';
+  }
+  document.getElementById('rufen').onclick = rufen;
+  document.getElementById('ruf').addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') { rufen(); e.preventDefault(); }
   });
 
   function schleife() {
