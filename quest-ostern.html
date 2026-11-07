@@ -220,6 +220,7 @@
     <span class="uhr" id="uhr">00:00</span>
     <button class="hinweis-knopf" id="hinweis-knopf">Hinweis (3)</button>
     <button class="hinweis-knopf" id="nah-zurueck" style="display:none">← Zurück in den Raum</button>
+    <button class="hinweis-knopf" id="zum-kuchen" style="display:none">Weiter zum Kuchen →</button>
   </div>
 
   <div class="buehne" id="buehne">
@@ -367,7 +368,7 @@
 
   // Wird bei jedem Paket neu gesetzt. Steht unten im Startbildschirm, damit man
   // sofort sieht, welche Fassung gerade live ist.
-  const BAUSTAND = '07.11.2026 22:45';
+  const BAUSTAND = '07.11.2026 22:49';
   const SPEICHER_KEY = 'ostern_fortschritt';
   const HINWEISE_GESAMT = 3;
   // Gemeinsamer Faktor für alle Eier. Die Radien in EIER bleiben, hier wird
@@ -3640,16 +3641,32 @@
   // Praktisch, wenn noch Zutaten fehlen.
   // Wer nach dem Endbildschirm nochmal losgezogen ist, kommt zurück, sobald
   // die letzte eigene Zutat im Rucksack liegt.
-  function zurueckZumKuchen() {
+  function zurueckZumKuchen(sofort) {
     if (!zustand.fertig || !zustand.weitersuchen) return;
     if (fehlendeZutaten().length) return;
     zustand.weitersuchen = false;
     speichern();
+    if (sofort) { spielEnde(); return; }
     sag('Alles beisammen. Dann können wir backen.');
     setTimeout(() => { schweig(); spielEnde(); }, 2200);
   }
 
+  // Der Knopf oben führt jederzeit zurück zum Kuchen, sobald alle Eier
+  // gefunden sind. Damit sitzt niemand fest, egal wie er hergekommen ist.
+  function kuchenKnopf() {
+    const k = document.getElementById('zum-kuchen');
+    if (!k) return;
+    k.style.display = (zustand.fertig && zustand.weitersuchen) ? '' : 'none';
+  }
+  document.getElementById('zum-kuchen').onclick = () => {
+    zustand.weitersuchen = false;
+    speichern();
+    document.getElementById('zum-kuchen').style.display = 'none';
+    spielEnde();
+  };
+
   document.getElementById('ende-weiter').onclick = () => {
+    kuchenKnopf();
     document.getElementById('ende-zutaten').textContent = '';
     document.getElementById('screen-ende').classList.add('hidden');
     // Das Spiel muss wieder laufen, sonst nimmt die Bühne keine Tipps an
@@ -3659,6 +3676,7 @@
     speichern();
     uhrStart();
     renderRaum();
+    kuchenKnopf();
   };
   document.getElementById('backen-knopf').onclick = () => {
     if (!zustand.gruppe) { zustand.gruppe = Math.random() < 0.5 ? 'A' : 'B'; speichern(); }
@@ -3803,12 +3821,13 @@
     document.getElementById('screen-intro').classList.add('hidden');
     spielEnde();
   } else if (hatte && zustand.fertig && zustand.weitersuchen) {
-    // Mitten im Nachsuchen neu geladen: direkt weiterspielen statt
-    // über den Startbildschirm zu gehen.
     document.getElementById('screen-intro').classList.add('hidden');
     zustand.laeuft = true;
     uhrStart();
     renderRaum();
+    // Sind die Zutaten längst beisammen, geht es gleich zum Kuchen.
+    zurueckZumKuchen(true);
+    kuchenKnopf();
   }
   // ?backen=1 öffnet den Backtisch sofort, zum Anschauen ohne vollständige Suche
   if (ABSPANNTEST) {
