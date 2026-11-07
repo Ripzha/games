@@ -211,6 +211,17 @@ pruefe((skript.match(/heckenFlaeche\(/g) || []).length >= 6,
 pruefe(skript.includes("const kachel = (a.u - a.o) * HECKE_KACHEL;"),
        "die Kachelgr\u00f6sse h\u00e4ngt an der Tiefe");
 
+console.log("Boden");
+pruefe(skript.includes("const BODEN_DATEI"), "der Boden hat eine Textur");
+const bd = (skript.match(/BODEN_DATEI = '([^']+)'/) || [])[1];
+pruefe(bd && fs.existsSync(bd), "sie liegt daneben (" + bd + ")");
+pruefe(/for \(let xx = x0; xx < x1; xx \+= kb\) s2\.drawImage\(bodenBild/.test(skript),
+       "auch der Boden wird gekachelt, nicht gestreckt");
+pruefe(skript.includes("if (!bodenFlaeche(bodenPunkte"),
+       "ohne Textur bleibt die alte Farbe — nie ein Loch im Bild");
+pruefe((skript.match(/bodenFlaeche\(/g) || []).length >= 3,
+       "Korridor und Seiteng\u00e4nge bekommen sie beide");
+
 console.log("Fallen");
 pruefe(skript.includes("lab.falle[y][x] && t <= 1"),
        "die Spur einer Falle sieht man erst direkt davor");
