@@ -187,6 +187,21 @@ pruefe(links === 1 && skript.includes('G4: "rechts"'),
 pruefe(skript.includes('(KL_HAND[t.note] || "aus")'),
        "was im St\u00fcck nicht vorkommt, wird blass dargestellt");
 
+console.log("Anfang und Ende");
+const vor = +(skript.match(/KL_VORTAKTE = (\d+)/) || [])[1];
+const nach = +(skript.match(/KL_NACHTAKTE = (\d+)/) || [])[1];
+pruefe(vor >= 2, vor + " Akkorde Vorspiel, bevor die beiden einsetzen");
+pruefe(nach >= 2, nach + " Akkorde Nachspiel, w\u00e4hrend die Tafel dasteht");
+pruefe(skript.includes("const KL_VORLAUF  = KL_VORTAKTE * 4 * KL_ZAEHLER;"),
+       "der Vorlauf ist genau so lang wie das Vorspiel — sonst setzt es schief ein");
+pruefe(skript.includes("function klAusklang()"), "nach dem letzten Ton klingt es weiter");
+pruefe(skript.includes("klAusklang();                 // klingt weiter"),
+       "das Nachspiel startet beim Beenden, nicht erst beim Schliessen");
+pruefe(skript.includes("klNachUhren.forEach(clearTimeout);"),
+       "beim Abbrechen h\u00f6rt auch das Nachspiel auf");
+pruefe(skript.includes("(dran + KL_VORTAKTE) % KL_AKKORDE.length"),
+       "die Vortakte m\u00fcnden auf den Akkord, mit dem die beiden einsetzen");
+
 console.log("Zwei H\u00e4nde");
 // Eine Stimme aus lauter Einzelnoten kann man mit einem Finger
 // abarbeiten. Griffe sind der Grund, zwei H\u00e4nde zu brauchen.

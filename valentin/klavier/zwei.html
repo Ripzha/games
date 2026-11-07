@@ -208,7 +208,15 @@ const KL_PERFEKT  = 120;     // plus/minus Millisekunden für die volle Wertung
 // beiden Stimmen, sonst wertet ein Druck die Note des anderen. Die
 // Stimmen liegen zwei Zählzeiten auseinander, also 680 Millisekunden.
 const KL_GUT      = 250;     // plus/minus Millisekunden, sonst verpasst
-const KL_VORLAUF  = 1600;    // Ruhe vor dem ersten Ton
+// Vier Akkorde Vorspiel, bevor die beiden einsetzen. Das gibt dem Stück
+// einen Anfang und sagt nebenbei das Tempo an. Vier Akkorde zu je vier
+// Zählzeiten sind sechzehn Zählzeiten.
+const KL_VORTAKTE = 4;
+const KL_VORLAUF  = KL_VORTAKTE * 4 * KL_ZAEHLER;
+
+// Und vier Akkorde Nachspiel, die weiterlaufen, während die Tafel mit
+// dem Ergebnis schon dasteht. Sonst bricht es mitten im Satz ab.
+const KL_NACHTAKTE = 4;
 const KL_SCHWELLE = 80;      // Prozent, ab denen es geschafft ist
 
 // Ein Fehlgriff kostet. Ohne das kann man alle Tasten gleichzeitig
@@ -520,6 +528,8 @@ function klavierSchliessen() {
 }
 
 function klAbbrechen() {
+  klNachUhren.forEach(clearTimeout);
+  klNachUhren = [];
   klLaeuft = false;
   KL_PARTNER.beenden();
   if (klSchleife) cancelAnimationFrame(klSchleife);
@@ -627,7 +637,9 @@ function klSpielStarten(nurHoeren) {
     n.getoent = false;
   });
 
-  klBegleitungGesetzt = 0;
+  klBegleitungGesetzt = -99;
+  klNachUhren.forEach(clearTimeout);
+  klNachUhren = [];
 
   // Gemeinsam anfangen. Ohne das setzt jeder beim Druck auf "Spielen"
   // seine eigene Uhr, und die beiden Stimmen laufen um so viel
@@ -752,14 +764,32 @@ function klSchritt(jetzt) {
 }
 
 // Die Begleitung: alle vier Zählzeiten der nächste Akkord, leise.
-let klBegleitungGesetzt = 0;
+// Sie fängt schon im Vorspiel an, deshalb wird die Zeit um den Vorlauf
+// verschoben. Die vier Vortakte sind die letzten vier der Folge, damit
+// sie auf das C münden, mit dem die beiden einsetzen.
+let klBegleitungGesetzt = -99;
 function klBegleitung(t) {
   const takt = 4 * KL_ZAEHLER;
-  const dran = Math.floor(t / takt) + 1;
-  if (dran <= klBegleitungGesetzt || dran < 1) return;
+  const dran = Math.floor((t + KL_VORLAUF) / takt);
+  if (dran <= klBegleitungGesetzt || dran < 0) return;
   klBegleitungGesetzt = dran;
-  const akkord = KL_AKKORDE[(dran - 1) % KL_AKKORDE.length];
+  klAkkordSpielen(dran);
+}
+
+function klAkkordSpielen(dran) {
+  const takt = 4 * KL_ZAEHLER;
+  const akkord = KL_AKKORDE[(dran + KL_VORTAKTE) % KL_AKKORDE.length];
   akkord.forEach((freq, i) => klTon(freq, takt * 0.9, true, 0.3 - i * 0.06));
+}
+
+// Das Nachspiel läuft weiter, obwohl die Schleife schon steht.
+let klNachUhren = [];
+function klAusklang() {
+  const takt = 4 * KL_ZAEHLER;
+  for (let i = 1; i <= KL_NACHTAKTE; i++) {
+    const dran = klBegleitungGesetzt + i;
+    klNachUhren.push(setTimeout(() => klAkkordSpielen(dran), takt * (i - 0.4)));
+  }
 }
 
 function klEingabe(note) {
@@ -798,6 +828,7 @@ function klEingabe(note) {
 
 function klBeenden() {
   klLaeuft = false;
+  klAusklang();                 // klingt weiter, während die Tafel dasteht
   KL_PARTNER.beenden();
   if (klSchleife) cancelAnimationFrame(klSchleife);
   klSchleife = null;
