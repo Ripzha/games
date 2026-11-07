@@ -368,7 +368,12 @@
   // nur mit echter Texturprojektion, die Canvas nicht kann. Die Tiefe
   // macht jetzt allein die Abdunklung.
   const HECKE_KACHEL = 0.42;    // Kachelhöhe als Anteil der Bildhöhe
-  const GANG_TIEFE   = 3;       // so viele Felder tief in einen Seitengang
+  // Nur ein Feld tief in den Seitengang. Tiefer hinein zu zeichnen ergibt
+  // Geometrie, die es so nicht gibt: Von einem einzelnen Durchgang aus
+  // sieht man nicht den ganzen Gang, und die erfundenen Flächen schneiden
+  // als Keile in Boden und Hecke. Geht der Gang weiter, bleibt dort
+  // Dunkelheit — bei zwei Feldern Sichtweite ist das ohnehin richtig.
+  const GANG_TIEFE   = 1;       // so viele Felder tief in einen Seitengang
 
   const BODEN_DATEI = 'boden.webp';
   const BODEN_HELL  = 0.52;     // der Boden ist heller als die Stimmung
@@ -646,12 +651,19 @@
                           dk * 0.9, [kante, nah.o, kanteF, fern.o],
                           gx * 97 + gy * 31 + 31, ka);
           }
-          // Hecke, die im Gang quer steht
+          // Hecke, die im Gang quer steht — sonst geht es dort weiter,
+          // und man sieht in die Dunkelheit.
           if (wandDa(lab, gx, gy, r)) {
             heckenFlaeche([[kanteF, fern.o], [aussenF, fern.o],
                            [aussenF, fern.u], [kanteF, fern.u]],
                           dk * 0.84, [kanteF, fern.o, aussenF, fern.o],
                           gx * 97 + gy * 31 + 21, ka);
+          } else {
+            s2.fillStyle = 'rgba(6,10,7,0.92)';
+            s2.beginPath();
+            s2.moveTo(kanteF, fern.o); s2.lineTo(aussenF, fern.o);
+            s2.lineTo(aussenF, fern.u); s2.lineTo(kanteF, fern.u);
+            s2.closePath(); s2.fill();
           }
 
           // Die Stirnseiten der Hecken, die den Durchgang einrahmen

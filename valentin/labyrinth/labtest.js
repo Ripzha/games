@@ -249,8 +249,10 @@ pruefe(skript.includes("// Hecke, die im Gang quer steht"),
        "auch die Hecke, die im Seitengang quer steht, wird gezeichnet");
 pruefe(skript.includes("const GANG_TIEFE"), "der Seitengang wird mehrere Felder tief gezeichnet");
 const tiefe = parseInt((skript.match(/GANG_TIEFE\s*=\s*(\d+)/) || [])[1], 10);
-pruefe(tiefe >= 2, "er reicht " + tiefe + " Felder weit — bei eins bleibt ein Loch, " +
-       "wenn der Gang weitergeht");
+pruefe(tiefe === 1, "er reicht ein Feld weit — tiefer erfundene Fl\u00e4chen schneiden " +
+       "als Keile in Boden und Hecke");
+pruefe(skript.includes("s2.fillStyle = 'rgba(6,10,7,0.92)';"),
+       "geht der Gang weiter, steht dort Dunkelheit statt eines Lochs");
 pruefe(skript.includes("for (let k = gTiefe; k >= 0; k--) {"),
        "der Seitengang wird von hinten nach vorne gezeichnet — andersherum " +
        "malt der hintere Abschnitt \u00fcber den vorderen");
