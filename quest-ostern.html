@@ -348,6 +348,7 @@
     <p class="eintrag-fehler" id="ende-zutaten"></p>
     <div class="knopf-reihe">
       <button class="knopf" id="backen-knopf">Kuchen backen</button>
+      <button class="knopf sekundaer" id="abspann-nochmal" style="display:none">Abspann nochmal</button>
       <button class="knopf sekundaer" id="ende-weiter">Zurück ins Haus</button>
       <button class="knopf sekundaer" id="reset-knopf">Nochmal von vorn</button>
     </div>
@@ -368,7 +369,7 @@
 
   // Wird bei jedem Paket neu gesetzt. Steht unten im Startbildschirm, damit man
   // sofort sieht, welche Fassung gerade live ist.
-  const BAUSTAND = '07.11.2026 22:49';
+  const BAUSTAND = '07.11.2026 22:55';
   const SPEICHER_KEY = 'ostern_fortschritt';
   const HINWEISE_GESAMT = 3;
   // Gemeinsamer Faktor für alle Eier. Die Radien in EIER bleiben, hier wird
@@ -3658,6 +3659,10 @@
     if (!k) return;
     k.style.display = (zustand.fertig && zustand.weitersuchen) ? '' : 'none';
   }
+  document.getElementById('abspann-nochmal').onclick = () => {
+    document.getElementById('screen-ende').classList.add('hidden');
+    zeigeAbspann();
+  };
   document.getElementById('zum-kuchen').onclick = () => {
     zustand.weitersuchen = false;
     speichern();
@@ -3705,9 +3710,18 @@
   // =====================================================================
   function spielEnde() {
     zustand.laeuft = false; zustand.fertig = true; speichern();
+    // Ist der Kuchen fertig, ist das Spiel durch. Dann kein Weg zurück an
+    // den Backtisch und auch nicht mehr ins Haus.
+    const durch = zustand.backen >= BACK_SCHRITTE.length;
+    document.getElementById('backen-knopf').style.display = durch ? 'none' : '';
+    document.getElementById('ende-weiter').style.display = durch ? 'none' : '';
+    document.getElementById('abspann-nochmal').style.display = durch ? '' : 'none';
+    document.getElementById('ende-zutaten').textContent = '';
     document.getElementById('ende-zeit').textContent = uhrText(zustand.zeit);
     document.getElementById('ende-label').textContent = 'für alle ' + meineEier().length + ' Eier';
-    document.getElementById('ende-text').textContent = ENDE_TEXT;
+    document.getElementById('ende-text').textContent = durch
+      ? 'Der Kulitsch steht auf dem Tisch. Aci hat ihn fast alleine gemacht.'
+      : ENDE_TEXT;
     document.getElementById('screen-ende').classList.remove('hidden');
   }
 
