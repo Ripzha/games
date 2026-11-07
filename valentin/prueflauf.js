@@ -82,6 +82,7 @@ globalThis.__aus = { KL_WEISS, KL_SCHWARZ, KL_ALLE, KL_VON_TASTE, KL_PHRASEN,
                      TT_TEMPO_START, TT_TEMPO_MAX, TT_PARTNER, TT_UNTEN,
                      ttBall, ttAufschlag, ttBallSchritt, ttGrenzen, ttOberflaeche,
                      AUTOMAT_SPIEL, automatStarten, figurWahlOeffnen,
+                     LABYRINTH_SEITE, labyrinthStarten,
                      MERK_SCHLUESSEL, standSichern, standLesen,
                      GEGENSTAENDE, INVENTAR_TABELLE, hat, einstecken,
                      SPIELER_TABELLE, SCHLUESSEL_FACH, schluesselBauen, schluesselSchoen,
@@ -529,6 +530,28 @@ if (fs.existsSync(path.join(wurzel, "spieler.sql"))) {
   pruefe(!/for update|for delete/.test(sql), "\u00e4ndern und l\u00f6schen sind niemandem erlaubt");
   pruefe(sql.includes(aus.SPIELER_TABELLE), "SQL und Spiel meinen dieselbe Tabelle");
 }
+
+// ---------- Das Labyrinth ----------
+console.log("Labyrinth");
+const tore = [];
+RAEUME.forEach((r) => (r.punkte || []).forEach((p) => {
+  if (p.labyrinth) tore.push(r.name + " / " + p.titel + " -> " + p.labyrinth);
+}));
+pruefe(tore.length === 2, "zwei Zug\u00e4nge: " + tore.join("; "));
+pruefe(tore.some((t) => t.endsWith("laeufer")) && tore.some((t) => t.endsWith("monitor")),
+       "einer f\u00fcr den L\u00e4ufer, einer f\u00fcr den F\u00fchrenden");
+pruefe(tore.some((t) => t.indexOf("Dachterrasse") === 0 && t.endsWith("monitor")),
+       "von der Dachterrasse sieht man das Labyrinth — das ist der Hinweis");
+const labPfad = path.join(wurzel, aus.LABYRINTH_SEITE);
+pruefe(fs.existsSync(labPfad), "die Seite liegt da, wo das Haus sie sucht (" +
+       aus.LABYRINTH_SEITE + ")");
+if (fs.existsSync(labPfad)) {
+  const lab = fs.readFileSync(labPfad, "utf8");
+  pruefe(lab.includes("['laeufer', 'monitor'].includes(adresse.get('rolle'))"),
+         "die Seite kennt beide Rollen");
+}
+pruefe(roh.includes('"?rolle=" + rolle'), "das Haus gibt die Rolle mit");
+pruefe(roh.includes("labyrinthOffen"), "solange es offen ist, h\u00f6rt das Haus nicht auf Tasten");
 
 console.log(fehler === 0 ? "\nAlles in Ordnung." : "\n" + fehler + " Fehler.");
 process.exit(fehler === 0 ? 0 : 1);

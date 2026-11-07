@@ -779,7 +779,8 @@ const RAEUME = [
         "taste": "w",
         "zeichen": "☾",
         "titel": "Über dem Garten",
-        "text": "Von hier sieht man den ganzen Garten. Im Kies unten liegt etwas, das von hier oben gefallen sein muss.<br><br><i>Platzhalter für einen Hinweis.</i>"
+        "text": "Von hier sieht man den ganzen Garten. Im Kies unten liegt etwas, das von hier oben gefallen sein muss.<br><br><i>Platzhalter für einen Hinweis.</i>",
+        "labyrinth": "monitor"
       },
       {
         "von": 44.5,
@@ -824,7 +825,8 @@ const RAEUME = [
         "taste": "s",
         "zeichen": "⌂",
         "titel": "Das Tor",
-        "text": "Dahinter liegt das Nebengebäude. Von hier führt der Weg weiter nach rechts."
+        "text": "Dahinter liegt das Nebengebäude. Von hier führt der Weg weiter nach rechts.",
+        "labyrinth": "laeufer"
       }
     ]
   },
@@ -1196,7 +1198,8 @@ addEventListener("keydown", (e) => {
   if (document.activeElement === satzfeld) return;
   const t = e.key.toLowerCase();
   tasten[t] = true;
-  if (klavierOffen || ttOffen || lobbyOffen || automatOffen || wahlOffen) return;  // die hören selbst zu
+  if (klavierOffen || ttOffen || lobbyOffen || automatOffen || wahlOffen ||
+      labyrinthOffen) return;                  // die hören selbst zu
   if (offenerPunkt) { if (t === "escape") fensterZu(); return; }
   const p = nahePunkte().find((k) => k.taste === t);
   if (p) { punktOeffnen(p); e.preventDefault(); }
@@ -1235,6 +1238,12 @@ function punktOeffnen(p) {
   if (p.automat) {                       // der Spielautomat im Spielzimmer
     offenerPunkt = p;
     automatStarten();
+    letzteBewegung = Date.now();
+    return;
+  }
+  if (p.labyrinth) {                     // Tor im Garten und Blick vom Dach
+    offenerPunkt = p;
+    labyrinthStarten(p.labyrinth);
     letzteBewegung = Date.now();
     return;
   }
@@ -2442,7 +2451,8 @@ function sprungAnteil() {
 addEventListener("keydown", (e) => {
   if (e.key !== " " && e.key !== "Spacebar") return;
   if (document.activeElement === satzfeld) return;   // im Chat tippen geht vor
-  if (klavierOffen || ttOffen || lobbyOffen || automatOffen || wahlOffen || offenerPunkt) return;
+  if (klavierOffen || ttOffen || lobbyOffen || automatOffen || wahlOffen ||
+      labyrinthOffen || offenerPunkt) return;
   e.preventDefault();                                 // sonst scrollt die Seite
   if (springt() || blendZiel) return;                 // kein zweiter Sprung in der Luft
   sprungStart = performance.now();
@@ -3706,7 +3716,8 @@ addEventListener("keydown", (e) => {
   // In einem anderen Eingabefeld (Lobby, Automat) nicht dazwischenfunken
   if (wo && (wo.tagName === "INPUT" || wo.tagName === "TEXTAREA" ||
              wo.tagName === "IFRAME" || wo.isContentEditable)) return;
-  if (klavierOffen || ttOffen || lobbyOffen || automatOffen || wahlOffen) return;
+  if (klavierOffen || ttOffen || lobbyOffen || automatOffen || wahlOffen ||
+      labyrinthOffen) return;
   if (offenerPunkt) return;
 
   e.preventDefault();
@@ -4036,6 +4047,89 @@ figurMerken = function (name) {
 };
 
 belegungLaden();
+
+// ======================================================================
+// 20. Das Labyrinth
+//
+//    Zwei Orte im Haus führen hinein. Durch das Tor im Garten geht der
+//    Läufer, oben auf der Dachterrasse steht der Führende und sieht das
+//    Labyrinth von oben. Dass man es von dort sieht, ist der Hinweis
+//    darauf, wofür die Terrasse gut ist.
+//
+//    Das Labyrinth bleibt eine eigene Seite und läuft in einem Rahmen,
+//    wie der Automat. Die Verbindung zwischen den beiden Hälften steht
+//    noch aus — im Moment sieht jeder sein eigenes Labyrinth.
+// ======================================================================
+
+const LABYRINTH_SEITE = "labyrinth/zwei.html";
+
+let labyrinthOffen = false;
+let labyrinthBau = null;
+
+function labyrinthStil() {
+  if (document.getElementById("labyrinth-stil")) return;
+  const s = document.createElement("style");
+  s.id = "labyrinth-stil";
+  s.textContent = `
+  #labyrinth { position: absolute; inset: 0; display: none; flex-direction: column;
+             background: #0a0908; z-index: 8; }
+  #labyrinth.auf { display: flex; }
+  #labyrinth-leiste { flex: none; display: flex; align-items: center; gap: 14px;
+             padding: 7px 12px; background: #131210; border-bottom: 1px solid #262218;
+             font-size: 13px; color: #8a857a; }
+  #labyrinth-leiste b { color: #f0c173; font-weight: 500; }
+  #labyrinth-leiste button { margin-left: auto; padding: 5px 14px; background: #3a2f12;
+             color: #f0c173; border: 1px solid #5a4a1c; border-radius: 6px;
+             font-size: 13px; cursor: pointer; }
+  #labyrinth iframe { flex: 1; width: 100%; border: 0; display: block; min-height: 0; }
+  `;
+  document.head.appendChild(s);
+}
+
+function labyrinthStarten(rolle) {
+  labyrinthStil();
+  if (!labyrinthBau) {
+    const wurzel = document.createElement("div");
+    wurzel.id = "labyrinth";
+    wurzel.innerHTML =
+      '<div id="labyrinth-leiste"><b id="labyrinth-titel"></b>' +
+      '<span id="labyrinth-text"></span>' +
+      '<button id="labyrinth-weg">Zur\u00fcck</button></div>' +
+      '<iframe id="labyrinth-rahmen" title="Heckenlabyrinth"></iframe>';
+    document.getElementById("buehne").appendChild(wurzel);
+    labyrinthBau = { wurzel, rahmen: wurzel.querySelector("#labyrinth-rahmen") };
+    wurzel.querySelector("#labyrinth-weg").onclick = labyrinthSchliessen;
+  }
+  document.getElementById("labyrinth-titel").textContent =
+    rolle === "monitor" ? "Blick \u00fcber den Garten" : "Im Heckenlabyrinth";
+  document.getElementById("labyrinth-text").textContent =
+    rolle === "monitor"
+      ? "von hier oben liegt das Labyrinth offen vor dir"
+      : "hinter dem Tor sieht man nur den n\u00e4chsten Gang";
+
+  labyrinthOffen = true;
+  labyrinthBau.wurzel.classList.add("auf");
+  const satz = FIGUREN[MEINE_FIGUR];
+  const wer = (satz && satz.name) || MEINE_FIGUR;
+  labyrinthBau.rahmen.src = LABYRINTH_SEITE + "?rolle=" + rolle +
+                            "&figur=" + encodeURIComponent(MEINE_FIGUR);
+  setTimeout(() => { try { labyrinthBau.rahmen.contentWindow.focus(); } catch (e) {} }, 60);
+}
+
+function labyrinthSchliessen() {
+  labyrinthOffen = false;
+  if (labyrinthBau) {
+    labyrinthBau.wurzel.classList.remove("auf");
+    labyrinthBau.rahmen.src = "about:blank";   // hält das Labyrinth an
+  }
+  fensterZu();
+  try { window.focus(); } catch (e) {}
+}
+
+addEventListener("keydown", (e) => {
+  if (!labyrinthOffen) return;
+  if (e.key === "Escape") { labyrinthSchliessen(); e.preventDefault(); }
+});
 </script>
 </body>
 </html>

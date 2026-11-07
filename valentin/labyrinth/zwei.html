@@ -140,6 +140,14 @@
   const adresse = new URLSearchParams(location.search);
   const WER = FIGUREN[adresse.get('figur')] ? adresse.get('figur') : 'chase';
 
+  // Welche Hälfte wird gezeigt? Ohne Angabe beide, zum Alleintesten.
+  // Im Haus sitzen die beiden an verschiedenen Orten: der Läufer hinter
+  // dem Tor im Garten, der Führende oben auf der Dachterrasse.
+  //   ?rolle=laeufer   nur der Gang
+  //   ?rolle=monitor   nur der Blick von oben
+  const ROLLE = ['laeufer', 'monitor'].includes(adresse.get('rolle'))
+    ? adresse.get('rolle') : 'beide';
+
   let kopfBild = null;
   (function kopfLaden() {
     const b = new Image();
@@ -321,6 +329,16 @@
   const p2 = plan.getContext('2d');
   const tafel = document.getElementById('tafel');
   const karte = document.getElementById('karte');
+
+  if (ROLLE !== 'beide') {
+    const seiten = document.querySelectorAll('.seite');
+    seiten[ROLLE === 'laeufer' ? 1 : 0].style.display = 'none';
+    seiten[ROLLE === 'laeufer' ? 0 : 1].style.flexBasis = '100%';
+    document.querySelectorAll('.seite .schild')[ROLLE === 'laeufer' ? 0 : 1]
+      .insertAdjacentHTML('beforeend',
+        ROLLE === 'laeufer' ? ' &nbsp; der Weg kommt von oben'
+                            : ' &nbsp; unten läuft jemand');
+  }
 
   function groesse() {
     [sicht, plan].forEach((c) => {
