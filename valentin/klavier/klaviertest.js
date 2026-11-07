@@ -253,6 +253,22 @@ console.log("Was die Seite dem Haus sagt");
 pruefe(skript.includes('melden({ art: "fertig" })'), "sie sagt, wenn zugemacht werden soll");
 pruefe(skript.includes('melden({ art: "geloest" })'), "und wenn das St\u00fcck geschafft ist");
 
+console.log("Draufhauen lohnt sich nicht");
+const abzug = +(skript.match(/KL_ABZUG = (\d+)/) || [])[1];
+pruefe(abzug > 0, "ein Fehlgriff kostet " + abzug + " Punkte");
+pruefe(skript.includes("klPunkte = Math.max(0, klPunkte - KL_ABZUG);"),
+       "abgezogen wird, aber nie unter null");
+pruefe(skript.includes('klUrteil("Daneben", "#e8705a");'),
+       "man sieht den Fehlgriff auch");
+// Wer alle Tasten drueckt, trifft einmal und zahlt fuer den Rest
+const tasten = Object.keys(KL_ALLE).length;
+const beiAllen = 100 - (tasten - 1) * abzug;
+pruefe(beiAllen < 0,
+       "alle " + tasten + " Tasten zu dr\u00fccken bringt " + beiAllen +
+       " statt 100 Punkte — schlechter als gar nichts");
+// Und es darf nicht so hart sein, dass ein ehrlicher Fehler alles kostet
+pruefe(abzug < 100, "ein einzelner Fehlgriff kostet weniger als ein Treffer bringt");
+
 console.log("Zeitverz\u00f6gerung");
 pruefe(!/klTon\(KL_ALLE\[n\.note\]\.freq, n\.dauer\);[\s\S]{0,80}klPunkte \+= gut/.test(skript),
        "der Ton des anderen kommt nicht aus seiner Nachricht — sonst steckt " +

@@ -187,6 +187,12 @@ const KL_GUT      = 160;     // plus/minus Millisekunden, sonst verpasst
 const KL_VORLAUF  = 1600;    // Ruhe vor dem ersten Ton
 const KL_SCHWELLE = 80;      // Prozent, ab denen es geschafft ist
 
+// Ein Fehlgriff kostet. Ohne das kann man alle Tasten gleichzeitig
+// drücken, sobald eine Note kommt — eine davon trifft, die anderen
+// wären gratis. Mit Abzug ist Draufhauen schlechter als gar nichts:
+// Wer elf Tasten drückt, trifft einmal und zahlt zehnmal.
+const KL_ABZUG = 60;
+
 // ----------------------------------------------------------------------
 // Der Mitspieler.
 //
@@ -739,6 +745,9 @@ function klEingabe(note) {
   } else {
     // Danebengegriffen: der Ton kommt trotzdem, leise — man hört den Fehler
     klTon(KL_ALLE[note].freq, 350, true);
+    klPunkte = Math.max(0, klPunkte - KL_ABZUG);
+    klUrteil("Daneben", "#e8705a");
+    klStandAnzeigen();
   }
 }
 
