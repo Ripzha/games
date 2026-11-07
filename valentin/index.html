@@ -3295,7 +3295,9 @@ addEventListener("keydown", (e) => {
   figurWahlOeffnen();
 });
 
-// Beim Betreten fragen — ausser die Figur steht in der Adresse.
+// Beim Betreten fragen — ausser die Figur steht in der Adresse. Ob schon
+// einmal gewählt wurde, entscheidet der Block weiter unten; er schliesst
+// die Auswahl gleich wieder, wenn ein Stand gemerkt ist.
 if (!editModus && !umrissModus &&
     !new URLSearchParams(location.search).get("figur")) {
   figurWahlOeffnen();
@@ -3560,6 +3562,96 @@ wahlMalen = function () {
 };
 
 netzStarten();
+
+// ======================================================================
+// 16. Wiederkommen
+//
+//    Figur und Standort bleiben im Browser liegen. Wer das Fenster
+//    schliesst und später wiederkommt, steht wieder da, wo er war, mit
+//    derselben Figur — und wird nicht jedes Mal neu gefragt.
+//
+//    Gespeichert wird im Browser, nicht in der Datenbank. Für die Woche
+//    reicht das: ein anderer Rechner heisst neu anfangen, aber dafür
+//    bräuchte es eine Anmeldung, und die will hier niemand. Wenn später
+//    Hinweise und gelöste Aufgaben dazukommen, müssen die in die
+//    Datenbank — die hängen nicht am Browser, sondern an der Figur.
+// ======================================================================
+
+const MERK_SCHLUESSEL = "valentin_stand";
+const MERK_TAKT = 1500;              // Millisekunden zwischen zwei Sicherungen
+
+function standSichern() {
+  try {
+    localStorage.setItem(MERK_SCHLUESSEL, JSON.stringify({
+      figur: MEINE_FIGUR,
+      raum: raumNr,
+      x: Math.round(figur.x * 10) / 10,
+      blickt: figur.blickt
+    }));
+  } catch (e) {}
+}
+
+function standLesen() {
+  try {
+    const roh = localStorage.getItem(MERK_SCHLUESSEL);
+    if (!roh) return null;
+    const d = JSON.parse(roh);
+    if (!d || !FIGUREN[d.figur]) return null;
+    if (typeof d.raum !== "number" || !RAEUME[d.raum]) return null;
+    const raum = RAEUME[d.raum];
+    // In einem Geheimraum wieder aufzuwachen, dessen Tür wieder zu ist,
+    // wäre unschön — dann lieber von vorne.
+    if (raum.geheim) return null;
+    // Nur innerhalb der Anschläge des Raums, falls die inzwischen
+    // verschoben wurden.
+    const x = Math.max(raum.links, Math.min(raum.rechts, Number(d.x) || 50));
+    return { figur: d.figur, raum: d.raum, x: x, blickt: d.blickt === -1 ? -1 : 1 };
+  } catch (e) { return null; }
+}
+
+const standAlt = standLesen();
+if (standAlt) {
+  MEINE_FIGUR = standAlt.figur;
+  raumNr = standAlt.raum;
+  figur.x = standAlt.x;
+  figur.blickt = standAlt.blickt;
+}
+
+// Regelmässig sichern, aber nur wenn sich etwas geändert hat.
+let merkStand = "";
+setInterval(() => {
+  if (wahlOffen) return;
+  const jetzt = MEINE_FIGUR + "|" + raumNr + "|" + Math.round(figur.x);
+  if (jetzt === merkStand) return;
+  merkStand = jetzt;
+  standSichern();
+}, MERK_TAKT);
+
+// Und beim Weggehen, damit die letzten Schritte nicht verloren gehen.
+addEventListener("pagehide", standSichern);
+addEventListener("visibilitychange", () => {
+  if (document.visibilityState === "hidden") standSichern();
+});
+
+// ----------------------------------------------------------------------
+// Die Auswahl erscheint nur beim ersten Mal. Danach geht es mit F.
+// ----------------------------------------------------------------------
+if (standAlt && wahlOffen) figurWahlSchliessen();
+
+// Hat inzwischen jemand anderes die eigene Figur, muss neu gewählt werden.
+let wahlGeprueft = false;
+setInterval(() => {
+  if (!netzAn || wahlOffen || wahlGeprueft) return;
+  const weg = netzVergeben();
+  if (!weg[MEINE_FIGUR]) return;
+  wahlGeprueft = true;
+  figurWahlOeffnen();
+  const karte = wahlBau.wurzel.querySelector("#wahl-karte p");
+  if (karte) {
+    karte.textContent = weg[MEINE_FIGUR] +
+      " spielt gerade deine Figur. Nimm eine andere.";
+  }
+}, 2000);
 </script>
 </body>
 </html>

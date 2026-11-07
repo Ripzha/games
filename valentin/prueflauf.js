@@ -82,6 +82,7 @@ globalThis.__aus = { KL_WEISS, KL_SCHWARZ, KL_ALLE, KL_VON_TASTE, KL_PHRASEN,
                      TT_TEMPO_START, TT_TEMPO_MAX, TT_PARTNER, TT_UNTEN,
                      ttBall, ttAufschlag, ttBallSchritt, ttGrenzen, ttOberflaeche,
                      AUTOMAT_SPIEL, automatStarten, figurWahlOeffnen,
+                     MERK_SCHLUESSEL, standSichern, standLesen,
                      NETZ_URL, NETZ_SCHLUESSEL, NETZ_TAKT, HOERWEITE,
                      netzStarten, netzSenden, netzAndereImRaum, netzVergeben,
                      LOBBY_QUELLE, lobbyOeffnen, lobbyBereit, lobbySchliessen,
@@ -412,6 +413,23 @@ pruefe(roh.includes("function netzFigurMalen(a, raum)"),
        "die fremde Figur bekommt den Raum mitgegeben");
 pruefe(roh.includes("if (!NETZ_SCHLUESSEL ||"),
        "ohne Schl\u00fcssel startet nichts und das Spiel l\u00e4uft allein weiter");
+
+// ---------- Wiederkommen ----------
+console.log("Wiederkommen");
+pruefe(typeof aus.standLesen === "function" && typeof aus.standSichern === "function",
+       "Standort merken und lesen sind da");
+pruefe(roh.includes('addEventListener("pagehide", standSichern)'),
+       "beim Weggehen wird gesichert");
+pruefe(roh.includes("if (raum.geheim) return null;"),
+       "im Geheimraum wacht niemand hinter verschlossener T\u00fcr auf");
+pruefe(roh.includes("Math.max(raum.links, Math.min(raum.rechts"),
+       "der gemerkte Platz wird auf die Anschl\u00e4ge des Raums begrenzt");
+pruefe(roh.includes("if (standAlt && wahlOffen) figurWahlSchliessen();"),
+       "wer schon gew\u00e4hlt hat, wird nicht nochmal gefragt");
+pruefe(roh.includes("spielt gerade deine Figur"),
+       "ist die eigene Figur vergeben, wird neu gew\u00e4hlt");
+pruefe(aus.MERK_SCHLUESSEL && aus.MERK_SCHLUESSEL.indexOf("valentin") === 0,
+       "der Speicherplatz heisst nach dem Spiel (" + aus.MERK_SCHLUESSEL + ")");
 
 console.log(fehler === 0 ? "\nAlles in Ordnung." : "\n" + fehler + " Fehler.");
 process.exit(fehler === 0 ? 0 : 1);
