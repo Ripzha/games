@@ -431,5 +431,20 @@ pruefe(roh.includes("spielt gerade deine Figur"),
 pruefe(aus.MERK_SCHLUESSEL && aus.MERK_SCHLUESSEL.indexOf("valentin") === 0,
        "der Speicherplatz heisst nach dem Spiel (" + aus.MERK_SCHLUESSEL + ")");
 
+// ---------- Chatten ----------
+console.log("Chatten");
+pruefe(roh.includes('if (e.key !== "Enter") return;'), "Enter \u00f6ffnet das Feld");
+pruefe(roh.includes("Object.keys(tasten).forEach((k) => (tasten[k] = false));"),
+       "gedr\u00fcckte Tasten werden beim \u00d6ffnen vergessen");
+pruefe(roh.includes('if (editModus || umrissModus) return;'),
+       "im Einricht- und Umrissmodus bleibt Enter, was es war");
+pruefe(roh.includes('satzfeld.value = ""; satzfeld.blur();'),
+       "Escape bricht ab, ohne zu schicken");
+["klavierOffen", "ttOffen", "lobbyOffen", "automatOffen", "wahlOffen"].forEach((f) => {
+  const stelle = roh.indexOf('if (e.key !== "Enter") return;');
+  pruefe(roh.slice(stelle, stelle + 700).indexOf(f) >= 0,
+         "bei offenem " + f + " \u00f6ffnet Enter nichts");
+});
+
 console.log(fehler === 0 ? "\nAlles in Ordnung." : "\n" + fehler + " Fehler.");
 process.exit(fehler === 0 ? 0 : 1);

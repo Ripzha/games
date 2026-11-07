@@ -60,7 +60,7 @@
   </div>
 
   <div id="eingabe">
-    <input id="satzfeld" placeholder="Etwas sagen und Enter drücken" autocomplete="off">
+    <input id="satzfeld" placeholder="Enter drücken, tippen, Enter schickt ab" autocomplete="off">
     <button id="sagen">Sagen</button>
   </div>
 
@@ -3652,6 +3652,34 @@ setInterval(() => {
       " spielt gerade deine Figur. Nimm eine andere.";
   }
 }, 2000);
+
+// ======================================================================
+// 17. Chatten mit Enter
+//
+//    Enter öffnet das Feld unter dem Spiel, Enter schickt ab, Escape
+//    bricht ab. Ohne das muss man jedes Mal mit der Maus hineinklicken.
+//
+//    Beim Öffnen werden die gedrückten Tasten vergessen — sonst läuft
+//    die Figur weiter, wenn man beim Loslaufen Enter drückt.
+// ======================================================================
+
+addEventListener("keydown", (e) => {
+  if (e.key !== "Enter") return;
+  if (editModus || umrissModus) return;             // dort tut Enter etwas anderes
+
+  if (document.activeElement === satzfeld) return;  // das Feld schickt selbst ab
+  if (klavierOffen || ttOffen || lobbyOffen || automatOffen || wahlOffen) return;
+  if (offenerPunkt) return;
+
+  e.preventDefault();
+  Object.keys(tasten).forEach((k) => (tasten[k] = false));
+  satzfeld.focus();
+  letzteBewegung = Date.now();
+});
+
+satzfeld.addEventListener("keydown", (e) => {
+  if (e.key === "Escape") { satzfeld.value = ""; satzfeld.blur(); e.preventDefault(); }
+});
 </script>
 </body>
 </html>
