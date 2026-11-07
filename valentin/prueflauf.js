@@ -433,17 +433,45 @@ pruefe(aus.MERK_SCHLUESSEL && aus.MERK_SCHLUESSEL.indexOf("valentin") === 0,
 
 // ---------- Chatten ----------
 console.log("Chatten");
-pruefe(roh.includes('if (e.key !== "Enter") return;'), "Enter \u00f6ffnet das Feld");
+pruefe(roh.includes('if (e.key !== "Enter" && e.keyCode !== 13) return;'),
+       "Enter \u00f6ffnet das Feld");
 pruefe(roh.includes("Object.keys(tasten).forEach((k) => (tasten[k] = false));"),
        "gedr\u00fcckte Tasten werden beim \u00d6ffnen vergessen");
 pruefe(roh.includes('if (editModus || umrissModus) return;'),
        "im Einricht- und Umrissmodus bleibt Enter, was es war");
 pruefe(roh.includes('satzfeld.value = ""; satzfeld.blur();'),
        "Escape bricht ab, ohne zu schicken");
+pruefe(/satzfeld\.focus\(\);[\s\S]{0,400}\}, true\);/.test(roh),
+       "der Zuh\u00f6rer ist im Abfangen angemeldet und kommt vor allen anderen");
+pruefe(roh.includes('wo.tagName === "INPUT"'),
+       "in anderen Eingabefeldern funkt Enter nicht dazwischen");
+pruefe(roh.includes("#satzfeld.wach"), "das Feld leuchtet kurz auf, wenn es wach wird");
 ["klavierOffen", "ttOffen", "lobbyOffen", "automatOffen", "wahlOffen"].forEach((f) => {
-  const stelle = roh.indexOf('if (e.key !== "Enter") return;');
-  pruefe(roh.slice(stelle, stelle + 700).indexOf(f) >= 0,
+  const stelle = roh.indexOf('if (e.key !== "Enter" && e.keyCode !== 13) return;');
+  pruefe(roh.slice(stelle, stelle + 900).indexOf(f) >= 0,
          "bei offenem " + f + " \u00f6ffnet Enter nichts");
+});
+
+// ---------- Vordergruende ----------
+console.log("Vordergr\u00fcnde");
+RAEUME.forEach((r, i) => {
+  if (r.vordergrundbild) {
+    const d = path.join(wurzel, r.vordergrundbild);
+    pruefe(fs.existsSync(d), "  " + r.name + ": " + r.vordergrundbild + " liegt da");
+    const bild = bildMass(d);
+    const raumbild = r.bild ? bildMass(path.join(wurzel, r.bild)) : null;
+    if (bild && raumbild) {
+      pruefe(Math.abs(bild[0] / bild[1] - raumbild[0] / raumbild[1]) < 0.01,
+             "  " + r.name + ": Vordergrund hat dasselbe Seitenverh\u00e4ltnis wie der Raum (" +
+             bild.join("x") + " gegen " + raumbild.join("x") + ")");
+    }
+  }
+  (r.vorne || []).forEach((v, j) => {
+    const u = v.umriss || [];
+    pruefe(u.length >= 3, "  " + r.name + ": Umriss " + j + " hat " + u.length + " Punkte");
+    const drin = u.every(([x, y]) => x >= 0 && x <= 100 && y >= 0 && y <= 100);
+    pruefe(drin, "  " + r.name + ": Umriss " + j + " liegt im Bild");
+  });
 });
 
 console.log(fehler === 0 ? "\nAlles in Ordnung." : "\n" + fehler + " Fehler.");

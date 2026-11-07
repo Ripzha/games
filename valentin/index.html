@@ -22,6 +22,7 @@
   #hilfe { position: absolute; right: 14px; top: 12px; font-size: 12px; color: #8a857a;
            background: rgba(10,9,7,0.7); padding: 6px 12px; border-radius: 16px;
            pointer-events: none; text-align: right; line-height: 1.5; }
+  #satzfeld.wach { outline: 2px solid #f0c173; outline-offset: 1px; }
   #blase { position: absolute; display: none; transform: translate(-50%, -100%);
            background: rgba(246,240,228,0.95); color: #1a1510; padding: 6px 12px;
            border-radius: 12px; font-size: 13px; max-width: 240px; pointer-events: none; }
@@ -838,28 +839,56 @@ const RAEUME = [
       {
         "umriss": [
           [
-            32,
-            60
+            33.1,
+            62.4
           ],
           [
-            36,
-            55
+            33.4,
+            60.3
           ],
           [
-            65,
-            53
+            33.8,
+            58.2
           ],
           [
-            66,
-            57
+            39.5,
+            57.8
           ],
           [
-            66,
-            88
+            45.1,
+            57.4
           ],
           [
-            32,
-            88
+            50.7,
+            57.1
+          ],
+          [
+            56.4,
+            56.7
+          ],
+          [
+            62.0,
+            56.3
+          ],
+          [
+            65.1,
+            55.9
+          ],
+          [
+            65.6,
+            58.2
+          ],
+          [
+            65.6,
+            60.5
+          ],
+          [
+            65.7,
+            87.1
+          ],
+          [
+            33.1,
+            87.1
           ]
         ]
       }
@@ -873,7 +902,8 @@ const RAEUME = [
         "titel": "Die Kücheninsel",
         "text": "Zwei Hocker stehen nebeneinander. Auf der Platte klebt ein Ring, als hätte dort ein Topf gestanden.<br><br><i>Platzhalter für einen Hinweis.</i>"
       }
-    ]
+    ],
+    "vordergrundbild": "bilder/kueche-vorne.png"
   },
   {
     "name": "Rotes Zimmer",
@@ -3663,19 +3693,30 @@ setInterval(() => {
 //    die Figur weiter, wenn man beim Loslaufen Enter drückt.
 // ======================================================================
 
+// Im Abfangen (capture) angemeldet, damit es vor allen anderen Zuhörern
+// läuft — sonst könnte ein anderer Block das Enter vorher wegnehmen.
 addEventListener("keydown", (e) => {
-  if (e.key !== "Enter") return;
+  if (e.key !== "Enter" && e.keyCode !== 13) return;
   if (editModus || umrissModus) return;             // dort tut Enter etwas anderes
 
-  if (document.activeElement === satzfeld) return;  // das Feld schickt selbst ab
+  const wo = document.activeElement;
+  if (wo === satzfeld) return;                      // das Feld schickt selbst ab
+  // In einem anderen Eingabefeld (Lobby, Automat) nicht dazwischenfunken
+  if (wo && (wo.tagName === "INPUT" || wo.tagName === "TEXTAREA" ||
+             wo.tagName === "IFRAME" || wo.isContentEditable)) return;
   if (klavierOffen || ttOffen || lobbyOffen || automatOffen || wahlOffen) return;
   if (offenerPunkt) return;
 
   e.preventDefault();
+  e.stopPropagation();
   Object.keys(tasten).forEach((k) => (tasten[k] = false));
   satzfeld.focus();
+  try { satzfeld.setSelectionRange(satzfeld.value.length, satzfeld.value.length); }
+  catch (fehler) {}
+  satzfeld.classList.add("wach");
+  setTimeout(() => satzfeld.classList.remove("wach"), 600);
   letzteBewegung = Date.now();
-});
+}, true);
 
 satzfeld.addEventListener("keydown", (e) => {
   if (e.key === "Escape") { satzfeld.value = ""; satzfeld.blur(); e.preventDefault(); }
