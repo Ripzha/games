@@ -82,6 +82,8 @@ globalThis.__aus = { KL_WEISS, KL_SCHWARZ, KL_ALLE, KL_VON_TASTE, KL_PHRASEN,
                      TT_TEMPO_START, TT_TEMPO_MAX, TT_PARTNER, TT_UNTEN,
                      ttBall, ttAufschlag, ttBallSchritt, ttGrenzen, ttOberflaeche,
                      AUTOMAT_SPIEL, automatStarten, figurWahlOeffnen,
+                     NETZ_URL, NETZ_SCHLUESSEL, NETZ_TAKT, HOERWEITE,
+                     netzStarten, netzSenden, netzAndereMalen, netzVergeben,
                      LOBBY_QUELLE, lobbyOeffnen, lobbyBereit, lobbySchliessen,
                      lobbyIstOffen: () => lobbyOffen, lobbyKarte: () => lobbyBau.karte.innerHTML,
                      setzeMeinX: (v) => { ttMeinX = v; }, holeMeinX: () => ttMeinX,
@@ -373,6 +375,39 @@ pruefe(roh.includes("wahlOffen) return"), "w\u00e4hrend der Auswahl h\u00f6rt da
 const ohneBild = Object.keys(FIGUREN).filter((k) => !FIGUREN[k].stehen);
 pruefe(ohneBild.length === 4, ohneBild.length + " Figuren warten noch auf Bilder (" +
        ohneBild.join(", ") + ")");
+
+// ---------- Die Verbindung ----------
+console.log("Verbindung");
+pruefe(/^https:\/\/[a-z0-9]+\.supabase\.co$/.test(aus.NETZ_URL),
+       "die Projektadresse sieht richtig aus (" + aus.NETZ_URL + ")");
+if (!aus.NETZ_SCHLUESSEL) {
+  console.log("  ----  kein Schl\u00fcssel eingetragen — das Spiel l\u00e4uft allein");
+} else {
+  pruefe(!/^eyJ.*service_role/.test(aus.NETZ_SCHLUESSEL) &&
+         aus.NETZ_SCHLUESSEL.indexOf("service_role") < 0,
+         "es ist nicht der service_role-Schl\u00fcssel");
+  pruefe(aus.NETZ_SCHLUESSEL.startsWith("sb_publishable_") ||
+         aus.NETZ_SCHLUESSEL.startsWith("eyJ"),
+         "der Schl\u00fcssel hat die erwartete Form");
+}
+pruefe(roh.includes("supabase-js@2.45.4"), "die Bibliothek ist auf eine Fassung festgenagelt");
+pruefe(typeof aus.netzStarten === "function" && typeof aus.netzAndereMalen === "function",
+       "die Netzfunktionen sind da");
+pruefe(aus.NETZ_TAKT >= 50 && aus.NETZ_TAKT <= 250,
+       "der Sendetakt liegt im Rahmen (" + aus.NETZ_TAKT + " ms)");
+pruefe(aus.HOERWEITE > 0 && aus.HOERWEITE < 100,
+       "die H\u00f6rweite ist ein Teil des Raums (" + aus.HOERWEITE + " %)");
+
+// Gesendete und empfangene Rundruf-Namen muessen zusammenpassen
+const gesendet = [...roh.matchAll(/event: "([a-z]+)",\s*\n?\s*payload/g)].map((m) => m[1]);
+const gehoert  = [...roh.matchAll(/"broadcast", \{ event: "([a-z]+)" \}/g)].map((m) => m[1]);
+[...new Set(gesendet)].forEach((e) =>
+  pruefe(gehoert.includes(e), "was als \"" + e + "\" gesendet wird, wird auch geh\u00f6rt"));
+pruefe(gehoert.length >= 2, gehoert.length + " Arten von Rundruf (" + gehoert.join(", ") + ")");
+pruefe(roh.includes("const malenAllein = malen;") && roh.includes("const sagenAllein = sagen;"),
+       "Zeichnen und Sprechen sind eingehängt, ohne das Bestehende zu \u00e4ndern");
+pruefe(roh.includes("if (!NETZ_SCHLUESSEL ||"),
+       "ohne Schl\u00fcssel startet nichts und das Spiel l\u00e4uft allein weiter");
 
 console.log(fehler === 0 ? "\nAlles in Ordnung." : "\n" + fehler + " Fehler.");
 process.exit(fehler === 0 ? 0 : 1);

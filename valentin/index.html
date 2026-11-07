@@ -70,6 +70,7 @@
   </div>
 </div>
 
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
 <script>
 // ======================================================================
 // 1. Die Räume
@@ -3307,6 +3308,243 @@ if (!editModus && !umrissModus) {
     "am Zeichen stehen, dann W oder S<br>" +
     "F wechselt die Figur";
 }
+
+// ======================================================================
+// 15. Die Verbindung zu den anderen
+//
+//    Alle im selben Haus hängen an einem Kanal bei Supabase. Darüber
+//    läuft, wer da ist, wo jeder steht und was jemand sagt.
+//
+//    Anwesenheit (presence) trägt das Dauerhafte: Name, Figur, Raum.
+//    Daraus weiss die Figurenauswahl, welche Figuren vergeben sind.
+//    Positionen und Sprechblasen gehen als Rundruf (broadcast) und
+//    landen nie in der Datenbank — sie sind eine Zehntelsekunde später
+//    ohnehin falsch.
+//
+//    Solange NETZ_SCHLUESSEL leer ist, läuft das Spiel wie bisher,
+//    nur allein. Es geht also nichts kaputt, wenn der Schlüssel fehlt.
+// ======================================================================
+
+const NETZ_URL = "https://uvnffzypgtrzgqtthdrn.supabase.co";
+
+// Hier den Schlüssel aus Supabase einsetzen, zwischen die Anführungszeichen.
+// Project Settings -> API Keys. Entweder der "Publishable key"
+// (fängt mit sb_publishable_ an) oder unter "Legacy API keys" der
+// "anon public" (fängt mit eyJ an). Nicht den service_role-Schlüssel.
+const NETZ_SCHLUESSEL = "sb_publishable_3q0OPU3U_DgYMcqSbacRqg_OVv7FofY";
+
+const NETZ_TAKT = 100;          // Millisekunden zwischen zwei Positionen
+const HOERWEITE  = 34;          // Prozent der Raumbreite, in denen man mithört
+
+let netzAn = false;
+let netzKanal = null;
+let netzIch = Math.random().toString(36).slice(2, 10);
+let netzAndere = {};            // id -> { name, figur, raum, x, blickt, hoch, schritt, satz, satzBis }
+let netzLetztGesendet = 0;
+
+function netzVergeben() {       // welche Figuren schon jemand hat
+  const weg = {};
+  Object.values(netzAndere).forEach((a) => { if (a.figur) weg[a.figur] = a.name; });
+  return weg;
+}
+
+function netzStarten() {
+  if (!NETZ_SCHLUESSEL || typeof supabase === "undefined") return;
+  const klient = supabase.createClient(NETZ_URL, NETZ_SCHLUESSEL);
+  netzKanal = klient.channel("haus-valentin", {
+    config: { presence: { key: netzIch } }
+  });
+
+  netzKanal.on("presence", { event: "sync" }, () => {
+    const stand = netzKanal.presenceState();
+    const neu = {};
+    Object.keys(stand).forEach((id) => {
+      if (id === netzIch) return;
+      const d = stand[id][0] || {};
+      const alt = netzAndere[id] || {};
+      neu[id] = Object.assign({ x: 50, raum: 0, blickt: 1, hoch: 0, schritt: 0 }, alt, d);
+    });
+    netzAndere = neu;
+    if (wahlOffen) wahlMalen();
+  });
+
+  netzKanal.on("broadcast", { event: "pos" }, ({ payload }) => {
+    if (!payload || payload.id === netzIch) return;
+    const a = netzAndere[payload.id] || (netzAndere[payload.id] = {});
+    Object.assign(a, payload);
+  });
+
+  netzKanal.on("broadcast", { event: "sagt" }, ({ payload }) => {
+    if (!payload || payload.id === netzIch) return;
+    const a = netzAndere[payload.id];
+    if (!a) return;
+    a.satz = String(payload.satz || "").slice(0, 120);
+    a.satzBis = Date.now() + 5000;
+  });
+
+  netzKanal.subscribe((stand) => {
+    if (stand !== "SUBSCRIBED") return;
+    netzAn = true;
+    netzAnmelden();
+  });
+}
+
+function netzAnmelden() {
+  if (!netzAn || !netzKanal) return;
+  const satz = FIGUREN[MEINE_FIGUR];
+  netzKanal.track({
+    id: netzIch,
+    name: (satz && satz.name) || MEINE_FIGUR,
+    figur: MEINE_FIGUR,
+    raum: raumNr
+  });
+}
+
+function netzSenden() {
+  if (!netzAn || !netzKanal) return;
+  const jetzt = Date.now();
+  if (jetzt - netzLetztGesendet < NETZ_TAKT) return;
+  netzLetztGesendet = jetzt;
+  netzKanal.send({
+    type: "broadcast", event: "pos",
+    payload: { id: netzIch, raum: raumNr, x: figur.x, blickt: figur.blickt,
+               hoch: sprungAnteil(), schritt: figur.schritt, figur: MEINE_FIGUR }
+  });
+}
+
+function netzSagen(text) {
+  if (!netzAn || !netzKanal) return;
+  netzKanal.send({ type: "broadcast", event: "sagt",
+                   payload: { id: netzIch, satz: text } });
+}
+
+// ----------------------------------------------------------------------
+// Die anderen zeichnen. Läuft nach dem eigenen Bild, damit nichts
+// am bestehenden Zeichnen geändert werden muss.
+// ----------------------------------------------------------------------
+function netzFigurMalen(a) {
+  const raum = RAEUME[a.raum];
+  if (!raum) return;
+  const satz = FIGUREN[a.figur] || FIGUREN[MEINE_FIGUR];
+  const f = bereich(raum);
+  const h = f.h * (FIGURHOEHE / 100) * ((satz && satz.groesse) || 1);
+  const x = f.x + f.b * (a.x / 100);
+  const boden = f.y + f.h * (raum.boden / 100);
+  const hoch = a.hoch || 0;
+  const y = boden - hoch * h * SPRUNG_HOEHE;
+
+  const bild = satz && satz.stehen ? bildHolen(satz.stehen) : null;
+  stift.fillStyle = "rgba(0,0,0," + (0.42 - hoch * 0.24).toFixed(3) + ")";
+  stift.beginPath();
+  stift.ellipse(x, boden, h * 0.11 * (1 - hoch * 0.3), h * 0.022 * (1 - hoch * 0.3),
+                0, 0, Math.PI * 2);
+  stift.fill();
+
+  if (bild && bild.complete && bild.naturalWidth) {
+    const b = h * satz.seiten;
+    stift.save();
+    stift.translate(x, y);
+    if (a.blickt > 0) stift.scale(-1, 1);
+    stift.drawImage(bild, -satz.anker * b, -h, b, h);
+    stift.restore();
+  } else {
+    const farbe = (satz && satz.farbe) || "#8a857a";
+    const br = h * 0.38;
+    stift.fillStyle = farbe;
+    stift.fillRect(x - br / 2, y - h * 0.72, br, h * 0.52);
+    stift.fillStyle = "#f0d2b8";
+    stift.beginPath();
+    stift.arc(x, y - h * 0.82, h * 0.18, 0, Math.PI * 2);
+    stift.fill();
+  }
+
+  // Name über der Figur, damit man weiss, wer da steht
+  stift.font = Math.round(h * 0.10) + "px -apple-system, sans-serif";
+  stift.textAlign = "center";
+  stift.fillStyle = "rgba(237,230,214,0.78)";
+  stift.fillText(a.name || "", x, y - h * 1.03);
+
+  // Sprechblase, nur wenn man in Hörweite ist
+  if (a.satz && Date.now() < a.satzBis &&
+      a.raum === raumNr && Math.abs(a.x - figur.x) < HOERWEITE) {
+    netzBlaseMalen(a.satz, x, y - h * 1.12);
+  }
+}
+
+function netzBlaseMalen(text, x, y) {
+  const groesse = Math.max(11, Math.round(stift.canvas.height * 0.018));
+  stift.font = groesse + "px -apple-system, sans-serif";
+  const breite = Math.min(stift.measureText(text).width, stift.canvas.width * 0.4);
+  const pb = groesse * 0.7, ph = groesse * 0.5;
+  stift.fillStyle = "rgba(16,14,11,0.92)";
+  stift.strokeStyle = "rgba(90,74,28,0.9)";
+  stift.lineWidth = 1;
+  stift.beginPath();
+  const bx = x - breite / 2 - pb, by = y - groesse - ph * 2;
+  const bw = breite + pb * 2, bh = groesse + ph * 2;
+  if (stift.roundRect) stift.roundRect(bx, by, bw, bh, 7);
+  else stift.rect(bx, by, bw, bh);
+  stift.fill(); stift.stroke();
+  stift.fillStyle = "#ded6c2";
+  stift.textAlign = "center";
+  stift.fillText(text, x, by + bh - ph - groesse * 0.15, breite);
+}
+
+function netzAndereMalen() {
+  if (!netzAn) return;
+  Object.values(netzAndere).forEach(netzFigurMalen);
+}
+
+// ----------------------------------------------------------------------
+// In das bestehende Spiel einhängen
+// ----------------------------------------------------------------------
+const malenAllein = malen;
+malen = function (untaetig) {
+  malenAllein(untaetig);
+  netzSenden();
+  netzAndereMalen();
+};
+
+const sagenAllein = sagen;
+sagen = function () {
+  const t = satzfeld.value.trim();
+  sagenAllein();
+  if (t) netzSagen(t.slice(0, 120));
+};
+
+const figurMerkenAllein = figurMerken;
+figurMerken = function (name) {
+  figurMerkenAllein(name);
+  netzAnmelden();
+};
+
+// Raumwechsel weitermelden, damit die anderen wissen, wo man ist
+let netzLetzterRaum = -1;
+setInterval(() => {
+  if (netzAn && raumNr !== netzLetzterRaum) { netzLetzterRaum = raumNr; netzAnmelden(); }
+}, 400);
+
+// Die Figurenauswahl zeigt vergebene Figuren an
+const wahlMalenAllein = wahlMalen;
+wahlMalen = function () {
+  wahlMalenAllein();
+  if (!netzAn) return;
+  const weg = netzVergeben();
+  const felder = wahlBau.gitter.children;
+  Object.keys(FIGUREN).forEach((schluessel, i) => {
+    if (!weg[schluessel] || schluessel === MEINE_FIGUR) return;
+    const feld = felder[i];
+    if (!feld) return;
+    feld.style.opacity = "0.45";
+    feld.style.cursor = "not-allowed";
+    feld.onclick = null;
+    const hinweis = document.createElement("small");
+    hinweis.textContent = "schon vergeben";
+    feld.appendChild(hinweis);
+  });
+};
+
+netzStarten();
 </script>
 </body>
 </html>
