@@ -895,6 +895,16 @@
       p2.beginPath(); p2.arc(gx, gy, feld * 0.45, 0, Math.PI * 2); p2.stroke();
     });
 
+    if (!FUEHREND && !weltBekommen) {
+      p2.fillStyle = 'rgba(10,9,8,0.82)';
+      p2.fillRect(0, 0, B, H);
+      const gr = Math.max(14, H * 0.045);
+      p2.font = gr + 'px -apple-system, sans-serif';
+      p2.textAlign = 'center';
+      p2.fillStyle = '#8a857a';
+      p2.fillText('Noch niemand unten im Labyrinth', B / 2, H / 2);
+    }
+
     plan._feld = { feld, ox, oy };
   }
 
@@ -1068,12 +1078,23 @@
   const KANAL_NAME = adresse.get('kanal') || '';
   const ICH = adresse.get('ich') || ('x' + Math.random().toString(36).slice(2, 8));
 
+  // Wer führt die Welt? Der Läufer. Der Turm sieht nur zu und bekommt
+  // Hecken, Gärtner und Standort geschickt — Fallen ausdrücklich nicht.
+  const FUEHREND = ROLLE !== 'monitor';
+  const WELT_TAKT = 350;        // Millisekunden zwischen zwei Weltpaketen
+  let letzteWelt = 0;
+  let weltBekommen = false;
+
   let kanal = null;
   (function verbinden() {
     if (!KANAL_NAME || typeof supabase === 'undefined') return;
     try {
       const klient = supabase.createClient(NETZ_URL, NETZ_SCHLUESSEL);
       kanal = klient.channel(KANAL_NAME);
+      kanal.on('broadcast', { event: 'welt' }, ({ payload }) => {
+        if (FUEHREND || !payload) return;
+        weltUebernehmen(payload);
+      });
       kanal.on('broadcast', { event: 'sagt' }, ({ payload }) => {
         if (!payload || payload.von === ICH) return;
         // Der Name kommt mit der Nachricht, nicht aus der Adresse —
@@ -1084,6 +1105,53 @@
       kanal.subscribe();
     } catch (e) { kanal = null; }
   })();
+
+  // Die Hecken als Zeichenkette: vier Bit je Feld, ein Zeichen je Feld.
+  function wandCode() {
+    let s = '';
+    for (let y = 0; y < FELDER; y++) {
+      for (let x = 0; x < FELDER; x++) {
+        const w = lab.wand[y][x];
+        s += ((w[0] ? 1 : 0) | (w[1] ? 2 : 0) | (w[2] ? 4 : 0) | (w[3] ? 8 : 0))
+             .toString(16);
+      }
+    }
+    return s;
+  }
+
+  function wandLesen(s) {
+    if (!s || s.length < FELDER * FELDER) return;
+    let i = 0;
+    for (let y = 0; y < FELDER; y++) {
+      for (let x = 0; x < FELDER; x++) {
+        const v = parseInt(s[i++], 16);
+        lab.wand[y][x] = [!!(v & 1), !!(v & 2), !!(v & 4), !!(v & 8)];
+      }
+    }
+  }
+
+  function weltSenden() {
+    if (!kanal || !FUEHREND || !laeuft) return;
+    const jetzt = Date.now();
+    if (jetzt - letzteWelt < WELT_TAKT) return;
+    letzteWelt = jetzt;
+    try {
+      kanal.send({ type: 'broadcast', event: 'welt', payload: {
+        wand: wandCode(),
+        laeufer: { x: laeufer.x, y: laeufer.y, r: laeufer.r },
+        gegner: gegner.map((g) => ({ x: g.x, y: g.y })),
+        gezeigt: gezeigt.map((z) => ({ x: z.x, y: z.y, bis: z.bis }))
+      } });
+    } catch (e) {}
+  }
+
+  function weltUebernehmen(p) {
+    wandLesen(p.wand);
+    if (p.laeufer) laeufer = { x: p.laeufer.x, y: p.laeufer.y, r: p.laeufer.r };
+    gegner = (p.gegner || []).map((g) => ({ x: g.x, y: g.y, r: 0, letzter: 0 }));
+    gezeigt = p.gezeigt || [];
+    weltBekommen = true;
+  }
 
   function schicken(t) {
     if (!t) return;
@@ -1133,7 +1201,12 @@
     zuruf = { text: '', bis: 0 };
     verlauf = [];
     verlaufMalen();
-    gegnerSetzen();
+    if (FUEHREND) gegnerSetzen();
+    else {
+      gegner = [];
+      for (let y = 0; y < FELDER; y++) lab.falle[y] = new Array(FELDER).fill(false);
+      weltBekommen = false;
+    }
     gezeigt = [];
     schnitte = [];
     letzterWandel = Date.now();
@@ -1203,7 +1276,7 @@
     requestAnimationFrame(schleife);
     if (!lab) return;
 
-    if (laeuft) {
+    if (laeuft && FUEHREND) {
       gegnerSchritt();
       // Schnitte wachsen wieder zu, sonst wird das Labyrinth mit der Zeit
       // zu einem offenen Feld. Geht das Zuwachsen gerade nicht, weil
@@ -1236,6 +1309,7 @@
       }
     }
 
+    weltSenden();
     sichtMalen();
     planMalen();
   }

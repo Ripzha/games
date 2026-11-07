@@ -188,6 +188,22 @@ pruefe(blind === blindRichtig,
 
 // ---------- Der G\u00e4rtner schneidet ----------
 // Alle Zeiten m\u00fcssen l\u00e4nger sein als eine getippte Ansage braucht.
+console.log("Ein Labyrinth f\u00fcr beide");
+pruefe(skript.includes("const FUEHREND = ROLLE !== 'monitor';"),
+       "der L\u00e4ufer f\u00fchrt die Welt, der Turm sieht zu");
+pruefe(skript.includes("if (laeuft && FUEHREND) {"),
+       "nur der F\u00fchrende rechnet G\u00e4rtner, Schnitte und Verschiebungen");
+pruefe(skript.includes("function wandCode()") && skript.includes("function wandLesen("),
+       "die Hecken werden als Zeichenkette \u00fcbertragen");
+pruefe(!/payload: \{[\s\S]{0,200}falle/.test(skript),
+       "die Fallen gehen nicht mit — der Turm darf sie nicht sehen");
+pruefe(skript.includes("lab.falle[y] = new Array(FELDER).fill(false);"),
+       "der Turm legt auch keine eigenen Fallen an");
+pruefe(skript.includes("Noch niemand unten im Labyrinth"),
+       "solange nichts ankommt, steht das auf dem Plan");
+const wt = (skript.match(/WELT_TAKT = (\d+)/) || [])[1];
+pruefe(wt && +wt <= 500, "die Welt geht alle " + wt + " ms hinaus");
+
 console.log("Tippbare Zeiten");
 const zahl2=(n)=>{const m=skript.match(new RegExp("const\\s+"+n+"\\s*=\\s*([0-9.]+)"));return m?parseFloat(m[1]):null;};
 const GT=zahl2("GEGNER_TAKT"), SO=zahl2("SCHNITT_OFFEN"), SJ=zahl2("SCHNITT_JEDER");
