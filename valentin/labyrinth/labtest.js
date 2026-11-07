@@ -41,8 +41,11 @@ pruefe(SICHT >= 3, "der Läufer sieht weit genug (" + SICHT + " Felder)");
 // ---------- Die Bauteile aus der Seite herausziehen ----------
 const kasten = vm.createContext({ console, Math });
 const teile = skript.slice(skript.indexOf("const FELDER"), skript.indexOf("// ------", skript.indexOf("function wandDa")));
-vm.runInContext(teile + "\nglobalThis.__aus = { labyrinthBauen, wandDa, DX, DY, FELDER };", kasten);
-const { labyrinthBauen, wandDa, DX, DY } = kasten.__aus;
+const sichtTeil = skript.slice(skript.indexOf("function sichtTiefe"),
+                               skript.indexOf("function spurMalen"));
+vm.runInContext(teile + "\n" + sichtTeil +
+  "\nglobalThis.__aus = { labyrinthBauen, wandDa, DX, DY, FELDER, sichtTiefe };", kasten);
+const { labyrinthBauen, wandDa, DX, DY, sichtTiefe } = kasten.__aus;
 
 // ---------- Erreichbarkeit ----------
 // Einmal ohne Ruecksicht auf Fallen, einmal mit: wer jede Falle umgehen
@@ -134,6 +137,57 @@ console.log("  Schnitt " + Math.round(summe / ohneFallen) +
             ", kürzester " + kuerzeste + ", längster " + laengste);
 pruefe(summe / ohneFallen > FELDER,
        "der Weg ist länger als eine Kante — man läuft nicht geradeaus durch");
+
+// ---------- Sichtweite ----------
+// Wer durch eine Hecke sieht, kann den Weg allein finden — dann braucht
+// es den F\u00fchrenden nicht mehr.
+console.log("Sichtweite");
+let durchblick = 0, gepr\u00fcft = 0, summeTiefe = 0;
+for (let i = 0; i < 60; i++) {
+  const lab = labyrinthBauen(i * 2089 + 3);
+  for (let y = 0; y < FELDER; y++) {
+    for (let x = 0; x < FELDER; x++) {
+      for (let r = 0; r < 4; r++) {
+        const t = sichtTiefe(lab, x, y, r);
+        gepr\u00fcft++; summeTiefe += t;
+        // Jedes sichtbare Feld muss ohne Hecke dazwischen erreichbar sein
+        for (let k = 0; k < t; k++) {
+          const cx = x + DX[r] * k, cy = y + DY[r] * k;
+          if (wandDa(lab, cx, cy, r)) { durchblick++; k = t; }
+        }
+        if (t > SICHT) durchblick++;
+      }
+    }
+  }
+}
+pruefe(durchblick === 0,
+       gepr\u00fcft + " Blickrichtungen gepr\u00fcft, kein einziger Blick durch eine Hecke");
+pruefe(summeTiefe / gepr\u00fcft > 0.5,
+       "im Schnitt sieht man " + (summeTiefe / gepr\u00fcft).toFixed(2) +
+       " Felder weit — es ist nicht alles zugemauert");
+
+// Steht direkt eine Hecke vor einem, sieht man nur das eigene Feld
+let blind = 0, blindRichtig = 0;
+for (let i = 0; i < 40; i++) {
+  const lab = labyrinthBauen(i * 311 + 17);
+  for (let y = 0; y < FELDER; y++) for (let x = 0; x < FELDER; x++) for (let r = 0; r < 4; r++) {
+    if (!wandDa(lab, x, y, r)) continue;
+    blind++;
+    if (sichtTiefe(lab, x, y, r) === 0) blindRichtig++;
+  }
+}
+pruefe(blind === blindRichtig,
+       "vor einer Hecke endet die Sicht sofort (" + blindRichtig + " von " + blind + ")");
+
+console.log("Fallen");
+pruefe(skript.includes("lab.falle[y][x] && t <= 1"),
+       "die Spur einer Falle sieht man erst direkt davor");
+pruefe(!/falle[\s\S]{0,400}e88a8a/.test(skript),
+       "sie ist kein rotes Warnzeichen mehr");
+pruefe(skript.includes("function spurMalen"), "sie wird als Bodenspur gezeichnet");
+pruefe(!/plan[\s\S]{0,4000}lab\.falle/.test(skript.slice(skript.indexOf("function planMalen"),
+       skript.indexOf("function gehen"))),
+       "auf dem Monitor taucht keine Falle auf");
 
 console.log(fehler === 0 ? "\nAlles in Ordnung." : "\n" + fehler + " Fehler.");
 process.exit(fehler === 0 ? 0 : 1);

@@ -251,6 +251,55 @@
              o: H / 2 - H * 0.5 * k, u: H / 2 + H * 0.5 * k };
   }
 
+  // Wie weit sieht man? Vom eigenen Feld nach vorne gehen, bis eine Hecke
+  // im Weg steht. Das Feld mit der Hecke ist noch zu sehen, alles dahinter
+  // nicht mehr. Ohne diese Rechnung schaut man durch Wände hindurch.
+  function sichtTiefe(lab, x0, y0, r) {
+    let t = 0;
+    while (t < SICHT) {
+      const x = x0 + DX[r] * t, y = y0 + DY[r] * t;
+      if (x < 0 || y < 0 || x >= FELDER || y >= FELDER) break;
+      if (wandDa(lab, x, y, r)) break;      // Hecke am vorderen Rand
+      const nx = x + DX[r], ny = y + DY[r];
+      if (nx < 0 || ny < 0 || nx >= FELDER || ny >= FELDER) break;
+      t++;
+    }
+    return t;
+  }
+
+  // Die Spur einer Falle. Kein Warnzeichen — eine Stelle, an der der Boden
+  // anders aussieht als daneben. Man sieht sie nur, wenn man direkt davor
+  // steht und hinschaut.
+  function spurMalen(a, b, dunkel, saatFeld) {
+    const w = zufallAus(saatFeld);
+    const mx = (a.l + a.r) / 2, oy = a.u, uy = b.u;
+    const breite = (a.r - a.l) * 0.5;
+    s2.save();
+    s2.beginPath();
+    s2.moveTo(mx - breite * 0.5, oy);
+    s2.lineTo(mx + breite * 0.5, oy);
+    s2.lineTo(mx + breite * 0.22, uy);
+    s2.lineTo(mx - breite * 0.22, uy);
+    s2.closePath();
+    s2.clip();
+    // etwas dunklere, leicht andere Erde
+    s2.fillStyle = 'rgba(28,22,15,' + (0.5 * dunkel).toFixed(3) + ')';
+    s2.fillRect(mx - breite, oy, breite * 2, uy - oy);
+    // ein paar Halme und Krümel darüber
+    s2.strokeStyle = 'rgba(58,48,32,' + (0.75 * dunkel).toFixed(3) + ')';
+    s2.lineWidth = Math.max(1, breite * 0.02);
+    for (let i = 0; i < 9; i++) {
+      const px = mx + (w() - 0.5) * breite * 0.8;
+      const py = oy + w() * (uy - oy);
+      const l = breite * (0.05 + w() * 0.1);
+      s2.beginPath();
+      s2.moveTo(px, py);
+      s2.lineTo(px + (w() - 0.5) * l, py + l * 0.4);
+      s2.stroke();
+    }
+    s2.restore();
+  }
+
   function sichtMalen() {
     const B = sicht.width, H = sicht.height;
     s2.clearRect(0, 0, B, H);
@@ -259,30 +308,23 @@
 
     const r = laeufer.r;
     const links = (r + 3) % 4, rechts = (r + 1) % 4;
+    const tiefe = sichtTiefe(lab, laeufer.x, laeufer.y, r);
 
-    for (let t = SICHT; t >= 0; t--) {
+    // Von hinten nach vorne, damit Nahes das Ferne überdeckt
+    for (let t = tiefe; t >= 0; t--) {
       const x = laeufer.x + DX[r] * t, y = laeufer.y + DY[r] * t;
       if (x < 0 || y < 0 || x >= FELDER || y >= FELDER) continue;
       const a = rahmen(t, B, H), b = rahmen(t + 1, B, H);
       const dunkel = Math.max(0, 1 - t * 0.17);
 
-      // Boden und Himmel des Abschnitts
+      // Boden des Abschnitts
       s2.fillStyle = 'rgba(42,34,24,' + (0.9 * dunkel).toFixed(3) + ')';
       s2.beginPath();
       s2.moveTo(a.l, a.u); s2.lineTo(a.r, a.u); s2.lineTo(b.r, b.u); s2.lineTo(b.l, b.u);
       s2.closePath(); s2.fill();
 
-      // Falle auf dem Boden — nur der Läufer sieht sie
-      if (lab.falle[y][x] && t <= 2) {
-        const mx = (a.l + a.r) / 2, my = (a.u + b.u) / 2;
-        const gr = (a.r - a.l) * 0.17;
-        s2.strokeStyle = 'rgba(232,138,138,' + (0.95 * dunkel).toFixed(3) + ')';
-        s2.lineWidth = Math.max(2, gr * 0.16);
-        s2.beginPath();
-        s2.moveTo(mx - gr, my - gr * 0.5); s2.lineTo(mx + gr, my + gr * 0.5);
-        s2.moveTo(mx + gr, my - gr * 0.5); s2.lineTo(mx - gr, my + gr * 0.5);
-        s2.stroke();
-      }
+      // Die Spur einer Falle — nur ein Feld weit und nur für den Läufer
+      if (lab.falle[y][x] && t <= 1) spurMalen(a, b, dunkel, x * 97 + y * 31 + 7);
 
       const heck = (hell) => 'rgba(' + Math.round(38 * hell) + ',' +
                     Math.round(62 * hell) + ',' + Math.round(34 * hell) + ',1)';
@@ -302,7 +344,6 @@
       if (wandDa(lab, x, y, r)) {
         s2.fillStyle = heck(dunkel * 0.72);
         s2.fillRect(b.l, b.o, b.r - b.l, b.u - b.o);
-        break;                       // dahinter sieht man nichts mehr
       }
       // Ziel
       if (x === lab.ziel[0] && y === lab.ziel[1] && t > 0) {
