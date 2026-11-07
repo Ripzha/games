@@ -276,6 +276,10 @@ pruefe(dicke > 0.05 && dicke < 0.4,
        "die St\u00e4rke ist plausibel (" + dicke + " der Gangbreite)");
 pruefe(skript.includes("Die Stirnseiten der Hecken"),
        "an jedem Durchgang werden die Stirnseiten gezeichnet");
+const tafel = skript.slice(skript.indexOf("function anfangsTafel"),
+                           skript.indexOf("function geschafft"));
+pruefe((tafel.match(/<p>/g) || []).length === 0,
+       "die Starttafel erkl\u00e4rt nichts mehr — nur Titel, Tasten und Knopf");
 pruefe((skript.match(/heckenFlaeche\(/g) || []).length >= 6,
        (skript.match(/heckenFlaeche\(/g) || []).length + " Heckenfl\u00e4chen");
 pruefe(skript.includes("const kachel = H * HECKE_KACHEL;") &&

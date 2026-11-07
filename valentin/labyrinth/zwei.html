@@ -997,28 +997,10 @@
   function anfangsTafel() {
     tafelZeigen(
       '<h1>Das Heckenlabyrinth</h1>' +
-      '<p>Einer läuft, einer führt. Der Läufer sieht nur den Gang vor sich — ' +
-      'und die Fallen, sobald er davorsteht. Der Führende sieht das ganze ' +
-      'Labyrinth von oben und wo der Läufer steckt, aber keine einzige Falle.</p>' +
-      '<p>Geredet wird in beide Richtungen. Der Führende sagt den Weg durch, der ' +
-      'Läufer ruft zurück, wo eine Falle liegt. Der Führende kann sie sich auf ' +
-      'seinem Plan anzeichnen und einen anderen Weg suchen.</p>' +
-      '<p>Im Labyrinth geht der Gärtner umher und schneidet sich ab und zu durch ' +
-      'eine Hecke. Nur der Führende sieht, wo er ist und wo gerade ein Durchgang ' +
-      'entsteht. Der Läufer hört ihn ab zwei Feldern und sieht ihn erst, wenn er ' +
-      'im Gang vor ihm steht. Ein Schnitt wächst nach einer Minute wieder zu.</p>' +
-      '<p>Dazu verschiebt sich ab und zu eine Hecke von selbst. Was sich ' +
-      'ändert, blinkt auf dem Plan auf — gesehen hat es nur der Führende.</p>' +
-      '<p>Auf dem Plan kann sich der Führende Felder mit einem Kreuz markieren. ' +
-      'Alles andere wird geredet.</p>' +
       '<table>' +
-      '<tr><td>Läufer</td><td>W vor, S zurück, A und D drehen, Feld unten zum Zurückrufen</td></tr>' +
-      '<tr><td>Führender</td><td>Feld anklicken markiert, Feld nochmal klicken löscht</td></tr>' +
-      '<tr><td>Der Gärtner</td><td>geht umher — wer ihm begegnet, steht wieder am Eingang</td></tr>' +
-      '<tr><td>Figur</td><td>' + FIGUREN[WER].name + ' — mit ?figur=logan wechseln</td></tr>' +
-      '</table>' +
-      '<p style="color:#8a857a;font-size:13px">Diese Seite zeigt beide Hälften ' +
-      'nebeneinander zum Ausprobieren. Im Haus sitzt ihr in verschiedenen Räumen.</p>',
+      '<tr><td>L\u00e4ufer</td><td>W vor, S zur\u00fcck, A und D drehen</td></tr>' +
+      '<tr><td>F\u00fchrender</td><td>Feld anklicken markiert, nochmal klicken l\u00f6scht</td></tr>' +
+      '</table>',
       [['Anfangen', function () { losgehen(Date.now() & 0xffff); }]]
     );
   }
