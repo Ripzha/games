@@ -1243,7 +1243,7 @@ function punktOeffnen(p) {
   }
   if (p.labyrinth) {                     // Tor im Garten und Blick vom Dach
     offenerPunkt = p;
-    labyrinthStarten(p.labyrinth);
+    labyrinthLobby(p.labyrinth);
     letzteBewegung = Date.now();
     return;
   }
@@ -4130,6 +4130,26 @@ addEventListener("keydown", (e) => {
   if (!labyrinthOffen) return;
   if (e.key === "Escape") { labyrinthSchliessen(); e.preventDefault(); }
 });
+
+// ----------------------------------------------------------------------
+// Hinein geht es über dieselbe Lobby wie bei Klavier und Platte. Welche
+// Seite man übernimmt, entscheidet der Ort: durch das Tor läuft man,
+// vom Dach sieht man zu. Gewartet wird auf jemanden auf der anderen
+// Seite — mit dem Übungspartner geht es auch allein, zum Ansehen.
+// ----------------------------------------------------------------------
+function labyrinthLobby(rolle) {
+  const laeufer = rolle === "laeufer";
+  lobbyOeffnen(
+    laeufer ? "Das Tor zum Labyrinth" : "Blick über den Garten",
+    laeufer
+      ? "Hinter dem Tor siehst du nur den nächsten Gang. Den Weg kennt " +
+        "nur jemand, der von oben schaut."
+      : "Von hier oben liegt das Labyrinth offen vor dir. Wer unten " +
+        "steht, sieht nichts davon.",
+    () => labyrinthStarten(rolle),
+    () => fensterZu()
+  );
+}
 </script>
 </body>
 </html>

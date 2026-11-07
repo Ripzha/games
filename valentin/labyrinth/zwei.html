@@ -998,10 +998,13 @@
     tafelZeigen(
       '<h1>Das Heckenlabyrinth</h1>' +
       '<table>' +
-      '<tr><td>L\u00e4ufer</td><td>W vor, S zur\u00fcck, A und D drehen</td></tr>' +
-      '<tr><td>F\u00fchrender</td><td>Feld anklicken markiert, nochmal klicken l\u00f6scht</td></tr>' +
+      (ROLLE === 'monitor'
+        ? '<tr><td>Du siehst zu</td><td>Feld anklicken markiert, nochmal klicken l\u00f6scht</td></tr>'
+        : '<tr><td>Du l\u00e4ufst</td><td>W vor, S zur\u00fcck, A und D drehen</td></tr>') +
       '</table>',
-      [['Anfangen', function () { losgehen(Date.now() & 0xffff); }]]
+      ROLLE === 'monitor'
+        ? [['Zusehen', function () { losgehen(Date.now() & 0xffff); }]]
+        : [['Anfangen', function () { losgehen(Date.now() & 0xffff); }]]
     );
   }
 
@@ -1044,6 +1047,8 @@
   addEventListener('keydown', (e) => {
     const wo = document.activeElement;
     if (wo && wo.tagName === 'INPUT') return;    // beim Tippen nicht laufen
+    // Wer am Monitor sitzt, läuft nicht. Er sieht zu und sagt an.
+    if (ROLLE === 'monitor') return;
     const t = e.key.toLowerCase();
     if (t === 'w' || t === 'arrowup')    { gehen(true);  e.preventDefault(); }
     if (t === 's' || t === 'arrowdown')  { gehen(false); e.preventDefault(); }
@@ -1054,6 +1059,7 @@
   plan.addEventListener('contextmenu', (e) => e.preventDefault());
   plan.addEventListener('pointerdown', (e) => {
     if (!laeuft || !plan._feld) return;
+    if (ROLLE === 'laeufer') return;             // der Läufer markiert nicht
     const r = plan.getBoundingClientRect();
     const d = plan.width / r.width;
     const { feld, ox, oy } = plan._feld;

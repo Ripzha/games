@@ -551,6 +551,15 @@ if (fs.existsSync(labPfad)) {
          "die Seite kennt beide Rollen");
 }
 pruefe(roh.includes('"?rolle=" + rolle'), "das Haus gibt die Rolle mit");
+pruefe(roh.includes("function labyrinthLobby(rolle)") && roh.includes("labyrinthLobby(p.labyrinth);"),
+       "hinein geht es \u00fcber die Lobby, nicht direkt");
+if (fs.existsSync(labPfad)) {
+  const lab2 = fs.readFileSync(labPfad, "utf8");
+  pruefe(lab2.includes("if (ROLLE === 'monitor') return;"),
+         "wer am Monitor sitzt, kann nicht laufen — er sieht zu");
+  pruefe(lab2.includes("if (ROLLE === 'laeufer') return;             // der L\u00e4ufer markiert nicht"),
+         "und der L\u00e4ufer markiert nichts auf dem Plan");
+}
 pruefe(roh.includes("labyrinthOffen"), "solange es offen ist, h\u00f6rt das Haus nicht auf Tasten");
 
 console.log(fehler === 0 ? "\nAlles in Ordnung." : "\n" + fehler + " Fehler.");
