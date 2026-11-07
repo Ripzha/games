@@ -219,8 +219,19 @@
   // ------------------------------------------------------------------
   const BOT_VORLAUF   = 0.34;   // Sekunden vor dem Hindernis springen
   const BOT_DUCK_VOR  = 0.30;   // Sekunden vor der Schranke ducken
-  const BOT_DUCK_NACH = 0.12;   // und so lange danach unten bleiben
   const BOT_FEHLER    = 0.06;   // Anteil der Hindernisse, die er verpatzt
+
+  // Wann er wieder aufstehen darf, in Bildpunkten hinter dem Schlitten.
+  // Das Spiel prüft die Berührung, solange die Schranke mit ihrer halben
+  // Breite (48) noch in den Streifen um den Schlitten (30) ragt — also bis
+  // 78 Bildpunkte dahinter. Vorher aufstehen heisst anstossen. Mit einer
+  // Zugabe von 30 bleibt Luft, falls ein Bild ausfällt.
+  const BOT_DUCK_RAUS = 48 + 30 + 30;
+
+  // Wie weit hinter dem Schlitten er ein Hindernis noch beachtet. Muss
+  // grösser sein als BOT_DUCK_RAUS, sonst verliert er die Schranke aus den
+  // Augen und steht mitten in ihr auf.
+  const BOT_RUECKSICHT = BOT_DUCK_RAUS + 60;
 
   let botErledigt = {};         // Hindernisse, die er schon behandelt hat
   let botDuckt = false, botSperre = 0;
@@ -249,7 +260,7 @@
     let naechstes = null, bestAb = Infinity;
     (w.hindernisse || []).forEach(function (hd) {
       const ab = (hd.wx - w.worldX) - sx;      // Abstand in Bildpunkten
-      if (ab < -60 || ab > 1400) return;
+      if (ab < -BOT_RUECKSICHT || ab > 1400) return;
       if (ab < bestAb) { bestAb = ab; naechstes = hd; }
     });
 
@@ -262,7 +273,9 @@
     const marke = Math.round(naechstes.wx);
 
     if (naechstes.typ === 'schranke') {
-      const sollDucken = zeit < BOT_DUCK_VOR && zeit > -BOT_DUCK_NACH
+      // Vorne nach Zeit, hinten nach Weg — hinten entscheidet die Breite
+      // der Schranke, nicht das Tempo.
+      const sollDucken = zeit < BOT_DUCK_VOR && bestAb > -BOT_DUCK_RAUS
                          && botErledigt[marke] !== 'daneben';
       if (sollDucken && !botDuckt) {
         if (botErledigt[marke] === undefined) {

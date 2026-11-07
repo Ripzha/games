@@ -132,6 +132,8 @@ function zahl(text, name) {
 }
 const VORLAUF  = zahl(eltern, "BOT_VORLAUF");
 const DUCK_VOR = zahl(eltern, "BOT_DUCK_VOR");
+const DUCK_RAUS = (eltern.match(/BOT_DUCK_RAUS = ([\d +]+);/) || [])[1];
+const RUECKSICHT = (eltern.match(/BOT_RUECKSICHT = ([^;]+);/) || [])[1];
 const FEHLER   = zahl(eltern, "BOT_FEHLER");
 const GRAV     = zahl(spiel, "GRAV");
 const SPRUNG   = zahl(spiel, "SPRUNG");
@@ -178,6 +180,25 @@ if (unter && kopfDuck) {
 pruefe(DUCK_VOR * TEMPO_MAX > 150,
        "auch beim höchsten Tempo duckt er früh genug (" +
        Math.round(DUCK_VOR * TEMPO_MAX) + " Bildpunkte vorher)");
+
+// Steht er zu früh auf, nimmt er die Schranke mit. Das Spiel prüft die
+// Beruehrung, solange die halbe Breite der Schranke in den Streifen um den
+// Schlitten ragt — bis dahin muss er unten bleiben.
+const schrankeB = (spiel.match(/typ: 'schranke', b: (\d+)/) || [])[1];
+const streifen  = (spiel.match(/hx - h\.b \/ 2 > sx \+ (\d+)/) || [])[1];
+const noetig = schrankeB && streifen ? (+schrankeB) / 2 + (+streifen) : null;
+const raus = DUCK_RAUS ? eval(DUCK_RAUS) : null;
+pruefe(noetig !== null && raus !== null,
+       "Schrankenbreite und Treffstreifen sind ablesbar (" + schrankeB + ", " + streifen + ")");
+pruefe(raus > noetig,
+       "er bleibt unten, bis die Schranke durch ist (" + raus +
+       " gegen " + noetig + " Bildpunkte)");
+pruefe(!eltern.includes("BOT_DUCK_NACH"),
+       "das Aufstehen h\u00e4ngt nicht mehr an einer festen Zeit");
+const rueck = RUECKSICHT ? eval(RUECKSICHT.replace("BOT_DUCK_RAUS", String(raus))) : null;
+pruefe(rueck !== null && rueck > raus,
+       "er beh\u00e4lt die Schranke im Blick, bis er aufstehen darf (" + rueck +
+       " gegen " + raus + ")");
 
 console.log(fehler === 0 ? "\nAlles in Ordnung." : "\n" + fehler + " Fehler.");
 process.exit(fehler === 0 ? 0 : 1);
