@@ -50,6 +50,11 @@
   .taste.links  { background: linear-gradient(#e2ecf2, #c3d4df); }
   .taste.rechts { background: linear-gradient(#f7ead8, #e4cfae); }
   .taste.an     { background: linear-gradient(#f0c173, #d9a85c); }
+  .taste.schwarz { position: absolute; width: 7%; height: 58%; top: 0;
+                   background: linear-gradient(#2a2720, #15130f); color: #a39b8a;
+                   border-radius: 0 0 5px 5px; z-index: 2; }
+  .taste.schwarz.an { background: linear-gradient(#6b5420, #4a3a16); color: #f0c173; }
+  .taste.schwarz.weg { display: none; }
 
   #tafel { position: absolute; inset: 0; display: flex; align-items: center;
            justify-content: center; background: rgba(10,9,8,.88); z-index: 5; }
@@ -87,7 +92,8 @@
          derselben Basslinie, die Mondscheinsonate sechzehn Takte Dreiklänge.
          Du spielst die eine Stimme, die Begleitung läuft von selbst mit.</p>
       <p>Linke Hand auf die blauen Tasten A S D F, rechte auf die warmen G H J K.
-         Mehr brauchst du nicht.</p>
+         Die Mondscheinsonate braucht dazu die schwarze Taste Z — sie liegt auf
+         der Reihe darüber, zwischen G und H.</p>
       <p>Gewertet wird wie im Spiel: Perfekt, Gut, Verpasst. Ein Fehlgriff
          kostet. Oben rechts stehen die Prozente und wie viele Noten du am
          Stück getroffen hast.</p>
@@ -129,10 +135,16 @@ const TASTEN = [
   { note: "H4", freq: 493.88, kuerzel: "J", hand: "rechts" },
   { note: "C5", freq: 523.25, kuerzel: "K", hand: "rechts" }
 ];
+
+// Die Mondscheinsonate braucht einen Leitton, und der ist schwarz. Er
+// liegt auf Z, also auf der Reihe über G und H — dort, wo der
+// Zeigefinger der rechten Hand ohnehin hinreicht. Beim Kanon kommt er
+// nicht vor.
+const SCHWARZ = { note: "Gis4", freq: 415.30, kuerzel: "Z", hand: "schwarz" };
 const ALLE = {};
-TASTEN.forEach((t) => (ALLE[t.note] = t));
+TASTEN.concat([SCHWARZ]).forEach((t) => (ALLE[t.note] = t));
 const VON_TASTE = {};
-TASTEN.forEach((t) => (VON_TASTE[t.kuerzel.toLowerCase()] = t.note));
+TASTEN.concat([SCHWARZ]).forEach((t) => (VON_TASTE[t.kuerzel.toLowerCase()] = t.note));
 
 // ----------------------------------------------------------------------
 // Die neun Variationen. Jede dauert 32 Zählzeiten, also einen vollen
@@ -151,24 +163,36 @@ const T = { C3: 130.81, D3: 146.83, E3: 164.81, F3: 174.61, G3: 196.00,
 // Ein Zugeständnis: Die Leittöne des Originals, also die erhöhten
 // Stufen, wären schwarz. Hier steht dafür die natürliche Stufe. Das
 // nimmt etwas Spannung heraus, hält aber die acht Tasten.
-const MOND_TAKTE = [
-  ["E4","A4","C5"], ["E4","A4","C5"], ["D4","F4","A4"], ["E4","G4","H4"],
-  ["E4","A4","C5"], ["E4","A4","C5"], ["F4","A4","C5"], ["D4","G4","H4"],
-  ["E4","G4","C5"], ["E4","G4","C5"], ["F4","A4","C5"], ["E4","G4","H4"],
-  ["E4","A4","C5"], ["D4","F4","A4"], ["E4","G4","H4"], ["E4","A4","C5"]
-];
+// Die ersten acht Takte, zweimal. Die Folge ist die des Originals:
+// a-Moll, a-Moll, F-Dur und verminderter Akkord, dann die Dominante
+// mit dem Leitton und zurück nach a-Moll. Der Leitton ist der Ton, an
+// dem man das Stück erkennt — ohne ihn klingt es nur ähnlich.
+const MOND_AM = ["E4", "A4", "C5"];
+const MOND_F  = ["F4", "A4", "C5"];
+const MOND_HD = ["D4", "F4", "H4"];
+const MOND_E  = ["E4", "Gis4", "H4"];
 
-const MOND_ABSCHNITTE = MOND_TAKTE.map((figur) => {
+// Ein Takt sind vier Dreiklangsfiguren. Wo zwei Akkorde im Takt
+// stehen, zwei und zwei.
+function mondTakt(a, b) {
+  return b ? [a, a, b, b] : [a, a, a, a];
+}
+const MOND_PHRASE = [
+  mondTakt(MOND_AM), mondTakt(MOND_AM),
+  mondTakt(MOND_F, MOND_HD), mondTakt(MOND_E, MOND_AM)
+];
+const MOND_TAKTE = MOND_PHRASE.concat(MOND_PHRASE)
+                              .concat(MOND_PHRASE).concat(MOND_PHRASE);
+
+
+const MOND_ABSCHNITTE = MOND_TAKTE.map((figuren) => {
   const takt = [];
-  for (let i = 0; i < 4; i++) figur.forEach((note) => takt.push([note, 1]));
+  figuren.forEach((figur) => figur.forEach((note) => takt.push([note, 1])));
   return takt;                      // ein Takt sind zwölf Zählzeiten
 });
 
 const MOND_AKKORDE = [
-  [T.A3, T.E4, T.C4], [T.A3, T.E4, T.C4], [T.D3, T.A3, T.F3], [T.E3, T.H3, T.G4],
-  [T.A3, T.E4, T.C4], [T.A3, T.E4, T.C4], [T.F3, T.C4, T.A3], [T.G3, T.H3, T.G4],
-  [T.C3, T.G3, T.E4], [T.C3, T.G3, T.E4], [T.F3, T.C4, T.A3], [T.E3, T.H3, T.G4],
-  [T.A3, T.E4, T.C4], [T.D3, T.A3, T.F3], [T.E3, T.H3, T.G4], [T.A3, T.E4, T.C4]
+  [T.A3, T.E4], [T.A3, T.E4], [T.F3, T.C4], [T.E3, T.H3]
 ];
 
 const KANON_ABSCHNITTE = [
@@ -305,6 +329,29 @@ TASTEN.forEach((t) => {
   tastenEl[t.note] = el;
 });
 
+// Die schwarze Taste sitzt über der Lücke zwischen G und H. Sie wird
+// nur gezeigt, wenn das gewählte Stück sie braucht.
+(function schwarzeSetzen() {
+  const el = document.createElement("div");
+  el.className = "taste schwarz weg";
+  el.textContent = SCHWARZ.kuerzel;
+  el.addEventListener("pointerdown", (e) => { e.preventDefault(); eingabe(SCHWARZ.note); });
+  reihe.appendChild(el);
+  tastenEl[SCHWARZ.note] = el;
+})();
+
+function schwarzeZeigen() {
+  const braucht = jetztStueck().abschnitte.some((v) =>
+    v.some(([note]) => (Array.isArray(note) ? note : [note]).includes(SCHWARZ.note)));
+  const el = tastenEl[SCHWARZ.note];
+  el.classList.toggle("weg", !braucht);
+  if (!braucht) return;
+  // über die Lücke zwischen der fünften und sechsten Taste legen
+  const g = tastenEl["G4"].getBoundingClientRect();
+  const r = reihe.getBoundingClientRect();
+  el.style.left = (g.right - r.left - r.width * 0.035) + "px";
+}
+
 function blitz(note) {
   const el = tastenEl[note];
   if (!el) return;
@@ -341,6 +388,7 @@ function anfangen() {
   moeglich = stueck.noten.length * 100;
   akkordGesetzt = -99;
   tafel.classList.add("weg");
+  schwarzeZeigen();
 
   stueck.noten.forEach((n) => {
     const el = document.createElement("div");

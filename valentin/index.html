@@ -2557,6 +2557,11 @@ function wahlStil() {
   .wahl-bild img { max-height: 110px; max-width: 100%; object-fit: contain; }
   .wahl-klotz { width: 34px; height: 76px; border-radius: 5px 5px 2px 2px; }
   .wahl-feld small { display: block; color: #6d6659; font-size: 11px; margin-top: 2px; }
+  .wahl-weg { margin-top: 7px; padding: 3px 10px; background: #2a2720;
+       color: #a39b8a; border: 1px solid #3a352c; border-radius: 6px;
+       font-size: 11px; cursor: pointer; }
+  .wahl-weg:hover { border-color: #7a4040; color: #e8705a; }
+  .wahl-weg:disabled { opacity: .55; cursor: default; }
   `;
   document.head.appendChild(s);
 }
@@ -2584,6 +2589,23 @@ function figurWahlSchliessen() {
   letzteBewegung = Date.now();
 }
 
+// Die Figurenbelegung steht weiter unten in der Datei und ist beim
+// ersten Aufbau der Auswahl noch nicht angelegt. Deshalb wird hier
+// geschützt zugegriffen — ohne Belegung gibt es eben nichts abzugeben.
+function habeSchluessel(name) {
+  try { return !!meineSchluessel[name]; } catch (e) { return false; }
+}
+function istBelegt(name) {
+  try { return !!belegt[name]; } catch (e) { return false; }
+}
+
+// Irgendeine Figur, die noch frei ist — damit man nach dem Abgeben
+// nicht ohne dasteht.
+function ersteFreie() {
+  const frei = Object.keys(FIGUREN).filter((k) => !istBelegt(k));
+  return frei[0] || Object.keys(FIGUREN)[0];
+}
+
 function wahlMalen() {
   wahlBau.gitter.innerHTML = "";
   Object.keys(FIGUREN).forEach((schluessel) => {
@@ -2604,6 +2626,28 @@ function wahlMalen() {
       figurWahlSchliessen();
     };
     wahlBau.gitter.appendChild(feld);
+
+    // Wer eine Figur eingetragen hat, kann sie auch wieder hergeben.
+    // Der Knopf steht nur bei den eigenen.
+    if (habeSchluessel(schluessel)) {
+      const weg = document.createElement("button");
+      weg.className = "wahl-weg";
+      weg.textContent = "abgeben";
+      weg.onclick = async (e) => {
+        e.stopPropagation();
+        weg.disabled = true;
+        weg.textContent = "…";
+        const stand = await figurAbgeben(schluessel);
+        if (stand === "ok") {
+          if (MEINE_FIGUR === schluessel) figurMerken(ersteFreie());
+          wahlMalen();
+        } else {
+          weg.disabled = false;
+          weg.textContent = stand === "offline" ? "kein Netz" : "ging nicht";
+        }
+      };
+      feld.appendChild(weg);
+    }
   });
 }
 
@@ -3242,6 +3286,25 @@ async function figurBelegen(name) {
     meineSchluessel[name] = s;
     schluesselMerken();
     belegt[name] = true;
+    return "ok";
+  } catch (e) { return "offline"; }
+}
+
+// Eine Figur wieder freigeben. Geht nur mit dem Schlüssel, den man
+// beim Eintragen bekommen hat — sonst könnte jeder jede Figur
+// freiräumen. Die Funktion in der Datenbank löscht die Zeile nur, wenn
+// der Schlüssel stimmt.
+async function figurAbgeben(name) {
+  const s = meineSchluessel[name];
+  if (!s) return "nicht-meins";
+  if (!inventarKlient) return "offline";
+  try {
+    const { data, error } = await inventarKlient
+      .rpc("valentin_abgeben", { p_figur: name, p_schluessel: s });
+    if (error || !data) return "ging-nicht";
+    delete meineSchluessel[name];
+    schluesselMerken();
+    belegt[name] = false;
     return "ok";
   } catch (e) { return "offline"; }
 }

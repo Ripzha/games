@@ -83,7 +83,7 @@ globalThis.__aus = { RAEUME, klavierStarten, klavierGeloest, KLAVIER_SEITE,
                      MERK_SCHLUESSEL, standSichern, standLesen,
                      GEGENSTAENDE, INVENTAR_TABELLE, hat, einstecken,
                      SPIELER_TABELLE, SCHLUESSEL_FACH, schluesselBauen, schluesselSchoen,
-                     figurBelegen, figurUebernehmen, belegungLaden,
+                     figurBelegen, figurUebernehmen, figurAbgeben, belegungLaden,
                      NETZ_URL, NETZ_SCHLUESSEL, NETZ_TAKT, HOERWEITE,
                      netzStarten, netzSenden, netzAndereImRaum, netzVergeben,
                      LOBBY_QUELLE, lobbyOeffnen, lobbyWaehlen, lobbySchliessen, lobbyLosgehen,
@@ -401,6 +401,21 @@ pruefe(roh.includes("const punktOeffnenAllein = punktOeffnen;"),
 console.log("Figurenbelegung");
 pruefe(typeof aus.figurBelegen === "function" && typeof aus.figurUebernehmen === "function",
        "Belegen und \u00dcbernehmen sind da");
+pruefe(typeof aus.figurAbgeben === "function", "eine Figur l\u00e4sst sich abgeben");
+pruefe(roh.includes('rpc("valentin_abgeben"'),
+       "das Abgeben l\u00e4uft \u00fcber eine Funktion in der Datenbank");
+pruefe(roh.includes('if (!s) return "nicht-meins";'),
+       "ohne eigenen Schl\u00fcssel geht es nicht — sonst r\u00e4umt jeder jede Figur frei");
+const abgSql = path.join(wurzel, "abgeben.sql");
+pruefe(fs.existsSync(abgSql), "die SQL-Datei daf\u00fcr liegt daneben");
+if (fs.existsSync(abgSql)) {
+  const abg = fs.readFileSync(abgSql, "utf8");
+  pruefe(abg.includes("security definer"), "die Funktion l\u00e4uft mit erh\u00f6hten Rechten");
+  pruefe(/where figur = p_figur and schluessel = p_schluessel/.test(abg),
+         "gel\u00f6scht wird nur mit dem richtigen Schl\u00fcssel");
+  pruefe(abg.includes("grant execute on function public.valentin_abgeben"),
+         "anon darf sie aufrufen");
+}
 const probe = aus.schluesselBauen();
 pruefe(probe.length === 8, "der Schl\u00fcssel hat acht Zeichen (" + probe + ")");
 pruefe(!/[O0I1]/.test(probe), "keine Zeichen, die man verwechselt");
