@@ -73,8 +73,7 @@ umgebung.globalThis = umgebung;
 
 // const-Namen landen nicht auf dem Kontext — deshalb am Ende einsammeln
 const einsammeln = `
-globalThis.__aus = { KL_WEISS, KL_SCHWARZ, KL_ALLE, KL_VON_TASTE, KL_PHRASEN,
-                     KL_GUT, klSongBauen, RAEUME, klavierStarten, klavierGeloest,
+globalThis.__aus = { RAEUME, klavierStarten, klavierGeloest, KLAVIER_SEITE,
                      FIGUREN, MEINE_FIGUR, figurMalen,
                      springt, sprungAnteil, SPRUNG_DAUER, SPRUNG_HOEHE, SPRUNG_BILD,
                      starteSprung: () => { sprungStart = performance.now(); },
@@ -110,48 +109,7 @@ function pruefe(bedingung, text) {
 }
 
 const aus = kasten.__aus;
-const { KL_WEISS, KL_SCHWARZ, KL_ALLE, KL_VON_TASTE, KL_PHRASEN,
-        KL_GUT, klSongBauen, RAEUME } = aus;
-
-console.log("Klaviatur");
-pruefe(KL_WEISS.length + KL_SCHWARZ.length === Object.keys(KL_ALLE).length,
-       "keine Note doppelt (" + Object.keys(KL_ALLE).length + " Tasten)");
-const kuerzel = [...KL_WEISS, ...KL_SCHWARZ].map((t) => t.kuerzel.toLowerCase());
-pruefe(new Set(kuerzel).size === kuerzel.length, "jede Rechnertaste nur einmal vergeben");
-pruefe(Object.keys(KL_VON_TASTE).length === kuerzel.length, "Zuordnung Taste zu Note vollständig");
-
-console.log("Melodie");
-const song = klSongBauen();
-const unbekannt = song.noten.filter((n) => !KL_ALLE[n.note]).map((n) => n.note);
-pruefe(unbekannt.length === 0, "alle Noten liegen auf der Klaviatur" +
-       (unbekannt.length ? " — fehlt: " + [...new Set(unbekannt)].join(", ") : ""));
-pruefe(song.noten.length > 20, song.noten.length + " Noten, Länge " +
-       Math.round(song.laenge / 1000) + " Sekunden");
-
-const wer = KL_PHRASEN.map((p) => p.wer);
-let laeufe = 1, laengster = 1;
-wer.forEach((w, i) => {
-  if (i === 0) return;
-  laeufe = (w === wer[i - 1]) ? laeufe + 1 : 1;
-  laengster = Math.max(laengster, laeufe);
-});
-pruefe(laengster <= 2, "niemand spielt mehr als zwei Phrasen am St\u00fcck (l\u00e4ngster Lauf " + laengster + ")");
-const meine = song.noten.filter((n) => n.wer === 0).length;
-const anteil = meine / song.noten.length;
-pruefe(anteil > 0.4 && anteil < 0.6,
-       "Aufteilung ausgewogen: " + meine + " zu " + (song.noten.length - meine));
-
-// Zwei gleiche Noten zu dicht beieinander: die Trefferfenster überlappen,
-// dann wertet ein Tastendruck die falsche.
-let eng = [];
-song.noten.forEach((a, i) => {
-  song.noten.slice(i + 1).forEach((b) => {
-    if (a.note === b.note && Math.abs(a.zeit - b.zeit) < KL_GUT * 2 && a.wer === b.wer)
-      eng.push(a.note + " bei " + Math.round(a.zeit) + " und " + Math.round(b.zeit) + " ms");
-  });
-});
-pruefe(eng.length === 0, "keine zwei gleichen Noten im selben Trefferfenster" +
-       (eng.length ? " — " + eng.join("; ") : ""));
+const { RAEUME } = aus;
 
 console.log("Anbindung");
 const salon = RAEUME[0];
@@ -370,19 +328,6 @@ pruefe(zweiHtml.includes("nameLesen('oben'"),
   pruefe(roh.indexOf(f + " || ") >= 0 || roh.indexOf("|| " + f) >= 0,
          f + " sperrt die Haustasten mit"));
 
-// ---------- Wer spielt welche Haelfte ----------
-console.log("Rollenverteilung am Klavier");
-pruefe(roh.includes("function klSeiteBestimmen(partnerId)"),
-       "die Seite wird aus den beiden Kennungen bestimmt");
-pruefe(roh.includes("klIchBin = partnerId && String(netzIch) > String(partnerId) ? 1 : 0;"),
-       "die kleinere Kennung spielt die erste H\u00e4lfte — beide rechnen dasselbe aus");
-pruefe(!/n\.wer === 0/.test(roh) && !/n\.wer !== 0/.test(roh),
-       "nirgends steht mehr fest, dass ich die erste H\u00e4lfte spiele");
-pruefe(roh.includes("klSeiteBestimmen(mit && mit.id)"),
-       "der Partner aus der Lobby entscheidet die Seite");
-pruefe(roh.includes("const klAnderer = () => (klIchBin === 0 ? 1 : 0);"),
-       "der \u00dcbungspartner \u00fcbernimmt die andere H\u00e4lfte");
-
 // ---------- Figurenauswahl ----------
 console.log("Figurenauswahl");
 const namen = Object.keys(FIGUREN).map((k) => FIGUREN[k].name);
@@ -550,6 +495,22 @@ if (fs.existsSync(path.join(wurzel, "spieler.sql"))) {
   pruefe(!/for update|for delete/.test(sql), "\u00e4ndern und l\u00f6schen sind niemandem erlaubt");
   pruefe(sql.includes(aus.SPIELER_TABELLE), "SQL und Spiel meinen dieselbe Tabelle");
 }
+
+// ---------- Das Klavier ----------
+console.log("Klavier");
+const klPfad = path.join(wurzel, aus.KLAVIER_SEITE || "klavier/zwei.html");
+pruefe(fs.existsSync(klPfad), "die Seite liegt da, wo das Haus sie sucht (" +
+       (aus.KLAVIER_SEITE || "?") + ")");
+pruefe(roh.includes('"kl-" + [netzIch, partnerId].sort().join("-")'),
+       "das Paar bekommt einen gemeinsamen Kanal");
+pruefe(roh.includes('if (d.art === "geloest") klavierGeloest = true;'),
+       "das Haus erf\u00e4hrt, wenn das St\u00fcck geschafft ist");
+pruefe(roh.includes('if (d.art === "fertig") klavierSchliessen();'),
+       "und macht zu, wenn die Seite es sagt");
+pruefe(!/KL_WEISS|klSongBauen|KL_PHRASEN/.test(roh),
+       "das Klavierspiel selbst steckt nicht mehr im Haus");
+pruefe(roh.includes("(uebung, mit) => klavierDirekt(mit)"),
+       "der Partner aus der Lobby wird mitgenommen");
 
 // ---------- Das Labyrinth ----------
 console.log("Labyrinth");
