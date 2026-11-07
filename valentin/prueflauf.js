@@ -370,6 +370,19 @@ pruefe(zweiHtml.includes("nameLesen('oben'"),
   pruefe(roh.indexOf(f + " || ") >= 0 || roh.indexOf("|| " + f) >= 0,
          f + " sperrt die Haustasten mit"));
 
+// ---------- Wer spielt welche Haelfte ----------
+console.log("Rollenverteilung am Klavier");
+pruefe(roh.includes("function klSeiteBestimmen(partnerId)"),
+       "die Seite wird aus den beiden Kennungen bestimmt");
+pruefe(roh.includes("klIchBin = partnerId && String(netzIch) > String(partnerId) ? 1 : 0;"),
+       "die kleinere Kennung spielt die erste H\u00e4lfte — beide rechnen dasselbe aus");
+pruefe(!/n\.wer === 0/.test(roh) && !/n\.wer !== 0/.test(roh),
+       "nirgends steht mehr fest, dass ich die erste H\u00e4lfte spiele");
+pruefe(roh.includes("klSeiteBestimmen(mit && mit.id)"),
+       "der Partner aus der Lobby entscheidet die Seite");
+pruefe(roh.includes("const klAnderer = () => (klIchBin === 0 ? 1 : 0);"),
+       "der \u00dcbungspartner \u00fcbernimmt die andere H\u00e4lfte");
+
 // ---------- Figurenauswahl ----------
 console.log("Figurenauswahl");
 const namen = Object.keys(FIGUREN).map((k) => FIGUREN[k].name);

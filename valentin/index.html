@@ -1867,13 +1867,23 @@ const KL_SCHWELLE = 80;      // Prozent, ab denen es geschafft ist
 //                          meldet einen Treffer des Mitspielers.
 //   beenden()              räumt auf.
 // ----------------------------------------------------------------------
+// Welche Hälfte des Stücks spiele ich? Beim Übungspartner immer die
+// erste. Mit einem echten Mitspieler entscheidet der Vergleich der
+// beiden Kennungen — die kleinere spielt die erste Hälfte. Beide rechnen
+// dasselbe aus, deshalb braucht es dafür keine Absprache.
+let klIchBin = 0;
+function klSeiteBestimmen(partnerId) {
+  klIchBin = partnerId && String(netzIch) > String(partnerId) ? 1 : 0;
+}
+const klAnderer = () => (klIchBin === 0 ? 1 : 0);
+
 const KL_PARTNER = {
   name: "Übungspartner",
   _uhren: [],
   starten(song, melden, startZeit) {
     this._uhren = [];
     song.noten.forEach((n, i) => {
-      if (n.wer !== 1) return;
+      if (n.wer !== klAnderer()) return;
       // Der Partner trifft nicht auf die Millisekunde genau.
       const versatz = (Math.random() - 0.5) * 220;
       const daneben = Math.random() > 0.92;          // ab und zu ein Fehler
@@ -2200,8 +2210,8 @@ function klSpielStarten(nurHoeren) {
 
   klSong.noten.forEach((n) => {
     const el = document.createElement("div");
-    el.className = "kl-note" + (n.wer === 1 ? " fremd" : "");
-    el.textContent = n.wer === 0 ? KL_ALLE[n.note].kuerzel : "";
+    el.className = "kl-note" + (n.wer !== klIchBin ? " fremd" : "");
+    el.textContent = n.wer === klIchBin ? KL_ALLE[n.note].kuerzel : "";
     el.style.display = "none";
     klBau.feld.appendChild(el);
     n.el = el;
@@ -2275,7 +2285,7 @@ function klSchritt(jetzt) {
     }
 
     // Verpasst — nur die eigenen Noten, die des Partners meldet der Partner
-    if (!klVorspiel && n.wer === 0 && n.stand === "offen" && dt < -KL_GUT) {
+    if (!klVorspiel && n.wer === klIchBin && n.stand === "offen" && dt < -KL_GUT) {
       n.stand = "verpasst";
       n.el.classList.add("verpasst");
       klUrteil("Verpasst", "#e08a8a");
@@ -2289,7 +2299,7 @@ function klSchritt(jetzt) {
   if (!klVorspiel) {
     const naechste = klSong.noten.find((n) => n.zeit > t - 200);
     klBau.wer.textContent = naechste
-      ? (naechste.wer === 0 ? "du bist dran" : "der andere ist dran")
+      ? (naechste.wer === klIchBin ? "du bist dran" : "der andere ist dran")
       : "";
   }
 
@@ -2305,7 +2315,7 @@ function klEingabe(note) {
   const t = performance.now() - klStart;
   let beste = null, abstand = Infinity;
   klSong.noten.forEach((n) => {
-    if (n.stand !== "offen" || n.wer !== 0 || n.note !== note) return;
+    if (n.stand !== "offen" || n.wer !== klIchBin || n.note !== note) return;
     const d = Math.abs(n.zeit - t);
     if (d > KL_GUT) return;
     if (d < abstand) { beste = n; abstand = d; }   // die nächstgelegene gewinnt
@@ -3236,7 +3246,7 @@ klavierStarten = function () {
     "Das Klavier",
     "Ein Stück für vier Hände. Die Melodie springt zwischen euch hin und her, " +
     "gewertet wird zusammen.",
-    () => klavierDirekt(),
+    (uebung, mit) => { klSeiteBestimmen(mit && mit.id); klavierDirekt(); },
     () => fensterZu(),
     "klavier"
   );
