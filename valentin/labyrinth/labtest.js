@@ -255,12 +255,20 @@ pruefe(!/rahmen\(t, B, H\), b = rahmen\(t \+ 1, B, H\)/.test(skript),
 console.log("Durchg\u00e4nge");
 pruefe(skript.includes("[[links, -1], [rechts, 1]].forEach"),
        "offene Seiten werden ausgebaut statt leer gelassen");
-pruefe(skript.includes("const nx = x + DX[seite], ny = y + DY[seite];"),
-       "dahinter kommt die Hecke der Nachbarzelle, wenn der Gang dort endet");
-pruefe(skript.includes("if (wandDa(lab, nx, ny, r)) {"),
+pruefe(skript.includes("if (wandDa(lab, gx, gy, seite)) {"),
+       "die Aussenhecke des Gangs wird gezeichnet");
+pruefe(skript.includes("if (k > 0 && wandDa(lab, gx, gy, (seite + 2) % 4)) {"),
+       "ab dem zweiten Feld auch die Hecke zum Korridor hin");
+pruefe(skript.includes("const quer = wandDa(lab, gx, gy, r);"),
        "auch die Hecke, die im Seitengang quer steht, wird gezeichnet");
-pruefe(skript.includes("[[kanteF, b.o], [aussenF, b.o], [aussenF, b.u], [kanteF, b.u]]"),
-       "sie deckt den Seitengang auf seiner ganzen Breite");
+pruefe(skript.includes("const GANG_TIEFE"), "der Seitengang wird mehrere Felder tief gezeichnet");
+const tiefe = parseInt((skript.match(/GANG_TIEFE\s*=\s*(\d+)/) || [])[1], 10);
+pruefe(tiefe >= 2, "er reicht " + tiefe + " Felder weit — bei eins bleibt ein Loch, " +
+       "wenn der Gang weitergeht");
+pruefe(skript.includes("if (quer) break;"),
+       "hinter einer Querhecke wird nicht weitergezeichnet");
+pruefe(skript.includes("rahmen(t + k - 0.5, B, H)") && skript.includes("rahmen(t + k + 0.5, B, H)"),
+       "jeder Gangabschnitt bekommt seine eigene Tiefe");
 pruefe(skript.indexOf("[[links, -1], [rechts, 1]].forEach") <
        skript.indexOf("// Boden des Abschnitts"),
        "der Durchgang wird vor dem Korridorboden gezeichnet");
