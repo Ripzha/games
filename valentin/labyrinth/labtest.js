@@ -40,7 +40,11 @@ pruefe(SICHT >= 3, "der Läufer sieht weit genug (" + SICHT + " Felder)");
 
 // ---------- Die Bauteile aus der Seite herausziehen ----------
 const kasten = vm.createContext({ console, Math });
-const teile = skript.slice(skript.indexOf("const FELDER"), skript.indexOf("// ------", skript.indexOf("function wandDa")));
+let teile = skript.slice(skript.indexOf("const FELDER"), skript.indexOf("// ------", skript.indexOf("function wandDa")));
+// Der Figurenblock braucht den Browser (Image, URLSearchParams) — hier raus
+const figVon = teile.indexOf("// Wer im Labyrinth l");
+const figBis = teile.indexOf("})();", figVon);
+if (figVon >= 0 && figBis > figVon) teile = teile.slice(0, figVon) + teile.slice(figBis + 5);
 const sichtTeil = skript.slice(skript.indexOf("function sichtTiefe"),
                                skript.indexOf("function spurMalen"));
 vm.runInContext(teile + "\n" + sichtTeil +
@@ -197,6 +201,32 @@ pruefe(skript.includes("function spurMalen"), "sie wird als Bodenspur gezeichnet
 pruefe(!/plan[\s\S]{0,4000}lab\.falle/.test(skript.slice(skript.indexOf("function planMalen"),
        skript.indexOf("function gehen"))),
        "auf dem Monitor taucht keine Falle auf");
+
+// ---------- Der Kopf auf dem Plan ----------
+console.log("Kopf auf dem Plan");
+const figBlock = skript.slice(skript.indexOf("const FIGUREN = {"),
+                              skript.indexOf("const adresse"));
+const koepfe = [...figBlock.matchAll(/(\w+): \{ name: '([^']+)', bild: '([^']+)',\s*kopf: \[([^\]]+)\]/g)];
+pruefe(koepfe.length >= 2, koepfe.length + " Figuren mit Kopfausschnitt");
+const path = require("path");
+koepfe.forEach(([, schluessel, name, bild, masse]) => {
+  const d = path.resolve(path.dirname("zwei.html"), bild);
+  pruefe(fs.existsSync(d), "  " + name + ": " + bild + " liegt da");
+  const teile = masse.split(",").map((t) => eval(t));
+  pruefe(teile.length === 4, "  " + name + ": der Ausschnitt hat vier Werte");
+  pruefe(teile.every((t) => t >= 0 && t <= 1), "  " + name + ": alle Werte sind Anteile");
+  pruefe(teile[0] + teile[2] <= 1.001 && teile[1] + teile[3] <= 1.001,
+         "  " + name + ": der Ausschnitt liegt im Bild");
+  // quadratisch in Bildpunkten, sonst wird das Gesicht im Kreis verzogen
+  const m = bild.match(/figur(\d)-/);
+  const breite = m && m[1] === "1" ? 319 : 235;
+  const px = [teile[2] * breite, teile[3] * 480];
+  pruefe(Math.abs(px[0] - px[1]) < 2,
+         "  " + name + ": quadratisch (" + Math.round(px[0]) + " zu " + Math.round(px[1]) + ")");
+});
+pruefe(skript.includes("if (laeufer.r === 1) p2.scale(-1, 1);"),
+       "nach Osten wird der Kopf gespiegelt");
+pruefe(skript.includes("p2.clip();"), "der Kopf sitzt in einem runden Rahmen");
 
 console.log(fehler === 0 ? "\nAlles in Ordnung." : "\n" + fehler + " Fehler.");
 process.exit(fehler === 0 ? 0 : 1);

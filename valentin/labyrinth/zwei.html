@@ -98,6 +98,26 @@
   const SCHLEIFEN = 0.22;     // Anteil zusätzlich geöffneter Wände
   const SICHT    = 5;         // so viele Felder weit sieht der Läufer
   const SCHRITT  = 170;       // Millisekunden für einen Schritt
+
+  // Wer im Labyrinth läuft, steht auf dem Plan als Kopf seiner Figur.
+  // kopf ist der Ausschnitt aus dem Stehbild, in Anteilen der Bildbreite
+  // und -höhe: links, oben, breit, hoch. Er muss quadratisch sein, sonst
+  // wird das Gesicht im runden Rahmen verzogen.
+  const FIGUREN = {
+    chase: { name: 'Chase', bild: '../bilder/figuren/figur1-stehen.webp',
+             kopf: [25 / 319, 55 / 480, 240 / 319, 240 / 480] },
+    logan: { name: 'Logan', bild: '../bilder/figuren/figur2-stehen.webp',
+             kopf: [0 / 235, 20 / 480, 220 / 235, 220 / 480] }
+  };
+  const adresse = new URLSearchParams(location.search);
+  const WER = FIGUREN[adresse.get('figur')] ? adresse.get('figur') : 'chase';
+
+  let kopfBild = null;
+  (function kopfLaden() {
+    const b = new Image();
+    b.onload = () => { kopfBild = b; };
+    b.src = FIGUREN[WER].bild;
+  })();
   const DREHUNG  = 150;       // Millisekunden für eine Vierteldrehung
 
   // Richtungen: 0 Norden, 1 Osten, 2 Süden, 3 Westen
@@ -442,16 +462,42 @@
       }
     }
 
-    // Der Läufer samt Blickrichtung
+    // Der Läufer: der Kopf seiner Figur, dazu die Blickrichtung
     const lx = ox + (laeufer.x + 0.5) * feld, ly = oy + (laeufer.y + 0.5) * feld;
-    p2.fillStyle = '#f0c173';
-    p2.beginPath(); p2.arc(lx, ly, feld * 0.22, 0, Math.PI * 2); p2.fill();
-    p2.strokeStyle = '#f0c173';
-    p2.lineWidth = Math.max(2, feld * 0.08);
+    const halb = feld * 0.40;
+
+    // Blickrichtung als Keil hinter dem Kopf, damit der Kopf frei bleibt
+    p2.fillStyle = 'rgba(240,193,115,0.9)';
+    p2.save();
+    p2.translate(lx, ly);
+    p2.rotate(laeufer.r * Math.PI / 2);          // 0 ist Norden
     p2.beginPath();
-    p2.moveTo(lx, ly);
-    p2.lineTo(lx + DX[laeufer.r] * feld * 0.42, ly + DY[laeufer.r] * feld * 0.42);
-    p2.stroke();
+    p2.moveTo(0, -halb * 1.55);
+    p2.lineTo(-halb * 0.5, -halb * 0.85);
+    p2.lineTo(halb * 0.5, -halb * 0.85);
+    p2.closePath(); p2.fill();
+    p2.restore();
+
+    if (kopfBild && kopfBild.complete && kopfBild.naturalWidth) {
+      const [kx, ky, kb, kh] = FIGUREN[WER].kopf;
+      const B0 = kopfBild.naturalWidth, H0 = kopfBild.naturalHeight;
+      p2.save();
+      p2.beginPath(); p2.arc(lx, ly, halb, 0, Math.PI * 2); p2.clip();
+      p2.fillStyle = '#131210';
+      p2.fillRect(lx - halb, ly - halb, halb * 2, halb * 2);
+      p2.translate(lx, ly);
+      // Die Bilder schauen nach links; nach Osten wird gespiegelt
+      if (laeufer.r === 1) p2.scale(-1, 1);
+      p2.drawImage(kopfBild, kx * B0, ky * H0, kb * B0, kh * H0,
+                   -halb, -halb, halb * 2, halb * 2);
+      p2.restore();
+      p2.strokeStyle = '#f0c173';
+      p2.lineWidth = Math.max(1.5, feld * 0.05);
+      p2.beginPath(); p2.arc(lx, ly, halb, 0, Math.PI * 2); p2.stroke();
+    } else {
+      p2.fillStyle = '#f0c173';
+      p2.beginPath(); p2.arc(lx, ly, feld * 0.22, 0, Math.PI * 2); p2.fill();
+    }
 
     // Zuruf des Läufers
     if (Date.now() < zuruf.bis && zuruf.text) {
@@ -530,6 +576,7 @@
       '<table>' +
       '<tr><td>Läufer</td><td>W vor, S zurück, A und D drehen, Feld unten zum Zurückrufen</td></tr>' +
       '<tr><td>Führender</td><td>Feld anklicken markiert, Feld nochmal klicken löscht</td></tr>' +
+      '<tr><td>Figur</td><td>' + FIGUREN[WER].name + ' — mit ?figur=logan wechseln</td></tr>' +
       '</table>' +
       '<p style="color:#8a857a;font-size:13px">Diese Seite zeigt beide Hälften ' +
       'nebeneinander zum Ausprobieren. Im Haus sitzt ihr in verschiedenen Räumen.</p>',
