@@ -257,8 +257,12 @@ console.log("Zeitverz\u00f6gerung");
 pruefe(!/klTon\(KL_ALLE\[n\.note\]\.freq, n\.dauer\);[\s\S]{0,80}klPunkte \+= gut/.test(skript),
        "der Ton des anderen kommt nicht aus seiner Nachricht — sonst steckt " +
        "die Netzverz\u00f6gerung in der Musik");
-pruefe(skript.includes("if (n.wer !== klIchBin && !n.getoent && dt >= 0) {"),
+pruefe(skript.includes("if (n.wer !== klIchBin && !n.getoent && dt <= 0) {"),
        "die fremde Stimme klingt \u00f6rtlich zu ihrer eigenen Zeit");
+// dt ist die Zeit BIS zum Treffpunkt. Bei dt >= 0 klaenge im ersten Bild
+// das ganze Stueck auf einmal — der Fehler, den Knox gehoert hat.
+pruefe(/const dt = n\.zeit - t;/.test(skript),
+       "dt ist die Zeit bis zum Treffpunkt, vor der Note also positiv");
 pruefe(skript.includes("KL_PARTNER.abstimmen = function (beiLos)"),
        "es gibt einen gemeinsamen Start");
 pruefe(skript.includes('const ichGebeDasZeichen = String(ICH) < String(PARTNER_ID);'),

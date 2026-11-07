@@ -678,7 +678,11 @@ function klSchritt(jetzt) {
     // Die Stimme des anderen klingt leiser mit, sobald sie an der Leiste
     // ankommt. Dadurch hören beide dasselbe Stück, unabhängig davon, wie
     // lange eine Nachricht unterwegs ist.
-    if (n.wer !== klIchBin && !n.getoent && dt >= 0) {
+    //
+    // dt ist die Zeit BIS zum Treffpunkt, also vor der Note positiv. Der
+    // Ton kommt deshalb bei dt <= 0, nicht bei dt >= 0 — sonst klingen
+    // im ersten Bild alle Noten des Stücks auf einmal.
+    if (n.wer !== klIchBin && !n.getoent && dt <= 0) {
       n.getoent = true;
       klTon(KL_ALLE[n.note].freq, n.dauer, true);
       klBlitz(n.note);
