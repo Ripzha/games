@@ -245,13 +245,16 @@ pruefe(skript.includes("if (wandDa(lab, gx, gy, seite)) {"),
        "die Aussenhecke des Gangs wird gezeichnet");
 pruefe(skript.includes("if (k > 0 && wandDa(lab, gx, gy, (seite + 2) % 4)) {"),
        "ab dem zweiten Feld auch die Hecke zum Korridor hin");
-pruefe(skript.includes("const quer = wandDa(lab, gx, gy, r);"),
+pruefe(skript.includes("// Hecke, die im Gang quer steht"),
        "auch die Hecke, die im Seitengang quer steht, wird gezeichnet");
 pruefe(skript.includes("const GANG_TIEFE"), "der Seitengang wird mehrere Felder tief gezeichnet");
 const tiefe = parseInt((skript.match(/GANG_TIEFE\s*=\s*(\d+)/) || [])[1], 10);
 pruefe(tiefe >= 2, "er reicht " + tiefe + " Felder weit — bei eins bleibt ein Loch, " +
        "wenn der Gang weitergeht");
-pruefe(skript.includes("if (quer) break;"),
+pruefe(skript.includes("for (let k = gTiefe; k >= 0; k--) {"),
+       "der Seitengang wird von hinten nach vorne gezeichnet — andersherum " +
+       "malt der hintere Abschnitt \u00fcber den vorderen");
+pruefe(skript.includes("if (wandDa(lab, cx, cy, r)) break;"),
        "hinter einer Querhecke wird nicht weitergezeichnet");
 pruefe(skript.includes("rahmen(t + k - 0.5, B, H)") && skript.includes("rahmen(t + k + 0.5, B, H)"),
        "jeder Gangabschnitt bekommt seine eigene Tiefe");
@@ -285,7 +288,11 @@ pruefe(skript.includes("Math.floor(x0 / kb) * kb"),
        "das Kachelraster ist am Bildschirm ausgerichtet, nicht an jeder Fl\u00e4che");
 const hell = [...skript.matchAll(/d[ku]n?k?e?l? \* (0\.\d+), \[/g)].map((m) => parseFloat(m[1]));
 pruefe(hell.every((v) => v >= 0.8),
-       "keine Fl\u00e4che ist mehr als ein F\u00fcnftel dunkler als ihre Nachbarn");
+       "keine gro\u00dfe Fl\u00e4che ist mehr als ein F\u00fcnftel dunkler als ihre Nachbarn");
+const stirn = [...skript.matchAll(/dk \* (0\.\d+), null, 0, ka\)/g)].map((m) => parseFloat(m[1]));
+pruefe(stirn.length === 2 && stirn.every((v) => v <= 0.7),
+       "die Stirnseiten sind deutlich dunkler — daran sieht man, dass die Hecke dick ist (" +
+       stirn.join(", ") + ")");
 
 console.log("Boden");
 pruefe(skript.includes("const BODEN_DATEI"), "der Boden hat eine Textur");

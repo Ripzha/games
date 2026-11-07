@@ -596,7 +596,21 @@
         const randVon = (p) => (vorzeichen < 0 ? p.l : p.r);
         const aussenVon = (p) => randVon(p) + vorzeichen * (p.r - p.l);
 
-        for (let k = 0; k < GANG_TIEFE; k++) {
+        // Erst ausrechnen, wie weit man in den Gang sieht, dann von hinten
+        // nach vorne zeichnen. Andersherum malt der hintere Abschnitt über
+        // den vorderen, und es entstehen Keile, die in den Boden schneiden.
+        let gTiefe = 0;
+        while (gTiefe < GANG_TIEFE - 1) {
+          const cx = x + DX[seite] + DX[r] * gTiefe;
+          const cy = y + DY[seite] + DY[r] * gTiefe;
+          if (cx < 0 || cy < 0 || cx >= FELDER || cy >= FELDER) break;
+          if (wandDa(lab, cx, cy, r)) break;
+          const wx2 = cx + DX[r], wy2 = cy + DY[r];
+          if (wx2 < 0 || wy2 < 0 || wx2 >= FELDER || wy2 >= FELDER) break;
+          gTiefe++;
+        }
+
+        for (let k = gTiefe; k >= 0; k--) {
           const nah  = rahmen(t + k - 0.5, B, H);
           const fern = rahmen(t + k + 0.5, B, H);
           const gx = x + DX[seite] + DX[r] * k;
@@ -633,8 +647,7 @@
                           gx * 97 + gy * 31 + 31, ka);
           }
           // Hecke, die im Gang quer steht
-          const quer = wandDa(lab, gx, gy, r);
-          if (quer) {
+          if (wandDa(lab, gx, gy, r)) {
             heckenFlaeche([[kanteF, fern.o], [aussenF, fern.o],
                            [aussenF, fern.u], [kanteF, fern.u]],
                           dk * 0.84, [kanteF, fern.o, aussenF, fern.o],
@@ -648,16 +661,15 @@
             if (wandDa(lab, x - DX[r], y - DY[r], seite)) {
               heckenFlaeche([[kante, nah.o], [kante + vorzeichen * d0, nah.o],
                              [kante + vorzeichen * d0, nah.u], [kante, nah.u]],
-                            dk * 0.92, null, 0, ka);
+                            dk * 0.62, null, 0, ka);
             }
             if (wandDa(lab, gx + DX[r], gy + DY[r], seite)) {
               heckenFlaeche([[kanteF, fern.o], [kanteF + vorzeichen * d1, fern.o],
                              [kanteF + vorzeichen * d1, fern.u], [kanteF, fern.u]],
-                            dk * 0.88, null, 0, ka);
+                            dk * 0.58, null, 0, ka);
             }
           }
 
-          if (quer) break;        // dahinter sieht man nichts mehr
         }
       });
 
