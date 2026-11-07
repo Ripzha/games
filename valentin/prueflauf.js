@@ -211,6 +211,8 @@ Object.keys(FIGUREN || {}).forEach((name) => {
            " gegen " + satz.seiten.toFixed(4) + ")");
   }
   pruefe(satz.anker > 0 && satz.anker < 1, "  anker liegt im Bild (" + satz.anker + ")");
+  pruefe(typeof satz.name === "string" && satz.name.length > 0,
+         "  die Figur hat einen Namen (" + satz.name + ")");
   pruefe(satz.gehen[aus.SPRUNG_BILD] !== undefined,
          "  das Sprungbild gibt es (gehen[" + aus.SPRUNG_BILD + "])");
 });
@@ -343,6 +345,11 @@ pruefe(typeof aus.automatStarten === "function", "automatStarten ist erreichbar"
 const spielPfad = path.join(path.dirname(path.resolve(datei)), aus.AUTOMAT_SPIEL);
 pruefe(fs.existsSync(spielPfad), "das Spiel liegt da, wo der Automat es sucht (" +
        aus.AUTOMAT_SPIEL + ")");
+pruefe(roh.includes('AUTOMAT_SPIEL + "?oben="'),
+       "der Automat gibt den Namen der Figur mit");
+const zweiHtml = fs.readFileSync(spielPfad, "utf8");
+pruefe(zweiHtml.includes("adresse.get('oben')"),
+       "die Schlittenseite liest den Namen aus der Adresse");
 ["klavierOffen", "ttOffen", "lobbyOffen", "automatOffen"].forEach((f) =>
   pruefe(roh.indexOf(f + " || ") >= 0 || roh.indexOf("|| " + f) >= 0,
          f + " sperrt die Haustasten mit"));

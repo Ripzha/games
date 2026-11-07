@@ -2336,6 +2336,7 @@ const FIGUREN = {
       "bilder/figuren/figur1-gehen1.webp",
       "bilder/figuren/figur1-gehen2.webp"
     ],
+    name:   "Figur 1",    // <- hier den Namen der Figur eintragen
     anker:  0.456,
     seiten: 319 / 480,
     groesse: 1            // zum Angleichen, falls eine Figur zu gross wirkt
@@ -2346,6 +2347,7 @@ const FIGUREN = {
       "bilder/figuren/figur2-gehen1.webp",
       "bilder/figuren/figur2-gehen2.webp"
     ],
+    name:   "Figur 2",    // <- hier den Namen der Figur eintragen
     anker:  0.393,
     seiten: 235 / 480,
     groesse: 1
@@ -3112,7 +3114,11 @@ function automatStarten() {
   automatOffen = true;
   automatBau.wurzel.classList.add("auf");
   // Erst beim Öffnen laden, damit das Haus schnell startet.
-  automatBau.rahmen.src = AUTOMAT_SPIEL;
+  // Der Automat gibt den Namen der gespielten Figur mit, damit in der
+  // oberen Hälfte steht, wer dort fährt.
+  const satzA = FIGUREN[MEINE_FIGUR];
+  const wer = (satzA && satzA.name) || MEINE_FIGUR;
+  automatBau.rahmen.src = AUTOMAT_SPIEL + "?oben=" + encodeURIComponent(wer);
   setTimeout(() => { try { automatBau.rahmen.contentWindow.focus(); } catch (e) {} }, 60);
 }
 
