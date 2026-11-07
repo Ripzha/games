@@ -367,7 +367,7 @@
 
   // Wird bei jedem Paket neu gesetzt. Steht unten im Startbildschirm, damit man
   // sofort sieht, welche Fassung gerade live ist.
-  const BAUSTAND = '05.11.2026 16:54';
+  const BAUSTAND = '07.11.2026 22:32';
   const SPEICHER_KEY = 'ostern_fortschritt';
   const HINWEISE_GESAMT = 3;
   // Gemeinsamer Faktor für alle Eier. Die Radien in EIER bleiben, hier wird
@@ -841,27 +841,8 @@
     { id: 'sb_schrank', ansicht: 'schreibtisch_nah', x: 10, y: 585, w: 470, h: 302, typ: 'ausschnitt', klang: 'schranktuer', zustand: 'sb_schrank_offen', label: 'Schrank unter der Tischplatte' },
     { id: 'sb_schublade', ansicht: 'schreibtisch_nah', x: 1240, y: 572, w: 490, h: 275, typ: 'ausschnitt', klang: 'schublade', zustand: 'sb_schublade_offen', label: 'Schublade' },
     // ---- Backzutaten. nurGruppe entscheidet, wer sie sieht. ----
-    { id: 'z_hefe', ansicht: 'dachboden', x: 459, y: 648, w: 136, h: 105, typ: 'nehmen', zustand: 'hefe_weg',
-      gibt: 'hefe', nurGruppe: 'A', sichtbarWenn: 'dach_koffer_offen', label: 'Päckchen im Dachbodenkoffer',
-      ohneMarke: true, zeichnung: liegt('leg-hefe.webp', 459, 648, 136, 105, 'hefe_weg')},
-        // Die Butter liegt im zweiten Fach. Nach dem Nehmen wird das ganze Bild
-    // getauscht, damit keine Kante zu sehen ist.
-    { id: 'kuehl_ohne_butter', ansicht: 'kuehl_nah', x: 0, y: 0, w: 1774, h: 887, typ: 'overlay', zustand: 'butter_weg',
+        { id: 'kuehl_ohne_butter', ansicht: 'kuehl_nah', x: 0, y: 0, w: 1774, h: 887, typ: 'overlay', zustand: 'butter_weg',
       bildAus: 'ostern/bilder/kuehl-ohne-butter.webp', label: 'Kühlschrank' },
-    { id: 'z_butter', ansicht: 'kuehl_nah', x: 530, y: 326, w: 216, h: 86, typ: 'nehmen', zustand: 'butter_weg',
-      gibt: 'butter', nurGruppe: 'B', ohneMarke: true, label: 'Butter auf dem Papier' },
-    { id: 'z_safran', ansicht: 'schlafzimmer', x: 835, y: 442, w: 140, h: 112, typ: 'nehmen', zustand: 'safran_weg',
-      gibt: 'safran', nurGruppe: 'A', sichtbarWenn: 'sz_nachttisch_offen', label: 'Döschen in der Schublade',
-      ohneMarke: true, zeichnung: liegt('leg-safran.webp', 835, 442, 140, 112, 'safran_weg')},
-    { id: 'z_mehl', ansicht: 'kue_ober_nah', x: 672, y: 645, w: 176, h: 230, typ: 'nehmen', zustand: 'mehl_weg',
-      gibt: 'mehl', nurGruppe: 'A', label: 'Mehltüte im Schrank',
-      ohneMarke: true, zeichnung: liegt('leg-mehl.webp', 672, 645, 176, 230, 'mehl_weg')},
-    { id: 'z_kardamom', ansicht: 'schlafzimmer', x: 1362, y: 553, w: 136, h: 94, typ: 'nehmen', zustand: 'kardamom_weg',
-      gibt: 'kardamom', nurGruppe: 'B', sichtbarWenn: 'sz_frisier_offen', label: 'Kapseln in der Schublade',
-      ohneMarke: true, zeichnung: liegt('leg-kardamom.webp', 1362, 553, 136, 94, 'kardamom_weg')},
-    { id: 'z_rosinen', ansicht: 'dachboden', x: 1310, y: 690, w: 160, h: 105, typ: 'nehmen', zustand: 'rosinen_weg',
-      gibt: 'rosinen', nurGruppe: 'B', sichtbarWenn: 'dach_truhe_offen', label: 'Beutel in der Truhe',
-      ohneMarke: true, zeichnung: liegt('leg-rosinen.webp', 1310, 690, 160, 105, 'rosinen_weg')},
 
     // --- Acis Schreibtisch auf dem Bildschirm ---
     // Die Leiste gehört zum Bild, nicht zum Spiel: overlay fängt keine Klicks.
@@ -1213,7 +1194,28 @@
       nimmt: 'hammer', setzt: 'schwein_kaputt', klang: 'keramik',
       leer: 'Ein Sparschwein aus Ton. Es scheppert, wenn man es schüttelt, und unten ist kein Loch.',
       fehlt: 'Mit blossen Händen kriegst du das nicht auf.',
-      antwort: 'Einmal kurz, und das Schwein ist hin. Zwischen den Scherben liegt etwas.' }
+      antwort: 'Einmal kurz, und das Schwein ist hin. Zwischen den Scherben liegt etwas.' },
+
+    // --- Zutaten -------------------------------------------------------
+    // Stehen bewusst am Ende der Liste: sie werden zuletzt gezeichnet und
+    // liegen damit über den Flicken der geöffneten Schubladen und Truhen.
+    { id: 'z_hefe', ansicht: 'dachboden', x: 459, y: 648, w: 136, h: 105, typ: 'nehmen', zustand: 'hefe_weg',
+      gibt: 'hefe', nurGruppe: 'A', sichtbarWenn: 'dach_koffer_offen', label: 'Päckchen im Dachbodenkoffer',
+      ohneMarke: true, zeichnung: liegt('leg-hefe.webp', 459, 648, 136, 105, 'hefe_weg')},
+    { id: 'z_butter', ansicht: 'kuehl_nah', x: 530, y: 326, w: 216, h: 86, typ: 'nehmen', zustand: 'butter_weg',
+      gibt: 'butter', nurGruppe: 'B', ohneMarke: true, label: 'Butter auf dem Papier' },
+    { id: 'z_safran', ansicht: 'schlafzimmer', x: 835, y: 442, w: 140, h: 112, typ: 'nehmen', zustand: 'safran_weg',
+      gibt: 'safran', nurGruppe: 'A', sichtbarWenn: 'sz_nachttisch_offen', label: 'Döschen in der Schublade',
+      ohneMarke: true, zeichnung: liegt('leg-safran.webp', 835, 442, 140, 112, 'safran_weg')},
+    { id: 'z_mehl', ansicht: 'kue_ober_nah', x: 672, y: 645, w: 176, h: 230, typ: 'nehmen', zustand: 'mehl_weg',
+      gibt: 'mehl', nurGruppe: 'A', label: 'Mehltüte im Schrank',
+      ohneMarke: true, zeichnung: liegt('leg-mehl.webp', 672, 645, 176, 230, 'mehl_weg')},
+    { id: 'z_kardamom', ansicht: 'schlafzimmer', x: 1362, y: 553, w: 136, h: 94, typ: 'nehmen', zustand: 'kardamom_weg',
+      gibt: 'kardamom', nurGruppe: 'B', sichtbarWenn: 'sz_frisier_offen', label: 'Kapseln in der Schublade',
+      ohneMarke: true, zeichnung: liegt('leg-kardamom.webp', 1362, 553, 136, 94, 'kardamom_weg')},
+    { id: 'z_rosinen', ansicht: 'dachboden', x: 1310, y: 690, w: 160, h: 105, typ: 'nehmen', zustand: 'rosinen_weg',
+      gibt: 'rosinen', nurGruppe: 'B', sichtbarWenn: 'dach_truhe_offen', label: 'Beutel in der Truhe',
+      ohneMarke: true, zeichnung: liegt('leg-rosinen.webp', 1310, 690, 160, 105, 'rosinen_weg')},
   ];
 
   // 20 Eier: 8 getarnt (Ebene 1), 7 verschlossen (Ebene 2), 5 Rätsel (Ebene 3)
@@ -2188,8 +2190,9 @@
           l.onclick = () => {
             waehle(null, true); beutelZu();
             if (g.blatt) {
-              document.getElementById('info-titel').textContent = g.blatt.titel || g.name;
-              document.getElementById('info-text').textContent = g.blatt.text || g.text || '';
+              // Über infoFenster, damit Bild und Ordnerliste vom Rechner
+              // zurückgesetzt werden. Vorher stand beides noch darunter.
+              infoFenster(g.blatt.titel || g.name, g.blatt.text || g.text || '', g.blatt.bild, null);
               document.getElementById('info-modal').classList.add('show');
             } else geheZu(g.nah);
           };
