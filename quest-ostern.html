@@ -373,7 +373,7 @@
 
   // Wird bei jedem Paket neu gesetzt. Steht unten im Startbildschirm, damit man
   // sofort sieht, welche Fassung gerade live ist.
-  const BAUSTAND = '07.11.2026 23:17';
+  const BAUSTAND = '09.11.2026 13:07';
   const SPEICHER_KEY = 'ostern_fortschritt';
   const HINWEISE_GESAMT = 3;
   // Gemeinsamer Faktor für alle Eier. Die Radien in EIER bleiben, hier wird
@@ -3429,17 +3429,25 @@
   // { bild: 'datei.webp', text: 'Bildunterschrift' } anhängen.
   // Diashow hinter dem Abspann: erst der Bauplan, dann der Raum, der
   // daraus wurde. Ohne Erklärtext — das erschliesst sich beim Zusehen.
+  // Diashow hinter dem Abspann. Je Raum drei Stufen: erst die nackte
+  // Geometrie, dann der ausgearbeitete Bauplan, dann der fertige Raum.
   const ABSPANN_BILDER = [
-    'alt-garage1.webp', 'garage-zu.webp', 'alt-garage2.webp', 'garage2-zu.webp',
-    'alt-wohnzimmer.webp', 'wohnzimmer-zu.webp', 'wz-frau-wach.webp', 'sessel-nah.webp',
-    'alt-kueche.webp', 'kueche-dunkel.webp', 'kueche-hell.webp', 'kue-unten-nah.webp',
-    'topf-batterien.webp', 'alt-bad.webp', 'bad.webp', 'wanne-nah.webp',
-    'bad-wanne-leer.webp', 'ente-vorn.webp', 'ente-nah.webp', 'alt-schlafzimmer.webp',
-    'schlafzimmer.webp', 'sz-nachttisch.webp', 'koffer-nah.webp', 'bild-vorn.webp',
-    'bild-hinten-zu.webp', 'alt-acizimmer.webp', 'aci-zimmer.webp', 'aquarium-nah.webp',
-    'pc-schirm.webp', 'schreibtisch.webp', 'pc-skalar.webp', 'treppenhaus-dunkel.webp',
-    'th-kiste-nah.webp', 'alt-dachboden.webp', 'dachboden.webp', 'dachboden-offen.webp',
-    'kuehl-nah.webp', 'backen-0-leer.webp', 'backen-3-butter.webp', 'aci-kuchen.webp'
+    'alt-garage1.webp', 'plan-garage1.webp', 'garage-zu.webp',
+    'alt-garage2.webp', 'garage2-zu.webp',
+    'alt-wohnzimmer.webp', 'plan-wohnzimmer.webp', 'wohnzimmer-zu.webp',
+    'wz-frau-wach.webp', 'sessel-nah.webp',
+    'alt-kueche.webp', 'plan-kueche.webp', 'kueche-dunkel.webp',
+    'kueche-hell.webp', 'kue-unten-nah.webp', 'topf-batterien.webp',
+    'alt-bad.webp', 'plan-bad.webp', 'bad.webp',
+    'wanne-nah.webp', 'bad-wanne-leer.webp', 'ente-vorn.webp',
+    'alt-schlafzimmer.webp', 'schlafzimmer.webp', 'sz-nachttisch.webp',
+    'koffer-nah.webp', 'bild-vorn.webp', 'bild-hinten-zu.webp',
+    'alt-acizimmer.webp', 'plan-acizimmer.webp', 'aci-zimmer.webp',
+    'aquarium-nah.webp', 'pc-schirm.webp', 'schreibtisch.webp', 'pc-skalar.webp',
+    'treppenhaus-dunkel.webp', 'th-kiste-nah.webp',
+    'alt-dachboden.webp', 'plan-dachboden.webp', 'dachboden.webp',
+    'dachboden-offen.webp', 'kuehl-nah.webp',
+    'backen-0-leer.webp', 'backen-3-butter.webp', 'aci-kuchen.webp'
   ];
   const ABSPANN_MUSIK = 'ostern/toene/abspann.mp3';
   // Länge der Hymne in Sekunden. Die Rolle richtet sich danach, damit der
