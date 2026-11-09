@@ -373,7 +373,7 @@
 
   // Wird bei jedem Paket neu gesetzt. Steht unten im Startbildschirm, damit man
   // sofort sieht, welche Fassung gerade live ist.
-  const BAUSTAND = '09.11.2026 13:36';
+  const BAUSTAND = '09.11.2026 13:39';
   const SPEICHER_KEY = 'ostern_fortschritt';
   const HINWEISE_GESAMT = 3;
   // Gemeinsamer Faktor für alle Eier. Die Radien in EIER bleiben, hier wird
@@ -3575,13 +3575,10 @@
     musikAus(0.8);
     if (ABSPANNTEST) { zeigeAbspann(); return; }   // im Testmodus einfach von vorn
     document.getElementById('screen-abspann').classList.add('hidden');
-    if (zustand.gruppe) {
-      const fehlt = fehlendeZutaten();
-      document.getElementById('ende-zutaten').textContent = fehlt.length
-        ? 'Dir fehlen noch: ' + fehlt.join(', ')
-        : '';
-    }
-    document.getElementById('screen-ende').classList.remove('hidden');
+    // Über spielEnde, damit Bild, Text und Knöpfe zum Spielstand passen.
+    // Vorher wurde der Endbildschirm nur wieder eingeblendet, so wie er
+    // beim letzten Mal stehengeblieben war.
+    spielEnde();
   };
 
   // ---- Adminansicht ----
