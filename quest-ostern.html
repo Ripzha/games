@@ -373,7 +373,7 @@
 
   // Wird bei jedem Paket neu gesetzt. Steht unten im Startbildschirm, damit man
   // sofort sieht, welche Fassung gerade live ist.
-  const BAUSTAND = '09.11.2026 13:35';
+  const BAUSTAND = '09.11.2026 13:36';
   const SPEICHER_KEY = 'ostern_fortschritt';
   const HINWEISE_GESAMT = 3;
   // Gemeinsamer Faktor für alle Eier. Die Radien in EIER bleiben, hier wird
@@ -3785,6 +3785,10 @@
     document.getElementById('backen-knopf').style.display = durch ? 'none' : '';
     document.getElementById('ende-weiter').style.display = durch ? 'none' : '';
     document.getElementById('abspann-nochmal').style.display = durch ? '' : 'none';
+    // Ist gebacken, steht der Kulitsch über dem Text statt Aci mit dem Korb
+    document.getElementById('ende-bild').src = durch
+      ? 'ostern/bilder/kulitsch.webp'
+      : 'ostern/bilder/aci-schluss.webp';
     document.getElementById('ende-zutaten').textContent = '';
     document.getElementById('ende-zeit').textContent = uhrText(zustand.zeit);
     document.getElementById('ende-label').textContent = 'für alle ' + meineEier().length + ' Eier';
