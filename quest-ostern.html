@@ -373,7 +373,7 @@
 
   // Wird bei jedem Paket neu gesetzt. Steht unten im Startbildschirm, damit man
   // sofort sieht, welche Fassung gerade live ist.
-  const BAUSTAND = '09.11.2026 13:34';
+  const BAUSTAND = '09.11.2026 13:35';
   const SPEICHER_KEY = 'ostern_fortschritt';
   const HINWEISE_GESAMT = 3;
   // Gemeinsamer Faktor für alle Eier. Die Radien in EIER bleiben, hier wird
@@ -3451,10 +3451,13 @@
     'aquarium-nah.webp', 'pc-schirm.webp', 'schreibtisch.webp', 'pc-skalar.webp',
     'treppenhaus-dunkel.webp', 'th-kiste-nah.webp',
     'alt-dachboden.webp', 'plan-dachboden.webp', 'dachboden.webp',
-    'kuehl-nah.webp', 'aci-kuchen.webp',
+    'kuehl-nah.webp', 'kulitsch.webp',
     'wir-katze.webp',
-    'kulitsch.webp'
+    // Das letzte Bild bleibt bis zum Schluss stehen, siehe ABSPANN_SCHLUSS
+    'aci-kuchen.webp'
   ];
+  // So lange steht das letzte Bild mindestens, in Sekunden
+  const ABSPANN_SCHLUSS = 16;
   const ABSPANN_MUSIK = 'ostern/toene/abspann.mp3';
   // Länge der Hymne in Sekunden. Die Rolle richtet sich danach, damit der
   // letzte Satz steht, wenn der letzte Ton verklingt. Auf 0 setzen, wenn
@@ -3524,8 +3527,16 @@
       if (n > 0) obenB = !obenB;
     };
     zeig(0);
-    const takt = Math.max(3000, Math.round((ABSPANN_DAUER || 180) * 1000 / liste.length));
-    diaTimer = setInterval(() => { i = (i + 1) % liste.length; zeig(i); }, takt);
+    // Die übrigen Bilder teilen sich die Zeit bis zum Schlussbild, das danach
+    // einfach stehen bleibt. Kein Rundlauf mehr.
+    const gesamt = (ABSPANN_DAUER || 180) - ABSPANN_SCHLUSS;
+    const takt = Math.max(2500, Math.round(gesamt * 1000 / Math.max(1, liste.length - 1)));
+    diaTimer = setInterval(() => {
+      i++;
+      if (i >= liste.length) { diashowStop(); return; }
+      zeig(i);
+      if (i === liste.length - 1) diashowStop();
+    }, takt);
   }
   function diashowStop() { clearInterval(diaTimer); diaTimer = null; }
   function zeigeAbspann() {
